@@ -1,0 +1,255 @@
+# ==========================================
+# LMS API - Git Ignore File
+# ==========================================
+
+# ==========================================
+# Environment & Configuration
+# ==========================================
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+*.env
+
+# ==========================================
+# Composer (PHP Dependencies)
+# ==========================================
+/lms-api/vendor/
+/vendor/
+composer.phar
+composer.lock
+
+# ==========================================
+# Storage & Uploads
+# ==========================================
+/lms-api/storage/uploads/*
+/lms-api/storage/logs/*
+/lms-api/storage/cache/*
+/lms-api/storage/temp/*
+!/lms-api/storage/uploads/.gitkeep
+!/lms-api/storage/logs/.gitkeep
+!/lms-api/storage/cache/.gitkeep
+
+# ==========================================
+# Log Files
+# ==========================================
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+error.log
+access.log
+
+# ==========================================
+# Database Files
+# ==========================================
+*.sql.gz
+*.sqlite
+*.sqlite3
+*.db
+
+# Exclude large database dumps (keep schema files)
+database_backup_*.sql
+dump_*.sql
+
+# Keep these important SQL files
+!database_lms_api.sql
+!lms-api/setup.sql
+
+# ==========================================
+# IDE & Editor Files
+# ==========================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (PhpStorm, WebStorm, IntelliJ)
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# NetBeans
+nbproject/
+nbbuild/
+dist/
+nbdist/
+
+# Eclipse
+.buildpath
+.project
+.settings/
+
+# Vim
+*.swp
+*.swo
+*~
+.vim/
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ==========================================
+# Operating System Files
+# ==========================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.stackdump
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+# ==========================================
+# PHP Specific
+# ==========================================
+*.cache
+*.tmp
+.phpunit.result.cache
+phpunit.xml
+.php_cs.cache
+.php-cs-fixer.cache
+
+# ==========================================
+# Node.js (if using for frontend)
+# ==========================================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+.npm
+.yarn-integrity
+
+# ==========================================
+# Build & Distribution
+# ==========================================
+/build/
+/dist/
+/out/
+/public/build/
+/public/hot
+/public/storage
+
+# ==========================================
+# Testing
+# ==========================================
+/coverage/
+/.phpunit.cache
+.phpunit.result.cache
+phpunit.xml.bak
+
+# ==========================================
+# Temporary Files
+# ==========================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+*.orig
+*.cache
+~$*
+
+# ==========================================
+# Security & Sensitive Data
+# ==========================================
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+*.secret
+
+# API Keys & Tokens
+api_keys.txt
+tokens.txt
+secrets.txt
+
+# ==========================================
+# Project Specific
+# ==========================================
+
+# Postman temporary files
+*.postman_environment.json.backup
+
+# Test database files
+test_db_*.php
+test_*.log
+
+# Personal notes (keep decr.md if it's important)
+# decr.md
+notes.txt
+todo.txt
+scratchpad.md
+
+# Database connection test files (optional - keep if needed for setup)
+# test_db.php
+# test_login.php
+
+# ==========================================
+# Documentation (Keep these)
+# ==========================================
+# These files should be tracked:
+# README.md
+# API_ENDPOINTS_MAP.md
+# PROJECT_SUMMARY.md
+# postman_collection.json
+# composer.json
+
+# ==========================================
+# Misc
+# ==========================================
+.htpasswd
+.ftpconfig
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+error_log
+php_error.log

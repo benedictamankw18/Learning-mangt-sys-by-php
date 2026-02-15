@@ -1,0 +1,83 @@
+MIT License
+
+Copyright (c) 2026 LMS API Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Third-Party Licenses
+
+This project uses the following open-source libraries:
+
+### PHP Dependencies (via Composer)
+
+1. **Firebase PHP-JWT**
+   - License: BSD-3-Clause
+   - Copyright: Firebase
+   - URL: https://github.com/firebase/php-jwt
+
+2. **PHPDotEnv**
+   - License: BSD-3-Clause
+   - Copyright: Vance Lucas
+   - URL: https://github.com/vlucas/phpdotenv
+
+3. **PHPMailer**
+   - License: LGPL-2.1
+   - Copyright: PHPMailer Contributors
+   - URL: https://github.com/PHPMailer/PHPMailer
+
+### Educational Use
+
+This Learning Management System (LMS) REST API is intended for:
+- Educational purposes
+- Learning PHP and REST API development
+- Academic projects
+- Non-commercial use
+- Portfolio demonstrations
+
+### Commercial Use
+
+While the MIT License permits commercial use, users are encouraged to:
+- Review and comply with all third-party library licenses
+- Ensure proper security audits before production deployment
+- Implement additional security measures as needed
+- Customize the system for specific institutional requirements
+
+### Disclaimer
+
+This software is provided for educational purposes. The authors and contributors
+make no guarantees about its suitability for production use without proper
+security audits, testing, and customization.
+
+For production deployments in educational institutions, it is strongly recommended to:
+1. Conduct thorough security audits
+2. Implement additional security measures
+3. Perform comprehensive testing
+4. Customize to meet specific institutional needs
+5. Ensure compliance with relevant data protection regulations (GDPR, FERPA, etc.)
+
+---
+
+## Attribution
+
+If you use this software in your project, attribution is appreciated but not required.
+
+Example attribution:
+"Built with LMS API - An educational Learning Management System REST API"
