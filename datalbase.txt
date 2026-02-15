@@ -1,0 +1,1602 @@
+-- =========================================
+-- ROLES
+-- =========================================
+CREATE TABLE Roles (
+    RoleId INT IDENTITY(1,1) PRIMARY KEY,
+    RoleName NVARCHAR(50) NOT NULL UNIQUE
+);
+
+-- =========================================
+-- USERS
+-- =========================================
+CREATE TABLE Users (
+    UserId INT IDENTITY(1,1) PRIMARY KEY,
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    IsActive BIT DEFAULT 1,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME()
+);
+
+CREATE TABLE UserRoles (
+    UserRoleId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    RoleId INT NOT NULL,
+    CONSTRAINT FK_UserRoles_User FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    CONSTRAINT FK_UserRoles_Role FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
+    UNIQUE(UserId, RoleId)
+);
+
+-- =========================================
+-- ACADEMIC STRUCTURE
+-- =========================================
+CREATE TABLE AcademicYears (
+    AcademicYearId INT IDENTITY(1,1) PRIMARY KEY,
+    YearName NVARCHAR(20) NOT NULL UNIQUE, -- e.g. 2025/2026
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    IsCurrent BIT DEFAULT 0,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME()
+);
+
+CREATE TABLE Semesters (
+    SemesterId INT IDENTITY(1,1) PRIMARY KEY,
+    AcademicYearId INT NOT NULL,
+    SemesterName NVARCHAR(20) NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    IsCurrent BIT DEFAULT 0,
+    CONSTRAINT FK_Semesters_AcademicYear FOREIGN KEY (AcademicYearId)
+        REFERENCES AcademicYears(AcademicYearId) ON DELETE CASCADE
+);
+
+CREATE TABLE Levels (
+    LevelId INT IDENTITY(1,1) PRIMARY KEY,
+    LevelName NVARCHAR(20) NOT NULL UNIQUE, -- SHS 1, SHS 2
+    LevelOrder INT NOT NULL UNIQUE -- 1,2,3
+);
+
+CREATE TABLE Classes (
+    ClassId INT IDENTITY(1,1) PRIMARY KEY,
+    ClassName NVARCHAR(50) NOT NULL,
+    LevelId INT NOT NULL,
+    AcademicYearId INT NOT NULL,
+    CONSTRAINT FK_Classes_Level FOREIGN KEY (LevelId) REFERENCES Levels(LevelId),
+    CONSTRAINT FK_Classes_AcademicYear FOREIGN KEY (AcademicYearId) REFERENCES AcademicYears(AcademicYearId)
+);
+
+-- =========================================
+-- USERS SUBTYPES
+-- =========================================
+CREATE TABLE Students (
+    StudentId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT UNIQUE,
+    AdmissionNumber NVARCHAR(50) NOT NULL UNIQUE,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    Gender NVARCHAR(10) NOT NULL, -- male, female
+    DateOfBirth DATE,
+    AdmissionDate DATE NOT NULL,
+    Status NVARCHAR(20) DEFAULT 'active', -- active, graduated, withdrawn, suspended
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Students_User FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
+);
+
+CREATE TABLE Teachers (
+    TeacherId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT UNIQUE,
+    StaffNumber NVARCHAR(50) NOT NULL UNIQUE,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    EmploymentDate DATE,
+    CONSTRAINT FK_Teachers_User FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE SET NULL
+);
+
+CREATE TABLE Admins (
+    AdminId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL UNIQUE,
+    StaffNumber NVARCHAR(50) UNIQUE,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    RoleTitle NVARCHAR(100),
+    Phone NVARCHAR(20),
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Admins_User FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE Parents (
+    ParentId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL UNIQUE,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    Phone NVARCHAR(20),
+    Email NVARCHAR(100),
+    Occupation NVARCHAR(100),
+    Address NVARCHAR(MAX),
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Parents_User FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE ParentStudents (
+    ParentStudentId INT IDENTITY(1,1) PRIMARY KEY,
+    ParentId INT NOT NULL,
+    StudentId INT NOT NULL,
+    Relationship NVARCHAR(20) NOT NULL, -- father, mother, guardian, sponsor, other
+    IsPrimary BIT DEFAULT 0,
+    UNIQUE(ParentId, StudentId),
+    CONSTRAINT FK_ParentStudents_Parent FOREIGN KEY (ParentId) REFERENCES Parents(ParentId) ON DELETE CASCADE,
+    CONSTRAINT FK_ParentStudents_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- ENROLLMENTS & PROMOTIONS
+-- =========================================
+CREATE TABLE Enrollments (
+    EnrollmentId INT IDENTITY(1,1) PRIMARY KEY,
+    StudentId INT NOT NULL,
+    AcademicYearId INT NOT NULL,
+    LevelId INT NOT NULL,
+    ClassId INT NULL,
+    EnrollmentStatus NVARCHAR(20) DEFAULT 'active', -- active, promoted, repeated, withdrawn
+    PromotionStatus NVARCHAR(20) DEFAULT 'pending', -- pending, promoted, repeated
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    UNIQUE(StudentId, AcademicYearId),
+    CONSTRAINT FK_Enrollments_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE,
+    CONSTRAINT FK_Enrollments_Year FOREIGN KEY (AcademicYearId) REFERENCES AcademicYears(AcademicYearId),
+    CONSTRAINT FK_Enrollments_Level FOREIGN KEY (LevelId) REFERENCES Levels(LevelId),
+    CONSTRAINT FK_Enrollments_Class FOREIGN KEY (ClassId) REFERENCES Classes(ClassId) ON DELETE SET NULL
+);
+
+CREATE TABLE PromotionDecisions (
+    DecisionId INT IDENTITY(1,1) PRIMARY KEY,
+    StudentId INT NOT NULL,
+    AcademicYearId INT NOT NULL,
+    CurrentLevelId INT NOT NULL,
+    NextLevelId INT NULL,
+    Decision NVARCHAR(20) NOT NULL, -- promoted, repeated, withdrawn, graduated
+    DecisionDate DATE NOT NULL,
+    ApprovedBy INT NULL,
+    Remarks NVARCHAR(MAX),
+    CONSTRAINT FK_PromotionDecisions_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId),
+    CONSTRAINT FK_PromotionDecisions_Year FOREIGN KEY (AcademicYearId) REFERENCES AcademicYears(AcademicYearId),
+    CONSTRAINT FK_PromotionDecisions_CurrentLevel FOREIGN KEY (CurrentLevelId) REFERENCES Levels(LevelId),
+    CONSTRAINT FK_PromotionDecisions_NextLevel FOREIGN KEY (NextLevelId) REFERENCES Levels(LevelId) ON DELETE SET NULL,
+    CONSTRAINT FK_PromotionDecisions_ApprovedBy FOREIGN KEY (ApprovedBy) REFERENCES Users(UserId) ON DELETE SET NULL
+);
+
+-- =========================================
+-- SUBJECTS & TEACHERS
+-- =========================================
+CREATE TABLE Subjects (
+    SubjectId INT IDENTITY(1,1) PRIMARY KEY,
+    SubjectName NVARCHAR(100) NOT NULL UNIQUE,
+    SubjectCode NVARCHAR(20) UNIQUE,
+    IsCore BIT DEFAULT 0
+);
+
+CREATE TABLE LevelSubjects (
+    LevelSubjectId INT IDENTITY(1,1) PRIMARY KEY,
+    LevelId INT NOT NULL,
+    SubjectId INT NOT NULL,
+    UNIQUE(LevelId, SubjectId),
+    CONSTRAINT FK_LevelSubjects_Level FOREIGN KEY (LevelId) REFERENCES Levels(LevelId) ON DELETE CASCADE,
+    CONSTRAINT FK_LevelSubjects_Subject FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId) ON DELETE CASCADE
+);
+
+CREATE TABLE TeacherSubjects (
+    TeacherSubjectId INT IDENTITY(1,1) PRIMARY KEY,
+    TeacherId INT NOT NULL,
+    SubjectId INT NOT NULL,
+    ClassId INT NOT NULL,
+    LevelId INT NOT NULL,
+    UNIQUE(TeacherId, SubjectId, ClassId, LevelId),
+    CONSTRAINT FK_TeacherSubjects_Teacher FOREIGN KEY (TeacherId) REFERENCES Teachers(TeacherId) ON DELETE CASCADE,
+    CONSTRAINT FK_TeacherSubjects_Subject FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId),
+    CONSTRAINT FK_TeacherSubjects_Class FOREIGN KEY (ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE,
+    CONSTRAINT FK_TeacherSubjects_Level FOREIGN KEY (LevelId) REFERENCES Levels(LevelId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- RESULTS
+-- =========================================
+CREATE TABLE Results (
+    ResultId INT IDENTITY(1,1) PRIMARY KEY,
+    StudentId INT NOT NULL,
+    SubjectId INT NOT NULL,
+    SemesterId INT NOT NULL,
+    ClassScore DECIMAL(5,2) DEFAULT 0,
+    ExamScore DECIMAL(5,2) DEFAULT 0,
+    TotalScore AS (ClassScore + ExamScore) PERSISTED,
+    Grade NVARCHAR(5),
+    Remark NVARCHAR(10), -- Pass / Fail
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    UNIQUE(StudentId, SubjectId, SemesterId),
+    CONSTRAINT FK_Results_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE,
+    CONSTRAINT FK_Results_Subject FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId),
+    CONSTRAINT FK_Results_Semester FOREIGN KEY (SemesterId) REFERENCES Semesters(SemesterId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- ATTENDANCE
+-- =========================================
+CREATE TABLE Attendance (
+    AttendanceId INT IDENTITY(1,1) PRIMARY KEY,
+    StudentId INT NOT NULL,
+    ClassId INT NOT NULL,
+    AttendanceDate DATE NOT NULL,
+    Status NVARCHAR(10) NOT NULL, -- present, absent, late
+    UNIQUE(StudentId, ClassId, AttendanceDate),
+    CONSTRAINT FK_Attendance_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE,
+    CONSTRAINT FK_Attendance_Class FOREIGN KEY (ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- ASSESSMENTS
+-- =========================================
+CREATE TABLE AssessmentCategories (
+    CategoryId INT IDENTITY(1,1) PRIMARY KEY,
+    CategoryName NVARCHAR(100) NOT NULL, -- Assignment, Quiz, Exam
+    WeightPercentage DECIMAL(5,2) NOT NULL,
+    LevelId INT NOT NULL,
+    SubjectId INT NOT NULL,
+    AcademicYearId INT NOT NULL,
+    CONSTRAINT FK_AC_Level FOREIGN KEY (LevelId) REFERENCES Levels(LevelId) ON DELETE CASCADE,
+    CONSTRAINT FK_AC_Subject FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId) ON DELETE CASCADE,
+    CONSTRAINT FK_AC_Year FOREIGN KEY (AcademicYearId) REFERENCES AcademicYears(AcademicYearId) ON DELETE CASCADE
+);
+
+CREATE TABLE Assessments (
+    AssessmentId INT IDENTITY(1,1) PRIMARY KEY,
+    CategoryId INT NOT NULL,
+    Title NVARCHAR(255) NOT NULL,
+    TotalMarks DECIMAL(5,2) NOT NULL,
+    AssessmentDate DATE,
+    SemesterId INT NOT NULL,
+    CreatedBy INT NOT NULL,
+    CONSTRAINT FK_Assessments_Category FOREIGN KEY (CategoryId) REFERENCES AssessmentCategories(CategoryId) ON DELETE CASCADE,
+    CONSTRAINT FK_Assessments_Semester FOREIGN KEY (SemesterId) REFERENCES Semesters(SemesterId) ON DELETE CASCADE,
+    CONSTRAINT FK_Assessments_Creator FOREIGN KEY (CreatedBy) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE AssessmentScores (
+    ScoreId INT IDENTITY(1,1) PRIMARY KEY,
+    AssessmentId INT NOT NULL,
+    StudentId INT NOT NULL,
+    Score DECIMAL(5,2) NOT NULL,
+    GradedAt DATETIME2 DEFAULT SYSDATETIME(),
+    UNIQUE(AssessmentId, StudentId),
+    CONSTRAINT FK_AssessmentScores_Assessment FOREIGN KEY (AssessmentId) REFERENCES Assessments(AssessmentId) ON DELETE CASCADE,
+    CONSTRAINT FK_AssessmentScores_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- GRADE SCALES
+-- =========================================
+CREATE TABLE GradeScales (
+    GradeId INT IDENTITY(1,1) PRIMARY KEY,
+    GradeLetter NVARCHAR(5),
+    MinScore DECIMAL(5,2),
+    MaxScore DECIMAL(5,2),
+    Remark NVARCHAR(20)
+);
+
+-- =========================================
+-- LEARNING MATERIALS
+-- =========================================
+CREATE TABLE LearningMaterials (
+    MaterialId INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    FileName NVARCHAR(255) NOT NULL,
+    FilePath NVARCHAR(500) NOT NULL,
+    FileSize BIGINT NOT NULL,
+    FileType NVARCHAR(20) NOT NULL,
+    MimeType NVARCHAR(100) NULL,
+    UploadedBy INT NOT NULL,
+    SubjectId INT NOT NULL,
+    ClassId INT NOT NULL,
+    SemesterId INT NULL,
+    AcademicYearId INT NOT NULL,
+    IsVisible BIT DEFAULT 1,
+    AllowDownload BIT DEFAULT 1,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2 NULL,
+    CONSTRAINT FK_LearningMaterials_Uploader FOREIGN KEY (UploadedBy) REFERENCES Users(UserId) ON DELETE CASCADE,
+    CONSTRAINT FK_LearningMaterials_Subject FOREIGN KEY (SubjectId) REFERENCES Subjects(SubjectId) ON DELETE CASCADE,
+    CONSTRAINT FK_LearningMaterials_Class FOREIGN KEY (ClassId) REFERENCES Classes(ClassId) ON DELETE CASCADE,
+    CONSTRAINT FK_LearningMaterials_Semester FOREIGN KEY (SemesterId) REFERENCES Semesters(SemesterId) ON DELETE SET NULL,
+    CONSTRAINT FK_LearningMaterials_Year FOREIGN KEY (AcademicYearId) REFERENCES AcademicYears(AcademicYearId) ON DELETE CASCADE
+);
+
+CREATE TABLE MaterialDownloads (
+    DownloadId INT IDENTITY(1,1) PRIMARY KEY,
+    MaterialId INT NOT NULL,
+    UserId INT NOT NULL,
+    DownloadedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_MaterialDownloads_Material FOREIGN KEY (MaterialId) REFERENCES LearningMaterials(MaterialId) ON DELETE CASCADE,
+    CONSTRAINT FK_MaterialDownloads_User FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE MaterialVersions (
+    VersionId INT IDENTITY(1,1) PRIMARY KEY,
+    MaterialId INT NOT NULL,
+    VersionNumber INT NOT NULL,
+    FilePath NVARCHAR(500) NOT NULL,
+    UploadedAt DATETIME2 DEFAULT SYSDATETIME(),
+    UNIQUE(MaterialId, VersionNumber),
+    CONSTRAINT FK_MaterialVersions_Material FOREIGN KEY (MaterialId) REFERENCES LearningMaterials(MaterialId) ON DELETE CASCADE
+);
+
+CREATE TABLE MaterialAccess (
+    AccessId INT IDENTITY(1,1) PRIMARY KEY,
+    MaterialId INT NOT NULL,
+    StudentId INT NOT NULL,
+    UNIQUE(MaterialId, StudentId),
+    CONSTRAINT FK_MaterialAccess_Material FOREIGN KEY (MaterialId) REFERENCES LearningMaterials(MaterialId) ON DELETE CASCADE,
+    CONSTRAINT FK_MaterialAccess_Student FOREIGN KEY (StudentId) REFERENCES Students(StudentId) ON DELETE CASCADE
+);
+
+-- =========================================
+-- COURSES AND COURSE MATERIALS
+-- =========================================
+CREATE TABLE Courses (
+    CourseId INT IDENTITY(1,1) PRIMARY KEY,
+    CourseName NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME()
+);
+
+CREATE TABLE CourseSections (
+    SectionId INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX) NULL,
+    DisplayOrder INT DEFAULT 1,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_CourseSections_Course FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
+CREATE TABLE CourseMaterials (
+    MaterialId INT IDENTITY(1,1) PRIMARY KEY,
+    SectionId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    FilePath NVARCHAR(500) NOT NULL,
+    FileType NVARCHAR(20) NULL,
+    FileSizeKB INT NULL,
+    Description NVARCHAR(MAX) NULL,
+    UploadedBy INT NOT NULL,
+    UploadedAt DATETIME2 DEFAULT SYSDATETIME(),
+    IsActive BIT DEFAULT 1,
+    CONSTRAINT FK_CourseMaterials_Section FOREIGN KEY (SectionId) REFERENCES CourseSections(SectionId) ON DELETE CASCADE,
+    CONSTRAINT FK_CourseMaterials_User FOREIGN KEY (UploadedBy) REFERENCES Users(UserId)
+);
+
+-- =========================================
+-- NOTIFICATIONS SYSTEM
+-- =========================================
+CREATE TABLE Notifications (
+    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(MAX) NOT NULL,
+    NotificationType NVARCHAR(50) NULL,
+    PriorityLevel NVARCHAR(20) DEFAULT 'Normal',
+    IsRead BIT DEFAULT 0,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    ExpiresAt DATETIME2 NULL,
+    CONSTRAINT FK_Notifications_User FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+
+CREATE TABLE NotificationReads (
+    NotificationReadId INT IDENTITY(1,1) PRIMARY KEY,
+    NotificationId INT NOT NULL,
+    UserId INT NOT NULL,
+    ReadAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_NotificationReads_Notification FOREIGN KEY (NotificationId) REFERENCES Notifications(NotificationId),
+    CONSTRAINT FK_NotificationReads_User FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    UNIQUE(NotificationId, UserId)
+);
+
+-- =========================================
+-- ACTIVITY LOG
+-- =========================================
+CREATE TABLE ActivityLog (
+    ActivityId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    ActivityType NVARCHAR(100),
+    Description NVARCHAR(MAX),
+    IPAddress NVARCHAR(50),
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_ActivityLog_User FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+
+
+
+-- =========================================
+-- STORED PROCEDURES, VIEWS, AND FUNCTIONS
+-- =========================================
+
+-- ------------------------
+-- NOTIFICATIONS
+-- ------------------------
+CREATE PROCEDURE sp_CreateNotification
+    @UserId INT,
+    @Title NVARCHAR(200),
+    @Message NVARCHAR(MAX),
+    @NotificationType NVARCHAR(50) = NULL,
+    @PriorityLevel NVARCHAR(20) = 'Normal',
+    @ExpiresAt DATETIME2 = NULL
+AS
+BEGIN
+    INSERT INTO Notifications
+        (UserId, Title, Message, NotificationType, PriorityLevel, ExpiresAt)
+    VALUES
+        (@UserId, @Title, @Message, @NotificationType, @PriorityLevel, @ExpiresAt);
+END;
+GO
+
+CREATE PROCEDURE sp_GetUserNotifications
+    @UserId INT,
+    @TopCount INT = 50
+AS
+BEGIN
+    SELECT TOP (@TopCount)
+        NotificationId,
+        Title,
+        Message,
+        NotificationType,
+        PriorityLevel,
+        IsRead,
+        CreatedAt,
+        ExpiresAt
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME())
+    ORDER BY CreatedAt DESC;
+END;
+GO
+
+CREATE PROCEDURE sp_MarkNotificationAsRead
+    @NotificationId INT
+AS
+BEGIN
+    UPDATE Notifications
+    SET IsRead = 1
+    WHERE NotificationId = @NotificationId;
+END;
+GO
+
+CREATE FUNCTION fn_GetUnreadNotificationCount (@UserId INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Count INT;
+
+    SELECT @Count = COUNT(*)
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND IsRead = 0
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME());
+
+    RETURN @Count;
+END;
+GO
+
+CREATE VIEW vw_NotificationStats
+AS
+SELECT
+    UserId,
+    COUNT(*) AS TotalNotifications,
+    SUM(CASE WHEN IsRead = 0 THEN 1 ELSE 0 END) AS UnreadNotifications,
+    SUM(CASE WHEN IsRead = 1 THEN 1 ELSE 0 END) AS ReadNotifications
+FROM Notifications
+GROUP BY UserId;
+GO
+
+-- ------------------------
+-- CLIENT ERROR LOGS
+-- ------------------------
+CREATE PROCEDURE GetRecentClientErrors
+    @TopCount INT = 50
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP (@TopCount)
+        ClientErrorId,
+        UserId,
+        ErrorMessage,
+        PageUrl,
+        LineNumber,
+        ColumnNumber,
+        UserAgent,
+        LoggedAt,
+        Resolved
+    FROM ClientErrorLogs
+    ORDER BY LoggedAt DESC;
+END;
+GO
+
+CREATE PROCEDURE MarkClientErrorAsResolved
+    @ClientErrorId INT,
+    @ResolvedBy INT
+AS
+BEGIN
+    UPDATE ClientErrorLogs
+    SET Resolved = 1,
+        ResolvedBy = @ResolvedBy,
+        ResolvedAt = SYSDATETIME()
+    WHERE ClientErrorId = @ClientErrorId;
+END;
+GO
+
+-- ------------------------
+-- ACTIVITY LOG / LOGIN ACTIVITY
+-- ------------------------
+CREATE PROCEDURE sp_LogUserActivity
+    @UserId INT,
+    @ActivityType NVARCHAR(100),
+    @Description NVARCHAR(MAX),
+    @IPAddress NVARCHAR(50) = NULL
+AS
+BEGIN
+    INSERT INTO ActivityLog (UserId, ActivityType, Description, IPAddress)
+    VALUES (@UserId, @ActivityType, @Description, @IPAddress);
+END;
+GO
+
+CREATE PROCEDURE sp_LogUserLogin
+    @UserId INT,
+    @IPAddress NVARCHAR(50) = NULL,
+    @UserAgent NVARCHAR(500) = NULL,
+    @IsSuccessful BIT = 1
+AS
+BEGIN
+    INSERT INTO LoginActivity (UserId, LoginTime, IPAddress, UserAgent, IsSuccessful)
+    VALUES (@UserId, SYSDATETIME(), @IPAddress, @UserAgent, @IsSuccessful);
+END;
+GO
+
+CREATE PROCEDURE sp_LogUserLogout
+    @LoginActivityId INT
+AS
+BEGIN
+    UPDATE LoginActivity
+    SET LogoutTime = SYSDATETIME()
+    WHERE LoginActivityId = @LoginActivityId;
+END;
+GO
+
+-- ------------------------
+-- ERROR LOGS
+-- ------------------------
+CREATE PROCEDURE sp_LogError
+    @ErrorMessage NVARCHAR(MAX),
+    @StackTrace NVARCHAR(MAX) = NULL,
+    @Source NVARCHAR(255) = NULL,
+    @InnerException NVARCHAR(MAX) = NULL,
+    @SeverityLevel NVARCHAR(20) = 'Error'
+AS
+BEGIN
+    INSERT INTO ErrorLogs (ErrorMessage, StackTrace, Source, InnerException, SeverityLevel)
+    VALUES (@ErrorMessage, @StackTrace, @Source, @InnerException, @SeverityLevel);
+END;
+GO
+
+CREATE PROCEDURE sp_MarkErrorAsResolved
+    @ErrorLogId INT,
+    @ResolvedBy INT
+AS
+BEGIN
+    UPDATE ErrorLogs
+    SET Resolved = 1,
+        ResolvedBy = @ResolvedBy,
+        ResolvedAt = SYSDATETIME()
+    WHERE ErrorLogId = @ErrorLogId;
+END;
+GO
+
+
+
+
+
+
+-- =========================================
+-- COURSES AND MATERIALS
+-- =========================================
+
+-- Add a new course
+CREATE PROCEDURE sp_AddCourse
+    @CourseName NVARCHAR(200),
+    @Description NVARCHAR(MAX),
+    @CreatedBy INT
+AS
+BEGIN
+    INSERT INTO Courses (CourseName, Description, CreatedBy, CreatedAt)
+    VALUES (@CourseName, @Description, @CreatedBy, SYSDATETIME());
+END;
+GO
+
+-- Add a section to a course
+CREATE PROCEDURE sp_AddCourseSection
+    @CourseId INT,
+    @Title NVARCHAR(200),
+    @Description NVARCHAR(MAX),
+    @DisplayOrder INT = 1
+AS
+BEGIN
+    INSERT INTO CourseSections (CourseId, Title, Description, DisplayOrder, CreatedAt)
+    VALUES (@CourseId, @Title, @Description, @DisplayOrder, SYSDATETIME());
+END;
+GO
+
+-- Add a material to a course section
+CREATE PROCEDURE sp_AddCourseMaterial
+    @SectionId INT,
+    @Title NVARCHAR(200),
+    @FilePath NVARCHAR(500),
+    @FileType NVARCHAR(20),
+    @FileSizeKB INT = NULL,
+    @Description NVARCHAR(MAX),
+    @UploadedBy INT
+AS
+BEGIN
+    INSERT INTO CourseMaterials (SectionId, Title, FilePath, FileType, FileSizeKB, Description, UploadedBy, UploadedAt)
+    VALUES (@SectionId, @Title, @FilePath, @FileType, @FileSizeKB, @Description, @UploadedBy, SYSDATETIME());
+END;
+GO
+
+-- Get all materials for a course section
+CREATE PROCEDURE sp_GetCourseMaterials
+    @SectionId INT
+AS
+BEGIN
+    SELECT MaterialId, Title, FilePath, FileType, FileSizeKB, Description, UploadedBy, UploadedAt, IsActive
+    FROM CourseMaterials
+    WHERE SectionId = @SectionId
+      AND IsActive = 1
+    ORDER BY UploadedAt DESC;
+END;
+GO
+
+-- Mark material as inactive (soft delete)
+CREATE PROCEDURE sp_DeactivateCourseMaterial
+    @MaterialId INT
+AS
+BEGIN
+    UPDATE CourseMaterials
+    SET IsActive = 0
+    WHERE MaterialId = @MaterialId;
+END;
+GO
+
+-- =========================================
+-- ASSESSMENTS AND SCORES
+-- =========================================
+
+-- Add a new assessment category
+CREATE PROCEDURE sp_AddAssessmentCategory
+    @CategoryName NVARCHAR(100),
+    @WeightPercentage DECIMAL(5,2),
+    @LevelId INT,
+    @SubjectId INT,
+    @AcademicYearId INT
+AS
+BEGIN
+    INSERT INTO Assessment_Categories (CategoryName, WeightPercentage, LevelId, SubjectId, AcademicYearId)
+    VALUES (@CategoryName, @WeightPercentage, @LevelId, @SubjectId, @AcademicYearId);
+END;
+GO
+
+-- Add a new assessment
+CREATE PROCEDURE sp_AddAssessment
+    @CategoryId INT,
+    @Title NVARCHAR(255),
+    @TotalMarks DECIMAL(5,2),
+    @AssessmentDate DATE,
+    @SemesterId INT,
+    @CreatedBy INT
+AS
+BEGIN
+    INSERT INTO Assessments (CategoryId, Title, TotalMarks, AssessmentDate, SemesterId, CreatedBy)
+    VALUES (@CategoryId, @Title, @TotalMarks, @AssessmentDate, @SemesterId, @CreatedBy);
+END;
+GO
+
+-- Add a student's score
+CREATE PROCEDURE sp_AddAssessmentScore
+    @AssessmentId INT,
+    @StudentId INT,
+    @Score DECIMAL(5,2)
+AS
+BEGIN
+    INSERT INTO Assessment_Scores (AssessmentId, StudentId, Score)
+    VALUES (@AssessmentId, @StudentId, @Score);
+END;
+GO
+
+-- Get all scores for a student
+CREATE PROCEDURE sp_GetStudentScores
+    @StudentId INT,
+    @SemesterId INT = NULL
+AS
+BEGIN
+    SELECT s.ScoreId, a.Title AS AssessmentTitle, a.TotalMarks, s.Score, ac.CategoryName,
+           su.SubjectName, a.AssessmentDate
+    FROM Assessment_Scores s
+    INNER JOIN Assessments a ON s.AssessmentId = a.AssessmentId
+    INNER JOIN Assessment_Categories ac ON a.CategoryId = ac.CategoryId
+    INNER JOIN Subjects su ON ac.SubjectId = su.SubjectId
+    WHERE s.StudentId = @StudentId
+      AND (@SemesterId IS NULL OR a.SemesterId = @SemesterId)
+    ORDER BY a.AssessmentDate DESC;
+END;
+GO
+
+-- =========================================
+-- RESULTS
+-- =========================================
+
+-- Add or update a student's result for a subject in a semester
+CREATE PROCEDURE sp_AddOrUpdateResult
+    @StudentId INT,
+    @SubjectId INT,
+    @SemesterId INT,
+    @ClassScore DECIMAL(5,2),
+    @ExamScore DECIMAL(5,2),
+    @Grade NVARCHAR(5),
+    @Remark NVARCHAR(10)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Results
+               WHERE StudentId = @StudentId AND SubjectId = @SubjectId AND SemesterId = @SemesterId)
+    BEGIN
+        UPDATE Results
+        SET ClassScore = @ClassScore,
+            ExamScore = @ExamScore,
+            Grade = @Grade,
+            Remark = @Remark,
+            CreatedAt = SYSDATETIME()
+        WHERE StudentId = @StudentId AND SubjectId = @SubjectId AND SemesterId = @SemesterId;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Results (StudentId, SubjectId, SemesterId, ClassScore, ExamScore, Grade, Remark)
+        VALUES (@StudentId, @SubjectId, @SemesterId, @ClassScore, @ExamScore, @Grade, @Remark);
+    END
+END;
+GO
+
+-- Get all results for a student
+CREATE PROCEDURE sp_GetStudentResults
+    @StudentId INT,
+    @SemesterId INT = NULL
+AS
+BEGIN
+    SELECT r.ResultId, su.SubjectName, r.ClassScore, r.ExamScore, r.TotalScore, r.Grade, r.Remark, r.CreatedAt
+    FROM Results r
+    INNER JOIN Subjects su ON r.SubjectId = su.SubjectId
+    WHERE r.StudentId = @StudentId
+      AND (@SemesterId IS NULL OR r.SemesterId = @SemesterId)
+    ORDER BY su.SubjectName;
+END;
+GO
+
+-- =========================================
+-- MATERIAL DOWNLOADS
+-- =========================================
+
+-- Log a material download
+CREATE PROCEDURE sp_LogMaterialDownload
+    @MaterialId INT,
+    @UserId INT
+AS
+BEGIN
+    INSERT INTO Material_Downloads (MaterialId, UserId, DownloadedAt)
+    VALUES (@MaterialId, @UserId, SYSDATETIME());
+END;
+GO
+
+-- Get all downloads for a material
+CREATE PROCEDURE sp_GetMaterialDownloads
+    @MaterialId INT
+AS
+BEGIN
+    SELECT md.DownloadId, u.Username, md.DownloadedAt
+    FROM Material_Downloads md
+    INNER JOIN Users u ON md.UserId = u.UserId
+    WHERE md.MaterialId = @MaterialId
+    ORDER BY md.DownloadedAt DESC;
+END;
+GO
+
+
+
+-- =========================================
+-- USERS AND AUTHENTICATION
+-- =========================================
+
+-- Log a user login attempt
+CREATE PROCEDURE sp_LogLoginActivity
+    @UserId INT,
+    @IPAddress VARCHAR(50),
+    @UserAgent NVARCHAR(500),
+    @IsSuccessful BIT = 1
+AS
+BEGIN
+    INSERT INTO LoginActivity (UserId, LoginTime, IPAddress, UserAgent, IsSuccessful)
+    VALUES (@UserId, SYSDATETIME(), @IPAddress, @UserAgent, @IsSuccessful);
+END;
+GO
+
+-- Log an activity
+CREATE PROCEDURE sp_LogActivity
+    @UserId INT,
+    @ActivityType VARCHAR(100),
+    @Description NVARCHAR(MAX),
+    @IPAddress VARCHAR(50)
+AS
+BEGIN
+    INSERT INTO ActivityLog (UserId, ActivityType, Description, IPAddress, CreatedAt)
+    VALUES (@UserId, @ActivityType, @Description, @IPAddress, SYSDATETIME());
+END;
+GO
+
+-- Mark client error as resolved
+CREATE PROCEDURE MarkClientErrorAsResolved
+    @ClientErrorId INT,
+    @ResolvedBy INT
+AS
+BEGIN
+    UPDATE ClientErrorLogs
+    SET Resolved = 1,
+        ResolvedBy = @ResolvedBy,
+        ResolvedAt = SYSDATETIME()
+    WHERE ClientErrorId = @ClientErrorId;
+END;
+GO
+
+-- Get recent client errors
+CREATE PROCEDURE GetRecentClientErrors
+    @TopCount INT = 50
+AS
+BEGIN
+    SELECT TOP (@TopCount)
+        ClientErrorId,
+        UserId,
+        ErrorMessage,
+        PageUrl,
+        LoggedAt,
+        Resolved
+    FROM ClientErrorLogs
+    ORDER BY LoggedAt DESC;
+END;
+GO
+
+-- =========================================
+-- NOTIFICATIONS
+-- =========================================
+
+-- Create notification
+CREATE PROCEDURE sp_CreateNotification
+    @UserId INT,
+    @Title NVARCHAR(200),
+    @Message NVARCHAR(MAX),
+    @NotificationType VARCHAR(50),
+    @PriorityLevel VARCHAR(20),
+    @ExpiresAt DATETIME2 = NULL
+AS
+BEGIN
+    INSERT INTO Notifications
+    (UserId, Title, Message, NotificationType, PriorityLevel, ExpiresAt, CreatedAt)
+    VALUES
+    (@UserId, @Title, @Message, @NotificationType, @PriorityLevel, @ExpiresAt, SYSDATETIME());
+END;
+GO
+
+-- Mark notification as read
+CREATE PROCEDURE sp_MarkNotificationAsRead
+    @NotificationId INT
+AS
+BEGIN
+    UPDATE Notifications
+    SET IsRead = 1
+    WHERE NotificationId = @NotificationId;
+END;
+GO
+
+-- Get user notifications
+CREATE PROCEDURE sp_GetUserNotifications
+    @UserId INT,
+    @TopCount INT = 50
+AS
+BEGIN
+    SELECT TOP (@TopCount)
+        NotificationId, Title, Message, NotificationType, PriorityLevel, IsRead, CreatedAt
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME())
+    ORDER BY CreatedAt DESC;
+END;
+GO
+
+-- View for notification stats
+CREATE VIEW vw_NotificationStats
+AS
+SELECT
+    UserId,
+    COUNT(*) AS TotalNotifications,
+    SUM(CASE WHEN IsRead = 0 THEN 1 ELSE 0 END) AS UnreadNotifications,
+    SUM(CASE WHEN IsRead = 1 THEN 1 ELSE 0 END) AS ReadNotifications
+FROM Notifications
+GROUP BY UserId;
+GO
+
+-- Function to get unread notification count
+CREATE FUNCTION fn_GetUnreadNotificationCount (@UserId INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Count INT;
+
+    SELECT @Count = COUNT(*)
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND IsRead = 0
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME());
+
+    RETURN @Count;
+END;
+GO
+
+-- =========================================
+-- STUDENTS, ENROLLMENTS, PROMOTIONS
+-- =========================================
+
+-- Enroll a student
+CREATE PROCEDURE sp_EnrollStudent
+    @StudentId INT,
+    @AcademicYearId INT,
+    @LevelId INT,
+    @ClassId INT = NULL,
+    @EnrollmentStatus VARCHAR(20) = 'active'
+AS
+BEGIN
+    INSERT INTO Enrollments (StudentId, AcademicYearId, LevelId, ClassId, EnrollmentStatus, PromotionStatus, CreatedAt)
+    VALUES (@StudentId, @AcademicYearId, @LevelId, @ClassId, @EnrollmentStatus, 'pending', SYSDATETIME());
+END;
+GO
+
+-- Promote or repeat a student
+CREATE PROCEDURE sp_AddPromotionDecision
+    @StudentId INT,
+    @AcademicYearId INT,
+    @CurrentLevelId INT,
+    @NextLevelId INT = NULL,
+    @Decision VARCHAR(20),
+    @ApprovedBy INT,
+    @Remarks NVARCHAR(MAX) = NULL
+AS
+BEGIN
+    INSERT INTO PromotionDecisions (StudentId, AcademicYearId, CurrentLevelId, NextLevelId, Decision, DecisionDate, ApprovedBy, Remarks)
+    VALUES (@StudentId, @AcademicYearId, @CurrentLevelId, @NextLevelId, @Decision, SYSDATETIME(), @ApprovedBy, @Remarks);
+END;
+GO
+
+-- =========================================
+-- ATTENDANCE
+-- =========================================
+
+-- Record attendance
+CREATE PROCEDURE sp_RecordAttendance
+    @StudentId INT,
+    @ClassId INT,
+    @AttendanceDate DATE,
+    @Status VARCHAR(10)
+AS
+BEGIN
+    IF EXISTS(SELECT 1 FROM Attendance WHERE StudentId=@StudentId AND ClassId=@ClassId AND AttendanceDate=@AttendanceDate)
+    BEGIN
+        UPDATE Attendance
+        SET Status=@Status
+        WHERE StudentId=@StudentId AND ClassId=@ClassId AND AttendanceDate=@AttendanceDate;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Attendance (StudentId, ClassId, AttendanceDate, Status)
+        VALUES (@StudentId, @ClassId, @AttendanceDate, @Status);
+    END
+END;
+GO
+
+-- Get attendance for a student
+CREATE PROCEDURE sp_GetStudentAttendance
+    @StudentId INT,
+    @ClassId INT = NULL
+AS
+BEGIN
+    SELECT AttendanceId, StudentId, ClassId, AttendanceDate, Status
+    FROM Attendance
+    WHERE StudentId = @StudentId
+      AND (@ClassId IS NULL OR ClassId=@ClassId)
+    ORDER BY AttendanceDate DESC;
+END;
+GO
+
+-- =========================================
+-- COURSES, SECTIONS, MATERIALS
+-- =========================================
+
+-- Add course
+CREATE PROCEDURE sp_AddCourse
+    @CourseName NVARCHAR(200),
+    @Description NVARCHAR(MAX),
+    @CreatedBy INT
+AS
+BEGIN
+    INSERT INTO Courses (CourseName, Description, CreatedBy, CreatedAt)
+    VALUES (@CourseName, @Description, @CreatedBy, SYSDATETIME());
+END;
+GO
+
+-- Add section
+CREATE PROCEDURE sp_AddCourseSection
+    @CourseId INT,
+    @Title NVARCHAR(200),
+    @Description NVARCHAR(MAX),
+    @DisplayOrder INT = 1
+AS
+BEGIN
+    INSERT INTO CourseSections (CourseId, Title, Description, DisplayOrder, CreatedAt)
+    VALUES (@CourseId, @Title, @Description, @DisplayOrder, SYSDATETIME());
+END;
+GO
+
+-- Add material
+CREATE PROCEDURE sp_AddCourseMaterial
+    @SectionId INT,
+    @Title NVARCHAR(200),
+    @FilePath NVARCHAR(500),
+    @FileType NVARCHAR(20),
+    @FileSizeKB INT = NULL,
+    @Description NVARCHAR(MAX),
+    @UploadedBy INT
+AS
+BEGIN
+    INSERT INTO CourseMaterials (SectionId, Title, FilePath, FileType, FileSizeKB, Description, UploadedBy, UploadedAt)
+    VALUES (@SectionId, @Title, @FilePath, @FileType, @FileSizeKB, @Description, @UploadedBy, SYSDATETIME());
+END;
+GO
+
+-- =========================================
+-- ASSESSMENTS AND SCORES
+-- =========================================
+
+-- Add assessment category
+CREATE PROCEDURE sp_AddAssessmentCategory
+    @CategoryName NVARCHAR(100),
+    @WeightPercentage DECIMAL(5,2),
+    @LevelId INT,
+    @SubjectId INT,
+    @AcademicYearId INT
+AS
+BEGIN
+    INSERT INTO Assessment_Categories (CategoryName, WeightPercentage, LevelId, SubjectId, AcademicYearId)
+    VALUES (@CategoryName, @WeightPercentage, @LevelId, @SubjectId, @AcademicYearId);
+END;
+GO
+
+-- Add assessment
+CREATE PROCEDURE sp_AddAssessment
+    @CategoryId INT,
+    @Title NVARCHAR(255),
+    @TotalMarks DECIMAL(5,2),
+    @AssessmentDate DATE,
+    @SemesterId INT,
+    @CreatedBy INT
+AS
+BEGIN
+    INSERT INTO Assessments (CategoryId, Title, TotalMarks, AssessmentDate, SemesterId, CreatedBy)
+    VALUES (@CategoryId, @Title, @TotalMarks, @AssessmentDate, @SemesterId, @CreatedBy);
+END;
+GO
+
+-- Add assessment score
+CREATE PROCEDURE sp_AddAssessmentScore
+    @AssessmentId INT,
+    @StudentId INT,
+    @Score DECIMAL(5,2)
+AS
+BEGIN
+    INSERT INTO Assessment_Scores (AssessmentId, StudentId, Score)
+    VALUES (@AssessmentId, @StudentId, @Score);
+END;
+GO
+
+-- =========================================
+-- RESULTS
+-- =========================================
+
+-- Add or update result
+CREATE PROCEDURE sp_AddOrUpdateResult
+    @StudentId INT,
+    @SubjectId INT,
+    @SemesterId INT,
+    @ClassScore DECIMAL(5,2),
+    @ExamScore DECIMAL(5,2),
+    @Grade NVARCHAR(5),
+    @Remark NVARCHAR(10)
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM Results WHERE StudentId=@StudentId AND SubjectId=@SubjectId AND SemesterId=@SemesterId)
+    BEGIN
+        UPDATE Results
+        SET ClassScore=@ClassScore,
+            ExamScore=@ExamScore,
+            Grade=@Grade,
+            Remark=@Remark,
+            CreatedAt=SYSDATETIME()
+        WHERE StudentId=@StudentId AND SubjectId=@SubjectId AND SemesterId=@SemesterId;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Results (StudentId, SubjectId, SemesterId, ClassScore, ExamScore, Grade, Remark)
+        VALUES (@StudentId, @SubjectId, @SemesterId, @ClassScore, @ExamScore, @Grade, @Remark);
+    END
+END;
+GO
+
+-- =========================================
+-- MATERIAL DOWNLOADS
+-- =========================================
+
+-- Log download
+CREATE PROCEDURE sp_LogMaterialDownload
+    @MaterialId INT,
+    @UserId INT
+AS
+BEGIN
+    INSERT INTO Material_Downloads (MaterialId, UserId, DownloadedAt)
+    VALUES (@MaterialId, @UserId, SYSDATETIME());
+END;
+GO
+
+-- =========================================
+-- ADDITIONAL HELPER VIEWS
+-- =========================================
+
+-- View for student enrollment summary
+CREATE VIEW vw_StudentEnrollmentSummary
+AS
+SELECT e.EnrollmentId, s.StudentId, s.FirstName, s.LastName, l.LevelName, c.ClassName, ay.YearName, e.EnrollmentStatus
+FROM Enrollments e
+INNER JOIN Students s ON e.StudentId = s.StudentId
+INNER JOIN Levels l ON e.LevelId = l.LevelId
+LEFT JOIN Classes c ON e.ClassId = c.ClassId
+INNER JOIN Academic_Years ay ON e.AcademicYearId = ay.AcademicYearId;
+GO
+
+
+-- =========================================
+-- FUNCTIONS
+-- =========================================
+
+-- Function to get total score for a student in a semester
+CREATE FUNCTION fn_GetSemesterTotalScore
+(
+    @StudentId INT,
+    @SemesterId INT
+)
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+    DECLARE @TotalScore DECIMAL(10,2);
+
+    SELECT @TotalScore = SUM(TotalScore)
+    FROM Results
+    WHERE StudentId = @StudentId
+      AND SemesterId = @SemesterId;
+
+    RETURN ISNULL(@TotalScore,0);
+END;
+GO
+
+-- Function to get average score for a student in a semester
+CREATE FUNCTION fn_GetSemesterAverageScore
+(
+    @StudentId INT,
+    @SemesterId INT
+)
+RETURNS DECIMAL(5,2)
+AS
+BEGIN
+    DECLARE @AvgScore DECIMAL(5,2);
+
+    SELECT @AvgScore = AVG(TotalScore)
+    FROM Results
+    WHERE StudentId = @StudentId
+      AND SemesterId = @SemesterId;
+
+    RETURN ISNULL(@AvgScore,0);
+END;
+GO
+
+-- Function to get student rank in class for a semester
+CREATE FUNCTION fn_GetStudentClassRank
+(
+    @ClassId INT,
+    @SemesterId INT,
+    @StudentId INT
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Rank INT;
+
+    ;WITH Ranked AS (
+        SELECT s.StudentId, SUM(r.TotalScore) AS TotalScore,
+               RANK() OVER (ORDER BY SUM(r.TotalScore) DESC) AS RankNo
+        FROM Results r
+        INNER JOIN Students s ON r.StudentId = s.StudentId
+        INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+        WHERE e.ClassId = @ClassId AND r.SemesterId = @SemesterId
+        GROUP BY s.StudentId
+    )
+    SELECT @Rank = RankNo
+    FROM Ranked
+    WHERE StudentId = @StudentId;
+
+    RETURN ISNULL(@Rank,0);
+END;
+GO
+
+-- Function to get attendance percentage for a student in a class
+CREATE FUNCTION fn_GetAttendancePercentage
+(
+    @StudentId INT,
+    @ClassId INT
+)
+RETURNS DECIMAL(5,2)
+AS
+BEGIN
+    DECLARE @TotalDays INT, @PresentDays INT;
+    
+    SELECT @TotalDays = COUNT(*)
+    FROM Attendance
+    WHERE StudentId = @StudentId
+      AND ClassId = @ClassId;
+
+    SELECT @PresentDays = COUNT(*)
+    FROM Attendance
+    WHERE StudentId = @StudentId
+      AND ClassId = @ClassId
+      AND Status='present';
+
+    IF @TotalDays = 0 RETURN 0;
+    RETURN CAST(@PresentDays * 100.0 / @TotalDays AS DECIMAL(5,2));
+END;
+GO
+
+-- =========================================
+-- VIEWS
+-- =========================================
+
+-- Student grade summary
+CREATE VIEW vw_StudentGrades AS
+SELECT
+    s.StudentId,
+    s.FirstName,
+    s.LastName,
+    c.ClassName,
+    sub.SubjectName,
+    sem.SemesterName,
+    r.TotalScore,
+    r.Grade,
+    r.Remark
+FROM Results r
+INNER JOIN Students s ON r.StudentId = s.StudentId
+INNER JOIN Subjects sub ON r.SubjectId = sub.SubjectId
+INNER JOIN Semesters sem ON r.SemesterId = sem.SemesterId
+INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+LEFT JOIN Classes c ON e.ClassId = c.ClassId;
+GO
+
+-- Student attendance summary
+CREATE VIEW vw_StudentAttendance AS
+SELECT
+    s.StudentId,
+    s.FirstName,
+    s.LastName,
+    c.ClassName,
+    COUNT(a.AttendanceId) AS TotalDays,
+    SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) AS PresentDays,
+    SUM(CASE WHEN a.Status='absent' THEN 1 ELSE 0 END) AS AbsentDays,
+    SUM(CASE WHEN a.Status='late' THEN 1 ELSE 0 END) AS LateDays,
+    CAST(SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) * 100.0 / COUNT(a.AttendanceId) AS DECIMAL(5,2)) AS AttendancePercentage
+FROM Attendance a
+INNER JOIN Students s ON a.StudentId = s.StudentId
+INNER JOIN Classes c ON a.ClassId = c.ClassId
+GROUP BY s.StudentId, s.FirstName, s.LastName, c.ClassName;
+GO
+
+-- Top students per class per semester
+CREATE VIEW vw_TopStudents AS
+SELECT
+    e.ClassId,
+    sem.SemesterId,
+    s.StudentId,
+    s.FirstName,
+    s.LastName,
+    SUM(r.TotalScore) AS TotalScore,
+    RANK() OVER(PARTITION BY e.ClassId, sem.SemesterId ORDER BY SUM(r.TotalScore) DESC) AS RankNo
+FROM Results r
+INNER JOIN Students s ON r.StudentId = s.StudentId
+INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+INNER JOIN Semesters sem ON r.SemesterId = sem.SemesterId
+GROUP BY e.ClassId, sem.SemesterId, s.StudentId, s.FirstName, s.LastName;
+GO
+
+-- View for unread notifications for quick lookup
+CREATE VIEW vw_UnreadNotifications AS
+SELECT UserId, COUNT(*) AS UnreadCount
+FROM Notifications
+WHERE IsRead=0 AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME())
+GROUP BY UserId;
+GO
+
+
+-- =========================================
+-- 1. Report Card for a Student
+-- =========================================
+CREATE PROCEDURE sp_GetStudentReportCard
+    @StudentId INT,
+    @SemesterId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        s.StudentId,
+        s.FirstName,
+        s.LastName,
+        c.ClassName,
+        sub.SubjectName,
+        r.ClassScore,
+        r.ExamScore,
+        r.TotalScore,
+        r.Grade,
+        r.Remark
+    FROM Results r
+    INNER JOIN Students s ON r.StudentId = s.StudentId
+    INNER JOIN Subjects sub ON r.SubjectId = sub.SubjectId
+    INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+    LEFT JOIN Classes c ON e.ClassId = c.ClassId
+    WHERE r.StudentId = @StudentId
+      AND r.SemesterId = @SemesterId
+    ORDER BY sub.SubjectName;
+
+    -- Optional: Total and Average Scores
+    SELECT 
+        dbo.fn_GetSemesterTotalScore(@StudentId, @SemesterId) AS TotalScore,
+        dbo.fn_GetSemesterAverageScore(@StudentId, @SemesterId) AS AverageScore,
+        dbo.fn_GetStudentClassRank(e.ClassId, @SemesterId, @StudentId) AS ClassRank
+    FROM Enrollments e
+    WHERE e.StudentId = @StudentId;
+END;
+GO
+
+-- =========================================
+-- 2. Class Attendance Report
+-- =========================================
+CREATE PROCEDURE sp_GetClassAttendanceReport
+    @ClassId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        s.StudentId,
+        s.FirstName,
+        s.LastName,
+        COUNT(a.AttendanceId) AS TotalDays,
+        SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) AS PresentDays,
+        SUM(CASE WHEN a.Status='absent' THEN 1 ELSE 0 END) AS AbsentDays,
+        SUM(CASE WHEN a.Status='late' THEN 1 ELSE 0 END) AS LateDays,
+        CAST(SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) * 100.0 / COUNT(a.AttendanceId) AS DECIMAL(5,2)) AS AttendancePercentage
+    FROM Attendance a
+    INNER JOIN Students s ON a.StudentId = s.StudentId
+    WHERE a.ClassId = @ClassId
+    GROUP BY s.StudentId, s.FirstName, s.LastName
+    ORDER BY s.LastName, s.FirstName;
+END;
+GO
+
+-- =========================================
+-- 3. Top Performers Report per Class/Semester
+-- =========================================
+CREATE PROCEDURE sp_GetTopPerformers
+    @ClassId INT,
+    @SemesterId INT,
+    @TopCount INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    ;WITH Ranked AS (
+        SELECT 
+            s.StudentId,
+            s.FirstName,
+            s.LastName,
+            SUM(r.TotalScore) AS TotalScore,
+            RANK() OVER (ORDER BY SUM(r.TotalScore) DESC) AS RankNo
+        FROM Results r
+        INNER JOIN Students s ON r.StudentId = s.StudentId
+        INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+        WHERE e.ClassId = @ClassId
+          AND r.SemesterId = @SemesterId
+        GROUP BY s.StudentId, s.FirstName, s.LastName
+    )
+    SELECT TOP (@TopCount) *
+    FROM Ranked
+    ORDER BY RankNo ASC, TotalScore DESC;
+END;
+GO
+
+-- =========================================
+-- 4. Teacher Subject Performance Report
+-- =========================================
+CREATE PROCEDURE sp_GetTeacherSubjectPerformance
+    @TeacherId INT,
+    @SemesterId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        t.TeacherId,
+        t.FirstName AS TeacherFirstName,
+        t.LastName AS TeacherLastName,
+        sub.SubjectName,
+        c.ClassName,
+        s.StudentId,
+        s.FirstName AS StudentFirstName,
+        s.LastName AS StudentLastName,
+        r.ClassScore,
+        r.ExamScore,
+        r.TotalScore,
+        r.Grade,
+        r.Remark
+    FROM Teacher_Subjects ts
+    INNER JOIN Subjects sub ON ts.SubjectId = sub.SubjectId
+    INNER JOIN Classes c ON ts.ClassId = c.ClassId
+    INNER JOIN Enrollments e ON c.ClassId = e.ClassId
+    INNER JOIN Students s ON e.StudentId = s.StudentId
+    INNER JOIN Results r ON s.StudentId = r.StudentId AND r.SubjectId = ts.SubjectId
+    INNER JOIN Teachers t ON ts.TeacherId = t.TeacherId
+    WHERE ts.TeacherId = @TeacherId
+      AND r.SemesterId = @SemesterId
+    ORDER BY c.ClassName, sub.SubjectName, s.LastName, s.FirstName;
+END;
+GO
+
+-- =========================================
+-- 5. Notifications Summary Report
+-- =========================================
+CREATE PROCEDURE sp_GetUserNotificationsSummary
+    @UserId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        n.NotificationId,
+        n.Title,
+        n.Message,
+        n.NotificationType,
+        n.PriorityLevel,
+        n.IsRead,
+        n.CreatedAt,
+        n.ExpiresAt
+    FROM Notifications n
+    WHERE n.UserId = @UserId
+      AND (n.ExpiresAt IS NULL OR n.ExpiresAt > SYSDATETIME())
+    ORDER BY n.IsRead ASC, n.CreatedAt DESC;
+
+    -- Count of unread notifications
+    SELECT dbo.fn_GetUnreadNotificationCount(@UserId) AS UnreadCount;
+END;
+GO
+
+CREATE PROCEDURE sp_GetFullStudentReport
+    @StudentId INT,
+    @SemesterId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- ==============================
+    -- 1. Student Info & Class
+    -- ==============================
+    SELECT
+        s.StudentId,
+        s.FirstName,
+        s.LastName,
+        s.AdmissionNumber,
+        s.Gender,
+        s.DateOfBirth,
+        c.ClassName,
+        l.LevelName,
+        ay.Year_Name AS AcademicYear
+    FROM Students s
+    INNER JOIN Enrollments e ON s.StudentId = e.StudentId
+    LEFT JOIN Classes c ON e.ClassId = c.ClassId
+    LEFT JOIN Levels l ON e.LevelId = l.LevelId
+    LEFT JOIN Academic_Years ay ON e.Academic_Year_Id = ay.Academic_Year_Id
+    WHERE s.StudentId = @StudentId;
+
+    -- ==============================
+    -- 2. Semester Results / Grades
+    -- ==============================
+    SELECT
+        sub.SubjectName,
+        r.ClassScore,
+        r.ExamScore,
+        r.TotalScore,
+        r.Grade,
+        r.Remark
+    FROM Results r
+    INNER JOIN Subjects sub ON r.SubjectId = sub.SubjectId
+    WHERE r.StudentId = @StudentId
+      AND r.SemesterId = @SemesterId
+    ORDER BY sub.SubjectName;
+
+    -- ==============================
+    -- 3. Attendance Summary
+    -- ==============================
+    SELECT
+        COUNT(a.AttendanceId) AS TotalDays,
+        SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) AS PresentDays,
+        SUM(CASE WHEN a.Status='absent' THEN 1 ELSE 0 END) AS AbsentDays,
+        SUM(CASE WHEN a.Status='late' THEN 1 ELSE 0 END) AS LateDays,
+        CAST(SUM(CASE WHEN a.Status='present' THEN 1 ELSE 0 END) * 100.0 / COUNT(a.AttendanceId) AS DECIMAL(5,2)) AS AttendancePercentage
+    FROM Attendance a
+    INNER JOIN Enrollments e ON a.ClassId = e.ClassId AND a.StudentId = e.StudentId
+    WHERE a.StudentId = @StudentId
+      AND e.Academic_Year_Id = (SELECT Academic_Year_Id FROM Enrollments WHERE StudentId = @StudentId)
+      AND a.Attendance_Date BETWEEN 
+            (SELECT Start_Date FROM Semesters WHERE Semester_Id = @SemesterId)
+            AND 
+            (SELECT End_Date FROM Semesters WHERE Semester_Id = @SemesterId);
+
+    -- ==============================
+    -- 4. Class Rank
+    -- ==============================
+    SELECT
+        dbo.fn_GetStudentClassRank(
+            (SELECT ClassId FROM Enrollments WHERE StudentId = @StudentId),
+            @SemesterId,
+            @StudentId
+        ) AS ClassRank;
+
+    -- ==============================
+    -- 5. Unread Notifications Count
+    -- ==============================
+    SELECT dbo.fn_GetUnreadNotificationCount(@StudentId) AS UnreadNotifications;
+
+    -- ==============================
+    -- 6. Recent Notifications (Last 10)
+    -- ==============================
+    SELECT TOP 10
+        NotificationId,
+        Title,
+        Message,
+        NotificationType,
+        PriorityLevel,
+        IsRead,
+        CreatedAt
+    FROM Notifications
+    WHERE UserId = @StudentId
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME())
+    ORDER BY CreatedAt DESC;
+END;
+GO
+

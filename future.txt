@@ -1,0 +1,22 @@
+ Discussion Forums / Q&A
+Why: Enables collaborative learning, peer-to-peer help, course discussions
+
+2. Student Activity Tracking
+Why: Track engagement (which materials viewed, time spent, completion rate)
+
+
+4. Certificates & Achievements
+Why: Course completion recognition, gamification
+
+
+7. Leave/Absence Management
+Why: Formal absence tracking with parent/admin approval
+
+8. Polls & Surveys
+Why: Quick feedback, class decisions, anonymous surveys
+
+9. Live Sessions/Video Conferencing
+Why: Track virtual class attendance, recorded sessions
+
+10. Resource Bookings
+Why: Manage shared resources (computer labs, science equipment)

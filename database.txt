@@ -1,0 +1,773 @@
+CREATE TABLE academic_years (
+    academic_year_id INT AUTO_INCREMENT PRIMARY KEY,
+    year_name VARCHAR(20) NOT NULL UNIQUE, -- e.g. 2025/2026
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    is_current BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE semesters (
+    semester_id INT AUTO_INCREMENT PRIMARY KEY,
+    academic_year_id INT NOT NULL,
+    semester_name VARCHAR(20) NOT NULL, -- semester 1, semester 2
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    is_current BOOLEAN DEFAULT FALSE,
+
+    CONSTRAINT fk_semester_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE levels (
+    level_id INT AUTO_INCREMENT PRIMARY KEY,
+    level_name VARCHAR(20) NOT NULL UNIQUE, -- SHS 1, SHS 2
+    level_order INT NOT NULL UNIQUE -- 1,2,3
+);
+
+CREATE TABLE classes (
+    class_id INT AUTO_INCREMENT PRIMARY KEY,
+    class_name VARCHAR(50) NOT NULL, -- SHS 1A, SHS 2 Science
+    level_id INT NOT NULL,
+    academic_year_id INT NOT NULL,
+
+    CONSTRAINT fk_class_level
+        FOREIGN KEY (level_id)
+        REFERENCES levels(level_id),
+
+    CONSTRAINT fk_class_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id)
+);
+
+CREATE TABLE login (
+    login_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id  INT NOT NULL,
+    user_id  INT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+CONSTRAINT fk_login_user
+    FOREIGN KEY (user_id)
+    REFERENCES users(user_id),
+
+CONSTRAINT fk_login_role
+    FOREIGN KEY (role_id)
+    REFERENCES roles(role_id)
+);
+
+
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE students (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNIQUE,
+    admission_number VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender ENUM('male','female') NOT NULL,
+    date_of_birth DATE,
+    admission_date DATE NOT NULL,
+    status ENUM('active','graduated','withdrawn','suspended') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_student_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE teachers (
+    teacher_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNIQUE,
+    staff_number VARCHAR(50) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    employment_date DATE,
+
+    CONSTRAINT fk_teacher_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+);
+
+
+CREATE TABLE admins (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    staff_number VARCHAR(50) UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    role_title VARCHAR(100), -- e.g. Headmaster, Academic Coordinator
+    phone VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_admin_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE parents (
+    parent_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    occupation VARCHAR(100),
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_parent_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE parent_students (
+    parent_student_id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT NOT NULL,
+    student_id INT NOT NULL,
+    relationship ENUM('father','mother','guardian','sponsor','other') NOT NULL,
+    is_primary BOOLEAN DEFAULT FALSE,
+
+    UNIQUE(parent_id, student_id),
+
+    CONSTRAINT fk_ps_parent
+        FOREIGN KEY (parent_id)
+        REFERENCES parents(parent_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ps_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE roles (
+    role_id INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE enrollments (
+    enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    academic_year_id INT NOT NULL,
+    level_id INT NOT NULL,
+    class_id INT,
+    enrollment_status ENUM('active','promoted','repeated','withdrawn') DEFAULT 'active',
+    promotion_status ENUM('pending','promoted','repeated') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(student_id, academic_year_id),
+
+    CONSTRAINT fk_enrollment_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_enrollment_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id),
+
+    CONSTRAINT fk_enrollment_level
+        FOREIGN KEY (level_id)
+        REFERENCES levels(level_id),
+
+    CONSTRAINT fk_enrollment_class
+        FOREIGN KEY (class_id)
+        REFERENCES classes(class_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE promotion_decisions (
+    decision_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    academic_year_id INT NOT NULL,
+    current_level_id INT NOT NULL,
+    next_level_id INT,
+    decision ENUM('promoted','repeated','withdrawn','graduated') NOT NULL,
+    decision_date DATE NOT NULL,
+    approved_by INT,
+    remarks TEXT,
+
+    CONSTRAINT fk_promo_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id),
+
+    CONSTRAINT fk_promo_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id),
+
+    CONSTRAINT fk_promo_current_level
+        FOREIGN KEY (current_level_id)
+        REFERENCES levels(level_id),
+
+    CONSTRAINT fk_promo_next_level
+        FOREIGN KEY (next_level_id)
+        REFERENCES levels(level_id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_promo_admin
+        FOREIGN KEY (approved_by)
+        REFERENCES users(user_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE subjects (
+    subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    subject_name VARCHAR(100) NOT NULL UNIQUE,
+    subject_code VARCHAR(20) UNIQUE,
+    is_core BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE level_subjects (
+    level_subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    level_id INT NOT NULL,
+    subject_id INT NOT NULL,
+
+    UNIQUE(level_id, subject_id),
+
+    CONSTRAINT fk_ls_level
+        FOREIGN KEY (level_id)
+        REFERENCES levels(level_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ls_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES subjects(subject_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE teacher_subjects (
+    teacher_subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    class_id INT NOT NULL,
+level_id INT NOT NULL,
+
+    UNIQUE(teacher_id, subject_id, class_id, level_id),
+
+    CONSTRAINT fk_ts_teacher
+        FOREIGN KEY (teacher_id)
+        REFERENCES teachers(teacher_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ts_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES subjects(subject_id),
+
+    CONSTRAINT fk_ts_class
+        FOREIGN KEY (class_id)
+        REFERENCES classes(class_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ts_level
+        FOREIGN KEY (level_id)
+        REFERENCES levels(level_id)
+        ON DELETE CASCADE
+
+);
+
+CREATE TABLE results (
+    result_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    semester_id INT NOT NULL,
+    class_score DECIMAL(5,2) DEFAULT 0,
+    exam_score DECIMAL(5,2) DEFAULT 0,
+    total_score DECIMAL(5,2) GENERATED ALWAYS AS (class_score + exam_score) STORED,
+    grade VARCHAR(5),
+    remark ENUM('Pass','Fail'),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(student_id, subject_id, semester_id),
+
+    CONSTRAINT fk_result_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_result_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES subjects(subject_id),
+
+    CONSTRAINT fk_result_semester
+        FOREIGN KEY (semester_id)
+        REFERENCES semesters(semester_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE attendance (
+    attendance_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    class_id INT NOT NULL,
+    attendance_date DATE NOT NULL,
+    status ENUM('present','absent','late') NOT NULL,
+
+    UNIQUE(student_id, class_id, attendance_date),
+
+    CONSTRAINT fk_att_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_att_class
+        FOREIGN KEY (class_id)
+        REFERENCES classes(class_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE conversations (
+    conversation_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    created_by INT NOT NULL,
+    is_group BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_conv_creator
+        FOREIGN KEY (created_by)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE conversation_participants (
+    participant_id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    user_id INT NOT NULL,
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_read_at TIMESTAMP NULL,
+
+    UNIQUE(conversation_id, user_id),
+
+    CONSTRAINT fk_cp_conversation
+        FOREIGN KEY (conversation_id)
+        REFERENCES conversations(conversation_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_cp_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE messages (
+    message_id INT AUTO_INCREMENT PRIMARY KEY,
+    conversation_id INT NOT NULL,
+    sender_id INT NOT NULL,
+    message_body TEXT NOT NULL,
+    attachment_url VARCHAR(500),
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_msg_conversation
+        FOREIGN KEY (conversation_id)
+        REFERENCES conversations(conversation_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_msg_sender
+        FOREIGN KEY (sender_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE notifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    sender_id INT NOT NULL,
+    role_id INT NOT NULL,
+    class_id INT NULL,
+    level_id INT NULL,
+    academic_year_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notification_sender
+        FOREIGN KEY (sender_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_notification_class
+        FOREIGN KEY (class_id)
+        REFERENCES classes(class_id)
+        ON DELETE SET NULL
+
+    CONSTRAINT fk_notification_role
+        FOREIGN KEY (role_id)
+        REFERENCES classes(role_id)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE notification_reads (
+    notification_read_id INT AUTO_INCREMENT PRIMARY KEY,
+    notification_id INT NOT NULL,
+    user_id INT NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(notification_id, user_id),
+
+    CONSTRAINT fk_nr_notification
+        FOREIGN KEY (notification_id)
+        REFERENCES notifications(notification_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_nr_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE assessment_categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL, -- Assignment, Quiz, Exam
+    weight_percentage DECIMAL(5,2) NOT NULL,
+    level_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    academic_year_id INT NOT NULL,
+
+    CONSTRAINT fk_ac_level
+        FOREIGN KEY (level_id)
+        REFERENCES levels(level_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ac_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES subjects(subject_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ac_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE assessments (
+    assessment_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    total_marks DECIMAL(5,2) NOT NULL,
+    assessment_date DATE,
+    semester_id INT NOT NULL,
+    created_by INT NOT NULL,
+
+    CONSTRAINT fk_ass_category
+        FOREIGN KEY (category_id)
+        REFERENCES assessment_categories(category_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ass_semester
+        FOREIGN KEY (semester_id)
+        REFERENCES semesters(semester_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ass_creator
+        FOREIGN KEY (created_by)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE assessment_scores (
+    score_id INT AUTO_INCREMENT PRIMARY KEY,
+    assessment_id INT NOT NULL,
+    student_id INT NOT NULL,
+    score DECIMAL(5,2) NOT NULL,
+    graded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(assessment_id, student_id),
+
+    CONSTRAINT fk_as_assessment
+        FOREIGN KEY (assessment_id)
+        REFERENCES assessments(assessment_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_as_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE grade_scales (
+    grade_id INT AUTO_INCREMENT PRIMARY KEY,
+    grade_letter VARCHAR(5),
+    min_score DECIMAL(5,2),
+    max_score DECIMAL(5,2),
+    remark VARCHAR(20)
+);
+
+CREATE TABLE learning_materials (
+    material_id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    file_size BIGINT NOT NULL, -- in bytes
+    file_type VARCHAR(20) NOT NULL, -- pdf, docx, mp4, etc
+    mime_type VARCHAR(100), -- application/pdf, video/mp4
+    uploaded_by INT NOT NULL,
+    subject_id INT NOT NULL,
+    class_id INT NOT NULL,
+    semester_id INT,
+    academic_year_id INT NOT NULL,
+    is_visible BOOLEAN DEFAULT TRUE,
+    allow_download BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NULL,
+
+    CONSTRAINT fk_material_teacher
+        FOREIGN KEY (uploaded_by)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_material_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES subjects(subject_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_material_class
+        FOREIGN KEY (class_id)
+        REFERENCES classes(class_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_material_semester
+        FOREIGN KEY (semester_id)
+        REFERENCES semesters(semester_id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_material_year
+        FOREIGN KEY (academic_year_id)
+        REFERENCES academic_years(academic_year_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE material_downloads (
+    download_id INT AUTO_INCREMENT PRIMARY KEY,
+    material_id INT NOT NULL,
+    user_id INT NOT NULL,
+    downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_md_material
+        FOREIGN KEY (material_id)
+        REFERENCES learning_materials(material_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_md_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(user_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE material_versions (
+    version_id INT AUTO_INCREMENT PRIMARY KEY,
+    material_id INT NOT NULL,
+    version_number INT NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE(material_id, version_number),
+
+    CONSTRAINT fk_mv_material
+        FOREIGN KEY (material_id)
+        REFERENCES learning_materials(material_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE material_access (
+    access_id INT AUTO_INCREMENT PRIMARY KEY,
+    material_id INT NOT NULL,
+    student_id INT NOT NULL,
+
+    UNIQUE(material_id, student_id),
+
+    CONSTRAINT fk_ma_material
+        FOREIGN KEY (material_id)
+        REFERENCES learning_materials(material_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_ma_student
+        FOREIGN KEY (student_id)
+        REFERENCES students(student_id)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE ClientErrorLogs (
+    ClientErrorId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NULL,
+    ErrorMessage NVARCHAR(MAX) NOT NULL,
+    StackTrace NVARCHAR(MAX) NULL,
+    PageUrl NVARCHAR(500),
+    LineNumber INT NULL,
+    ColumnNumber INT NULL,
+    UserAgent NVARCHAR(500),
+    Source NVARCHAR(255) NULL,
+    InnerException NVARCHAR(MAX) NULL,
+    SeverityLevel VARCHAR(20) DEFAULT 'Error', -- Info, Warning, Error, Critical
+    LoggedAt DATETIME2 DEFAULT SYSDATETIME(),
+    Resolved BIT DEFAULT 0,
+    ResolvedBy INT NULL,
+    ResolvedAt DATETIME2 NULL,
+    CONSTRAINT FK_ClientErrorLogs_User FOREIGN KEY (UserId)
+        REFERENCES Users(UserId),
+    CONSTRAINT FK_ClientErrorLogs_ResolvedBy FOREIGN KEY (ResolvedBy)
+        REFERENCES Users(UserId)
+);
+
+CREATE TABLE ActivityLog (
+    ActivityId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    ActivityType VARCHAR(100),
+    Description NVARCHAR(MAX),
+    IPAddress VARCHAR(50),
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_ActivityLog_User FOREIGN KEY (UserId)
+        REFERENCES Users(UserId)
+);
+
+CREATE TABLE LoginActivity (
+    LoginActivityId INT IDENTITY(1,1) PRIMARY KEY,
+    UserId INT NOT NULL,
+    LoginTime DATETIME2 DEFAULT SYSDATETIME(),
+    LogoutTime DATETIME2 NULL,
+    IPAddress VARCHAR(50),
+    UserAgent NVARCHAR(500),
+    IsSuccessful BIT DEFAULT 1,
+    CONSTRAINT FK_LoginActivity_User FOREIGN KEY (UserId)
+        REFERENCES Users(UserId)
+);
+
+CREATE TABLE CourseSections (
+    SectionId INT IDENTITY(1,1) PRIMARY KEY,
+    CourseId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Description NVARCHAR(MAX),
+    DisplayOrder INT DEFAULT 1,
+    CreatedAt DATETIME2 DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_CourseSections_Course FOREIGN KEY (CourseId)
+        REFERENCES Courses(CourseId)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE CourseMaterials (
+    MaterialId INT IDENTITY(1,1) PRIMARY KEY,
+    SectionId INT NOT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    FilePath NVARCHAR(500) NOT NULL,
+    FileType VARCHAR(20), -- pdf, docx, mp4, mp3, pptx
+    FileSizeKB INT NULL,
+    Description NVARCHAR(MAX),
+    UploadedBy INT NOT NULL,
+    UploadedAt DATETIME2 DEFAULT SYSDATETIME(),
+    IsActive BIT DEFAULT 1,
+    CONSTRAINT FK_CourseMaterials_Section FOREIGN KEY (SectionId)
+        REFERENCES CourseSections(SectionId)
+        ON DELETE CASCADE,
+    CONSTRAINT FK_CourseMaterials_User FOREIGN KEY (UploadedBy)
+        REFERENCES Users(UserId)
+);
+
+
+CREATE PROCEDURE sp_MarkNotificationAsRead
+    @NotificationId INT
+AS
+BEGIN
+    UPDATE Notifications
+    SET IsRead = 1
+    WHERE NotificationId = @NotificationId;
+END;
+
+
+CREATE PROCEDURE sp_GetUserNotifications
+    @UserId INT,
+    @TopCount INT = 50
+AS
+BEGIN
+    SELECT TOP (@TopCount)
+        NotificationId,
+        Title,
+        Message,
+        NotificationType,
+        PriorityLevel,
+        IsRead,
+        CreatedAt
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME())
+    ORDER BY CreatedAt DESC;
+END;
+
+
+CREATE PROCEDURE sp_CreateNotification
+    @UserId INT,
+    @Title NVARCHAR(200),
+    @Message NVARCHAR(MAX),
+    @NotificationType VARCHAR(50),
+    @PriorityLevel VARCHAR(20),
+    @ExpiresAt DATETIME2 = NULL
+AS
+BEGIN
+    INSERT INTO Notifications
+    (UserId, Title, Message, NotificationType, PriorityLevel, ExpiresAt)
+    VALUES
+    (@UserId, @Title, @Message, @NotificationType, @PriorityLevel, @ExpiresAt);
+END;
+
+CREATE VIEW vw_NotificationStats
+AS
+SELECT
+    UserId,
+    COUNT(*) AS TotalNotifications,
+    SUM(CASE WHEN IsRead = 0 THEN 1 ELSE 0 END) AS UnreadNotifications,
+    SUM(CASE WHEN IsRead = 1 THEN 1 ELSE 0 END) AS ReadNotifications
+FROM Notifications
+GROUP BY UserId;
+
+CREATE FUNCTION fn_GetUnreadNotificationCount (@UserId INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Count INT;
+
+    SELECT @Count = COUNT(*)
+    FROM Notifications
+    WHERE UserId = @UserId
+      AND IsRead = 0
+      AND (ExpiresAt IS NULL OR ExpiresAt > SYSDATETIME());
+
+    RETURN @Count;
+END;
+
+CREATE PROCEDURE MarkClientErrorAsResolved
+    @ClientErrorId INT,
+    @ResolvedBy INT
+AS
+BEGIN
+    UPDATE ClientErrorLogs
+    SET Resolved = 1,
+        ResolvedBy = @ResolvedBy,
+        ResolvedAt = SYSDATETIME()
+    WHERE ClientErrorId = @ClientErrorId;
+END;
+
+CREATE PROCEDURE GetRecentClientErrors
+    @TopCount INT = 50
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP (@TopCount)
+        ClientErrorId,
+        UserId,
+        ErrorMessage,
+        PageUrl,
+        LoggedAt,
+        Resolved
+    FROM ClientErrorLogs
+    ORDER BY LoggedAt DESC;
+END;

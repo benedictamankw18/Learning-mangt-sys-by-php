@@ -1,0 +1,4939 @@
+{
+  "info": {
+    "name": "Ghana SHS LMS REST API",
+    "description": "Ghana Senior High School Learning Management System REST API Collection\n\nIMPORTANT SETUP STEPS:\n1. Import database_lms_api.sql to create the database schema\n2. Run setup.sql to create sample data (Accra SHS)\n3. Use the 'Setup & Configuration' folder to retrieve IDs\n4. Update collection variables with the retrieved IDs\n5. Login to get access token (saved automatically)\n\nDEFAULT CREDENTIALS (from setup.sql):\n- Super Admin: superadmin / password\n- Admin: admin / password\n- Teacher: kofi.mensah / password\n- Teacher: ama.asante / password\n- Student: kwame.osei / password\n- Student: abena.adjei / password",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "student_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "teacher_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "course_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "assessment_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "submission_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "academic_year_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "semester_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "subject_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "parent_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "result_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "section_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "assignment_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "quiz_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "question_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "quiz_submission_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "institution_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "program_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "grade_level_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "class_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "class_subject_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Setup & Configuration",
+      "description": "Queries to retrieve IDs after running setup.sql. Use these to update collection variables.",
+      "item": [
+        {
+          "name": "Login as Super Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"superadmin\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login as Admin (Accra SHS)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Accra SHS Institution ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    var accraInstitution = jsonData.data.find(i => i.institution_code === 'ACCRA-SHS-001');",
+                  "    if (accraInstitution) {",
+                  "        pm.collectionVariables.set('institution_id', accraInstitution.institution_id);",
+                  "        console.log('Institution ID set to: ' + accraInstitution.institution_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions",
+              "host": ["{{base_url}}"],
+              "path": ["institutions"]
+            }
+          }
+        },
+        {
+          "name": "Get Programs (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first program as default",
+                  "    pm.collectionVariables.set('program_id', jsonData.data[0].program_id);",
+                  "    console.log('Program IDs available:');",
+                  "    jsonData.data.forEach(p => {",
+                  "        console.log('- ' + p.program_name + ': ' + p.program_id + ' (' + p.program_code + ')');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["programs"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Grade Levels (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set SHS 1 as default",
+                  "    var shs1 = jsonData.data.find(g => g.grade_level_code === 'SHS1');",
+                  "    if (shs1) {",
+                  "        pm.collectionVariables.set('grade_level_id', shs1.grade_level_id);",
+                  "    }",
+                  "    console.log('Grade Level IDs available:');",
+                  "    jsonData.data.forEach(g => {",
+                  "        console.log('- ' + g.grade_level_name + ': ' + g.grade_level_id);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Classes (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first class as default",
+                  "    pm.collectionVariables.set('class_id', jsonData.data[0].class_id);",
+                  "    console.log('Class IDs available:');",
+                  "    jsonData.data.forEach(c => {",
+                  "        console.log('- ' + c.class_name + ': ' + c.class_id + ' (' + c.class_code + ')');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["classes"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subjects (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first class subject as default",
+                  "    pm.collectionVariables.set('class_subject_id', jsonData.data[0].course_id);",
+                  "    pm.collectionVariables.set('course_id', jsonData.data[0].course_id);",
+                  "    console.log('Class Subject IDs available:');",
+                  "    jsonData.data.forEach(cs => {",
+                  "        console.log('- ' + cs.class_subject_name + ': ' + cs.course_id);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Students (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first student as default",
+                  "    pm.collectionVariables.set('student_id', jsonData.data[0].student_id);",
+                  "    console.log('Student IDs available:');",
+                  "    jsonData.data.forEach(s => {",
+                  "        console.log('- ' + s.first_name + ' ' + s.last_name + ': ' + s.student_id + ' (' + s.student_id_number + ')');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["students"]
+            }
+          }
+        },
+        {
+          "name": "Get Teachers (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first teacher as default",
+                  "    pm.collectionVariables.set('teacher_id', jsonData.data[0].teacher_id);",
+                  "    console.log('Teacher IDs available:');",
+                  "    jsonData.data.forEach(t => {",
+                  "        console.log('- ' + t.first_name + ' ' + t.last_name + ': ' + t.teacher_id + ' (' + t.employee_id + ')');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers",
+              "host": ["{{base_url}}"],
+              "path": ["teachers"]
+            }
+          }
+        },
+        {
+          "name": "Get Subjects (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set first subject as default",
+                  "    pm.collectionVariables.set('subject_id', jsonData.data[0].subject_id);",
+                  "    console.log('Subject IDs available:');",
+                  "    jsonData.data.forEach(s => {",
+                  "        console.log('- ' + s.subject_name + ': ' + s.subject_id + ' (' + s.subject_code + ')');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects",
+              "host": ["{{base_url}}"],
+              "path": ["subjects"]
+            }
+          }
+        },
+        {
+          "name": "Get Academic Years (Auto-set IDs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.length > 0) {",
+                  "    // Set current academic year as default",
+                  "    var currentYear = jsonData.data.find(y => y.is_current === 1);",
+                  "    if (currentYear) {",
+                  "        pm.collectionVariables.set('academic_year_id', currentYear.academic_year_id);",
+                  "    } else {",
+                  "        pm.collectionVariables.set('academic_year_id', jsonData.data[0].academic_year_id);",
+                  "    }",
+                  "    console.log('Academic Year IDs available:');",
+                  "    jsonData.data.forEach(y => {",
+                  "        console.log('- ' + y.year_name + ': ' + y.academic_year_id + (y.is_current ? ' (Current)' : ''));",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/academic-years",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": 1,\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"role_type\": \"student\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"admin\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@accrashs.edu.gh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"your-reset-token-here\",\n  \"password\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_password\": \"password\",\n  \"new_password\": \"newpassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Institutions",
+      "item": [
+        {
+          "name": "Get All Institutions (Super Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["institutions"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Institution by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Institution (Super Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_name\": \"Accra Senior High School\",\n  \"institution_code\": \"ASHS\",\n  \"institution_type\": \"public\",\n  \"address\": \"Accra, Greater Accra Region\",\n  \"phone\": \"+233-20-123-4567\",\n  \"email\": \"info@accrashs.edu.gh\",\n  \"website\": \"https://accrashs.edu.gh\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/institutions",
+              "host": ["{{base_url}}"],
+              "path": ["institutions"]
+            }
+          }
+        },
+        {
+          "name": "Update Institution",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_name\": \"Accra Senior High School\",\n  \"phone\": \"+233-20-123-4568\",\n  \"email\": \"contact@accrashs.edu.gh\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/users?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "users"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Programs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/programs",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "programs"]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/classes?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "classes"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Institution Status (Super Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Settings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/settings",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Update Institution Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school_name\": \"Accra Senior High School\",\n  \"motto\": \"Excellence in Education\",\n  \"logo_url\": \"https://accrashs.edu.gh/logo.png\",\n  \"primary_color\": \"#1E40AF\",\n  \"secondary_color\": \"#FBBF24\",\n  \"accent_color\": \"#10B981\",\n  \"timezone\": \"Africa/Accra\",\n  \"date_format\": \"d/m/Y\",\n  \"time_format\": \"H:i\",\n  \"currency_code\": \"GHS\",\n  \"language_code\": \"en\",\n  \"grading_system\": \"percentage\",\n  \"min_passing_grade\": 50,\n  \"max_students_per_class\": 40,\n  \"academic_year_start_month\": 9,\n  \"allow_student_registration\": true,\n  \"require_email_verification\": true,\n  \"enable_notifications\": true,\n  \"enable_attendance_tracking\": true,\n  \"facebook_url\": \"https://facebook.com/accrashs\",\n  \"twitter_url\": \"https://twitter.com/accrashs\",\n  \"instagram_url\": \"https://instagram.com/accrashs\",\n  \"linkedin_url\": \"https://linkedin.com/school/accrashs\",\n  \"youtube_url\": \"https://youtube.com/accrashs\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}/settings",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}", "settings"]
+            }
+          }
+        },
+        {
+          "name": "Delete Institution (Super Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["institutions", "{{institution_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programs",
+      "item": [
+        {
+          "name": "Get All Programs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs?institution_id={{institution_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["programs"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Active Programs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/active?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "active"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Program by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/{{program_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "{{program_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Program",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"program_code\": \"GEN_ARTS\",\n  \"program_name\": \"General Arts\",\n  \"description\": \"General Arts programme focuses on humanities and social sciences\",\n  \"duration_years\": 3,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/programs",
+              "host": ["{{base_url}}"],
+              "path": ["programs"]
+            }
+          }
+        },
+        {
+          "name": "Update Program",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"program_name\": \"General Arts (Updated)\",\n  \"description\": \"Updated description for General Arts programme\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/programs/{{program_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "{{program_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Program Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/{{program_id}}/classes",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "{{program_id}}", "classes"]
+            }
+          }
+        },
+        {
+          "name": "Delete Program",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/programs/{{program_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["programs", "{{program_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade Levels",
+      "item": [
+        {
+          "name": "Get All Grade Levels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels?institution_id={{institution_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Active Grade Levels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels/active?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels", "active"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Grade Level by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels/{{grade_level_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels", "{{grade_level_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Grade Level",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"grade_level_code\": \"SHS1\",\n  \"grade_level_name\": \"SHS 1\",\n  \"level_order\": 1,\n  \"description\": \"Senior High School Year 1\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-levels",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels"]
+            }
+          }
+        },
+        {
+          "name": "Update Grade Level",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade_level_name\": \"SHS 1 (Updated)\",\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-levels/{{grade_level_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels", "{{grade_level_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Grade Level Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels/{{grade_level_id}}/classes",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels", "{{grade_level_id}}", "classes"]
+            }
+          }
+        },
+        {
+          "name": "Delete Grade Level",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-levels/{{grade_level_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-levels", "{{grade_level_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "item": [
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes?institution_id={{institution_id}}&program_id={{program_id}}&grade_level_id={{grade_level_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["classes"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "program_id", "value": "{{program_id}}"},
+                {"key": "grade_level_id", "value": "{{grade_level_id}}"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Class",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"program_id\": {{program_id}},\n  \"grade_level_id\": {{grade_level_id}},\n  \"academic_year_id\": {{academic_year_id}},\n  \"class_code\": \"1ART1\",\n  \"class_name\": \"SHS 1 Art 1\",\n  \"section\": \"A\",\n  \"capacity\": 40,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/classes",
+              "host": ["{{base_url}}"],
+              "path": ["classes"]
+            }
+          }
+        },
+        {
+          "name": "Update Class",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_name\": \"SHS 1 Art 1 (Updated)\",\n  \"capacity\": 45\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}/class-subjects",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}", "class-subjects"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}/schedule",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}", "schedule"]
+            }
+          }
+        },
+        {
+          "name": "Assign Homeroom Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacher_id\": {{teacher_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}/assign-teacher",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}", "assign-teacher"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/classes/{{class_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["classes", "{{class_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Class Subjects",
+      "item": [
+        {
+          "name": "Get All Class Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects?institution_id={{institution_id}}&class_id={{class_id}}&subject_id={{subject_id}}&teacher_id={{teacher_id}}&page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "class_id", "value": "{{class_id}}"},
+                {"key": "subject_id", "value": "{{subject_id}}"},
+                {"key": "teacher_id", "value": "{{teacher_id}}"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Class Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"class_id\": {{class_id}},\n  \"subject_id\": {{subject_id}},\n  \"teacher_id\": {{teacher_id}},\n  \"academic_year_id\": {{academic_year_id}},\n  \"semester_id\": {{semester_id}},\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects"]
+            }
+          }
+        },
+        {
+          "name": "Update Class Subject",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacher_id\": {{teacher_id}},\n  \"status\": \"active\",\n  \"duration_weeks\": 18\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject Materials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/materials",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "materials"]
+            }
+          }
+        },
+        {
+          "name": "Create Class Subject Material",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.material_id) {",
+                  "        pm.collectionVariables.set('material_id', response.data.material_id);",
+                  "        console.log('Material ID set to:', response.data.material_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section_id\": {{section_id}},\n  \"title\": \"Introduction to Literature\",\n  \"material_type\": \"pdf\",\n  \"file_name\": \"literature_intro.pdf\",\n  \"file_path\": \"/materials/literature_intro.pdf\",\n  \"file_size\": 2048576,\n  \"description\": \"Introduction to English Literature\",\n  \"is_required\": false,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/materials",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "materials"]
+            }
+          }
+        },
+        {
+          "name": "Update Class Subject Material",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Literature (Updated)\",\n  \"description\": \"Updated description for Literature\",\n  \"is_required\": true,\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/materials/{{material_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "materials", "{{material_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class Subject Material",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/materials/{{material_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "materials", "{{material_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject Content",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/content",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "content"]
+            }
+          }
+        },
+        {
+          "name": "Create Class Subject Content",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.content_id) {",
+                  "        pm.collectionVariables.set('content_id', response.data.content_id);",
+                  "        console.log('Content ID set to:', response.data.content_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section_id\": {{section_id}},\n  \"title\": \"Introduction to Poetry\",\n  \"content_text\": \"Poetry is a form of literary art that uses aesthetic and rhythmic qualities of language...\",\n  \"description\": \"Basic introduction to poetry and its elements\",\n  \"content_type\": \"lesson\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/content",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "content"]
+            }
+          }
+        },
+        {
+          "name": "Update Class Subject Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Poetry (Updated)\",\n  \"content_text\": \"Poetry is a form of literary art that uses aesthetic and rhythmic qualities of language. It often employs meter, rhyme, and other prosodic features...\",\n  \"description\": \"Updated introduction to poetry with more details\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/content/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "content", "{{content_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class Subject Content",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/content/{{content_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "content", "{{content_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject Assessments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/assessments",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "assessments"]
+            }
+          }
+        },
+        {
+          "name": "Get Class Subject Schedules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Create Class Subject Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.schedule_id) {",
+                  "        pm.collectionVariables.set('schedule_id', response.schedule_id);",
+                  "        console.log('Schedule ID set to:', response.schedule_id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_of_week\": \"monday\",\n  \"start_time\": \"08:00:00\",\n  \"end_time\": \"09:30:00\",\n  \"room\": \"Room 101\",\n  \"is_recurring\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Update Class Subject Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_of_week\": \"tuesday\",\n  \"start_time\": \"10:00:00\",\n  \"end_time\": \"11:30:00\",\n  \"room\": \"Room 102\",\n  \"is_recurring\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/schedules/{{schedule_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "schedules", "{{schedule_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class Subject Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/schedules/{{schedule_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "schedules", "{{schedule_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Assign Teacher to Class Subject",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacher_id\": {{teacher_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}/assign-teacher",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}", "assign-teacher"]
+            }
+          }
+        },
+        {
+          "name": "Delete Class Subject",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/class-subjects/{{class_subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["class-subjects", "{{class_subject_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get All Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["students"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Student by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Student Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/courses",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "courses"]
+            }
+          }
+        },
+        {
+          "name": "Enroll Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"student_id\": {{student_id}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/students/enroll",
+              "host": ["{{base_url}}"],
+              "path": ["students", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "Update Enrollment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"progress_percentage\": 100.00,\n  \"final_grade\": \"A\",\n  \"completion_date\": \"2026-05-15 00:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/enrollments/1",
+              "host": ["{{base_url}}"],
+              "path": ["enrollments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Enrollment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/enrollments/1",
+              "host": ["{{base_url}}"],
+              "path": ["enrollments", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Student",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "Get All Teachers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["teachers"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 5,\n  \"employee_id\": \"EMP-2026-00005\",\n  \"department\": \"Computer Science\",\n  \"specialization\": \"Data Structures\",\n  \"hire_date\": \"2026-01-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/teachers",
+              "host": ["{{base_url}}"],
+              "path": ["teachers"]
+            }
+          }
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"department\": \"Information Technology\",\n  \"specialization\": \"Algorithms\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}/courses",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}", "courses"]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher Schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}/schedule",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}", "schedule"]
+            }
+          }
+        },
+        {
+          "name": "Delete Teacher",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["users"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Name\",\n  \"phone\": \"+1234567890\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Assign Role to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1/roles",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", "roles"]
+            }
+          }
+        },
+        {
+          "name": "Remove Role from User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1/roles/2",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", "roles", "2"]
+            }
+          }
+        },
+        {
+          "name": "Get User Activity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1/activity",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1", "activity"]
+            }
+          }
+        },
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["roles"]
+            }
+          }
+        },
+        {
+          "name": "Get Role by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles/1",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role_name\": \"moderator\",\n  \"description\": \"Moderator role with limited admin access\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/roles",
+              "host": ["{{base_url}}"],
+              "path": ["roles"]
+            }
+          }
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated role description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/1",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles/1",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Role Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles/1/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", "permissions"]
+            }
+          }
+        },
+        {
+          "name": "Assign Permission to Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/roles/1/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", "permissions"]
+            }
+          }
+        },
+        {
+          "name": "Remove Permission from Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/roles/1/permissions/1",
+              "host": ["{{base_url}}"],
+              "path": ["roles", "1", "permissions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            }
+          }
+        },
+        {
+          "name": "Get Permission by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/permissions/1",
+              "host": ["{{base_url}}"],
+              "path": ["permissions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permission_name\": \"manage_users\",\n  \"description\": \"Permission to manage users\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions",
+              "host": ["{{base_url}}"],
+              "path": ["permissions"]
+            }
+          }
+        },
+        {
+          "name": "Update Permission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated permission description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/permissions/1",
+              "host": ["{{base_url}}"],
+              "path": ["permissions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Permission",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/permissions/1",
+              "host": ["{{base_url}}"],
+              "path": ["permissions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Announcements",
+      "item": [
+        {
+          "name": "Get All Announcements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/announcements?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["announcements"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "target_role", "value": "all", "disabled": true},
+                {"key": "is_published", "value": "1", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Announcement by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/announcements/1",
+              "host": ["{{base_url}}"],
+              "path": ["announcements", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Announcement (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Important: Exam Schedule\",\n  \"content\": \"Mid-term exams will be held from March 1-5, 2026. Please check your course schedules for specific dates and times.\",\n  \"target_role\": \"student\",\n  \"is_published\": 1,\n  \"published_at\": \"2026-02-14 10:00:00\",\n  \"expires_at\": \"2026-03-10 23:59:59\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/announcements",
+              "host": ["{{base_url}}"],
+              "path": ["announcements"]
+            }
+          }
+        },
+        {
+          "name": "Update Announcement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated: Exam Schedule\",\n  \"content\": \"Updated content here\",\n  \"is_published\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/announcements/1",
+              "host": ["{{base_url}}"],
+              "path": ["announcements", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Announcement",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/announcements/1",
+              "host": ["{{base_url}}"],
+              "path": ["announcements", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Notification by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/1",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/unread-count",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "Create Notification (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 2,\n  \"title\": \"New Assignment Posted\",\n  \"message\": \"A new assignment has been posted for Data Structures course. Due date: Feb 20, 2026\",\n  \"notification_type\": \"assignment\",\n  \"priority_level\": \"High\",\n  \"expires_at\": \"2026-02-20 23:59:59\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["notifications"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read-all",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "read-all"]
+            }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/1",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete All Read Notifications",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses (Backward Compatibility - Use Class Subjects)",
+      "item": [
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["courses"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Course by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_code\": \"CS101\",\n  \"course_name\": \"Introduction to Computer Science\",\n  \"description\": \"Basic concepts of computer science\",\n  \"teacher_id\": 1,\n  \"credits\": 3,\n  \"duration_weeks\": 16,\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses",
+              "host": ["{{base_url}}"],
+              "path": ["courses"]
+            }
+          }
+        },
+        {
+          "name": "Update Course",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_name\": \"Data Structures & Algorithms\",\n  \"description\": \"Updated description\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Materials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/materials",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "materials"]
+            }
+          }
+        },
+        {
+          "name": "Create Course Material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Data Structures\",\n  \"description\": \"PDF lecture notes covering basic data structures\",\n  \"material_type\": \"pdf\",\n  \"file_path\": \"/uploads/materials/intro-ds.pdf\",\n  \"file_size\": 2048000,\n  \"order_index\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/materials",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "materials"]
+            }
+          }
+        },
+        {
+          "name": "Update Course Material",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Advanced Data Structures\",\n  \"description\": \"Updated lecture notes\",\n  \"order_index\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/materials/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "materials", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course Material",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/materials/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "materials", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Assessments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/assessments",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "assessments"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/reviews?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "reviews"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Course Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review_text\": \"Excellent course! Very informative and well-structured.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "reviews"]
+            }
+          }
+        },
+        {
+          "name": "Update Course Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 4,\n  \"review_text\": \"Great course with practical examples.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/reviews/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "reviews", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/reviews/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "reviews", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Schedules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Create Course Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_of_week\": \"Monday\",\n  \"start_time\": \"09:00:00\",\n  \"end_time\": \"11:00:00\",\n  \"room\": \"Room 101\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/schedules",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Update Course Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_time\": \"10:00:00\",\n  \"end_time\": \"12:00:00\",\n  \"room\": \"Room 202\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/schedules/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "schedules", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/schedules/1",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "schedules", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessments",
+      "item": [
+        {
+          "name": "Get Assessments by Course",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assessments?course_id={{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["assessments"],
+              "query": [{"key": "course_id", "value": "{{course_id}}"}]
+            }
+          }
+        },
+        {
+          "name": "Create Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"title\": \"Midterm Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"assessment_type\": \"exam\",\n  \"max_score\": 100,\n  \"passing_score\": 60,\n  \"due_date\": \"2026-03-15\",\n  \"duration_minutes\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assessments",
+              "host": ["{{base_url}}"],
+              "path": ["assessments"]
+            }
+          }
+        },
+        {
+          "name": "Submit Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submission_text\": \"My answers to the exam...\",\n  \"status\": \"submitted\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assessments/{{assessment_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["assessments", "{{assessment_id}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Get Submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assessments/{{assessment_id}}/submissions",
+              "host": ["{{base_url}}"],
+              "path": ["assessments", "{{assessment_id}}", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Grade Submission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 85,\n  \"feedback\": \"Good work! Few minor errors.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/submissions/{{submission_id}}/grade",
+              "host": ["{{base_url}}"],
+              "path": ["submissions", "{{submission_id}}", "grade"]
+            }
+          }
+        },
+        {
+          "name": "Update Submission",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submission_text\": \"Updated submission content here\",\n  \"file_path\": \"/uploads/assessments/updated_file.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/submissions/{{submission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["submissions", "{{submission_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Submission",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/submissions/{{submission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["submissions", "{{submission_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Get Student Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/attendance?course_id={{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "attendance"],
+              "query": [{"key": "course_id", "value": "{{course_id}}"}]
+            }
+          }
+        },
+        {
+          "name": "Get Attendance Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/attendance/stats?course_id={{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "attendance", "stats"],
+              "query": [{"key": "course_id", "value": "{{course_id}}"}]
+            }
+          }
+        },
+        {
+          "name": "Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"status\": \"present\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance",
+              "host": ["{{base_url}}"],
+              "path": ["attendance"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Mark Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"students\": [\n    {\"student_id\": {{student_id}}, \"status\": \"present\"},\n    {\"student_id\": 2, \"status\": \"absent\"},\n    {\"student_id\": 3, \"status\": \"late\", \"remarks\": \"Traffic\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "bulk"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/attendance?date=2026-02-14",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "attendance"],
+              "query": [{"key": "date", "value": "2026-02-14"}]
+            }
+          }
+        },
+        {
+          "name": "Update Attendance",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"late\",\n  \"remarks\": \"Arrived 10 minutes late due to traffic\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/attendance/1",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Attendance",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/attendance/1",
+              "host": ["{{base_url}}"],
+              "path": ["attendance", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Academic Years",
+      "item": [
+        {
+          "name": "Get All Academic Years",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/academic-years?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Academic Year",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/academic-years/current",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years", "current"]
+            }
+          }
+        },
+        {
+          "name": "Get Academic Year by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/academic-years/{{academic_year_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years", "{{academic_year_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Academic Year (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"year_name\": \"2026/2027\",\n  \"start_date\": \"2026-09-01\",\n  \"end_date\": \"2027-06-30\",\n  \"is_current\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/academic-years",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years"]
+            }
+          }
+        },
+        {
+          "name": "Update Academic Year (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_current\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/academic-years/{{academic_year_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years", "{{academic_year_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Academic Year (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/academic-years/{{academic_year_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["academic-years", "{{academic_year_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Semesters",
+      "item": [
+        {
+          "name": "Get All Semesters",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters?page=1&limit=20&academic_year_id={{academic_year_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["semesters"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "academic_year_id", "value": "{{academic_year_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Semester",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters/current",
+              "host": ["{{base_url}}"],
+              "path": ["semesters", "current"]
+            }
+          }
+        },
+        {
+          "name": "Get Semester by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters/{{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["semesters", "{{semester_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Semester (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"academic_year_id\": {{academic_year_id}},\n  \"semester_name\": \"First Semester\",\n  \"start_date\": \"2026-09-01\",\n  \"end_date\": \"2027-01-31\",\n  \"is_current\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/semesters",
+              "host": ["{{base_url}}"],
+              "path": ["semesters"]
+            }
+          }
+        },
+        {
+          "name": "Update Semester (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_current\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/semesters/{{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["semesters", "{{semester_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Semester (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/semesters/{{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["semesters", "{{semester_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "item": [
+        {
+          "name": "Get All Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["subjects"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Core Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects/core",
+              "host": ["{{base_url}}"],
+              "path": ["subjects", "core"]
+            }
+          }
+        },
+        {
+          "name": "Get Subject by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["subjects", "{{subject_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Subject (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject_code\": \"PHY101\",\n  \"subject_name\": \"Introduction to Physics\",\n  \"description\": \"Basic concepts of physics\",\n  \"credits\": 3,\n  \"is_core\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/subjects",
+              "host": ["{{base_url}}"],
+              "path": ["subjects"]
+            }
+          }
+        },
+        {
+          "name": "Update Subject (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject_name\": \"Advanced Physics\",\n  \"credits\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["subjects", "{{subject_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Subject (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["subjects", "{{subject_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parents",
+      "item": [
+        {
+          "name": "Get All Parents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parents?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["parents"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Parent by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parents/{{parent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["parents", "{{parent_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Parent's Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parents/{{parent_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["parents", "{{parent_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Create Parent (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone_number\": \"+1234567890\",\n  \"address\": \"123 Main St, City\",\n  \"occupation\": \"Engineer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/parents",
+              "host": ["{{base_url}}"],
+              "path": ["parents"]
+            }
+          }
+        },
+        {
+          "name": "Update Parent (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone_number\": \"+9876543210\",\n  \"occupation\": \"Senior Engineer\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/parents/{{parent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["parents", "{{parent_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Parent (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parents/{{parent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["parents", "{{parent_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade Scales",
+      "item": [
+        {
+          "name": "Get All Grade Scales",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-scales",
+              "host": ["{{base_url}}"],
+              "path": ["grade-scales"]
+            }
+          }
+        },
+        {
+          "name": "Get Grade Scale by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-scales/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-scales", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Grade Scale (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"grade\": \"A+\",\n  \"min_score\": 95,\n  \"max_score\": 100,\n  \"grade_point\": 4.0,\n  \"remark\": \"Excellent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-scales",
+              "host": ["{{base_url}}"],
+              "path": ["grade-scales"]
+            }
+          }
+        },
+        {
+          "name": "Update Grade Scale (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remark\": \"Outstanding\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-scales/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-scales", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Grade Scale (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-scales/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-scales", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessment Categories",
+      "item": [
+        {
+          "name": "Get All Assessment Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assessment-categories?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["assessment-categories"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Assessment Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assessment-categories/1",
+              "host": ["{{base_url}}"],
+              "path": ["assessment-categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Assessment Category (Admin/Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category_name\": \"Lab Work\",\n  \"description\": \"Laboratory assignments and experiments\",\n  \"weight_percentage\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assessment-categories",
+              "host": ["{{base_url}}"],
+              "path": ["assessment-categories"]
+            }
+          }
+        },
+        {
+          "name": "Update Assessment Category (Admin/Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight_percentage\": 15\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assessment-categories/1",
+              "host": ["{{base_url}}"],
+              "path": ["assessment-categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Assessment Category (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assessment-categories/1",
+              "host": ["{{base_url}}"],
+              "path": ["assessment-categories", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Results",
+      "item": [
+        {
+          "name": "Get Student Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/results?semester_id={{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "results"],
+              "query": [
+                {"key": "semester_id", "value": "{{semester_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Course Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/results?semester_id={{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "results"],
+              "query": [
+                {"key": "semester_id", "value": "{{semester_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Result by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/results/{{result_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["results", "{{result_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Result (Admin/Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_id\": {{course_id}},\n  \"subject_id\": {{subject_id}},\n  \"semester_id\": {{semester_id}},\n  \"class_score\": 35,\n  \"exam_score\": 55,\n  \"total_score\": 90,\n  \"grade\": \"A\",\n  \"grade_point\": 4.0,\n  \"remark\": \"Excellent performance\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/results",
+              "host": ["{{base_url}}"],
+              "path": ["results"]
+            }
+          }
+        },
+        {
+          "name": "Update Result (Admin/Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"total_score\": 92,\n  \"grade\": \"A\",\n  \"remark\": \"Outstanding\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/results/{{result_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["results", "{{result_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Result (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/results/{{result_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["results", "{{result_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teacher-Subjects",
+      "item": [
+        {
+          "name": "Get Teacher's Subjects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teachers/{{teacher_id}}/subjects",
+              "host": ["{{base_url}}"],
+              "path": ["teachers", "{{teacher_id}}", "subjects"]
+            }
+          }
+        },
+        {
+          "name": "Get Subject's Teachers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subjects/{{subject_id}}/teachers",
+              "host": ["{{base_url}}"],
+              "path": ["subjects", "{{subject_id}}", "teachers"]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher-Subject Assignment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teacher-subjects/1",
+              "host": ["{{base_url}}"],
+              "path": ["teacher-subjects", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Teacher-Subject Assignment (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacher_id\": {{teacher_id}},\n  \"subject_id\": {{subject_id}},\n  \"assigned_date\": \"2026-02-14\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/teacher-subjects",
+              "host": ["{{base_url}}"],
+              "path": ["teacher-subjects"]
+            }
+          }
+        },
+        {
+          "name": "Update Teacher-Subject Assignment (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assigned_date\": \"2026-09-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/teacher-subjects/1",
+              "host": ["{{base_url}}"],
+              "path": ["teacher-subjects", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Teacher-Subject Assignment (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/teacher-subjects/1",
+              "host": ["{{base_url}}"],
+              "path": ["teacher-subjects", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parent-Students",
+      "item": [
+        {
+          "name": "Get Parent's Students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parents/{{parent_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["parents", "{{parent_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Get Student's Parents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/students/{{student_id}}/parents",
+              "host": ["{{base_url}}"],
+              "path": ["students", "{{student_id}}", "parents"]
+            }
+          }
+        },
+        {
+          "name": "Get Parent-Student Relationship by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parent-students/1",
+              "host": ["{{base_url}}"],
+              "path": ["parent-students", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Parent-Student Relationship (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parent_id\": {{parent_id}},\n  \"student_id\": {{student_id}},\n  \"relationship_type\": \"Father\",\n  \"is_primary_contact\": 1,\n  \"can_pickup\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/parent-students",
+              "host": ["{{base_url}}"],
+              "path": ["parent-students"]
+            }
+          }
+        },
+        {
+          "name": "Update Parent-Student Relationship (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_primary_contact\": 0,\n  \"can_pickup\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/parent-students/1",
+              "host": ["{{base_url}}"],
+              "path": ["parent-students", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Parent-Student Relationship (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/parent-students/1",
+              "host": ["{{base_url}}"],
+              "path": ["parent-students", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Course Sections",
+      "item": [
+        {
+          "name": "Get All Course Sections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/sections",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "sections"]
+            }
+          }
+        },
+        {
+          "name": "Create Course Section (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section_name\": \"Week 1: Introduction\",\n  \"description\": \"Getting started with course basics\",\n  \"order_index\": 1,\n  \"is_active\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/sections",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "sections"]
+            }
+          }
+        },
+        {
+          "name": "Update Course Section (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"section_name\": \"Week 1: Updated Title\",\n  \"description\": \"Updated description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/sections/{{section_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "sections", "{{section_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course Section (Teacher)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/sections/{{section_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "sections", "{{section_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assignments",
+      "item": [
+        {
+          "name": "Get Course Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/assignments",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "assignments"]
+            }
+          }
+        },
+        {
+          "name": "Get Assignment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["assignments", "{{assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Assignment (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"section_id\": {{section_id}},\n  \"title\": \"Programming Assignment 1\",\n  \"description\": \"Create a calculator program\",\n  \"max_score\": 100,\n  \"passing_score\": 60,\n  \"rubric\": \"Code quality (40pts), Functionality (40pts), Documentation (20pts)\",\n  \"submission_type\": \"both\",\n  \"due_date\": \"2024-03-01 23:59:59\",\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assignments",
+              "host": ["{{base_url}}"],
+              "path": ["assignments"]
+            }
+          }
+        },
+        {
+          "name": "Update Assignment (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Assignment Title\",\n  \"due_date\": \"2024-03-15 23:59:59\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["assignments", "{{assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Assignment (Teacher)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["assignments", "{{assignment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Assignment Submissions (Teacher)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/assignments/{{assignment_id}}/submissions",
+              "host": ["{{base_url}}"],
+              "path": ["assignments", "{{assignment_id}}", "submissions"]
+            }
+          }
+        },
+        {
+          "name": "Submit Assignment (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"submission_text\": \"Here is my solution code...\",\n  \"submission_file\": \"/uploads/submissions/assignment1.zip\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assignments/{{assignment_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["assignments", "{{assignment_id}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Grade Assignment Submission (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 85,\n  \"feedback\": \"Good work! Consider improving error handling.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/assignment-submissions/{{submission_id}}/grade",
+              "host": ["{{base_url}}"],
+              "path": ["assignment-submissions", "{{submission_id}}", "grade"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quizzes",
+      "item": [
+        {
+          "name": "Get Course Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/courses/{{course_id}}/quizzes",
+              "host": ["{{base_url}}"],
+              "path": ["courses", "{{course_id}}", "quizzes"]
+            }
+          }
+        },
+        {
+          "name": "Get Quiz Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Quiz (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"section_id\": {{section_id}},\n  \"title\": \"Chapter 1 Quiz\",\n  \"description\": \"Test your understanding of chapter 1\",\n  \"duration_minutes\": 30,\n  \"max_attempts\": 2,\n  \"quiz_type\": \"graded\",\n  \"show_results\": \"instant\",\n  \"start_date\": \"2024-02-01 00:00:00\",\n  \"end_date\": \"2024-02-07 23:59:59\",\n  \"is_activated\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes"]
+            }
+          }
+        },
+        {
+          "name": "Update Quiz (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Quiz Title\",\n  \"duration_minutes\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Quiz (Teacher)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Quiz Question (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question_text\": \"What is 2 + 2?\",\n  \"question_type\": \"multiple_choice\",\n  \"points\": 5,\n  \"difficulty\": \"easy\",\n  \"explanation\": \"Basic arithmetic\",\n  \"order_index\": 1,\n  \"options\": [\n    {\"label\": \"A\", \"text\": \"3\", \"is_correct\": 0},\n    {\"label\": \"B\", \"text\": \"4\", \"is_correct\": 1},\n    {\"label\": \"C\", \"text\": \"5\", \"is_correct\": 0},\n    {\"label\": \"D\", \"text\": \"6\", \"is_correct\": 0}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}/questions",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}", "questions"]
+            }
+          }
+        },
+        {
+          "name": "Get Quiz Questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}/questions",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}", "questions"]
+            }
+          }
+        },
+        {
+          "name": "Start Quiz (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Submit Quiz (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    {\"question_id\": 1, \"answer\": \"B\"},\n    {\"question_id\": 2, \"answer\": \"True\"},\n    {\"question_id\": 3, \"answer\": \"A\"}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/quiz-submissions/{{quiz_submission_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["quiz-submissions", "{{quiz_submission_id}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Get Quiz Results (Student)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/quiz-submissions/{{quiz_submission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["quiz-submissions", "{{quiz_submission_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Student Quiz Attempts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/quizzes/{{quiz_id}}/my-attempts",
+              "host": ["{{base_url}}"],
+              "path": ["quizzes", "{{quiz_id}}", "my-attempts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "description": "Private messaging system for user-to-user communication",
+      "item": [
+        {
+          "name": "Get Inbox",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/inbox?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "inbox"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sent Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/sent?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "sent"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Message by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/1",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "1"]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiver_id\": 2,\n  \"course_id\": {{course_id}},\n  \"subject\": \"Assignment Question\",\n  \"message_text\": \"Hello, I have a question about the assignment...\",\n  \"parent_message_id\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["messages"]
+            }
+          }
+        },
+        {
+          "name": "Mark Message as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/1/read",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/1",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/unread-count",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "Get Conversation with User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/messages/conversation/2",
+              "host": ["{{base_url}}"],
+              "path": ["messages", "conversation", "2"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login Activity",
+      "description": "Security audit trail for login/logout tracking",
+      "item": [
+        {
+          "name": "Get All Login Activity (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/login-activity?page=1&limit=20&user_id=&is_successful=&from_date=&to_date=",
+              "host": ["{{base_url}}"],
+              "path": ["login-activity"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "user_id", "value": ""},
+                {"key": "is_successful", "value": ""},
+                {"key": "from_date", "value": ""},
+                {"key": "to_date", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Login History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/login-activity/my-history?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["login-activity", "my-history"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Logins (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/login-activity/recent",
+              "host": ["{{base_url}}"],
+              "path": ["login-activity", "recent"]
+            }
+          }
+        },
+        {
+          "name": "Get Failed Login Attempts (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/login-activity/failed?hours=24&user_id=",
+              "host": ["{{base_url}}"],
+              "path": ["login-activity", "failed"],
+              "query": [
+                {"key": "hours", "value": "24"},
+                {"key": "user_id", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Login History (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/{{student_id}}/login-activity?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["users", "{{student_id}}", "login-activity"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Error Logs",
+      "description": "Application error logging and monitoring (Admin only)",
+      "item": [
+        {
+          "name": "Get All Error Logs (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/error-logs?page=1&limit=20&severity_level=&is_resolved=&source=&from_date=&to_date=",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"},
+                {"key": "severity_level", "value": ""},
+                {"key": "is_resolved", "value": ""},
+                {"key": "source", "value": ""},
+                {"key": "from_date", "value": ""},
+                {"key": "to_date", "value": ""}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Error Log by ID (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/error-logs/show",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs", "show"]
+            }
+          }
+        },
+        {
+          "name": "Create Error Log (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"error_message\": \"Database connection failed\",\n  \"stack_trace\": \"Error at line 45 in database.php...\",\n  \"source\": \"database.php:45\",\n  \"severity_level\": \"critical\",\n  \"metadata\": \"{\\\"db_host\\\": \\\"localhost\\\", \\\"timeout\\\": 30}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/error-logs",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs"]
+            }
+          }
+        },
+        {
+          "name": "Mark Error as Resolved (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/error-logs/1/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs", "1", "resolve"]
+            }
+          }
+        },
+        {
+          "name": "Delete Error Log (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/error-logs/1",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Unresolved Errors (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/error-logs/unresolved?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs", "unresolved"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Errors by Severity (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/error-logs/severity/critical?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["error-logs", "severity", "critical"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
