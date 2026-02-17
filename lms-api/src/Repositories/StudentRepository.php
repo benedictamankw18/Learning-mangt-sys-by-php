@@ -173,6 +173,40 @@ class StudentRepository
         }
     }
 
+    public function countByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id AND u.deleted_at IS NULL
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Students By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countActiveByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id 
+                AND u.is_active = 1 
+                AND u.deleted_at IS NULL
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Active Students By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     public function enrollInCourse(int $studentId, int $courseId): bool
     {
         try {
@@ -287,6 +321,44 @@ class StudentRepository
         } catch (\PDOException $e) {
             error_log("Get Enrolled Courses Error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Get monthly enrollment counts for current year by institution
+     */
+    public function getMonthlyEnrollmentsByInstitution(int $institutionId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    MONTH(s.created_at) as month,
+                    COUNT(*) as count
+                FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id
+                AND YEAR(s.created_at) = YEAR(CURDATE())
+                AND u.deleted_at IS NULL
+                GROUP BY MONTH(s.created_at)
+                ORDER BY month
+            ");
+
+            $stmt->execute(['institution_id' => $institutionId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Initialize array with zeros for all 12 months
+            $monthlyData = array_fill(1, 12, 0);
+
+            // Fill in actual counts
+            foreach ($results as $row) {
+                $monthlyData[(int) $row['month']] = (int) $row['count'];
+            }
+
+            // Return indexed array (0-11) for frontend
+            return array_values($monthlyData);
+        } catch (\PDOException $e) {
+            error_log("Get Monthly Enrollments Error: " . $e->getMessage());
+            return array_fill(0, 12, 0);
         }
     }
 }

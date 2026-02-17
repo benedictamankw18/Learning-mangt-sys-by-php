@@ -285,17 +285,12 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'title' => 'required|string|max:200',
-            'description' => 'string',
-            'material_type' => 'string|max:50',
-            'file_path' => 'string|max:500',
-            'file_size' => 'integer',
-            'order_index' => 'integer'
-        ]);
+        $validator = new Validator($data);
+        $validator->required('title')
+            ->max('title', 200);
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 

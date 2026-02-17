@@ -1071,4 +1071,39 @@ class ClassSubjectRepository
             'teacher_id' => $teacherId
         ]);
     }
+
+    /**
+     * Get course distribution by subject for an institution
+     * Returns array of subject counts for charts
+     */
+    public function getCourseDistributionBySubject(int $institutionId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    s.subject_name,
+                    COUNT(cs.course_id) as count
+                FROM class_subjects cs
+                INNER JOIN subjects s ON cs.subject_id = s.subject_id
+                WHERE cs.institution_id = :institution_id
+                GROUP BY s.subject_id, s.subject_name
+                ORDER BY count DESC
+                LIMIT 5
+            ");
+
+            $stmt->execute(['institution_id' => $institutionId]);
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                'labels' => array_column($results, 'subject_name'),
+                'data' => array_map('intval', array_column($results, 'count'))
+            ];
+        } catch (\PDOException $e) {
+            error_log("Get Course Distribution Error: " . $e->getMessage());
+            return [
+                'labels' => [],
+                'data' => []
+            ];
+        }
+    }
 }

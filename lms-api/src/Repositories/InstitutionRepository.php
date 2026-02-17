@@ -63,6 +63,136 @@ class InstitutionRepository
     }
 
     /**
+     * Get count of active institutions
+     * 
+     * @return int
+     */
+    public function countActive(): int
+    {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) as total FROM institutions WHERE status = 'active'");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int) $result['total'];
+        } catch (\PDOException $e) {
+            error_log("Count Active Institutions Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get recently created institutions
+     * 
+     * @param int $limit
+     * @return array
+     */
+    public function getRecent(int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    i.*,
+                    (SELECT COUNT(*) FROM users WHERE institution_id = i.institution_id) as user_count
+                FROM institutions i
+                ORDER BY i.created_at DESC
+                LIMIT :limit
+            ");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Recent Institutions Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Count institutions created this month
+     * 
+     * @return int
+     */
+    public function countThisMonth(): int
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as total 
+                FROM institutions 
+                WHERE YEAR(created_at) = YEAR(CURRENT_DATE()) 
+                AND MONTH(created_at) = MONTH(CURRENT_DATE())
+            ");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int) $result['total'];
+        } catch (\PDOException $e) {
+            error_log("Count Institutions This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Count institutions created last month
+     * 
+     * @return int
+     */
+    public function countLastMonth(): int
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT COUNT(*) as total 
+                FROM institutions 
+                WHERE YEAR(created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+            ");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int) $result['total'];
+        } catch (\PDOException $e) {
+            error_log("Count Institutions Last Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get monthly institution counts for the current year
+     * 
+     * @return array Array of counts indexed by month (1-12)
+     */
+    public function getMonthlyCountsThisYear(): array
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT 
+                    MONTH(created_at) as month,
+                    COUNT(*) as count
+                FROM institutions
+                WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
+                GROUP BY MONTH(created_at)
+                ORDER BY month
+            ");
+
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Initialize all months with 0
+            $monthlyCounts = array_fill(1, 12, 0);
+
+            // Fill in actual counts
+            foreach ($results as $row) {
+                $monthlyCounts[(int) $row['month']] = (int) $row['count'];
+            }
+
+            // Calculate cumulative totals
+            $cumulative = [];
+            $total = 0;
+            for ($i = 1; $i <= 12; $i++) {
+                $total += $monthlyCounts[$i];
+                $cumulative[$i] = $total;
+            }
+
+            return $cumulative;
+        } catch (\PDOException $e) {
+            error_log("Get Monthly Institutions Error: " . $e->getMessage());
+            return array_fill(1, 12, 0);
+        }
+    }
+
+    /**
      * Find institution by ID
      * 
      * @param int $id

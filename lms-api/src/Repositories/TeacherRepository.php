@@ -171,6 +171,22 @@ class TeacherRepository
         }
     }
 
+    public function countByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM teachers t
+                INNER JOIN users u ON t.user_id = u.user_id
+                WHERE t.institution_id = :institution_id AND u.deleted_at IS NULL
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Teachers By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     public function getCourses(int $teacherId): array
     {
         try {

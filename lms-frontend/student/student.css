@@ -1,0 +1,342 @@
+/* ============================================
+   Student Dashboard Styles
+============================================ */
+
+/* Import admin base styles */
+@import '../admin/admin.css';
+
+/* Student Theme Colors */
+.student-theme {
+    --primary: #10b981;
+    --primary-dark: #059669;
+    --primary-light: #34d399;
+}
+
+.student-theme .sidebar {
+    border-right-color: rgba(16, 185, 129, 0.1);
+}
+
+.student-theme .nav-item.active {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent);
+}
+
+.student-theme .nav-item.active::before {
+    background: var(--primary);
+}
+
+/* ============================================
+   Welcome Banner
+============================================ */
+.welcome-banner {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.welcome-content p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.welcome-illustration {
+    font-size: 5rem;
+    opacity: 0.2;
+}
+
+/* ============================================
+   Assignments List
+============================================ */
+.assignments-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.assignment-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.assignment-item:last-child {
+    border-bottom: none;
+}
+
+.assignment-item:hover {
+    background: var(--gray-50);
+}
+
+.assignment-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.assignment-icon.bg-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.assignment-icon.bg-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.assignment-details {
+    flex: 1;
+}
+
+.assignment-details h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.assignment-details p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+}
+
+.assignment-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.due-date {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text-tertiary);
+}
+
+.due-date.urgent {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* ============================================
+   Grades List
+============================================ */
+.grades-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.grade-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.grade-item:last-child {
+    border-bottom: none;
+}
+
+.grade-item:hover {
+    background: var(--gray-50);
+}
+
+.grade-subject h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.grade-subject p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.grade-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.grade-score .score {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.grade-score .percentage {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.grade-score.grade-a .score {
+    color: var(--success);
+}
+
+.grade-score.grade-b .score {
+    color: #3b82f6;
+}
+
+.grade-score.grade-c .score {
+    color: var(--warning);
+}
+
+.grade-score.grade-d .score,
+.grade-score.grade-f .score {
+    color: var(--danger);
+}
+
+/* ============================================
+   Courses Grid
+============================================ */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.course-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.course-header {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.course-header.bg-primary {
+    background: linear-gradient(135deg, #006a3f, #008c54);
+}
+
+.course-header.bg-success {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+}
+
+.course-header.bg-warning {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.course-body {
+    padding: 1.5rem;
+}
+
+.course-body h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.course-body p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+}
+
+.course-progress {
+    margin-top: 1rem;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+    border-radius: 4px;
+}
+
+.progress-bar.bg-success {
+    background: var(--success);
+}
+
+.progress-bar.bg-warning {
+    background: var(--warning);
+}
+
+.progress-text {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.course-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   Info Color
+============================================ */
+.stat-icon.bg-info {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+}
+
+/* ============================================
+   Responsive Design
+============================================ */
+@media (max-width: 768px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-illustration {
+        font-size: 3rem;
+        margin-top: 1rem;
+    }
+
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .assignment-item {
+        flex-wrap: wrap;
+    }
+
+    .assignment-item button {
+        width: 100%;
+        margin-top: 1rem;
+    }
+}

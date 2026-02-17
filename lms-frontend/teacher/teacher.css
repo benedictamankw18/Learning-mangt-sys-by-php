@@ -1,0 +1,314 @@
+/* ============================================
+   Teacher Dashboard Styles
+============================================ */
+
+/* Import admin base styles */
+@import '../admin/admin.css';
+
+/* Teacher Theme Colors */
+.teacher-theme {
+    --primary: #006a3f;
+    --primary-dark: #005030;
+    --primary-light: #008c54;
+}
+
+.teacher-theme .sidebar {
+    border-right-color: rgba(0, 106, 63, 0.1);
+}
+
+.teacher-theme .nav-item.active {
+    background: linear-gradient(90deg, rgba(0, 106, 63, 0.1), transparent);
+}
+
+.teacher-theme .nav-item.active::before {
+    background: var(--primary);
+}
+
+/* ============================================
+   Welcome Banner
+============================================ */
+.welcome-banner {
+    background: linear-gradient(135deg, #006a3f, #008c54);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.welcome-content p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.welcome-illustration {
+    font-size: 5rem;
+    opacity: 0.2;
+}
+
+/* ============================================
+   Schedule List
+============================================ */
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.schedule-item:last-child {
+    border-bottom: none;
+}
+
+.schedule-item:hover {
+    background: var(--gray-50);
+}
+
+.schedule-time {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 100px;
+}
+
+.schedule-time .time {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.schedule-time .duration {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    background: var(--gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.schedule-content {
+    flex: 1;
+}
+
+.schedule-content h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.schedule-content p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem 0;
+}
+
+.schedule-progress {
+    width: 100%;
+    height: 4px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s ease;
+}
+
+.progress-bar.bg-success {
+    background: var(--success);
+}
+
+/* ============================================
+   Submissions List
+============================================ */
+.submissions-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.submission-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.submission-item:last-child {
+    border-bottom: none;
+}
+
+.submission-item:hover {
+    background: var(--gray-50);
+}
+
+.submission-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.submission-details {
+    flex: 1;
+}
+
+.submission-details strong {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.submission-details p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.25rem 0;
+}
+
+.submission-details small {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+/* ============================================
+   Courses Grid
+============================================ */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.course-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.course-header {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+}
+
+.course-header.bg-primary {
+    background: linear-gradient(135deg, #006a3f, #008c54);
+}
+
+.course-header.bg-success {
+    background: linear-gradient(135deg, #10b981, #06b6d4);
+}
+
+.course-header.bg-warning {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+}
+
+.course-body {
+    padding: 1.5rem;
+}
+
+.course-body h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.course-body p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+}
+
+.course-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.course-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.course-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ============================================
+   Badge in Nav
+============================================ */
+.nav-item .badge {
+    margin-left: auto;
+    font-size: 0.625rem;
+}
+
+/* ============================================
+   Responsive Design
+============================================ */
+@media (max-width: 768px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-illustration {
+        font-size: 3rem;
+        margin-top: 1rem;
+    }
+
+    .courses-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .schedule-item {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .schedule-time {
+        flex-direction: row;
+        gap: 1rem;
+        align-items: center;
+    }
+}

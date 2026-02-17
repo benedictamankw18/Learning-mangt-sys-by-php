@@ -173,10 +173,14 @@ class AuthController
             'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
         ]);
 
-        unset($user['password_hash']);
+        // Fetch complete user data with roles
+        $completeUser = $this->userRepo->findById($user['user_id']);
+
+        // Extract primary role (first role in array)
+        $completeUser['role'] = !empty($completeUser['roles']) ? $completeUser['roles'][0] : null;
 
         Response::success([
-            'user' => $user,
+            'user' => $completeUser,
             'access_token' => $accessToken,
             'refresh_token' => $refreshToken,
             'token_type' => 'Bearer'

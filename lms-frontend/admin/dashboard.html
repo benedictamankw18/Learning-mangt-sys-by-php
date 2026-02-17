@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - LMS</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="icon" type="image/x-icon" href="../assets/img/fav.ico">
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="dashboard-page">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>LMS Admin</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="overview">
+                <i class="fas fa-th-large"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-page="users">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-item" data-page="courses">
+                <i class="fas fa-book"></i>
+                <span>Courses</span>
+            </a>
+            <a href="#" class="nav-item" data-page="institutions">
+                <i class="fas fa-building"></i>
+                <span>Institutions</span>
+            </a>
+            <a href="#" class="nav-item" data-page="departments">
+                <i class="fas fa-sitemap"></i>
+                <span>Departments</span>
+            </a>
+            <a href="#" class="nav-item" data-page="attendance">
+                <i class="fas fa-calendar-check"></i>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="nav-item" data-page="grades">
+                <i class="fas fa-chart-line"></i>
+                <span>Grades</span>
+            </a>
+            <a href="#" class="nav-item" data-page="reports">
+                <i class="fas fa-file-alt"></i>
+                <span>Reports</span>
+            </a>
+            <a href="#" class="nav-item" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="navbar-left">
+                <button class="btn-icon mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+            </div>
+
+            <div class="navbar-right">
+                <!-- Search -->
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search..." id="globalSearch">
+                </div>
+
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="btn-icon" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge badge-danger">3</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" id="notificationMenu">
+                        <div class="dropdown-header">Notifications</div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user-plus text-success"></i>
+                            <div>
+                                <strong>New user registered</strong>
+                                <small>5 minutes ago</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                            <div>
+                                <strong>Server load high</strong>
+                                <small>1 hour ago</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-check text-info"></i>
+                            <div>
+                                <strong>Backup completed</strong>
+                                <small>2 hours ago</small>
+                            </div>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-center">View All</a>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="dropdown">
+                    <button class="user-profile" id="userProfileBtn">
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="userInitials">A</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name" id="userName">Admin</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" id="userMenu">
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="userLogoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content" id="pageContent">
+            <!-- Overview Page (Default) -->
+            <div class="content-section active" id="overview-section">
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Total Users</p>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 12% this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalCourses">0</h3>
+                            <p>Active Courses</p>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 8% this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-3">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalStudents">0</h3>
+                            <p>Students</p>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 15% this month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-4">
+                        <div class="stat-icon bg-danger">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalTeachers">0</h3>
+                            <p>Teachers</p>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i> 5% this month
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Enrollment Chart -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3>Enrollment Trends</h3>
+                            <div class="card-actions">
+                                <div class="dropdown chart-actions-dropdown">
+                                    <button class="btn-icon" id="enrollmentChartMenuBtn" aria-haspopup="true" aria-expanded="true">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right" id="enrollmentChartMenu" style="display:block; min-width: 140px;">
+                                        <a href="#" class="dropdown-item" id="downloadEnrollmentChart"><i class="fas fa-download"></i> Download</a>
+                                        <a href="#" class="dropdown-item" id="printEnrollmentChart"><i class="fas fa-print"></i> Print</a>
+                                        <a href="#" class="dropdown-item" id="refreshEnrollmentChart"><i class="fas fa-sync-alt"></i> Refresh</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="enrollmentChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Course Distribution Chart -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3>Course Distribution</h3>
+                            <div class="card-actions">
+                                <div class="dropdown chart-actions-dropdown">
+                                    <button class="btn-icon" id="courseDistributionMenuBtn" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right" id="courseDistributionMenu" style="display:none; min-width: 140px;">
+                                        <a href="#" class="dropdown-item" id="downloadCourseDistribution"><i class="fas fa-download"></i> Download</a>
+                                        <a href="#" class="dropdown-item" id="printCourseDistribution"><i class="fas fa-print"></i> Print</a>
+                                        <a href="#" class="dropdown-item" id="refreshCourseDistribution"><i class="fas fa-sync-alt"></i> Refresh</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="courseDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card mt-2 fade-in-up">
+                    <div class="card-header">
+                        <h3>Recent Activity</h3>
+                        <a href="#" class="btn btn-sm btn-outline">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="activity-list" id="activityList">
+                            <div class="activity-item">
+                                <div class="activity-icon bg-success">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <p><strong>John Doe</strong> registered as a new student</p>
+                                    <small>2 minutes ago</small>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon bg-primary">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <p><strong>Jane Smith</strong> created a new course "Advanced Math"</p>
+                                    <small>15 minutes ago</small>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon bg-warning">
+                                    <i class="fas fa-edit"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <p><strong>Bob Johnson</strong> updated course materials</p>
+                                    <small>1 hour ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections (Users, Courses, etc.) will be loaded dynamically -->
+            <div class="content-section" id="users-section">
+                <h2>User Management</h2>
+                <p>User management interface coming soon...</p>
+            </div>
+
+            <div class="content-section" id="courses-section">
+                <h2>Course Management</h2>
+                <p>Course management interface coming soon...</p>
+            </div>
+
+            <!-- More sections as needed -->
+        </main>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

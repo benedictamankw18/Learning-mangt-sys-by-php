@@ -3,16 +3,19 @@
 namespace App\Controllers;
 
 use App\Repositories\NotificationRepository;
+use App\Repositories\MessageRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
 
 class NotificationController
 {
     private NotificationRepository $notificationRepo;
+    private MessageRepository $messageRepo;
 
-    public function __construct(NotificationRepository $notificationRepo)
+    public function __construct(NotificationRepository $notificationRepo, MessageRepository $messageRepo)
     {
         $this->notificationRepo = $notificationRepo;
+        $this->messageRepo = $messageRepo;
     }
 
     /**
@@ -152,6 +155,36 @@ class NotificationController
         Response::success(['unread_count' => $unreadCount]);
     }
 
+    /**
+     * Get notification and message summary
+     * GET /api/notifications/summary
+     */
+    public function getSummary(): void
+    {
+        $userId = $_SESSION['user']['user_id'];
+
+        // Get unread counts
+        $notificationsCount = $this->notificationRepo->getUnreadCount($userId);
+        $messagesCount = $this->messageRepo->getUnreadCount($userId);
+        $totalCount = $notificationsCount + $messagesCount;
+
+        // Get recent notifications (limit 5)
+        $recentNotifications = $this->notificationRepo->getUserNotifications($userId, 5, 0);
+
+        // Get recent messages (limit 5)
+        $recentMessages = $this->messageRepo->getInbox($userId, 1, 5);
+
+        Response::success([
+            'total_unread' => $totalCount,
+            'notifications_unread' => $notificationsCount,
+            'messages_unread' => $messagesCount,
+            'recent_notifications' => $recentNotifications,
+            'recent_messages' => $recentMessages
+        ]);
+    }
+
+    /**
+     * 
     /**
      * Delete a notification
      * DELETE /api/notifications/{id}

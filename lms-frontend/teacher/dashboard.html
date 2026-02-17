@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - LMS</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="teacher.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page teacher-theme">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Teacher Portal</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="my-courses">
+                <i class="fas fa-book-open"></i>
+                <span>My Courses</span>
+            </a>
+            <a href="#" class="nav-item" data-page="schedule">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Schedule</span>
+            </a>
+            <a href="#" class="nav-item" data-page="assignments">
+                <i class="fas fa-tasks"></i>
+                <span>Assignments</span>
+            </a>
+            <a href="#" class="nav-item" data-page="grading">
+                <i class="fas fa-clipboard-check"></i>
+                <span>Grading</span>
+            </a>
+            <a href="#" class="nav-item" data-page="attendance">
+                <i class="fas fa-user-check"></i>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="nav-item" data-page="students">
+                <i class="fas fa-users"></i>
+                <span>Students</span>
+            </a>
+            <a href="#" class="nav-item" data-page="messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="badge badge-danger">5</span>
+            </a>
+            <a href="#" class="nav-item" data-page="resources">
+                <i class="fas fa-folder"></i>
+                <span>Resources</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="navbar-left">
+                <button class="btn-icon mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Teacher Dashboard</h1>
+            </div>
+
+            <div class="navbar-right">
+                <!-- Quick Action -->
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Create Assignment
+                </button>
+
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="btn-icon" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge badge-danger">3</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-header">Notifications</div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-file-alt text-primary"></i>
+                            <div>
+                                <strong>New submission</strong>
+                                <small>Math Assignment 5</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-comment text-success"></i>
+                            <div>
+                                <strong>New message</strong>
+                                <small>From parent John Doe</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-calendar text-warning"></i>
+                            <div>
+                                <strong>Class starting soon</strong>
+                                <small>Physics 101 in 30 min</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="dropdown">
+                    <button class="user-profile" id="userProfileBtn">
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="userInitials">T</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name" id="userName">Teacher</span>
+                            <span class="user-role">Educator</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="userLogoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content" id="pageContent">
+            <!-- Dashboard Page (Default) -->
+            <div class="content-section active" id="dashboard-section">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner fade-in">
+                    <div class="welcome-content">
+                        <h2>Welcome back, <span id="teacherName">Teacher</span>!</h2>
+                        <p>You have <strong id="pendingSubmissions">0</strong> pending submissions to grade.</p>
+                    </div>
+                    <div class="welcome-illustration">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="myCourses">0</h3>
+                            <p>My Courses</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="myStudents">0</h3>
+                            <p>Total Students</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-3">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="activeAssignments">0</h3>
+                            <p>Active Assignments</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-4">
+                        <div class="stat-icon bg-danger">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pendingGrades">0</h3>
+                            <p>Pending Grades</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Today's Schedule -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calendar-day"></i> Today's Schedule</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="schedule-list" id="todaySchedule">
+                                <div class="schedule-item">
+                                    <div class="schedule-time">
+                                        <span class="time">08:00 AM</span>
+                                        <span class="duration">1h 30m</span>
+                                    </div>
+                                    <div class="schedule-content">
+                                        <h4>Mathematics 101</h4>
+                                        <p><i class="fas fa-map-marker-alt"></i> Room 204</p>
+                                        <div class="schedule-progress">
+                                            <div class="progress-bar" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="schedule-item">
+                                    <div class="schedule-time">
+                                        <span class="time">10:00 AM</span>
+                                        <span class="duration">1h</span>
+                                    </div>
+                                    <div class="schedule-content">
+                                        <h4>Physics Lab</h4>
+                                        <p><i class="fas fa-map-marker-alt"></i> Lab 3</p>
+                                        <div class="schedule-progress">
+                                            <div class="progress-bar bg-success" style="width: 30%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Submissions -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-file-alt"></i> Recent Submissions</h3>
+                            <a href="#" class="btn btn-sm btn-outline">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="submissions-list" id="recentSubmissions">
+                                <div class="submission-item">
+                                    <div class="submission-avatar">
+                                        <span>JS</span>
+                                    </div>
+                                    <div class="submission-details">
+                                        <strong>John Smith</strong>
+                                        <p>Assignment: Algebra Chapter 5</p>
+                                        <small>2 minutes ago</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary">Grade</button>
+                                </div>
+                                <div class="submission-item">
+                                    <div class="submission-avatar">
+                                        <span>EJ</span>
+                                    </div>
+                                    <div class="submission-details">
+                                        <strong>Emily Johnson</strong>
+                                        <p>Assignment: Physics Lab Report</p>
+                                        <small>15 minutes ago</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary">Grade</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Courses Grid -->
+                <div class="card mt-2 fade-in-up">
+                    <div class="card-header">
+                        <h3><i class="fas fa-book-open"></i> My Courses</h3>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Add Course
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="courses-grid" id="coursesGrid">
+                            <div class="course-card">
+                                <div class="course-header bg-primary">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <div class="course-body">
+                                    <h4>Mathematics 101</h4>
+                                    <p>Algebra and Calculus</p>
+                                    <div class="course-stats">
+                                        <span><i class="fas fa-users"></i> 45 students</span>
+                                        <span><i class="fas fa-tasks"></i> 8 assignments</span>
+                                    </div>
+                                </div>
+                                <div class="course-footer">
+                                    <button class="btn btn-sm btn-outline">View Course</button>
+                                </div>
+                            </div>
+
+                            <div class="course-card">
+                                <div class="course-header bg-success">
+                                    <i class="fas fa-atom"></i>
+                                </div>
+                                <div class="course-body">
+                                    <h4>Physics 101</h4>
+                                    <p>Mechanics and Thermodynamics</p>
+                                    <div class="course-stats">
+                                        <span><i class="fas fa-users"></i> 38 students</span>
+                                        <span><i class="fas fa-tasks"></i> 6 assignments</span>
+                                    </div>
+                                </div>
+                                <div class="course-footer">
+                                    <button class="btn btn-sm btn-outline">View Course</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections placeholders -->
+            <div class="content-section" id="my-courses-section">
+                <h2>My Courses</h2>
+                <p>Course management interface...</p>
+            </div>
+
+            <div class="content-section" id="schedule-section">
+                <h2>My Schedule</h2>
+                <p>Weekly schedule view...</p>
+            </div>
+
+            <div class="content-section" id="assignments-section">
+                <h2>Assignments</h2>
+                <p>Assignment management...</p>
+            </div>
+
+            <div class="content-section" id="grading-section">
+                <h2>Grading</h2>
+                <p>Student grading interface...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="teacher.js"></script>
+</body>
+</html>

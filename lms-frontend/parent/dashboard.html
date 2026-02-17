@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - LMS</title>
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="stylesheet" href="parent.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page parent-theme">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="fas fa-user-friends"></i>
+                <span>Parent Portal</span>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="children">
+                <i class="fas fa-child"></i>
+                <span>My Children</span>
+            </a>
+            <a href="#" class="nav-item" data-page="performance">
+                <i class="fas fa-chart-line"></i>
+                <span>Academic Performance</span>
+            </a>
+            <a href="#" class="nav-item" data-page="attendance">
+                <i class="fas fa-calendar-check"></i>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="nav-item" data-page="grades">
+                <i class="fas fa-star"></i>
+                <span>Grades</span>
+            </a>
+            <a href="#" class="nav-item" data-page="messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+            </a>
+            <a href="#" class="nav-item" data-page="events">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="#" class="nav-item" data-page="fees">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Fees</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="btn-logout" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-navbar">
+            <div class="navbar-left">
+                <button class="btn-icon mobile-menu-toggle" id="mobileMenuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="pageTitle">Parent Dashboard</h1>
+            </div>
+
+            <div class="navbar-right">
+                <!-- Notifications -->
+                <div class="dropdown">
+                    <button class="btn-icon" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge badge-danger">4</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <div class="dropdown-header">Notifications</div>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-exclamation-circle text-warning"></i>
+                            <div>
+                                <strong>Low attendance warning</strong>
+                                <small>John - Math class</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-star text-success"></i>
+                            <div>
+                                <strong>New grade posted</strong>
+                                <small>Sarah - Science test: A+</small>
+                            </div>
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-calendar text-info"></i>
+                            <div>
+                                <strong>Upcoming event</strong>
+                                <small>Parent-teacher meeting tomorrow</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="dropdown">
+                    <button class="user-profile" id="userProfileBtn">
+                        <div class="user-avatar" id="userAvatar">
+                            <span id="userInitials">P</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name" id="userName">Parent</span>
+                            <span class="user-role">Guardian</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-user"></i> My Profile
+                        </a>
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" id="userLogoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="page-content" id="pageContent">
+            <!-- Dashboard Page (Default) -->
+            <div class="content-section active" id="dashboard-section">
+                <!-- Welcome Banner -->
+                <div class="welcome-banner fade-in">
+                    <div class="welcome-content">
+                        <h2>Welcome, <span id="parentName">Parent</span>!</h2>
+                        <p>Monitor your children's academic progress</p>
+                    </div>
+                    <div class="welcome-illustration">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+
+                <!-- Children Select -->
+                <div class="children-selector fade-in">
+                    <label><i class="fas fa-child"></i> Select Child:</label>
+                    <select id="childSelector" class="form-select">
+                        <option value="all">All Children</option>
+                        <option value="1">John Doe</option>
+                        <option value="2">Sarah Doe</option>
+                    </select>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-child"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalChildren">0</h3>
+                            <p>Children</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="avgPerformance">0.0</h3>
+                            <p>Avg Performance</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-3">
+                        <div class="stat-icon bg-info">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="avgAttendance">0%</h3>
+                            <p>Avg Attendance</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-4">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="alerts">0</h3>
+                            <p>Alerts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Children Overview -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-users"></i> Children Overview</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="children-list" id="childrenList">
+                                <div class="child-item">
+                                    <div class="child-avatar">
+                                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff" alt="John Doe">
+                                    </div>
+                                    <div class="child-info">
+                                        <h4>John Doe</h4>
+                                        <p>Grade 10 - Science Stream</p>
+                                    </div>
+                                    <div class="child-stats">
+                                        <div class="stat-badge grade-a">
+                                            <span class="label">GPA</span>
+                                            <span class="value">3.8</span>
+                                        </div>
+                                        <div class="stat-badge attendance-good">
+                                            <span class="label">Attendance</span>
+                                            <span class="value">95%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="child-item">
+                                    <div class="child-avatar">
+                                        <img src="https://ui-avatars.com/api/?name=Sarah+Doe&background=ec4899&color=fff" alt="Sarah Doe">
+                                    </div>
+                                    <div class="child-info">
+                                        <h4>Sarah Doe</h4>
+                                        <p>Grade 8 - General</p>
+                                    </div>
+                                    <div class="child-stats">
+                                        <div class="stat-badge grade-a">
+                                            <span class="label">GPA</span>
+                                            <span class="value">3.9</span>
+                                        </div>
+                                        <div class="stat-badge attendance-good">
+                                            <span class="label">Attendance</span>
+                                            <span class="value">98%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Grades -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-star"></i> Recent Grades</h3>
+                            <a href="#" class="btn btn-sm btn-outline">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="activity-list" id="recentGrades">
+                                <div class="activity-item">
+                                    <div class="activity-avatar">JD</div>
+                                    <div class="activity-details">
+                                        <h4>Mathematics Test</h4>
+                                        <p>John Doe - Math 101</p>
+                                        <small>2 hours ago</small>
+                                    </div>
+                                    <div class="grade-badge grade-a">A</div>
+                                </div>
+
+                                <div class="activity-item">
+                                    <div class="activity-avatar">SD</div>
+                                    <div class="activity-details">
+                                        <h4>Science Project</h4>
+                                        <p>Sarah Doe - Science 201</p>
+                                        <small>1 day ago</small>
+                                    </div>
+                                    <div class="grade-badge grade-a">A+</div>
+                                </div>
+
+                                <div class="activity-item">
+                                    <div class="activity-avatar">JD</div>
+                                    <div class="activity-details">
+                                        <h4>English Essay</h4>
+                                        <p>John Doe - English 101</p>
+                                        <small>3 days ago</small>
+                                    </div>
+                                    <div class="grade-badge grade-b">B+</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance & Performance -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Attendance Summary -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calendar-check"></i> Attendance Summary</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="attendance-summary">
+                                <div class="attendance-child">
+                                    <div class="child-name-badge">
+                                        <span class="avatar">JD</span>
+                                        <span class="name">John Doe</span>
+                                    </div>
+                                    <div class="attendance-bar">
+                                        <div class="bar-fill" style="width: 95%"></div>
+                                    </div>
+                                    <span class="attendance-percent">95%</span>
+                                </div>
+
+                                <div class="attendance-child">
+                                    <div class="child-name-badge">
+                                        <span class="avatar">SD</span>
+                                        <span class="name">Sarah Doe</span>
+                                    </div>
+                                    <div class="attendance-bar">
+                                        <div class="bar-fill" style="width: 98%"></div>
+                                    </div>
+                                    <span class="attendance-percent">98%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Events -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calendar"></i> Upcoming Events</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="events-list">
+                                <div class="event-item">
+                                    <div class="event-date">
+                                        <span class="day">15</span>
+                                        <span class="month">Jan</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h4>Parent-Teacher Meeting</h4>
+                                        <p><i class="fas fa-clock"></i> 3:00 PM - 5:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Main Hall</p>
+                                    </div>
+                                </div>
+
+                                <div class="event-item">
+                                    <div class="event-date">
+                                        <span class="day">20</span>
+                                        <span class="month">Jan</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h4>Science Fair</h4>
+                                        <p><i class="fas fa-clock"></i> All Day</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Science Block</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections placeholders -->
+            <div class="content-section" id="children-section">
+                <h2>My Children</h2>
+                <p>Detailed children information...</p>
+            </div>
+
+            <div class="content-section" id="performance-section">
+                <h2>Academic Performance</h2>
+                <p>Performance tracking...</p>
+            </div>
+
+            <div class="content-section" id="grades-section">
+                <h2>Grades</h2>
+                <p>Detailed grades view...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/auth.js"></script>
+    <script src="parent.js"></script>
+</body>
+</html>

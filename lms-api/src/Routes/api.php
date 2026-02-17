@@ -13,6 +13,13 @@ return [
     'POST /auth/logout' => ['controller' => 'AuthController', 'method' => 'logout', 'auth' => true],
     'POST /auth/change-password' => ['controller' => 'AuthController', 'method' => 'changePassword', 'auth' => true],
 
+    // Dashboard routes (Protected)
+    'GET /dashboard/superadmin' => ['controller' => 'DashboardController', 'method' => 'superAdminStats', 'auth' => true],
+    'GET /dashboard/admin' => ['controller' => 'DashboardController', 'method' => 'adminStats', 'auth' => true],
+    'GET /dashboard/teacher' => ['controller' => 'DashboardController', 'method' => 'teacherStats', 'auth' => true],
+    'GET /dashboard/student' => ['controller' => 'DashboardController', 'method' => 'studentStats', 'auth' => true],
+    'GET /dashboard/parent' => ['controller' => 'DashboardController', 'method' => 'parentStats', 'auth' => true],
+
     // Student routes
     'GET /students' => ['controller' => 'StudentController', 'method' => 'index', 'auth' => true],
     'GET /students/{id}' => ['controller' => 'StudentController', 'method' => 'show', 'auth' => true],
@@ -63,6 +70,7 @@ return [
 
     // Notification routes
     'GET /notifications' => ['controller' => 'NotificationController', 'method' => 'index', 'auth' => true],
+    'GET /notifications/summary' => ['controller' => 'NotificationController', 'method' => 'getSummary', 'auth' => true],
     'GET /notifications/unread-count' => ['controller' => 'NotificationController', 'method' => 'getUnreadCount', 'auth' => true],
     'GET /notifications/{id}' => ['controller' => 'NotificationController', 'method' => 'show', 'auth' => true],
     'POST /notifications' => ['controller' => 'NotificationController', 'method' => 'create', 'auth' => true],

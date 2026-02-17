@@ -240,6 +240,168 @@ class UserRepository
             return 0;
         }
     }
+
+    public function countActive(): int
+    {
+        try {
+            $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL AND is_active = 1");
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Active Users Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT COUNT(*) FROM users WHERE institution_id = :institution_id AND deleted_at IS NULL");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByRole(string $roleName): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(DISTINCT u.user_id) 
+                FROM users u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                WHERE r.role_name = :role_name 
+                AND u.deleted_at IS NULL
+            ");
+            $stmt->execute(['role_name' => $roleName]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users By Role Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countCreatedThisMonth(): int
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT COUNT(*) 
+                FROM users 
+                WHERE YEAR(created_at) = YEAR(CURRENT_DATE()) 
+                AND MONTH(created_at) = MONTH(CURRENT_DATE())
+                AND deleted_at IS NULL
+            ");
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users Created This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countCreatedLastMonth(): int
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT COUNT(*) 
+                FROM users 
+                WHERE YEAR(created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND deleted_at IS NULL
+            ");
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users Created Last Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByRoleCreatedThisMonth(string $roleName): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(DISTINCT u.user_id) 
+                FROM users u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                WHERE r.role_name = :role_name 
+                AND u.deleted_at IS NULL
+                AND YEAR(u.created_at) = YEAR(CURRENT_DATE()) 
+                AND MONTH(u.created_at) = MONTH(CURRENT_DATE())
+            ");
+            $stmt->execute(['role_name' => $roleName]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users By Role This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByRoleCreatedLastMonth(string $roleName): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(DISTINCT u.user_id) 
+                FROM users u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                WHERE r.role_name = :role_name 
+                AND u.deleted_at IS NULL
+                AND YEAR(u.created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(u.created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+            ");
+            $stmt->execute(['role_name' => $roleName]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users By Role Last Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get monthly user counts for the current year
+     * 
+     * @return array Array of cumulative counts indexed by month (1-12)
+     */
+    public function getMonthlyCountsThisYear(): array
+    {
+        try {
+            $stmt = $this->db->query("
+                SELECT 
+                    MONTH(created_at) as month,
+                    COUNT(*) as count
+                FROM users
+                WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
+                AND deleted_at IS NULL
+                GROUP BY MONTH(created_at)
+                ORDER BY month
+            ");
+
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Initialize all months with 0
+            $monthlyCounts = array_fill(1, 12, 0);
+
+            // Fill in actual counts
+            foreach ($results as $row) {
+                $monthlyCounts[(int) $row['month']] = (int) $row['count'];
+            }
+
+            // Calculate cumulative totals
+            $cumulative = [];
+            $total = 0;
+            for ($i = 1; $i <= 12; $i++) {
+                $total += $monthlyCounts[$i];
+                $cumulative[$i] = $total;
+            }
+
+            return $cumulative;
+        } catch (\PDOException $e) {
+            error_log("Get Monthly Users Error: " . $e->getMessage());
+            return array_fill(1, 12, 0);
+        }
+    }
     public function getRoleByName(string $roleName): ?array
     {
         try {

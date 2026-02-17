@@ -413,6 +413,34 @@ VALUES (@institution_id, @student2_user_id, @class_1art1_id, 'STU-2024-00002', '
 SET @student2_id = LAST_INSERT_ID();
 
 -- =========================================
+-- CREATE PARENT USER
+-- =========================================
+
+-- Parent: Yaw Osei (Parent of Kwame Osei - Student 1)
+-- Username: yaw.osei
+-- Password: password
+USE lms;
+
+SET @institution_id = 1;
+SET @student1_id = (SELECT student_id FROM students WHERE student_id_number = 'STU-2024-00001' LIMIT 1);
+SET @parent_role_id = (SELECT role_id FROM roles WHERE role_name = 'parent' LIMIT 1);
+
+INSERT INTO users (institution_id, username, email, password_hash, first_name, last_name, phone_number, is_active)
+VALUES (@institution_id, 'yaw.osei', 'yaw.osei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Osei', '+233 24 555 5555', 1);
+
+SET @parent_user_id = LAST_INSERT_ID();
+
+INSERT INTO user_roles (user_id, role_id) VALUES (@parent_user_id, @parent_role_id);
+
+INSERT INTO parents (institution_id, user_id, email, phone_number, address, occupation)
+VALUES (@institution_id, @parent_user_id, 'yaw.osei@parent.accrashs.edu.gh', '+233 24 555 5555', 'Accra, Ghana', 'Engineer');
+
+SET @parent_id = LAST_INSERT_ID();
+
+INSERT INTO parent_students (parent_id, student_id, relationship_type, is_primary_contact, can_pickup)
+VALUES (@parent_id, @student1_id, 'Father', 1, 1);
+
+-- =========================================
 -- CREATE CLASS SUBJECTS (Teaching Instances)
 -- =========================================
 
@@ -703,7 +731,7 @@ SELECT
     '1 platform super admin created' as super_admin,
     '1 institution created (Accra SHS)' as institution,
     'Ghana WAEC grading scale (A1-F9)' as grading,
-    '5 institution users (1 admin, 2 teachers, 2 students)' as users,
+    '6 institution users (1 admin, 2 teachers, 2 students, 1 parent)' as users,
     '3 programs (General Arts, Science, Business)' as programs,
     '3 grade levels (SHS 1, 2, 3)' as grade_levels,
     '2 homeroom classes (1 Art 1, 1 Science 2)' as classes,
@@ -728,4 +756,5 @@ SELECT 'Admin:           username=admin         | password=password | email=admi
 SELECT 'Teacher (Kofi):  username=kofi.mensah   | password=password | email=kofi.mensah@accrashs.edu.gh' UNION ALL
 SELECT 'Teacher (Ama):   username=ama.asante    | password=password | email=ama.asante@accrashs.edu.gh' UNION ALL
 SELECT 'Student (Kwame): username=kwame.osei    | password=password | email=kwame.osei@student.accrashs.edu.gh' UNION ALL
-SELECT 'Student (Abena): username=abena.adjei   | password=password | email=abena.adjei@student.accrashs.edu.gh';
+SELECT 'Student (Abena): username=abena.adjei   | password=password | email=abena.adjei@student.accrashs.edu.gh' UNION ALL
+SELECT 'Parent (Yaw):    username=yaw.osei      | password=password | email=yaw.osei@parent.accrashs.edu.gh';

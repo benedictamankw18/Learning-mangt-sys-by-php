@@ -125,6 +125,24 @@ class ParentRepository
         }
     }
 
+    public function findByUserId(int $userId): ?array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT p.*, u.username, u.is_active
+                FROM parents p
+                LEFT JOIN users u ON p.user_id = u.user_id
+                WHERE p.user_id = :user_id
+            ");
+            $stmt->execute(['user_id' => $userId]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (\PDOException $e) {
+            error_log("Find Parent By User Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
     public function getStudents(int $parentId): array
     {
         try {

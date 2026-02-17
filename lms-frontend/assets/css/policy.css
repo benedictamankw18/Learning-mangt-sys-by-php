@@ -1,0 +1,436 @@
+/* Policy Pages Styling */
+:root{
+    --primary-color: #006a3f;
+    --accent-color: #d4af37;
+}
+
+/* Container */
+.policy-container {
+    max-width: 900px;
+    margin: 100px auto 60px;
+    padding: 0 30px;
+}
+
+/* Header */
+.policy-header {
+    text-align: center;
+    margin-bottom: 50px;
+    padding-bottom: 30px;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+.policy-header h1 {
+    font-size: 3rem;
+    color: var(--text-dark);
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.policy-meta {
+    color: var(--text-light);
+    font-size: 1rem;
+    font-style: italic;
+}
+
+/* Content */
+.policy-content {
+    line-height: 1.8;
+    color: var(--text-dark);
+}
+
+.policy-section {
+    margin-bottom: 40px;
+}
+
+.policy-section h2 {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.policy-section h3 {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.policy-section h4 {
+    font-size: 1.2rem;
+    color: var(--text-dark);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.policy-section p {
+    margin-bottom: 15px;
+    color: var(--text-dark);
+}
+
+.policy-section ul {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+.policy-section li {
+    margin-bottom: 10px;
+    color: var(--text-dark);
+}
+
+.policy-section a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.policy-section a:hover {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+
+/* Highlight Box */
+.highlight-box {
+    background: linear-gradient(135deg, #fff6e6 0%, #ffe8cc 100%);
+    border-left: 4px solid var(--warning-color, #ff9800);
+    padding: 20px;
+    margin: 25px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.highlight-box i {
+    color: var(--warning-color, #ff9800);
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.highlight-box strong {
+    color: var(--warning-color, #ff9800);
+}
+
+/* Contact Info Box */
+.contact-info-box {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+    border: 2px solid var(--primary-color);
+    padding: 25px;
+    margin: 25px 0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.contact-info-box p {
+    margin: 10px 0;
+    color: var(--text-dark);
+}
+
+.contact-info-box i {
+    color: var(--primary-color);
+    margin-right: 10px;
+    width: 20px;
+}
+
+.contact-info-box a {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Policy Navigation */
+.policy-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 50px;
+    padding-top: 40px;
+    border-top: 2px solid var(--border-color);
+}
+
+.policy-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    color: rgb(255, 255, 255) !important;
+    text-decoration: none !important;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.policy-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.policy-link i {
+    font-size: 1.3rem;
+}
+
+/* Cookie Policy Specific */
+.cookie-type-box {
+    background: white;
+    border-left: 5px solid var(--primary-color);
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.cookie-type-box.essential {
+    border-left-color: #dc3545;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+}
+
+.cookie-type-box.functional {
+    border-left-color: #007bff;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+}
+
+.cookie-type-box.analytics {
+    border-left-color: #28a745;
+    background: linear-gradient(135deg, #f0fff5 0%, #e6ffe6 100%);
+}
+
+.cookie-type-box.performance {
+    border-left-color: #ffc107;
+    background: linear-gradient(135deg, #fffef0 0%, #fff9e6 100%);
+}
+
+.cookie-type-box p {
+    margin: 8px 0;
+}
+
+.cookie-type-box strong {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.badge-yes {
+    background: #28a745;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.badge-no {
+    background: #dc3545;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.policy-section code {
+    background: #f4f4f4;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: #c7254e;
+    font-size: 0.95rem;
+}
+
+/* Browser Instructions */
+.browser-instructions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.browser-item {
+    background: white;
+    border: 2px solid var(--border-color);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.browser-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.browser-item h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+}
+
+.browser-item i {
+    font-size: 1.5rem;
+}
+
+.browser-item p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* GDPR Specific */
+.legal-basis-item {
+    background: white;
+    border: 2px solid var(--border-color);
+    padding: 25px;
+    margin: 25px 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.legal-basis-item h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.gdpr-right {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 5px solid var(--primary-color);
+    padding: 25px;
+    margin: 25px 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.gdpr-right h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.3rem;
+}
+
+.gdpr-right p {
+    margin: 12px 0;
+}
+
+/* Retention Table */
+.retention-table {
+    overflow-x: auto;
+    margin: 30px 0;
+}
+
+.retention-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.retention-table thead {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+}
+
+.retention-table th {
+    color: white;
+    padding: 18px 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.retention-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-dark);
+}
+
+.retention-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.retention-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Terms of Service Specific */
+.policy-section > ul > li > ul {
+    margin-top: 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .policy-container {
+        margin: 80px auto 40px;
+        padding: 0 20px;
+    }
+
+    .policy-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .policy-section h2 {
+        font-size: 1.6rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .policy-section h3 {
+        font-size: 1.3rem;
+    }
+
+    .policy-nav {
+        grid-template-columns: 1fr;
+    }
+
+    .browser-instructions {
+        grid-template-columns: 1fr;
+    }
+
+    .retention-table {
+        font-size: 0.9rem;
+    }
+
+    .retention-table th,
+    .retention-table td {
+        padding: 12px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .policy-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .policy-section h2 {
+        font-size: 1.4rem;
+    }
+
+    .policy-section h3 {
+        font-size: 1.2rem;
+    }
+
+    .highlight-box,
+    .contact-info-box,
+    .legal-basis-item,
+    .gdpr-right {
+        padding: 15px;
+    }
+
+    .policy-link {
+        padding: 15px;
+        font-size: 0.95rem;
+    }
+}

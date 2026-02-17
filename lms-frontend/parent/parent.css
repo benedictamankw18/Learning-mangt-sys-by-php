@@ -1,0 +1,455 @@
+/* ============================================
+   Parent Dashboard Styles
+============================================ */
+
+/* Import admin base styles */
+@import '../admin/admin.css';
+
+/* Parent Theme Colors */
+.parent-theme {
+    --primary: #d4af37;
+    --primary-dark: #b8941f;
+    --primary-light: #e4c766;
+}
+
+.parent-theme .sidebar {
+    border-right-color: rgba(212, 175, 55, 0.1);
+}
+
+.parent-theme .nav-item.active {
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.1), transparent);
+}
+
+.parent-theme .nav-item.active::before {
+    background: var(--primary);
+}
+
+/* ============================================
+   Welcome Banner
+============================================ */
+.welcome-banner {
+    background: linear-gradient(135deg, #d4af37, #e4c766);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-content h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.welcome-content p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.welcome-illustration {
+    font-size: 5rem;
+    opacity: 0.2;
+}
+
+/* ============================================
+   Children Selector
+============================================ */
+.children-selector {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.children-selector label {
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.children-selector select {
+    flex: 1;
+    max-width: 300px;
+}
+
+/* ============================================
+   Children List
+============================================ */
+.children-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.child-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.child-item:last-child {
+    border-bottom: none;
+}
+
+.child-item:hover {
+    background: var(--gray-50);
+}
+
+.child-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.child-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.child-info {
+    flex: 1;
+}
+
+.child-info h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.child-info p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.child-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--gray-50);
+    min-width: 80px;
+}
+
+.stat-badge .label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-badge .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 0.25rem;
+}
+
+.stat-badge.grade-a .value {
+    color: var(--success);
+}
+
+.stat-badge.attendance-good {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.stat-badge.attendance-good .value {
+    color: var(--success);
+}
+
+/* ============================================
+   Activity List (Recent Grades)
+============================================ */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-item:hover {
+    background: var(--gray-50);
+}
+
+.activity-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.875rem;
+    flex-shrink: 0;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-details h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+}
+
+.activity-details p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.25rem 0;
+}
+
+.activity-details small {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.grade-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: white;
+}
+
+.grade-badge.grade-a {
+    background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+.grade-badge.grade-b {
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+}
+
+.grade-badge.grade-c {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+/* ============================================
+   Attendance Summary
+============================================ */
+.attendance-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.attendance-child {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.child-name-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 150px;
+}
+
+.child-name-badge .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.child-name-badge .name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.attendance-bar {
+    flex: 1;
+    height: 12px;
+    background: var(--gray-200);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+}
+
+.attendance-percent {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--success);
+    min-width: 50px;
+    text-align: right;
+}
+
+/* ============================================
+   Events List
+============================================ */
+.events-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-item:hover {
+    background: var(--gray-50);
+}
+
+.event-date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 12px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.event-date .day {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.event-date .month {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+}
+
+.event-details {
+    flex: 1;
+}
+
+.event-details h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.event-details p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.event-details i {
+    width: 16px;
+    color: var(--text-tertiary);
+}
+
+/* ============================================
+   Info Color
+============================================ */
+.stat-icon.bg-info {
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+}
+
+/* ============================================
+   Responsive Design
+============================================ */
+@media (max-width: 768px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .welcome-illustration {
+        font-size: 3rem;
+        margin-top: 1rem;
+    }
+
+    .children-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .children-selector select {
+        max-width: 100%;
+    }
+
+    .child-item {
+        flex-wrap: wrap;
+    }
+
+    .child-stats {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .attendance-child {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .child-name-badge {
+        min-width: auto;
+    }
+
+    .attendance-percent {
+        text-align: left;
+    }
+}
