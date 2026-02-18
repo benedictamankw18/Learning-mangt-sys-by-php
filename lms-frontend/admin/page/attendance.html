@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
+
 <body class="dashboard-page">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -96,7 +98,7 @@
                             <i class="fas fa-bell"></i>
                             <span class="badge badge-danger" id="notificationBadge" style="display: none;">0</span>
                         </button>
-                    
+
                         <!-- Notification Dropdown -->
                         <div class="notification-dropdown" id="notificationDropdown" style="display: none;">
                             <div class="notification-header">
@@ -106,7 +108,8 @@
                             <div class="notification-tabs">
                                 <button class="tab-btn active" data-tab="notifications">Notifications (<span
                                         id="notifCount">0</span>)</button>
-                                <button class="tab-btn" data-tab="messages">Messages (<span id="msgCount">0</span>)</button>
+                                <button class="tab-btn" data-tab="messages">Messages (<span
+                                        id="msgCount">0</span>)</button>
                             </div>
                             <div class="notification-content">
                                 <div class="tab-content active" id="notificationsTab">
@@ -222,13 +225,18 @@
                             <h3>Enrollment Trends</h3>
                             <div class="card-actions">
                                 <div class="dropdown chart-actions-dropdown">
-                                    <button class="btn-icon" id="enrollmentChartMenuBtn" aria-haspopup="true" aria-expanded="true">
+                                    <button class="btn-icon" id="enrollmentChartMenuBtn" aria-haspopup="true"
+                                        aria-expanded="true">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-right" id="enrollmentChartMenu" style="display:block; min-width: 140px;">
-                                        <a href="#" class="dropdown-item" id="downloadEnrollmentChart"><i class="fas fa-download"></i> Download</a>
-                                        <a href="#" class="dropdown-item" id="printEnrollmentChart"><i class="fas fa-print"></i> Print</a>
-                                        <a href="#" class="dropdown-item" id="refreshEnrollmentChart"><i class="fas fa-sync-alt"></i> Refresh</a>
+                                    <div class="dropdown-menu dropdown-menu-right" id="enrollmentChartMenu"
+                                        style="display:block; min-width: 140px;">
+                                        <a href="#" class="dropdown-item" id="downloadEnrollmentChart"><i
+                                                class="fas fa-download"></i> Download</a>
+                                        <a href="#" class="dropdown-item" id="printEnrollmentChart"><i
+                                                class="fas fa-print"></i> Print</a>
+                                        <a href="#" class="dropdown-item" id="refreshEnrollmentChart"><i
+                                                class="fas fa-sync-alt"></i> Refresh</a>
                                     </div>
                                 </div>
                             </div>
@@ -244,13 +252,18 @@
                             <h3>Course Distribution</h3>
                             <div class="card-actions">
                                 <div class="dropdown chart-actions-dropdown">
-                                    <button class="btn-icon" id="courseDistributionMenuBtn" aria-haspopup="true" aria-expanded="false">
+                                    <button class="btn-icon" id="courseDistributionMenuBtn" aria-haspopup="true"
+                                        aria-expanded="false">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <div class="dropdown-menu dropdown-menu-right" id="courseDistributionMenu" style="display:none; min-width: 140px;">
-                                        <a href="#" class="dropdown-item" id="downloadCourseDistribution"><i class="fas fa-download"></i> Download</a>
-                                        <a href="#" class="dropdown-item" id="printCourseDistribution"><i class="fas fa-print"></i> Print</a>
-                                        <a href="#" class="dropdown-item" id="refreshCourseDistribution"><i class="fas fa-sync-alt"></i> Refresh</a>
+                                    <div class="dropdown-menu dropdown-menu-right" id="courseDistributionMenu"
+                                        style="display:none; min-width: 140px;">
+                                        <a href="#" class="dropdown-item" id="downloadCourseDistribution"><i
+                                                class="fas fa-download"></i> Download</a>
+                                        <a href="#" class="dropdown-item" id="printCourseDistribution"><i
+                                                class="fas fa-print"></i> Print</a>
+                                        <a href="#" class="dropdown-item" id="refreshCourseDistribution"><i
+                                                class="fas fa-sync-alt"></i> Refresh</a>
                                     </div>
                                 </div>
                             </div>
@@ -328,7 +341,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
@@ -338,74 +351,65 @@
     <script src="admin.js"></script>
     <script src="../assets/js/main.js"></script>
     <script>
-    // Dynamic section loader with hash routing (persists across refresh)
-    (function(){
-        const dynamicSection = document.getElementById('dynamicSection');
-        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+        // Dynamic section loader with hash routing (persists across refresh)
+        (function () {
+            const dynamicSection = document.getElementById('dynamicSection');
+            const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
 
-        function setActiveNav(page) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const match = document.querySelector(`.nav-item[data-page="${page}"]`);
-            if (match) match.classList.add('active');
-        }
-
-        async function loadPage(page) {
-            if (!dynamicSection) return;
-            // Show overview when page is 'overview' or empty
-            if (!page || page === 'overview') {
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                const overview = document.getElementById('overview-section');
-                if (overview) overview.classList.add('active');
-                dynamicSection.innerHTML = '';
-                document.getElementById('pageTitle').textContent = 'Dashboard Overview';
-                setActiveNav('overview');
-                return;
+            function setActiveNav(page) {
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                const match = document.querySelector(`.nav-item[data-page="${page}"]`);
+                if (match) match.classList.add('active');
             }
 
-            try {
-                // show a small loading state while fetching
-                dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
-                // fetch from same directory (pages are in the admin folder)
-                const res = await fetch(`./${page}.html`);
-                if (!res.ok) throw new Error('Not found');
-                const html = await res.text();
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                dynamicSection.classList.add('active');
-                dynamicSection.innerHTML = html;
-                document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
-                setActiveNav(page);
-            } catch (err) {
-                dynamicSection.innerHTML = `<div class="card"><div class="card-body"><p>Page not available: ${page}</p></div></div>`;
-            }
-        }
-
-        // Update hash when nav clicked
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
-                const page = item.getAttribute('data-page');
-                if (!page) return;
-                // if clicking the same nav item twice, reload the page content
-                const current = window.location.hash.replace('#','');
-                if (current === page) {
-                    loadPage(page);
-                } else {
-                    // update location.hash which triggers hashchange
-                    window.location.hash = `#${page}`;
+            async function loadPage(page) {
+                if (!dynamicSection) return;
+                // Show overview when page is 'overview' or empty
+                if (!page || page === 'overview') {
+                    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                    const overview = document.getElementById('overview-section');
+                    if (overview) overview.classList.add('active');
+                    dynamicSection.innerHTML = '';
+                    document.getElementById('pageTitle').textContent = 'Dashboard Overview';
+                    setActiveNav('overview');
+                    return;
                 }
+
+                try {
+                    const res = await fetch(page + '.html');
+                    if (!res.ok) throw new Error('Not found');
+                    const html = await res.text();
+                    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                    dynamicSection.classList.add('active');
+                    dynamicSection.innerHTML = html;
+                    document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
+                    setActiveNav(page);
+                } catch (err) {
+                    dynamicSection.innerHTML = `<div class="card"><div class="card-body"><p>Page not available: ${page}</p></div></div>`;
+                }
+            }
+
+            // Update hash when nav clicked
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = item.getAttribute('data-page');
+                    // update location.hash which triggers hashchange
+                    if (page) window.location.hash = `#${page}`;
+                });
             });
-        });
 
-        // Handle initial load and hash changes
-        function handleHashChange() {
-            const hash = window.location.hash.replace('#','');
-            loadPage(hash || 'overview');
-        }
+            // Handle initial load and hash changes
+            function handleHashChange() {
+                const hash = window.location.hash.replace('#', '');
+                loadPage(hash || 'overview');
+            }
 
-        window.addEventListener('hashchange', handleHashChange);
-        // initial
-        handleHashChange();
-    })();
+            window.addEventListener('hashchange', handleHashChange);
+            // initial
+            handleHashChange();
+        })();
     </script>
 </body>
+
 </html>

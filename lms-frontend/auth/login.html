@@ -11,7 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="login-page">
-    <div class="login-container">
+    <div class="blur-background">
+        <div class="login-container">
         <!-- Background Animation -->
         <div class="bg-shapes">
             <div class="shape shape-1"></div>
@@ -80,7 +81,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-login" id="loginBtn">
-                    <span class="btn-text">Sign In</span>
+                    <span class="btn-txt">Sign In</span>
                     <span class="btn-loader" style="display: none;">
                         <i class="fas fa-spinner fa-spin"></i>
                     </span>
@@ -108,13 +109,15 @@
                     </button>
                 </div>
             </div>
+            <!-- Footer -->
+            <div class="login-page-footer">
+                <p>&copy; 2026 Learning Management System. All rights reserved.</p>
+            </div>
         </div>
 
-        <!-- Footer -->
-        <div class="login-page-footer">
-            <p>&copy; 2026 Learning Management System. All rights reserved.</p>
-        </div>
+       
     </div>
+</div>
 
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>

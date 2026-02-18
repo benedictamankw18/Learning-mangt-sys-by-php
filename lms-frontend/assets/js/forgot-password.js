@@ -54,7 +54,7 @@ function showAlert(message, type = 'info') {
 forgotPasswordForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const btnText = resetBtn.querySelector('.btn-text');
+    const btnText = resetBtn.querySelector('.btn-txt');
     const btnLoader = resetBtn.querySelector('.btn-loader');
     const email = document.getElementById('email').value.trim();
 

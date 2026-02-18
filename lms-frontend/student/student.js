@@ -161,14 +161,18 @@ function toggleDropdown(dropdown) {
  * Handle logout
  */
 async function handleLogout(e) {
-    e.preventDefault();
-
-    try {
-        await Auth.logout();
-    } catch (error) {
-        console.error('Logout error:', error);
-        // Auth.logout() handles the redirect
-    }
+    showModal(
+        'Confirm Logout',
+        'Are you sure you want to logout?',
+        async () => {
+            try {
+                await Auth.logout();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Logout failed. Please try again.', 'error');
+            }
+        }
+    );
 }
 
 /**
