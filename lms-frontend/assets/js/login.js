@@ -180,7 +180,7 @@ function togglePasswordVisibility() {
  */
 function setLoginButtonLoading(isLoading) {
     const loginBtn = document.getElementById('loginBtn');
-    const btnText = loginBtn?.querySelector('.btn-text');
+    const btnText = loginBtn?.querySelector('.btn-txt');
     const btnLoader = loginBtn?.querySelector('.btn-loader');
 
     if (!loginBtn) return;

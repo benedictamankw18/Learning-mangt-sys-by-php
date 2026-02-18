@@ -397,9 +397,81 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- Scripts -->
+    <script src="../assets/js/main.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="superadmin.js"></script>
+
+    <script>
+    // Dynamic section loader with hash routing (loads pages from ./page/)
+    (function(){
+        const dynamicSection = document.createElement('div');
+        dynamicSection.id = 'dynamicSection';
+        dynamicSection.className = 'content-section';
+        // append after main content
+        const main = document.querySelector('.main-content');
+        if (main) main.appendChild(dynamicSection);
+
+        const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+
+        function setActiveNav(page) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const match = document.querySelector(`.nav-item[data-page="${page}"]`);
+            if (match) match.classList.add('active');
+        }
+
+        async function loadPage(page) {
+            if (!dynamicSection) return;
+            if (!page || page === 'overview') {
+                // show default dashboard content
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                dynamicSection.innerHTML = '';
+                const title = document.querySelector('.page-title');
+                if (title) title.textContent = 'System Overview';
+                setActiveNav('overview');
+                return;
+            }
+
+            try {
+                dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
+                const res = await fetch(`./page/${page}.html`);
+                if (!res.ok) throw new Error('Not found');
+                const html = await res.text();
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                dynamicSection.classList.add('active');
+                dynamicSection.innerHTML = html;
+                const title = document.querySelector('.page-title');
+                if (title) title.textContent = page.charAt(0).toUpperCase() + page.slice(1);
+                setActiveNav(page);
+            } catch (err) {
+                dynamicSection.innerHTML = `<div class="card"><div class="card-body"><p>Page not available: ${page}</p></div></div>`;
+            }
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = item.getAttribute('data-page');
+                if (!page) return;
+                const current = window.location.hash.replace('#','');
+                if (current === page) {
+                    loadPage(page);
+                } else {
+                    window.location.hash = `#${page}`;
+                }
+            });
+        });
+
+        function handleHashChange() {
+            const hash = window.location.hash.replace('#','');
+            loadPage(hash || 'overview');
+        }
+
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange();
+    })();
+    </script>
+
 </body>
 </html>
