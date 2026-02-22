@@ -53,15 +53,9 @@ class RoleController
     public function create(array $user): void
     {
         $roleMiddleware = new RoleMiddleware($user);
-
-        // Super admins are not allowed to create roles
-        if (!empty($user['is_super_admin'])) {
-            Response::forbidden('Super admins are not permitted to create roles');
-            return;
-        }
-
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can create roles');
+        // Allow admins or super_admin to create roles
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can create roles');
             return;
         }
 
@@ -88,15 +82,9 @@ class RoleController
     public function update(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
-
-        // Super admins are not allowed to update roles
-        if (!empty($user['is_super_admin'])) {
-            Response::forbidden('Super admins are not permitted to update roles');
-            return;
-        }
-
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can update roles');
+        // Allow admins or super_admin to update roles
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can update roles');
             return;
         }
 
@@ -120,15 +108,9 @@ class RoleController
     public function delete(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
-
-        // Super admins are not allowed to delete roles
-        if (!empty($user['is_super_admin'])) {
-            Response::forbidden('Super admins are not permitted to delete roles');
-            return;
-        }
-
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can delete roles');
+        // Allow admins or super_admin to delete roles
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can delete roles');
             return;
         }
 
@@ -167,18 +149,33 @@ class RoleController
         Response::success($permissions);
     }
 
+    public function getUsers(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        // Allow admins or super_admin to view users for a role
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can view users for a role');
+            return;
+        }
+
+        $role = $this->roleRepo->findById($id);
+        if (!$role) {
+            Response::notFound('Role not found');
+            return;
+        }
+
+        $users = $this->roleRepo->getUsers($id);
+        Response::success($users);
+    }
+
     public function assignPermission(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        // Super admins are not allowed to assign permissions
-        if (!empty($user['is_super_admin'])) {
-            Response::forbidden('Super admins are not permitted to assign permissions');
-            return;
-        }
-
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can assign permissions');
+        // Allow admins or super admins to assign permissions
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can assign permissions');
             return;
         }
 
@@ -210,14 +207,9 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        // Super admins are not allowed to remove permissions
-        if (!empty($user['is_super_admin'])) {
-            Response::forbidden('Super admins are not permitted to remove permissions');
-            return;
-        }
-
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can remove permissions');
+        // Allow admins or super admins to remove permissions
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can remove permissions');
             return;
         }
 

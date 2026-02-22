@@ -20,6 +20,9 @@ const API_ENDPOINTS = {
     // Roles & Institutions
     ROLES: '/api/roles',
     INSTITUTIONS: '/api/institutions',
+    // Permissions
+    PERMISSIONS: '/permissions',
+    PERMISSION_BY_ID: (id) => `/permissions/${id}`,
     // Superadmin users (frontend uses /api/superadmin/...)
     SUPERADMIN_USERS: '/api/superadmin/users',
     SUPERADMIN_USER_BY_ID: (id) => `/api/superadmin/users/${id}`,

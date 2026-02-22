@@ -56,7 +56,7 @@ class UserRepository
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
                 LEFT JOIN institutions i on i.institution_id = u.institution_id
                 LEFT JOIN permissions p ON rp.permission_id = p.permission_id
-                WHERE u.user_id = :id
+                WHERE u.user_id = :id AND u.deleted_at IS NULL
                 GROUP BY u.user_id
             ");
 
@@ -64,7 +64,7 @@ class UserRepository
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
-                $user['roles'] = $user['roles'] ? explode(',', $user['roles']) : [];
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
                 $user['permissions'] = $user['permissions'] ? explode(',', $user['permissions']) : [];
                 unset($user['password_hash']);
             }
@@ -222,7 +222,7 @@ class UserRepository
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($users as &$user) {
-                $user['roles'] = $user['roles'] ? explode(',', $user['roles']) : [];
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
                 unset($user['password_hash']);
             }
 
@@ -261,7 +261,7 @@ class UserRepository
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             foreach ($users as &$user) {
-                $user['roles'] = $user['roles'] ? explode(',', $user['roles']) : [];
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
                 unset($user['password_hash']);
             }
 

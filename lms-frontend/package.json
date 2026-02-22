@@ -1,0 +1,13 @@
+{
+  "name": "lms-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "vendor:copy": "powershell -Command \"New-Item -ItemType Directory -Force assets/vendor/xlsx | Out-Null; New-Item -ItemType Directory -Force assets/vendor/jspdf | Out-Null; New-Item -ItemType Directory -Force assets/vendor/autotable | Out-Null; Copy-Item -Path node_modules/xlsx/dist/xlsx.full.min.js -Destination assets/vendor/xlsx/ -Force; Copy-Item -Path node_modules/jspdf/dist/jspdf.umd.min.js -Destination assets/vendor/jspdf/ -Force; Copy-Item -Path node_modules/jspdf-autotable/dist/jspdf.plugin.autotable.min.js -Destination assets/vendor/autotable/ -Force;\""
+  },
+  "dependencies": {
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.5.28",
+    "xlsx": "^0.18.5"
+  }
+}

@@ -20,8 +20,8 @@ class PermissionController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can view permissions');
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can view permissions');
             return;
         }
 
@@ -33,8 +33,8 @@ class PermissionController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can view permission details');
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can view permission details');
             return;
         }
 
@@ -52,8 +52,8 @@ class PermissionController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can create permissions');
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can create permissions');
             return;
         }
 
@@ -81,8 +81,8 @@ class PermissionController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can update permissions');
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can update permissions');
             return;
         }
 
@@ -107,8 +107,8 @@ class PermissionController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
-            Response::forbidden('Only admins can delete permissions');
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
+            Response::forbidden('Only admins or super admins can delete permissions');
             return;
         }
 

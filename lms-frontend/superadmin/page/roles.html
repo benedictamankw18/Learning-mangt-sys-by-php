@@ -1,6 +1,93 @@
-<div class="user-card ">
-  <div class="card-header"><h3><i class="fas fa-user-shield"></i> Roles & Permissions</h3></div>
-  <div class="card-body">
-    <p>Define roles and permissions for the system. Configure role-based access control here.</p>
+<section id="rolesPage" class="role-page card">
+  <div class="page-header">
+    <div class="toolbar-left">
+      <button id="btnCreateRole" class="btn-primary">Create Role</button>
+      <button id="btnImportRoles" class="btn-secondary">Import</button>
+      <!-- <button id="btnImportRoles" class="btn-secondary">Import Excel</button> -->
+      <input id="rolesImportInput" type="file" accept="text/csv,.xlsx" style="display:none;" />
+      <button id="btnExportRoles" class="btn-secondary">Export</button>
+    </div>
+
+    <div class="toolbar-right page-filters">
+      <input id="roleSearch" placeholder="Search roles..." />
+      <select id="roleFilter">
+        <option value="">All</option>
+        <option value="has_users">Has users</option>
+        <option value="no_users">No users</option>
+      </select>
+    </div>
   </div>
-</div>
+
+  
+
+  <div class="table-responsive">
+    <table id="rolesTable" class="table">
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Description</th>
+          <th>#Users</th>
+          <th>#Permissions</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <label style="display:flex;align-items:center;gap:0.5rem;  position: absolute; right: 6rem; ">
+    Per page
+    <select id="perPageSelect" class="users-control">
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </label>
+  <div id="rolesPagination" class="pagination"></div>
+
+
+  <!-- Permissions drawer -->
+  <div id="permissionsDrawer" class="drawer" style="display:none;">
+    <div class="drawer-header">
+      <h2 id="drawerTitle">Role Permissions</h2>
+      <button id="drawerClose" class="btn-icon">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="permissions-controls">
+        <input id="permSearch" placeholder="Search permissions..." />
+        <button id="btnAddPermission" class="btn-secondary">Add Permission</button>
+      </div>
+      <div id="permissionsList" class="permissions-list"></div>
+    </div>
+    <div class="drawer-footer">
+      <button id="btnSavePermissions" class="btn-primary">Save</button>
+    </div>
+  </div>
+  
+  <!-- Role modal template -->
+  <template id="rolesModal">
+    <form id="roleForm">
+      <div class="form-row"><label>Name</label><input name="role_name" required /></div>
+      <div class="form-row"><label>Description</label><textarea name="description"></textarea></div>
+    </form>
+  </template>
+
+
+  <!-- Modal template for choosing export type -->
+  <template id="exportModal">
+    <div style="display:flex;flex-direction:column;gap:0.5rem">
+      <button data-type="csv" class="btn-secondary">Export CSV</button>
+      <button data-type="xlsx" class="btn-secondary">Export Excel</button>
+      <button data-type="pdf" class="btn-secondary">Export PDF</button>
+    </div>
+  </template>
+
+  
+</section>
+
+
+<script src="/assets/js/superadmin/roles.js"></script>

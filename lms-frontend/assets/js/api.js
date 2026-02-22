@@ -221,6 +221,13 @@ const UserAPI = {
 const RoleAPI = {
     getAll: (params) => API.get(API_ENDPOINTS.ROLES, params),
     getById: (id) => API.get(`${API_ENDPOINTS.ROLES}/${id}`),
+    create: (data) => API.post(API_ENDPOINTS.ROLES, data),
+    update: (id, data) => API.put(`${API_ENDPOINTS.ROLES}/${id}`, data),
+    delete: (id) => API.delete(`${API_ENDPOINTS.ROLES}/${id}`),
+    getPermissions: (id) => API.get(`${API_ENDPOINTS.ROLES}/${id}/permissions`),
+    assignPermission: (id, permissionId) => API.post(`${API_ENDPOINTS.ROLES}/${id}/permissions`, { permission_id: permissionId }),
+    removePermission: (id, permissionId) => API.delete(`${API_ENDPOINTS.ROLES}/${id}/permissions/${permissionId}`),
+    getUsers: (id) => API.get(`${API_ENDPOINTS.ROLES}/${id}/users`),
 };
 
 /**
@@ -258,6 +265,17 @@ const CourseAPI = {
     create: (data) => API.post(API_ENDPOINTS.COURSES, data),
     update: (id, data) => API.put(API_ENDPOINTS.COURSE_BY_ID(id), data),
     delete: (id) => API.delete(API_ENDPOINTS.COURSE_BY_ID(id)),
+};
+
+/**
+ * Permission APIs
+ */
+const PermissionAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.PERMISSIONS, params),
+    getById: (id) => API.get(API_ENDPOINTS.PERMISSION_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.PERMISSIONS, data),
+    update: (id, data) => API.put(API_ENDPOINTS.PERMISSION_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.PERMISSION_BY_ID(id)),
 };
 
 /**
