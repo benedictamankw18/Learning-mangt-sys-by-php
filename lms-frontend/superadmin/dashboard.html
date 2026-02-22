@@ -272,7 +272,7 @@
                         </div>
                     </div>
                 </div>
-<br>
+                <br>
                 <!-- Recent Activity -->
                 <div class="card fade-in" style="animation-delay: 0.8s">
                     <div class="card-header">
@@ -335,7 +335,7 @@
                         </div>
                     </div>
                 </div>
-<br>
+                <br>
                 <!-- Quick Actions -->
                 <div class="card fade-in" style="animation-delay: 0.9s">
                     <div class="card-header">
@@ -401,6 +401,8 @@
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>
+    <script src="./js/institutions.js"></script>
+    <script src="./js/users.js"></script>
     <script src="superadmin.js"></script>
 
     <script>
@@ -412,7 +414,7 @@
         // append after main content
         const main = document.querySelector('.main-content');
         if (main) main.appendChild(dynamicSection);
-
+        const dashboardContent = document.querySelector('.dashboard-content');
         const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
 
         function setActiveNav(page) {
@@ -422,6 +424,8 @@
         }
 
         async function loadPage(page) {
+
+
             if (!dynamicSection) return;
             if (!page || page === 'overview') {
                 // show default dashboard content
@@ -430,6 +434,7 @@
                 const title = document.querySelector('.page-title');
                 if (title) title.textContent = 'System Overview';
                 setActiveNav('overview');
+                dashboardContent.style.display = 'block';
                 return;
             }
 
@@ -444,6 +449,9 @@
                 const title = document.querySelector('.page-title');
                 if (title) title.textContent = page.charAt(0).toUpperCase() + page.slice(1);
                 setActiveNav(page);
+                // notify any page-specific scripts that the content has been loaded
+                try{ document.dispatchEvent(new CustomEvent('page:loaded', { detail: { page } })); }catch(e){}
+                dashboardContent.style.display = 'none';
             } catch (err) {
                 dynamicSection.innerHTML = `<div class="card"><div class="card-body"><p>Page not available: ${page}</p></div></div>`;
             }

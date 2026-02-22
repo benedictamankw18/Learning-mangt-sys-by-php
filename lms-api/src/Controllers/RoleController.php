@@ -20,7 +20,8 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
+        // Allow admins or super_admin to view roles (view-only)
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
             Response::forbidden('Only admins can view roles');
             return;
         }
@@ -33,7 +34,8 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
+        // Allow admins or super_admin to view role details
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
             Response::forbidden('Only admins can view role details');
             return;
         }
@@ -52,14 +54,20 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
+        // Super admins are not allowed to create roles
+        if (!empty($user['is_super_admin'])) {
+            Response::forbidden('Super admins are not permitted to create roles');
+            return;
+        }
+
         if (!$roleMiddleware->isAdmin()) {
             Response::forbidden('Only admins can create roles');
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-        $validator = new Validator($data);
+        $validator = new Validator(is_array($data) ? $data : []);
         $validator->required(['role_name']);
 
         if ($validator->fails()) {
@@ -81,6 +89,12 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
+        // Super admins are not allowed to update roles
+        if (!empty($user['is_super_admin'])) {
+            Response::forbidden('Super admins are not permitted to update roles');
+            return;
+        }
+
         if (!$roleMiddleware->isAdmin()) {
             Response::forbidden('Only admins can update roles');
             return;
@@ -93,9 +107,9 @@ class RoleController
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-        if ($this->roleRepo->update($id, $data)) {
+        if ($this->roleRepo->update($id, is_array($data) ? $data : [])) {
             $updatedRole = $this->roleRepo->findById($id);
             Response::success($updatedRole);
         } else {
@@ -106,6 +120,12 @@ class RoleController
     public function delete(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
+
+        // Super admins are not allowed to delete roles
+        if (!empty($user['is_super_admin'])) {
+            Response::forbidden('Super admins are not permitted to delete roles');
+            return;
+        }
 
         if (!$roleMiddleware->isAdmin()) {
             Response::forbidden('Only admins can delete roles');
@@ -130,7 +150,8 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->isAdmin()) {
+        // Allow admins or super_admin to view role permissions
+        if (!$roleMiddleware->isAdmin() && empty($user['is_super_admin'])) {
             Response::forbidden('Only admins can view role permissions');
             return;
         }
@@ -150,6 +171,12 @@ class RoleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
+        // Super admins are not allowed to assign permissions
+        if (!empty($user['is_super_admin'])) {
+            Response::forbidden('Super admins are not permitted to assign permissions');
+            return;
+        }
+
         if (!$roleMiddleware->isAdmin()) {
             Response::forbidden('Only admins can assign permissions');
             return;
@@ -162,9 +189,9 @@ class RoleController
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-        $validator = new Validator($data);
+        $validator = new Validator(is_array($data) ? $data : []);
         $validator->required(['permission_id'])->numeric('permission_id');
 
         if ($validator->fails()) {
@@ -182,6 +209,12 @@ class RoleController
     public function removePermission(array $user, int $id, int $permissionId): void
     {
         $roleMiddleware = new RoleMiddleware($user);
+
+        // Super admins are not allowed to remove permissions
+        if (!empty($user['is_super_admin'])) {
+            Response::forbidden('Super admins are not permitted to remove permissions');
+            return;
+        }
 
         if (!$roleMiddleware->isAdmin()) {
             Response::forbidden('Only admins can remove permissions');

@@ -1,6 +1,99 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-users-cog"></i> User Management</h3></div>
-  <div class="card-body">
-    <p>Manage super admin users, admins and system users. Add filters and bulk actions.</p>
-  </div>
-</div>
+<!-- Super Admin Users Page -->
+<section id="usersPage" class="card users-card">
+    <div class="card-header">
+        <div class="users-toolbar">
+            <div class="bulk-actions">
+                <select id="bulkActionSelect" class="users-control">
+                    <option value="">Bulk Actions</option>
+                    <option value="activate">Activate</option>
+                    <option value="deactivate">Deactivate</option>
+                    <option value="delete">Delete</option>
+                    <option value="export">Export Selected</option>
+                </select>
+                <button id="btnApplyBulk" class="btn-secondary">Apply</button>
+            </div>
+            <input type="search" id="usersSearch" placeholder="Search users..." class="users-control users-search">
+            <select id="filterInstitution" class="users-control">
+                <option value="">All Institutions</option>
+            </select>
+            <input type="file" id="importFileInput" accept=".csv,.xlsx" style="display:none">
+            <button id="btnImport" class="btn-secondary">Import</button>
+            <button id="btnExportAll" class="btn-secondary">Export CSV</button>
+            <button id="btnExportXlsx" class="btn-secondary">Export Excel</button>
+            <button id="btnExportPdf" class="btn-secondary">Export PDF</button>
+            <button id="btnCreateUser" class="btn-primary">Create</button>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAllUsers"></th>
+                        <th>User</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Institution</th>
+                        <th>Status</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+    </div>
+<label style="display:flex;align-items:center;gap:0.5rem;  position: absolute; right: 6rem; ">
+                Per page
+                <select id="perPageSelect" class="users-control">
+                    <option value="10">10</option>
+                    <option value="20">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+<div class="pagination users-pagination" id="usersPagination"></div>
+
+            
+
+    <!-- Create/Edit Modal (uses global showModal for confirmation; this modal is lightweight inline) -->
+    <div id="usersModal" class="users-modal">
+        <form id="usersForm">
+            <div style="display:grid;gap:0.5rem;">
+                <label>First name<input name="first_name" class="first-name-input" required></label>
+                <label>Last name<input name="last_name" class="last-name-input" required></label>
+                <label>Username<input name="username" class="username-input" required></label>
+                <label>Email<input name="email" type="email" class="email-input" required></label>
+                <label>Institution<select name="institution_id" required></select></label>
+                <label>Active<select name="is_active"><option value="1">Active</option><option value="0">Inactive</option></select></label>
+            </div>
+        </form>
+    </div>
+
+    <!-- Role Assignment Drawer -->
+    <!-- <div id="roleDrawer" class="role-drawer">
+        <div class="role-drawer-header">
+            <h4>Assign Roles</h4>
+            <button id="closeRoleDrawer" class="btn-icon"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="roleDrawerBody" class="role-drawer-body"></div>
+        <div class="role-drawer-footer">
+            <button id="saveRolesBtn" class="btn-primary">Save</button>
+            <button id="cancelRolesBtn" class="btn-secondary">Cancel</button>
+        </div>
+    </div> -->        
+
+
+    
+</section>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/config.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script src="./js/users.js"></script>
+<script src="superadmin.js"></script>

@@ -14,7 +14,7 @@ SET time_zone = "+00:00";
 DROP DATABASE IF EXISTS lms;
 
 CREATE DATABASE IF NOT EXISTS lms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE lms;
+-- USE lms;
 
 -- =========================================
 -- INSTITUTIONS (Multi-Tenancy)

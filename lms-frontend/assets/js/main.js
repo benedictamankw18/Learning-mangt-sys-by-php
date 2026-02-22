@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
  // Notification tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        console.log('Adding click listener to tab button:', btn);
+        // console.log('Adding click listener to tab button:', btn);
         btn.addEventListener('click', (e) => {
             const tabName = e.currentTarget.dataset.tab;
             switchNotificationTab(tabName);
@@ -43,7 +43,8 @@ function showModal(title, message, onConfirm) {
     if (!overlay) return;
     
     modalTitle.textContent = title;
-    modalMessage.textContent = message;
+    // allow HTML content (forms/markup) to be rendered inside the modal
+    modalMessage.innerHTML = message;
     overlay.style.display = 'flex';
     
     // Remove previous event listeners

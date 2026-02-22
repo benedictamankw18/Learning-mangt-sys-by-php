@@ -51,6 +51,16 @@ return [
     'DELETE /users/{id}/roles/{roleId}' => ['controller' => 'UserController', 'method' => 'removeRole', 'auth' => true],
     'GET /users/{id}/activity' => ['controller' => 'UserController', 'method' => 'getActivity', 'auth' => true],
 
+    // Superadmin-prefixed user routes (used by frontend under /api/superadmin/users)
+    'GET /superadmin/users' => ['controller' => 'UserController', 'method' => 'index', 'auth' => true],
+    'GET /superadmin/users/{id}' => ['controller' => 'UserController', 'method' => 'show', 'auth' => true],
+    'POST /superadmin/users' => ['controller' => 'UserController', 'method' => 'create', 'auth' => true],
+    'PUT /superadmin/users/{id}' => ['controller' => 'UserController', 'method' => 'update', 'auth' => true],
+    'DELETE /superadmin/users/{id}' => ['controller' => 'UserController', 'method' => 'delete', 'auth' => true],
+    'POST /superadmin/users/{id}/roles' => ['controller' => 'UserController', 'method' => 'assignRoles', 'auth' => true],
+    'POST /superadmin/users/bulk' => ['controller' => 'UserController', 'method' => 'bulk', 'auth' => true],
+    'POST /superadmin/users/import' => ['controller' => 'UserController', 'method' => 'import', 'auth' => true],
+
     // Role routes
     'GET /roles' => ['controller' => 'RoleController', 'method' => 'index', 'auth' => true],
     'GET /roles/{id}' => ['controller' => 'RoleController', 'method' => 'show', 'auth' => true],
