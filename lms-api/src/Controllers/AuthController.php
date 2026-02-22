@@ -189,6 +189,18 @@ class AuthController
 
     public function me(array $user): void
     {
+        // If we have a user_id in the provided payload, fetch the complete
+        // user record (which includes roles and permissions) for the client.
+        if (isset($user['user_id'])) {
+            $fullUser = $this->userRepo->findById((int) $user['user_id']);
+            if ($fullUser) {
+                Response::success($fullUser);
+                return;
+            }
+        }
+
+        // Fallback: return whatever was provided, but ensure sensitive fields
+        // are not leaked.
         unset($user['password_hash']);
         Response::success($user);
     }

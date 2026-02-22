@@ -70,6 +70,8 @@ return [
     'GET /roles/{id}/permissions' => ['controller' => 'RoleController', 'method' => 'getPermissions', 'auth' => true],
     'POST /roles/{id}/permissions' => ['controller' => 'RoleController', 'method' => 'assignPermission', 'auth' => true],
     'DELETE /roles/{id}/permissions/{permissionId}' => ['controller' => 'RoleController', 'method' => 'removePermission', 'auth' => true],
+    // Return users assigned to a role (used by frontend users-by-role modal)
+    'GET /roles/{id}/users' => ['controller' => 'RoleController', 'method' => 'getUsers', 'auth' => true],
 
     // Permission routes
     'GET /permissions' => ['controller' => 'PermissionController', 'method' => 'index', 'auth' => true],

@@ -386,8 +386,9 @@
 
     function exportXLSX() {
         // Try loading SheetJS (xlsx) dynamically and export; fallback to CSV
+        const local = '/assets/vendor/xlsx/xlsx.full.min.js';
         const cdn = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        loadScript(cdn).then(() => {
+        loadFirstAvailable([local, cdn]).then(() => {
             try {
                 const data = (state.lastInstitutions || []).map(i => ({
                     institution_code: i.institution_code || i.code || '',
@@ -422,10 +423,12 @@
 
     function exportPDF() {
         // Try loading jsPDF + autotable and generate PDF; fallback to CSV
+        const jspdfLocal = '/assets/vendor/jspdf/jspdf.umd.min.js';
+        const autoTableLocal = '/assets/vendor/autotable/jspdf.plugin.autotable.min.js';
         const jspdfCdn = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
         const autoTableCdn = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
 
-        Promise.all([loadScript(jspdfCdn), loadScript(autoTableCdn)]).then(() => {
+        Promise.all([loadFirstAvailable([jspdfLocal, jspdfCdn]), loadFirstAvailable([autoTableLocal, autoTableCdn])]).then(() => {
             try {
                 // Try to locate jsPDF class across UMD/CommonJS/Global builds
                 let jsPDFClass = null;
@@ -447,14 +450,73 @@
                     (i.has_admin || i.hasAdmin || (i.admin_count && Number(i.admin_count) > 0)) ? 'yes' : 'no'
                 ]);
 
-                const doc = new jsPDFClass({ unit: 'pt', format: 'a4' });
+                const doc = new jsPDFClass({ unit: 'pt', format: 'a4', orientation: 'landscape' });
+
+                // Draw header (title, date, count) and obtain starting Y for table
+                const title = 'Institutions';
+                const subtitle = `${new Date().toLocaleString()} — ${rows.length} rows`;
+                const startY = drawPdfHeader(doc, title, subtitle);
+
+                // Compute numeric column widths (more reliable) as percentages of usable width
+                const margin = 40;
+                const pageWidth = (doc.internal.pageSize.getWidth && doc.internal.pageSize.getWidth()) || doc.internal.pageSize.width;
+                const usable = pageWidth - margin * 2;
+                // percentage allocations (must sum roughly to 100)
+                // 8 columns: Code, Name, Type, Email, Phone, Website, Status, Has Admin
+                const pct = [8, 20, 8, 18, 10, 20, 8, 8];
+                // compute widths as integers and ensure the total equals usable by adjusting the last column
+                const rawWidths = pct.map(p => (p / 100) * usable);
+                const colWidths = rawWidths.map(w => Math.round(w));
+                // adjust last column to make sum exact (prevent autoTable width errors)
+                const sumWidths = colWidths.reduce((a,b)=>a+b,0);
+                if (sumWidths !== usable) {
+                    colWidths[colWidths.length - 1] += (usable - sumWidths);
+                }
 
                 // Use autoTable if available; otherwise use manual renderer
                 if (typeof doc.autoTable === 'function') {
-                    doc.autoTable({ head: [cols], body: rows, startY: 40, styles: { fontSize: 9 } });
+                    const columnStyles = {};
+                    colWidths.forEach((w, idx) => { columnStyles[idx] = { cellWidth: w }; });
+
+                    // header color custom (blue) with white text
+                    try {
+                        doc.autoTable({
+                        head: [cols],
+                        body: rows,
+                        startY: startY,
+                        margin: { left: margin, right: margin },
+                        tableWidth: usable,
+                        styles: { fontSize: 9, cellPadding: 4, overflow: 'linebreak' },
+                        columnStyles: columnStyles,
+                        headStyles: { fillColor: [33,150,243], textColor: [255,255,255], fontStyle: 'bold' },
+                        // color rows alternately (odd rows light gray, even rows white)
+                        willDrawCell: function (data) {
+                            try {
+                                if (data.section === 'body') {
+                                    const rowIndex = data.row.index;
+                                    const isOddRow = (rowIndex % 2) === 0; // 0-based: 0 -> first row
+                                    const rgb = isOddRow ? [243,243,243] : [255,255,255];
+                                    const x = data.row.cells[0].x || data.cell.x; // left-most x for the row
+                                    const y = data.cell.y;
+                                    // compute full row width by summing cells in this row (best effort)
+                                    let fullW = 0;
+                                    try {
+                                        for (const k in data.row.cells) fullW += data.row.cells[k].width || 0;
+                                    } catch (e) { fullW = data.cell.width; }
+                                    const h = data.cell.height;
+                                    doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+                                    doc.rect(x, y - 10, fullW, h, 'F');
+                                }
+                            } catch (e) { /* ignore drawing errors */ }
+                        }
+                        });
+                    } catch (atErr) {
+                        console.warn('autoTable failed to layout table, falling back to manual renderer', atErr);
+                        manualPdfTable(doc, cols, rows, startY, colWidths);
+                    }
                 } else {
                     // fallback to manual table rendering when plugin unavailable
-                    manualPdfTable(doc, cols, rows);
+                    manualPdfTable(doc, cols, rows, startY, colWidths);
                 }
                 const name = `institutions_${Date.now()}.pdf`;
                 if (typeof doc.save === 'function') {
@@ -492,42 +554,147 @@
         });
     }
 
+    // Try multiple script sources in order, resolving when the first successfully loads
+    async function loadFirstAvailable(sources) {
+        if (!Array.isArray(sources)) sources = [sources];
+        let lastErr = null;
+        for (const src of sources) {
+            try {
+                await loadScript(src);
+                return src;
+            } catch (e) {
+                lastErr = e;
+            }
+        }
+        throw lastErr || new Error('No script sources available');
+    }
+
     // Manual PDF table drawing fallback when autoTable is unavailable
-    function manualPdfTable(doc, headers, rows) {
+    // startY: position (in pts) to begin drawing the table (below header)
+    // colWidths: optional array of numeric widths per column (in pts)
+    function manualPdfTable(doc, headers, rows, startY = 40, colWidths = null) {
         const pageWidth = (doc.internal.pageSize.getWidth && doc.internal.pageSize.getWidth()) || doc.internal.pageSize.width;
         const pageHeight = (doc.internal.pageSize.getHeight && doc.internal.pageSize.getHeight()) || doc.internal.pageSize.height;
         const margin = 40;
         const colCount = headers.length;
         const usableWidth = pageWidth - margin * 2;
-        const colWidth = Math.floor(usableWidth / colCount);
+        // if colWidths provided, use them; otherwise compute equal widths
+        let computedColWidths = [];
+        if (Array.isArray(colWidths) && colWidths.length === colCount) {
+            computedColWidths = colWidths.slice();
+        } else {
+            const w = Math.floor(usableWidth / colCount);
+            for (let i = 0; i < colCount; i++) computedColWidths.push(w);
+        }
         const startX = margin;
-        let y = 40;
+        let y = startY;
         const lineHeight = 12;
 
         doc.setFontSize(10);
         try { doc.setFont(undefined, 'bold'); } catch (e) {}
-        // draw header
+        // draw header cells (allow wrapping if header long)
+        const headerLines = [];
         for (let c = 0; c < headers.length; c++) {
-            const tx = String(headers[c] || '').slice(0, 30);
-            doc.text(tx, startX + c * colWidth + 2, y);
+            const tx = String(headers[c] || '').trim();
+            const cw = Math.max(10, (computedColWidths[c] || Math.floor(usableWidth / colCount)) - 4);
+            const wrapped = (typeof doc.splitTextToSize === 'function') ? doc.splitTextToSize(tx, cw) : [tx.slice(0, 30)];
+            headerLines.push(wrapped);
         }
-        y += lineHeight + 4;
+        // header row height
+        const headerRowLines = Math.max(...headerLines.map(l => l.length));
+        // draw header background rectangle
+        const headerHeight = headerRowLines * lineHeight + 6;
+        const totalWidth = computedColWidths.reduce((a,b) => a + b, 0);
+        try {
+            // fill header background (blue) and set header text color to white
+            doc.setFillColor(33,150,243);
+            doc.rect(startX, y - 10, totalWidth, headerHeight, 'F');
+            doc.setTextColor(255,255,255);
+        } catch (e) { /* ignore if methods not available */ }
+
+        // draw header text lines
+        for (let lineIdx = 0; lineIdx < headerRowLines; lineIdx++) {
+            for (let c = 0; c < headers.length; c++) {
+                const parts = headerLines[c];
+                const text = parts[lineIdx] || '';
+                // compute x offset by summing previous column widths
+                let x = startX;
+                for (let k = 0; k < c; k++) x += (computedColWidths[k] || 0);
+                doc.text(text, x + 6, y + lineIdx * lineHeight);
+            }
+        }
+        // reset text color to default (black)
+        try { doc.setTextColor(0,0,0); } catch (e) {}
+        y += headerRowLines * lineHeight + 6;
         try { doc.setFont(undefined, 'normal'); } catch (e) {}
 
         for (let r = 0; r < rows.length; r++) {
             const row = rows[r];
-            if (y + lineHeight > pageHeight - margin) {
-                doc.addPage();
-                y = 40;
-            }
-
+            // compute wrapped lines for each cell
+            const cellLines = [];
+            let maxLines = 0;
             for (let c = 0; c < headers.length; c++) {
                 let cell = String(row[c] || '');
-                if (cell.length > 80) cell = cell.slice(0, 77) + '...';
-                doc.text(cell, startX + c * colWidth + 2, y);
+                // split into lines that fit column
+                const cw = Math.max(10, (computedColWidths[c] || Math.floor(usableWidth / colCount)) - 4);
+                const parts = (typeof doc.splitTextToSize === 'function') ? doc.splitTextToSize(cell, cw) : [cell];
+                cellLines.push(parts);
+                if (parts.length > maxLines) maxLines = parts.length;
             }
-            y += lineHeight;
+
+            const rowHeight = maxLines * lineHeight + 4;
+            if (y + rowHeight > pageHeight - margin) {
+                doc.addPage();
+                // redraw header on new page and reset y
+                y = drawPdfHeader(doc, 'Institutions (cont.)', new Date().toLocaleString() + ' — cont.');
+            }
+
+            // draw alternating row background (odd rows light gray, even rows white)
+            const isOddRow = (r % 2) === 0; // 0-based
+            try {
+                const rgb = isOddRow ? [243,243,243] : [255,255,255];
+                doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+                doc.rect(startX, y, totalWidth, rowHeight + 20, 'F');
+            } catch (e) { /* ignore */ }
+
+            for (let c = 0; c < headers.length; c++) {
+                const parts = cellLines[c];
+                // compute x offset for this column
+                let x = startX;
+                for (let k = 0; k < c; k++) x += (computedColWidths[k] || 0);
+                for (let li = 0; li < parts.length; li++) {
+                    const text = parts[li] || '';
+                    doc.text(text, x + 2, y + li * lineHeight);
+                }
+            }
+            y += rowHeight;
         }
+    }
+
+    // Draw a simple PDF header: title centered, subtitle (date/count) and a divider line.
+    // Returns the Y coordinate (in pts) where the table should start.
+    function drawPdfHeader(doc, title, subtitle) {
+        const pageWidth = (doc.internal.pageSize.getWidth && doc.internal.pageSize.getWidth()) || doc.internal.pageSize.width;
+        const margin = 40;
+        let y = 40;
+        // Title
+        doc.setFontSize(16);
+        try { doc.setFont(undefined, 'bold'); } catch (e) {}
+        const titleX = pageWidth / 2;
+        doc.text(title, titleX, y, { align: 'center' });
+        y += 20;
+        // Subtitle (date and count) left-aligned
+        doc.setFontSize(10);
+        try { doc.setFont(undefined, 'normal'); } catch (e) {}
+        doc.text(subtitle, margin, y);
+        // optional right-side small note (could be app name)
+        // doc.text('Super Admin Export', pageWidth - margin, y, { align: 'right' });
+        y += 12;
+        // divider
+        doc.setLineWidth(0.5);
+        doc.line(margin, y, pageWidth - margin, y);
+        y += 12;
+        return y;
     }
 
     // Show import preview modal. `entries` is array of { raw, normalized, valid, errors }
@@ -631,8 +798,9 @@
 
         // XLSX/XLS import using SheetJS
         if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+            const local = '/assets/vendor/xlsx/xlsx.full.min.js';
             const cdn = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-            loadScript(cdn).then(() => {
+            loadFirstAvailable([local, cdn]).then(() => {
                 const reader = new FileReader();
                 reader.onload = async function (evt) {
                     try {

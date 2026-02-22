@@ -1,0 +1,2 @@
+role_name,description,permissions
+teacher_attend,Course teacher role,courses:create;courses:grade

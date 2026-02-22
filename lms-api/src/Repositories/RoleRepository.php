@@ -18,9 +18,14 @@ class RoleRepository
     {
         try {
             $stmt = $this->db->query("
-                SELECT r.*, COUNT(DISTINCT ur.user_id) as user_count
+                SELECT r.*, 
+                       COUNT(DISTINCT ur.user_id) as user_count,
+                       COUNT(DISTINCT rp.permission_id) as permission_count
                 FROM roles r
                 LEFT JOIN user_roles ur ON r.role_id = ur.role_id
+                LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
+                LEFT JOIN users u ON u.user_id = ur.user_id
+                WHERE u.deleted_at IS NULL
                 GROUP BY r.role_id
                 ORDER BY r.role_name
             ");
@@ -162,6 +167,29 @@ class RoleRepository
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Get Role Permissions Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get users assigned to a role
+     */
+    public function getUsers(int $roleId): array
+    {
+        try {
+            $stmt = $this->db->prepare("\n                SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles\n                FROM users u\n                INNER JOIN user_roles ur ON u.user_id = ur.user_id\n                INNER JOIN roles r ON ur.role_id = r.role_id\n                LEFT JOIN institutions i ON i.institution_id = u.institution_id\n                WHERE ur.role_id = :role_id AND u.deleted_at IS NULL\n                GROUP BY u.user_id\n                ORDER BY u.last_name, u.first_name\n            ");
+
+            $stmt->execute(['role_id' => $roleId]);
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($users as &$user) {
+                $user['roles'] = $user['roles'] ? explode(',', $user['roles']) : [];
+                unset($user['password_hash']);
+            }
+
+            return $users;
+        } catch (\PDOException $e) {
+            error_log("Get Role Users Error: " . $e->getMessage());
             return [];
         }
     }
