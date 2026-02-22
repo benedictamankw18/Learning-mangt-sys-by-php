@@ -1,6 +1,112 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-building"></i> Institutions</h3></div>
-  <div class="card-body">
-    <p>List and manage institutions here. Implement search, filters, and CRUD UI.</p>
+<section id="institutionsPage" class="card institutions-card">
+
+  <div class="card-header">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <input id="instSearch" list="instSuggestions" placeholder="Search institutions" style="padding:0.5rem;border:1px solid var(--border-color);border-radius:4px;width:260px">
+        <datalist id="instSuggestions"></datalist>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <select id="filterStatus" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>   
+        <select id="filterHasAdmin" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
+          <option value="">Has Admin</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+        <select id="filterType" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
+            <option value="">All Types</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="other">Other</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <input type="file" id="importFileInput" accept=".csv,.xlsx" style="display:none">
+        <button id="btnImport" class="btn-secondary">Import</button>
+        <button id="btnExport" class="btn-secondary">Export</button>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button id="btnCreateInstitution" class="btn-primary">New Institution</button>
+      </div>
+    </div>
   </div>
-</div>
+  <div class="card-body">
+    <div style="overflow:auto">
+      <table id="institutionsTable" class="table" style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr>
+            <th style="text-align:left">code</th>
+            <th style="text-align:left">Name</th>
+            <th style="text-align:left">Type</th>
+            <th style="text-align:left">Email</th>
+            <th style="text-align:left">Phone</th>
+            <th style="text-align:left">Address</th>
+            <th style="text-align:left">Website</th>
+            <th style="text-align:left">Status</th>
+            <th style="text-align:left">Has Admin</th>
+            <th style="text-align:left">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="10">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <label style="display:flex;align-items:center;gap:0.5rem;  position: absolute; right: 6rem; ">
+      Per page
+      <select id="perPageSelect" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </label>
+    <div id="institutionsPagination" style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center"></div>  
+    
+  </div>
+
+  <!-- Modal template for create/edit -->
+  <template id="institutionsModal">
+    <form id="institutionForm">
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <label>Institution name <input name="institution_name" required style="width:100%;padding:0.5rem;border:1px solid var(--border-color)"></label>
+        <label>Institution code <input name="institution_code" required style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="JSHS"></label>
+        <label>Type
+          <select name="institution_type" style="padding:0.4rem;border:1px solid var(--border-color);width:100%">
+            <option value="">Select type</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Address <input name="address" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="Accra, Greater Accra Region"></label>
+        <label>Phone <input name="phone" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="+233-20-123-4567"></label>
+        <label>Email <input name="email" type="email" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="info@example.edu"></label>
+        <label>Website <input name="website" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="https://example.edu.gh"></label>
+        <label>Status
+          <select name="status" style="padding:0.4rem;border:1px solid var(--border-color);width:100%">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </label>
+      </div>
+    </form>
+  </template>
+
+  <!-- Modal template for choosing export type -->
+    <template id="exportModal">
+        <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <button data-type="csv" class="btn-secondary">Export CSV</button>
+        <button data-type="xlsx" class="btn-secondary">Export Excel</button>
+        <button data-type="pdf" class="btn-secondary">Export PDF</button>
+        </div>
+    </template>
+
+
+</section>
+
+<script src="../js/institutions.js"></script>

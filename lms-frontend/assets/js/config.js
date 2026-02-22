@@ -17,6 +17,12 @@ const API_ENDPOINTS = {
     USERS: '/users',
     USER_BY_ID: (id) => `/users/${id}`,
     USER_PROFILE: '/users/profile',
+    // Roles & Institutions
+    ROLES: '/api/roles',
+    INSTITUTIONS: '/api/institutions',
+    // Superadmin users (frontend uses /api/superadmin/...)
+    SUPERADMIN_USERS: '/api/superadmin/users',
+    SUPERADMIN_USER_BY_ID: (id) => `/api/superadmin/users/${id}`,
     
     // Courses
     COURSES: '/courses',

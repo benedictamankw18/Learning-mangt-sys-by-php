@@ -30,8 +30,44 @@ class InstitutionController
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
-        $institutions = $this->repo->getAll($page, $limit);
-        $total = $this->repo->count();
+        // Allow caller to request all institutions (bypass the 'with admins' filter)
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $perPage = isset($_GET['per_page']) ? (int) $_GET['per_page'] : 10;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : $perPage;
+        $includeAll = isset($_GET['include_all']) && $_GET['include_all'] == '1';
+
+        // Collect filter params
+        $filters = [];
+        if (!empty($_GET['q']))
+            $filters['q'] = trim($_GET['q']);
+        if (!empty($_GET['status']))
+            $filters['status'] = $_GET['status'];
+        if (!empty($_GET['type']))
+            $filters['type'] = $_GET['type'];
+        if (isset($_GET['has_admin']))
+            $filters['has_admin'] = $_GET['has_admin'];
+
+        // If include_all is not set, default behavior historically returned only institutions with admins.
+        // Respect include_all; otherwise allow caller to filter by has_admin explicitly.
+        if ($includeAll) {
+            $institutions = $this->repo->getAll($page, $limit, $filters);
+            $total = $this->repo->countFiltered($filters);
+        } else {
+            // If includeAll not set but caller didn't specify has_admin, default to only institutions with admins
+            if (!isset($filters['has_admin'])) {
+                $filters['has_admin'] = 'yes';
+            }
+            $institutions = $this->repo->getAll($page, $limit, $filters);
+            $total = $this->repo->countFiltered($filters);
+            // if ($includeAll) {
+            //     // Return full list (paginated)
+            //     $institutions = $this->repo->getAll($page, $limit);
+            //     $total = $this->repo->count();
+            // } else {
+            //     // Default: Only return institutions that have at least one admin user
+            //     $institutions = $this->repo->getAllWithAdmins($page, $limit);
+            //     $total = $this->repo->countWithAdmins();
+        }
 
         Response::success([
             'data' => $institutions,
@@ -50,9 +86,7 @@ class InstitutionController
     public function show(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
-
-        // Super admin can view any institution
-        // Regular admin can only view their own institution
+        // Super admin may view any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
             if (!$roleMiddleware->requireRole('admin')) {
                 return;
@@ -200,8 +234,7 @@ class InstitutionController
      */
     public function getStatistics(array $user, int $id): void
     {
-        // Super admin can view any institution's stats
-        // Regular admin can only view their own institution's stats
+        // Super admin may view statistics for any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
             $roleMiddleware = new RoleMiddleware($user);
             if (!$roleMiddleware->requireRole('admin')) {
@@ -232,10 +265,9 @@ class InstitutionController
     public function getUsers(array $user, int $id): void
     {
         $roleMiddleware = new RoleMiddleware($user);
-
-        // Super admin can view any institution's users
-        // Regular admin can only view their own institution's users
+        // Super admin may view users for any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
+            // Regular admin can only view their own institution's users
             if (!$roleMiddleware->requireRole('admin')) {
                 return;
             }
@@ -282,7 +314,7 @@ class InstitutionController
             return;
         }
 
-        // Check authorization
+        // Check authorization: super_admin may access any, others only their own
         if ($user['role'] !== 'super_admin' && $id != $user['institution_id']) {
             Response::forbidden('You do not have access to this institution');
             return;
@@ -305,7 +337,7 @@ class InstitutionController
             return;
         }
 
-        // Check authorization
+        // Check authorization: super_admin may access any, others only their own
         if ($user['role'] !== 'super_admin' && $id != $user['institution_id']) {
             Response::forbidden('You do not have access to this institution');
             return;
@@ -379,8 +411,13 @@ class InstitutionController
             return;
         }
 
-        // Authorization: super_admin can view all, admin can view own institution only
-        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
+        // Authorization: super_admin may view only institutions that have admin users; admin can view own institution only
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($id)) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
             Response::forbidden('You do not have access to this institution\'s settings');
             return;
         }
@@ -408,8 +445,13 @@ class InstitutionController
             return;
         }
 
-        // Authorization: super_admin can update all, admin can update own institution only
-        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
+        // Authorization: super_admin may update only institutions that have admin users, admin can update own institution only
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($id)) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
             Response::forbidden('You do not have access to update this institution\'s settings');
             return;
         }

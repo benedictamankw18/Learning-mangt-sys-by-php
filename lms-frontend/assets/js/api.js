@@ -13,7 +13,13 @@ class APIService {
      * Get authorization header
      */
     getAuthHeader() {
-        const token = Auth.getToken();
+        let token = null;
+        try {
+            token = Auth.getToken();
+        } catch (e) {
+            console.warn('Auth.getToken threw, storage may be blocked', e);
+            token = null;
+        }
         return token ? { 'Authorization': `Bearer ${token}` } : {};
     }
 
@@ -51,15 +57,21 @@ class APIService {
             if (response.status === 401) {
                 Auth.logout();
                 window.location.href = '/auth/login.html';
-                throw new Error('Session expired. Please login again.');
+                const e = new Error('Session expired. Please login again.');
+                e.status = response.status;
+                e.body = data;
+                throw e;
             }
 
             // Extract error message
-            const errorMessage = isJSON 
-                ? (data.message || data.error || 'An error occurred')
+            const errorMessage = isJSON
+                ? (data.message || data.error || (data.errors ? JSON.stringify(data.errors) : 'An error occurred'))
                 : data || 'An error occurred';
 
-            throw new Error(errorMessage);
+            const err = new Error(errorMessage);
+            err.status = response.status;
+            if (isJSON) err.body = data;
+            throw err;
         }
 
         return data;
@@ -128,8 +140,13 @@ class APIService {
      * Upload file
      */
     async upload(url, formData) {
-        const token = Auth.getToken();
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        let headers = {};
+        try {
+            const token = Auth.getToken();
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+        } catch (e) {
+            console.warn('Auth.getToken threw for upload', e);
+        }
 
         const response = await fetch(`${this.baseURL}${url}`, {
             method: 'POST',
@@ -196,6 +213,39 @@ const UserAPI = {
     create: (data) => API.post(API_ENDPOINTS.USERS, data),
     update: (id, data) => API.put(API_ENDPOINTS.USER_BY_ID(id), data),
     delete: (id) => API.delete(API_ENDPOINTS.USER_BY_ID(id)),
+};
+
+/**
+ * Role APIs
+ */
+const RoleAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ROLES, params),
+    getById: (id) => API.get(`${API_ENDPOINTS.ROLES}/${id}`),
+};
+
+/**
+ * Institution APIs
+ */
+const InstitutionAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.INSTITUTIONS, params),
+    getById: (id) => API.get(`${API_ENDPOINTS.INSTITUTIONS}/${id}`),
+    create: (data) => API.post(API_ENDPOINTS.INSTITUTIONS, data),
+    update: (id, data) => API.put(`${API_ENDPOINTS.INSTITUTIONS}/${id}`, data),
+    delete: (id) => API.delete(`${API_ENDPOINTS.INSTITUTIONS}/${id}`),
+};
+
+/**
+ * Superadmin User APIs (special paths)
+ */
+const SuperAdminUserAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.SUPERADMIN_USERS, params),
+    getById: (id) => API.get(API_ENDPOINTS.SUPERADMIN_USER_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.SUPERADMIN_USERS, data),
+    update: (id, data) => API.put(API_ENDPOINTS.SUPERADMIN_USER_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.SUPERADMIN_USER_BY_ID(id)),
+    bulk: (data) => API.post(`${API_ENDPOINTS.SUPERADMIN_USERS}/bulk`, data),
+    import: (data) => API.post(`${API_ENDPOINTS.SUPERADMIN_USERS}/import`, data),
+    assignRoles: (id, data) => API.post(`${API_ENDPOINTS.SUPERADMIN_USERS}/${id}/roles`, data),
 };
 
 /**

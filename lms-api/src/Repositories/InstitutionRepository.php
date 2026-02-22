@@ -21,20 +21,74 @@ class InstitutionRepository
      * @param int $limit
      * @return array
      */
-    public function getAll(int $page = 1, int $limit = 20): array
+    // public function getAll(int $page = 1, int $limit = 20): array
+    // {
+    //     try {
+    //         $offset = ($page - 1) * $limit;
+
+    public function getAll(int $page = 1, int $limit = 20, array $filters = []): array
     {
         try {
             $offset = ($page - 1) * $limit;
-            $stmt = $this->db->prepare("
-                SELECT 
-                    i.*,
-                    (SELECT COUNT(*) FROM users WHERE institution_id = i.institution_id) as user_count,
-                    (SELECT COUNT(*) FROM students WHERE institution_id = i.institution_id) as student_count,
-                    (SELECT COUNT(*) FROM teachers WHERE institution_id = i.institution_id) as teacher_count
-                FROM institutions i
-                ORDER BY i.institution_name ASC
-                LIMIT :limit OFFSET :offset
-            ");
+            // Build where clauses from filters
+            $where = [];
+            $params = [];
+
+            if (!empty($filters['q'])) {
+                // Use distinct parameter names for each occurrence to avoid PDO named-parameter duplication issues
+                $where[] = "(i.institution_name LIKE :q1 OR i.institution_code LIKE :q2 OR i.email LIKE :q3)";
+                $params[':q1'] = '%' . $filters['q'] . '%';
+                $params[':q2'] = '%' . $filters['q'] . '%';
+                $params[':q3'] = '%' . $filters['q'] . '%';
+            }
+
+            if (!empty($filters['status'])) {
+                $where[] = "i.status = :status";
+                $params[':status'] = $filters['status'];
+            }
+
+            if (!empty($filters['type'])) {
+                $where[] = "i.institution_type = :type";
+                $params[':type'] = $filters['type'];
+            }
+
+            // has_admin filter: 'yes' or 'no'
+            $havingAdminFilter = null;
+            if (isset($filters['has_admin'])) {
+                if ($filters['has_admin'] === 'yes' || $filters['has_admin'] === '1')
+                    $havingAdminFilter = '> 0';
+                elseif ($filters['has_admin'] === 'no' || $filters['has_admin'] === '0')
+                    $havingAdminFilter = '= 0';
+            }
+
+            $whereSql = '';
+            if (!empty($where))
+                $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+            // Select with admin_count and has_admin computed
+            $sql = "SELECT 
+                            i.*, 
+                            (SELECT COUNT(*) FROM users WHERE institution_id = i.institution_id) as user_count,
+                            (SELECT COUNT(*) FROM students WHERE institution_id = i.institution_id) as student_count,
+                            (SELECT COUNT(*) FROM teachers WHERE institution_id = i.institution_id) as teacher_count,
+                            (SELECT COUNT(DISTINCT u.user_id) FROM users u INNER JOIN user_roles ur ON ur.user_id = u.user_id INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'admin' WHERE u.institution_id = i.institution_id) as admin_count,
+                            (CASE WHEN ((SELECT COUNT(*) FROM users u2 INNER JOIN user_roles ur2 ON ur2.user_id = u2.user_id INNER JOIN roles r2 ON r2.role_id = ur2.role_id AND r2.role_name = 'admin' WHERE u2.institution_id = i.institution_id) ) > 0 THEN 1 ELSE 0 END) as has_admin
+                        FROM institutions i ";
+
+            // Wrap with where and optional having via outer select if has_admin filter used
+            if ($havingAdminFilter !== null) {
+                // Need to filter by admin_count - use outer select
+                $sql = "SELECT * FROM (" . $sql . ") t " . $whereSql . " WHERE t.admin_count " . $havingAdminFilter . " ORDER BY t.institution_name ASC LIMIT :limit OFFSET :offset";
+                $stmt = $this->db->prepare($sql);
+            } else {
+                $sql .= $whereSql . " ORDER BY i.institution_name ASC LIMIT :limit OFFSET :offset";
+                $stmt = $this->db->prepare($sql);
+            }
+
+            // bind params
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
@@ -44,6 +98,75 @@ class InstitutionRepository
             return [];
         }
     }
+
+    /**
+     * Return count for filtered institutions (same filters as getAll)
+     */
+    public function countFiltered(array $filters = []): int
+    {
+        try {
+            $where = [];
+            $params = [];
+
+            if (!empty($filters['q'])) {
+                // Distinct parameter names for count query as well
+                $where[] = "(institution_name LIKE :q1 OR institution_code LIKE :q2 OR email LIKE :q3)";
+                $params[':q1'] = '%' . $filters['q'] . '%';
+                $params[':q2'] = '%' . $filters['q'] . '%';
+                $params[':q3'] = '%' . $filters['q'] . '%';
+            }
+
+            if (!empty($filters['status'])) {
+                $where[] = "status = :status";
+                $params[':status'] = $filters['status'];
+            }
+
+            if (!empty($filters['type'])) {
+                $where[] = "institution_type = :type";
+                $params[':type'] = $filters['type'];
+            }
+
+            $havingAdminFilter = null;
+            if (isset($filters['has_admin'])) {
+                if ($filters['has_admin'] === 'yes' || $filters['has_admin'] === '1')
+                    $havingAdminFilter = '> 0';
+                elseif ($filters['has_admin'] === 'no' || $filters['has_admin'] === '0')
+                    $havingAdminFilter = '= 0';
+            }
+
+            $whereSql = '';
+            if (!empty($where))
+                $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+            if ($havingAdminFilter !== null) {
+                $sql = "SELECT COUNT(*) as total FROM (SELECT i.*, (SELECT COUNT(DISTINCT u.user_id) FROM users u INNER JOIN user_roles ur ON ur.user_id = u.user_id INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'admin' WHERE u.institution_id = i.institution_id) as admin_count FROM institutions i " . $whereSql . ") t WHERE t.admin_count " . $havingAdminFilter;
+                $stmt = $this->db->prepare($sql);
+            } else {
+                $sql = "SELECT COUNT(*) as total FROM institutions " . $whereSql;
+                $stmt = $this->db->prepare($sql);
+            }
+
+            foreach ($params as $k => $v) {
+                $stmt->bindValue($k, $v);
+            }
+
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int) $result['total'];
+        } catch (\PDOException $e) {
+            error_log("Count Filtered Institutions Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+    //         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    //         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    //         $stmt->execute();
+    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //     } catch (\PDOException $e) {
+    //         error_log("Get Institutions Error: " . $e->getMessage());
+    //         return [];
+    //     }
+    // }
 
     /**
      * Get total count of institutions
@@ -58,6 +181,62 @@ class InstitutionRepository
             return (int) $result['total'];
         } catch (\PDOException $e) {
             error_log("Count Institutions Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Get all institutions that have at least one admin user (with pagination)
+     *
+     * @param int $page
+     * @param int $limit
+     * @return array
+     */
+    public function getAllWithAdmins(int $page = 1, int $limit = 20): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+            $stmt = $this->db->prepare("\n                SELECT 
+                    i.*,
+                    COUNT(DISTINCT u.user_id) as admin_count,
+                    1 as has_admin
+                FROM institutions i
+                INNER JOIN users u ON u.institution_id = i.institution_id
+                INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'admin'
+                GROUP BY i.institution_id
+                HAVING admin_count > 0
+                ORDER BY i.institution_name ASC
+                LIMIT :limit OFFSET :offset
+            ");
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Institutions With Admins Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Count institutions that have at least one admin user
+     *
+     * @return int
+     */
+    public function countWithAdmins(): int
+    {
+        try {
+            $stmt = $this->db->query("\n                SELECT COUNT(DISTINCT i.institution_id) as total
+                FROM institutions i
+                INNER JOIN users u ON u.institution_id = i.institution_id
+                INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'admin'
+            ");
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return (int) $result['total'];
+        } catch (\PDOException $e) {
+            error_log("Count Institutions With Admins Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -224,6 +403,49 @@ class InstitutionRepository
     }
 
     /**
+     * Check whether an institution has at least one admin user
+     *
+     * @param int $id
+     * @return bool
+     */
+    public function hasAdminUsers(int $id): bool
+    {
+        try {
+            $stmt = $this->db->prepare("\n                SELECT COUNT(*) as total
+                FROM users u
+                INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = 'admin'
+                WHERE u.institution_id = :id
+            ");
+            $stmt->execute(['id' => $id]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return ((int) $result['total']) > 0;
+        } catch (\PDOException $e) {
+            error_log("Has Admin Users Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Find institution by exact name (case-insensitive)
+     *
+     * @param string $name
+     * @return array|null
+     */
+    public function findByName(string $name): ?array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT institution_id, institution_name FROM institutions WHERE LOWER(institution_name) = LOWER(:name) LIMIT 1");
+            $stmt->execute(['name' => $name]);
+            $res = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $res ?: null;
+        } catch (\PDOException $e) {
+            error_log('Find Institution By Name Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Create a new institution
      * 
      * @param array $data
@@ -321,7 +543,17 @@ class InstitutionRepository
                 'subscription_plan',
                 'subscription_expires_at',
                 'max_students',
-                'max_teachers'
+                'max_teachers',
+                '(SELECT COUNT(DISTINCT u.user_id)
+                                FROM users u
+                                INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                                INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = \'admin\'
+                                WHERE u.institution_id = i.institution_id) as admin_count,
+                                (CASE WHEN (
+                                    SELECT COUNT(*) FROM user_roles ur2
+                                    INNER JOIN users u2 ON u2.user_id = ur2.user_id AND u2.institution_id = i.institution_id
+                                    INNER JOIN roles r2 ON r2.role_id = ur2.role_id AND r2.role_name = \'admin\'
+                                ) > 0 THEN 1 ELSE 0 END) as has_admin'
             ];
 
             $updates = [];

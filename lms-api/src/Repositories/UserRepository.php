@@ -45,14 +45,16 @@ class UserRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT 
-                    u.*,
-                    GROUP_CONCAT(DISTINCT r.role_name) as roles,
-                    GROUP_CONCAT(DISTINCT p.permission_name) as permissions
+                    SELECT 
+                        u.*,
+                        i.institution_name AS institution_name,
+                        GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                        GROUP_CONCAT(DISTINCT p.permission_name) as permissions
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
+                LEFT JOIN institutions i on i.institution_id = u.institution_id
                 LEFT JOIN permissions p ON rp.permission_id = p.permission_id
                 WHERE u.user_id = :id
                 GROUP BY u.user_id
@@ -202,10 +204,11 @@ class UserRepository
             $offset = ($page - 1) * $limit;
 
             $stmt = $this->db->prepare("
-                SELECT u.*, GROUP_CONCAT(r.role_name) as roles
+                    SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
+                LEFT JOIN institutions i on i.institution_id = u.institution_id
                 WHERE u.deleted_at IS NULL
                 GROUP BY u.user_id
                 ORDER BY u.created_at DESC
@@ -226,6 +229,45 @@ class UserRepository
             return $users;
         } catch (\PDOException $e) {
             error_log("Get All Users Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get users filtered by role name (paginated)
+     */
+    public function getByRole(string $roleName, int $page = 1, int $limit = 20): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+
+            $stmt = $this->db->prepare("\n                 
+            SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles\n
+                            FROM users u\n                
+                            INNER JOIN user_roles ur ON u.user_id = ur.user_id\n                
+                            INNER JOIN roles r ON ur.role_id = r.role_id\n                
+                            INNER JOIN institutions i ON i.institution_id = u.institution_id\n                
+                            WHERE u.deleted_at IS NULL AND r.role_name = :role_name\n                
+                            GROUP BY u.user_id\n                
+                            ORDER BY u.created_at DESC\n                
+                            LIMIT :limit OFFSET :offset\n            
+                            ");
+
+            $stmt->bindValue(':role_name', $roleName);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($users as &$user) {
+                $user['roles'] = $user['roles'] ? explode(',', $user['roles']) : [];
+                unset($user['password_hash']);
+            }
+
+            return $users;
+        } catch (\PDOException $e) {
+            error_log("Get Users By Role Error: " . $e->getMessage());
             return [];
         }
     }

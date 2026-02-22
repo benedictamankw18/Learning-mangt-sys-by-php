@@ -4,7 +4,7 @@
 -- Ghana Senior High School (SHS) System
 -- =========================================
 
-USE lms;
+-- USE lms;
 
 -- =========================================
 -- IMPORTANT: HOW TO USE THIS SCRIPT
@@ -14,34 +14,34 @@ USE lms;
 -- Or manually delete data from phpMyAdmin before running
 
 -- Uncomment these lines to clear existing data (USE WITH CAUTION):
--- DELETE FROM quiz_submission_answers;
--- DELETE FROM quiz_submissions;
--- DELETE FROM quiz_question_options;
--- DELETE FROM quiz_questions;
--- DELETE FROM quizzes;
--- DELETE FROM assignment_submissions;
--- DELETE FROM assignments;
--- DELETE FROM course_materials;
--- DELETE FROM course_sections;
--- DELETE FROM assessments;
--- DELETE FROM course_enrollments;
--- DELETE FROM class_subjects;
--- DELETE FROM classes;
--- DELETE FROM subjects;
--- DELETE FROM grade_levels;
--- DELETE FROM programs;
--- DELETE FROM semesters;
--- DELETE FROM academic_years;
--- DELETE FROM grade_scales;
--- DELETE FROM students;
--- DELETE FROM teachers;
--- DELETE FROM user_roles;
--- DELETE FROM users WHERE institution_id IS NOT NULL; -- Keep super admin
--- DELETE FROM institution_settings;
--- DELETE FROM institutions;
--- DELETE FROM role_permissions;
--- DELETE FROM permissions;
--- DELETE FROM roles;
+ drop table quiz_submission_answers;
+ drop table quiz_submissions;
+ drop table quiz_question_options;
+ drop table quiz_questions;
+ drop table quizzes;
+ drop table assignment_submissions;
+ drop table assignments;
+ drop table course_materials;
+ drop table course_sections;
+ drop table assessments;
+ drop table course_enrollments;
+ drop table class_subjects;
+ drop table classes;
+ drop table subjects;
+ drop table grade_levels;
+ drop table programs;
+ drop table semesters;
+ drop table academic_years;
+ drop table grade_scales;
+ drop table students;
+ drop table teachers;
+ drop table user_roles;
+ drop table users WHERE institution_id IS NOT NULL; -- Keep super admin
+ drop table institution_settings;
+ drop table institutions;
+ drop table role_permissions;
+ drop table permissions;
+ drop table roles;
 
 -- =========================================
 -- SEED DATA (Required - DO NOT COMMENT OUT)
@@ -419,7 +419,7 @@ SET @student2_id = LAST_INSERT_ID();
 -- Parent: Yaw Osei (Parent of Kwame Osei - Student 1)
 -- Username: yaw.osei
 -- Password: password
-USE lms;
+-- USE lms;
 
 SET @institution_id = 1;
 SET @student1_id = (SELECT student_id FROM students WHERE student_id_number = 'STU-2024-00001' LIMIT 1);

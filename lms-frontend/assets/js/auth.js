@@ -4,15 +4,27 @@
 ============================================ */
 
 class AuthService {
+    constructor() {
+        // in-memory fallbacks when browser blocks storage access
+        this._inMemoryToken = null;
+        this._inMemoryRefresh = null;
+        this._inMemoryUser = null;
+        this._inMemoryRemember = false;
+    }
     /**
      * Save access token to storage
      */
     saveToken(token, remember = false) {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
-        
-        if (remember) {
-            localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
+        try {
+            const storage = remember ? localStorage : sessionStorage;
+            storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+            if (remember) {
+                localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
+            }
+        } catch (e) {
+            console.warn('Storage unavailable, using in-memory token', e);
+            this._inMemoryToken = token;
+            if (remember) this._inMemoryRemember = true;
         }
     }
 
@@ -20,59 +32,96 @@ class AuthService {
      * Get access token from storage
      */
     getToken() {
-        return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || 
-               sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+        try {
+            return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || 
+                   sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) ||
+                   this._inMemoryToken;
+        } catch (e) {
+            // Storage access blocked (Tracking Prevention). Fall back to memory.
+            console.warn('Storage access blocked when getting token', e);
+            return this._inMemoryToken || null;
+        }
     }
 
     /**
      * Remove access token from storage
      */
     clearToken() {
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        try {
+            localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+            sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        } catch (e) {
+            console.warn('Storage unavailable when clearing token', e);
+        }
+        this._inMemoryToken = null;
     }
 
     /**
      * Save refresh token to storage
      */
     saveRefreshToken(token) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+        try {
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+        } catch (e) {
+            console.warn('Storage unavailable when saving refresh token', e);
+            this._inMemoryRefresh = token;
+        }
     }
 
     /**
      * Get refresh token from storage
      */
     getRefreshToken() {
-        return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+        try {
+            return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || this._inMemoryRefresh;
+        } catch (e) {
+            console.warn('Storage access blocked when getting refresh token', e);
+            return this._inMemoryRefresh || null;
+        }
     }
 
     /**
      * Remove refresh token from storage
      */
     clearRefreshToken() {
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        try {
+            localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        } catch (e) {
+            console.warn('Storage unavailable when clearing refresh token', e);
+        }
+        this._inMemoryRefresh = null;
     }
 
     /**
      * Save user data to storage
      */
     saveUser(userData, remember = false) {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        try {
+            const storage = remember ? localStorage : sessionStorage;
+            storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+        } catch (e) {
+            console.warn('Storage unavailable when saving user data', e);
+            this._inMemoryUser = userData;
+        }
     }
 
     /**
      * Get user data from storage
      */
     getUser() {
-        const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA) || 
-                        sessionStorage.getItem(STORAGE_KEYS.USER_DATA);
-        console.log('getUser - userData:', userData);
         try {
-            return userData ? JSON.parse(userData) : null;
-        } catch (error) {
-            console.error('Error parsing user data:', error);
-            return null;
+            const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA) || 
+                             sessionStorage.getItem(STORAGE_KEYS.USER_DATA) ||
+                             (this._inMemoryUser ? JSON.stringify(this._inMemoryUser) : null);
+            try {
+                return userData ? JSON.parse(userData) : null;
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                return null;
+            }
+        } catch (e) {
+            console.warn('Storage access blocked when getting user data', e);
+            return this._inMemoryUser || null;
         }
     }
 
@@ -80,8 +129,13 @@ class AuthService {
      * Remove user data from storage
      */
     clearUser() {
-        localStorage.removeItem(STORAGE_KEYS.USER_DATA);
-        sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        try {
+            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+            sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
+        } catch (e) {
+            console.warn('Storage unavailable when clearing user data', e);
+        }
+        this._inMemoryUser = null;
     }
 
     /**
