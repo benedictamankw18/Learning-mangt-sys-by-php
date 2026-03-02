@@ -140,10 +140,10 @@
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right" id="userMenu">
-                        <a href="#" class="dropdown-item">
+                        <a href="#myprofile" class="dropdown-item" data-page="myprofile">
                             <i class="fas fa-user"></i> My Profile
                         </a>
-                        <a href="#" class="dropdown-item">
+                        <a href="#settings" class="dropdown-item" data-page="settings">
                             <i class="fas fa-cog"></i> Settings
                         </a>
                         <div class="dropdown-divider"></div>
@@ -337,6 +337,7 @@
     <script src="../assets/js/auth.js"></script>
     <script src="admin.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="./js/settings.js"></script>
     <script>
     // Dynamic section loader with hash routing (persists across refresh)
     (function(){
@@ -420,5 +421,9 @@
         handleHashChange();
     })();
     </script>
+    
+    <!-- Page-specific scripts -->
+    <script src="./js/settings.js"></script>
+    <script src="./js/myprofile.js"></script>
 </body>
 </html>

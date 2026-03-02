@@ -1,0 +1,726 @@
+<div class="profile-page">
+  <!-- Profile Header -->
+  <div class="profile-header">
+    <div class="profile-banner">
+      <div class="banner-overlay"></div>
+    </div>
+    
+    <div class="profile-info-card">
+      <div class="profile-main-info">
+        <div class="profile-photo-section">
+          <div class="profile-photo">
+            <img src="../../assets/img/Ghana-Coat-Of-Arms.jpg" alt="Admin Profile" id="profileImage">
+            <button class="btn-change-photo" id="changePhotoBtn">
+              <i class="fas fa-camera"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="profile-details">
+          <h2>Dr. Kwame Mensah</h2>
+          <p class="profile-role">
+            <i class="fas fa-crown"></i>
+            System Administrator
+          </p>
+          <p class="profile-email">
+            <i class="fas fa-envelope"></i>
+            kwame.mensah@accrashs.edu.gh
+          </p>
+          <div class="profile-meta">
+            <span class="meta-item">
+              <i class="fas fa-calendar"></i>
+              Joined Jan 2024
+            </span>
+            <span class="meta-item">
+              <i class="fas fa-clock"></i>
+              Last login: Today, 9:45 AM
+            </span>
+            <span class="meta-item">
+              <i class="fas fa-shield-alt"></i>
+              2FA Enabled
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-quick-stats">
+        <div class="quick-stat">
+          <div class="stat-value">1,247</div>
+          <div class="stat-label">Students Managed</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">48</div>
+          <div class="stat-label">Active Teachers</div>
+        </div>
+        <div class="quick-stat">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Classes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Profile Content Tabs -->
+  <div class="profile-content">
+    <div class="profile-tabs">
+      <button class="profile-tab active" data-tab="personal">
+        <i class="fas fa-user"></i>
+        Personal Info
+      </button>
+      <button class="profile-tab" data-tab="account">
+        <i class="fas fa-lock"></i>
+        Account Security
+      </button>
+      <button class="profile-tab" data-tab="preferences">
+        <i class="fas fa-sliders-h"></i>
+        Preferences
+      </button>
+      <button class="profile-tab" data-tab="activity">
+        <i class="fas fa-history"></i>
+        Activity Log
+      </button>
+    </div>
+    
+    <!-- Personal Information Tab -->
+    <div class="profile-tab-content active" id="personal-tab">
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Basic Information</h3>
+          <p>Update your personal and professional details</p>
+        </div>
+        
+        <div class="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first-name">First Name</label>
+              <input type="text" id="first-name" value="Kwame" class="form-input">
+            </div>
+            
+            <div class="form-group">
+              <label for="last-name">Last Name</label>
+              <input type="text" id="last-name" value="Mensah" class="form-input">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="title">Title</label>
+              <select id="title" class="form-input">
+                <option value="dr" selected>Dr.</option>
+                <option value="mr">Mr.</option>
+                <option value="mrs">Mrs.</option>
+                <option value="ms">Ms.</option>
+                <option value="prof">Prof.</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="gender">Gender</label>
+              <select id="gender" class="form-input">
+                <option value="male" selected>Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="dob">Date of Birth</label>
+              <input type="date" id="dob" value="1985-06-15" class="form-input">
+            </div>
+            
+            <div class="form-group">
+              <label for="phone">Phone Number</label>
+              <input type="tel" id="phone" value="+233 24 567 8901" class="form-input">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" rows="4" class="form-input" placeholder="Tell us about yourself...">Experienced educational administrator with over 15 years in academic management. Specialized in curriculum development and institutional growth.</textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Contact Information</h3>
+          <p>Your contact details and location</p>
+        </div>
+        
+        <div class="profile-form">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" value="kwame.mensah@accrashs.edu.gh" class="form-input">
+            <span class="form-hint">Primary email for system notifications</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="alt-email">Alternative Email</label>
+            <input type="email" id="alt-email" value="kwame.mensah@gmail.com" class="form-input">
+            <span class="form-hint">Backup contact email</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="address">Physical Address</label>
+            <textarea id="address" rows="3" class="form-input">East Legon Hills, Plot 45
+Accra, Greater Accra Region
+Ghana</textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City</label>
+              <input type="text" id="city" value="Accra" class="form-input">
+            </div>
+            
+            <div class="form-group">
+              <label for="region">Region</label>
+              <select id="region" class="form-input">
+                <option value="greater-accra" selected>Greater Accra</option>
+                <option value="ashanti">Ashanti</option>
+                <option value="western">Western</option>
+                <option value="eastern">Eastern</option>
+                <option value="central">Central</option>
+                <option value="volta">Volta</option>
+                <option value="northern">Northern</option>
+                <option value="upper-east">Upper East</option>
+                <option value="upper-west">Upper West</option>
+                <option value="bono">Bono</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Professional Information</h3>
+          <p>Your role and qualifications</p>
+        </div>
+        
+        <div class="profile-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="staff-id">Staff ID</label>
+              <input type="text" id="staff-id" value="ADM-2024-001" class="form-input" readonly>
+              <span class="form-hint">Cannot be changed</span>
+            </div>
+            
+            <div class="form-group">
+              <label for="department">Department</label>
+              <select id="department" class="form-input">
+                <option value="admin" selected>Administration</option>
+                <option value="academic">Academic Affairs</option>
+                <option value="finance">Finance</option>
+                <option value="it">IT Department</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="qualification">Highest Qualification</label>
+              <select id="qualification" class="form-input">
+                <option value="phd" selected>PhD</option>
+                <option value="masters">Master's Degree</option>
+                <option value="bachelor">Bachelor's Degree</option>
+                <option value="diploma">Diploma</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="join-date">Date Joined</label>
+              <input type="date" id="join-date" value="2024-01-15" class="form-input">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="specialization">Area of Specialization</label>
+            <input type="text" id="specialization" value="Educational Administration & Management" class="form-input">
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-actions">
+        <button class="btn-save-profile">
+          <i class="fas fa-save"></i>
+          Save Changes
+        </button>
+        <button class="btn-cancel">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+      </div>
+    </div>
+    
+    <!-- Account Security Tab -->
+    <div class="profile-tab-content" id="account-tab">
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Change Password</h3>
+          <p>Update your password to keep your account secure</p>
+        </div>
+        
+        <div class="profile-form">
+          <div class="form-group">
+            <label for="current-password">Current Password</label>
+            <div class="password-input-group">
+              <input type="password" id="current-password" class="form-input" placeholder="Enter current password">
+              <button class="btn-toggle-password" data-target="current-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="new-password">New Password</label>
+            <div class="password-input-group">
+              <input type="password" id="new-password" class="form-input" placeholder="Enter new password">
+              <button class="btn-toggle-password" data-target="new-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="form-hint">Minimum 8 characters with uppercase, number, and symbol</span>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirm-password">Confirm New Password</label>
+            <div class="password-input-group">
+              <input type="password" id="confirm-password" class="form-input" placeholder="Confirm new password">
+              <button class="btn-toggle-password" data-target="confirm-password">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          
+          <button class="btn-update-password">
+            <i class="fas fa-key"></i>
+            Update Password
+          </button>
+        </div>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Two-Factor Authentication (2FA)</h3>
+          <p>Add an extra layer of security to your account</p>
+        </div>
+        
+        <div class="twofa-status enabled">
+          <div class="twofa-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="twofa-info">
+            <h4>Two-Factor Authentication is Enabled</h4>
+            <p>Your account is protected with 2FA via authenticator app</p>
+            <span class="twofa-date">Enabled on: Jan 20, 2024</span>
+          </div>
+          <button class="btn-disable-2fa">Disable 2FA</button>
+        </div>
+        
+        <div class="backup-codes-section">
+          <h4>Backup Recovery Codes</h4>
+          <p>Use these codes if you lose access to your authenticator app</p>
+          <div class="backup-codes">
+            <code>XKNF-8H2P-QW9L</code>
+            <code>M7VR-3KPL-8TGH</code>
+            <code>ZXCV-BNM2-4QWE</code>
+            <code>ASDF-GH12-3JKL</code>
+          </div>
+          <button class="btn-regenerate-codes">
+            <i class="fas fa-sync"></i>
+            Regenerate Codes
+          </button>
+        </div>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Active Sessions</h3>
+          <p>Manage devices and locations where you're logged in</p>
+        </div>
+        
+        <div class="sessions-list">
+          <div class="session-item current">
+            <div class="session-icon">
+              <i class="fas fa-desktop"></i>
+            </div>
+            <div class="session-details">
+              <h4>Windows PC - Chrome</h4>
+              <p>Accra, Ghana • 192.168.1.45</p>
+              <span class="session-time">Current session • Active now</span>
+            </div>
+            <span class="session-badge">Current</span>
+          </div>
+          
+          <div class="session-item">
+            <div class="session-icon">
+              <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="session-details">
+              <h4>iPhone 13 - Safari</h4>
+              <p>Accra, Ghana • 192.168.1.72</p>
+              <span class="session-time">Last active: 2 hours ago</span>
+            </div>
+            <button class="btn-revoke-session">
+              <i class="fas fa-times"></i>
+              Revoke
+            </button>
+          </div>
+          
+          <div class="session-item">
+            <div class="session-icon">
+              <i class="fas fa-tablet-alt"></i>
+            </div>
+            <div class="session-details">
+              <h4>iPad Pro - Safari</h4>
+              <p>Kumasi, Ghana • 41.20.43.89</p>
+              <span class="session-time">Last active: Yesterday, 6:30 PM</span>
+            </div>
+            <button class="btn-revoke-session">
+              <i class="fas fa-times"></i>
+              Revoke
+            </button>
+          </div>
+        </div>
+        
+        <button class="btn-revoke-all">
+          <i class="fas fa-sign-out-alt"></i>
+          Sign Out All Other Sessions
+        </button>
+      </div>
+    </div>
+    
+    <!-- Preferences Tab -->
+    <div class="profile-tab-content" id="preferences-tab">
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Notification Preferences</h3>
+          <p>Choose what notifications you want to receive</p>
+        </div>
+        
+        <div class="preferences-list">
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>Email Notifications</h4>
+              <p>Receive email alerts for important events</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>SMS Notifications</h4>
+              <p>Get text messages for critical alerts</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>Desktop Notifications</h4>
+              <p>Show browser notifications</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>Attendance Alerts</h4>
+              <p>Notify me of low attendance rates</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>Grade Updates</h4>
+              <p>Alert when teachers publish grades</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="preference-item">
+            <div class="preference-info">
+              <h4>System Maintenance</h4>
+              <p>Notify about scheduled maintenance</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Display Preferences</h3>
+          <p>Customize how you view the system</p>
+        </div>
+        
+        <div class="profile-form">
+          <div class="form-group">
+            <label for="language-pref">Language</label>
+            <select id="language-pref" class="form-input">
+              <option value="en" selected>English</option>
+              <option value="tw">Twi</option>
+              <option value="ga">Ga</option>
+              <option value="ee">Ewe</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="timezone-pref">Timezone</label>
+            <select id="timezone-pref" class="form-input">
+              <option value="africa-accra" selected>Africa/Accra (GMT)</option>
+              <option value="africa-lagos">Africa/Lagos (WAT)</option>
+              <option value="africa-cairo">Africa/Cairo (EET)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="date-format">Date Format</label>
+            <select id="date-format" class="form-input">
+              <option value="dd-mm-yyyy" selected>DD-MM-YYYY</option>
+              <option value="mm-dd-yyyy">MM-DD-YYYY</option>
+              <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="items-per-page">Items Per Page</label>
+            <select id="items-per-page" class="form-input">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <div class="profile-actions">
+        <button class="btn-save-profile">
+          <i class="fas fa-save"></i>
+          Save Preferences
+        </button>
+        <button class="btn-cancel">
+          <i class="fas fa-times"></i>
+          Cancel
+        </button>
+      </div>
+    </div>
+    
+    <!-- Activity Log Tab -->
+    <div class="profile-tab-content" id="activity-tab">
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Recent Activity</h3>
+          <p>Your actions and system events over the last 30 days</p>
+        </div>
+        
+        <div class="activity-filters">
+          <select class="filter-select">
+            <option value="all" selected>All Activities</option>
+            <option value="login">Login Events</option>
+            <option value="settings">Settings Changes</option>
+            <option value="grades">Grade Management</option>
+            <option value="users">User Management</option>
+          </select>
+          
+          <div class="date-range-filter">
+            <input type="date" value="2026-02-02" class="form-input">
+            <span>to</span>
+            <input type="date" value="2026-03-02" class="form-input">
+          </div>
+        </div>
+        
+        <div class="activity-timeline">
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #10b981;">
+              <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Logged in to system</h4>
+              <p>Chrome on Windows • IP: 192.168.1.45</p>
+              <span class="activity-time">Today at 9:45 AM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #3b82f6;">
+              <i class="fas fa-user-plus"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Added new teacher</h4>
+              <p>Mrs. Abena Osei joined Science Department</p>
+              <span class="activity-time">Yesterday at 3:20 PM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #8b5cf6;">
+              <i class="fas fa-cog"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Updated system settings</h4>
+              <p>Modified academic year configuration</p>
+              <span class="activity-time">Yesterday at 11:15 AM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #f59e0b;">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Generated attendance report</h4>
+              <p>Monthly attendance summary for February 2026</p>
+              <span class="activity-time">Feb 28 at 4:50 PM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #ef4444;">
+              <i class="fas fa-trash-alt"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Deleted student record</h4>
+              <p>Removed duplicate entry for student ID: STU-2026-089</p>
+              <span class="activity-time">Feb 27 at 2:30 PM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #06b6d4;">
+              <i class="fas fa-file-export"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Exported grade data</h4>
+              <p>Downloaded WAEC preparation report (PDF)</p>
+              <span class="activity-time">Feb 26 at 10:00 AM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #10b981;">
+              <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Logged in to system</h4>
+              <p>Safari on iPhone • IP: 192.168.1.72</p>
+              <span class="activity-time">Feb 25 at 8:30 AM</span>
+            </div>
+          </div>
+          
+          <div class="activity-item">
+            <div class="activity-icon" style="background: #8b5cf6;">
+              <i class="fas fa-database"></i>
+            </div>
+            <div class="activity-content">
+              <h4>Created system backup</h4>
+              <p>Manual backup created (42.3 MB)</p>
+              <span class="activity-time">Feb 24 at 6:00 PM</span>
+            </div>
+          </div>
+        </div>
+        
+        <button class="btn-load-more">
+          <i class="fas fa-chevron-down"></i>
+          Load More Activities
+        </button>
+      </div>
+      
+      <div class="profile-section-card">
+        <div class="section-header">
+          <h3>Login History</h3>
+          <p>Recent login attempts and locations</p>
+        </div>
+        
+        <div class="login-history-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Device</th>
+                <th>Location</th>
+                <th>IP Address</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mar 2, 2026 9:45 AM</td>
+                <td>
+                  <i class="fas fa-desktop"></i>
+                  Chrome / Windows
+                </td>
+                <td>Accra, Ghana</td>
+                <td>192.168.1.45</td>
+                <td><span class="status-badge success">Success</span></td>
+              </tr>
+              <tr>
+                <td>Mar 1, 2026 2:15 PM</td>
+                <td>
+                  <i class="fas fa-mobile-alt"></i>
+                  Safari / iPhone
+                </td>
+                <td>Accra, Ghana</td>
+                <td>192.168.1.72</td>
+                <td><span class="status-badge success">Success</span></td>
+              </tr>
+              <tr>
+                <td>Feb 28, 2026 8:30 AM</td>
+                <td>
+                  <i class="fas fa-desktop"></i>
+                  Chrome / Windows
+                </td>
+                <td>Accra, Ghana</td>
+                <td>192.168.1.45</td>
+                <td><span class="status-badge success">Success</span></td>
+              </tr>
+              <tr>
+                <td>Feb 27, 2026 11:20 PM</td>
+                <td>
+                  <i class="fas fa-desktop"></i>
+                  Chrome / Windows
+                </td>
+                <td>Lagos, Nigeria</td>
+                <td>41.58.123.67</td>
+                <td><span class="status-badge danger">Failed</span></td>
+              </tr>
+              <tr>
+                <td>Feb 27, 2026 7:45 AM</td>
+                <td>
+                  <i class="fas fa-tablet-alt"></i>
+                  Safari / iPad
+                </td>
+                <td>Kumasi, Ghana</td>
+                <td>41.20.43.89</td>
+                <td><span class="status-badge success">Success</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

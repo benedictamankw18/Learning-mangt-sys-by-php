@@ -1,7 +1,7 @@
 // Settings Page JavaScript - Tab Navigation and Functionality
 
-document.addEventListener('DOMContentLoaded', function() {
-        console.log("here ss", targetTab);
+function initializeSettings() {
+  console.log("Settings page initialized");
   
   // Tab Navigation
   const tabButtons = document.querySelectorAll('.settings-tab');
@@ -274,5 +274,18 @@ document.addEventListener('DOMContentLoaded', function() {
       // openEditProgramModal(programName);
     });
   });
-  
+}
+
+// Initialize on page load (for standalone page)
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.querySelector('.settings-page')) {
+    initializeSettings();
+  }
+});
+
+// Initialize when dynamically loaded (for dashboard)
+document.addEventListener('page:loaded', function(e) {
+  if (e.detail && e.detail.page === 'settings') {
+    initializeSettings();
+  }
 });
