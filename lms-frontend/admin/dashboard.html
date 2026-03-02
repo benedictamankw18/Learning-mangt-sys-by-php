@@ -39,7 +39,7 @@
             </a>
             <a href="#" class="nav-item" data-page="institutions">
                 <i class="fas fa-building"></i>
-                <span>Institutions</span>
+                <span>My Institution</span>
             </a>
             <a href="#" class="nav-item" data-page="departments">
                 <i class="fas fa-sitemap"></i>
@@ -355,7 +355,10 @@
             if (!page || page === 'overview') {
                 document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
                 const overview = document.getElementById('overview-section');
-                if (overview) overview.classList.add('active');
+                if (overview) {
+                    overview.classList.add('active');
+                    overview.style.display = 'block';
+                }
                 dynamicSection.innerHTML = '';
                 document.getElementById('pageTitle').textContent = 'Dashboard Overview';
                 setActiveNav('overview');
@@ -365,8 +368,8 @@
             try {
                 // show a small loading state while fetching
                 dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
-                // fetch from same directory (pages are in the admin folder)
-                const res = await fetch(`./${page}.html`);
+                // fetch from page directory (like superadmin)
+                const res = await fetch(`./page/${page}.html`);
                 if (!res.ok) throw new Error('Not found');
                 const html = await res.text();
                 document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -374,6 +377,16 @@
                 dynamicSection.innerHTML = html;
                 document.getElementById('pageTitle').textContent = page.charAt(0).toUpperCase() + page.slice(1);
                 setActiveNav(page);
+                // Hide default overview section when showing other pages
+                const overviewSection = document.getElementById('overview-section');
+                if (overviewSection) overviewSection.style.display = 'none';
+                // Close mobile sidebar after navigation
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar && window.innerWidth <= 1024) {
+                    sidebar.classList.remove('active');
+                }
+                // Notify any page-specific scripts that the content has been loaded
+                try { document.dispatchEvent(new CustomEvent('page:loaded', { detail: { page } })); } catch(e) {}
             } catch (err) {
                 dynamicSection.innerHTML = `<div class="card"><div class="card-body"><p>Page not available: ${page}</p></div></div>`;
             }

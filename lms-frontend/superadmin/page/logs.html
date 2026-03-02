@@ -1,6 +1,232 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-file-alt"></i> System Logs</h3></div>
-  <div class="card-body">
-    <p>View application logs and audit trails. Add filters and export options.</p>
+<div class="logs-page">
+  <div class="card">
+    <div class="card-header">
+      <h2>System Logs & Audit Trail</h2>
+      <p>Monitor application activity, track user actions, and troubleshoot issues</p>
+      
+      <!-- Log Filters -->
+      <div class="log-filters">
+        <div class="filter-group">
+          <input type="search" placeholder="Search logs..." id="logSearch">
+        </div>
+        
+        <div class="filter-group">
+          <label>Level:</label>
+          <select id="logLevel">
+            <option value="">All Levels</option>
+            <option value="info">Info</option>
+            <option value="debug">Debug</option>
+            <option value="warning">Warning</option>
+            <option value="error">Error</option>
+            <option value="critical">Critical</option>
+            <option value="success">Success</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label>From:</label>
+          <input type="date" id="dateFrom">
+        </div>
+        
+        <div class="filter-group">
+          <label>To:</label>
+          <input type="date" id="dateTo">
+        </div>
+        
+        <div class="filter-group">
+          <label>User:</label>
+          <select id="userFilter">
+            <option value="">All Users</option>
+            <option value="admin">Admin</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+        
+        <div class="filter-actions">
+          <div class="realtime-toggle">
+            <input type="checkbox" id="realtimeToggle">
+            <label for="realtimeToggle">Real-time</label>
+          </div>
+          <button class="log-export-btn">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+          <button class="log-clear-btn">
+            <i class="fas fa-trash"></i>
+            Clear Logs
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body">
+      
+      <!-- Log Statistics -->
+      <div class="log-stats-wrapper">
+        <div class="log-stats">
+          <div class="log-stat-card">
+            <div class="stat-icon bg-gradient-blue">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">-</div>
+              <div class="stat-label">Info</div>
+            </div>
+          </div>
+          
+          <div class="log-stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">-</div>
+              <div class="stat-label">Warnings</div>
+            </div>
+          </div>
+          
+          <div class="log-stat-card">
+            <div class="stat-icon bg-gradient-red">
+              <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">-</div>
+              <div class="stat-label">Errors</div>
+            </div>
+          </div>
+          
+          <div class="log-stat-card">
+            <div class="stat-icon bg-gradient-green">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">-</div>
+              <div class="stat-label">Success</div>
+            </div>
+          </div>
+          
+          <div class="log-stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #6b7280, #9ca3af);">
+              <i class="fas fa-bug"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value">-</div>
+              <div class="stat-label">Debug</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Logs Table -->
+      <div class="log-table-wrapper">
+        <div class="logs-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Level</th>
+                <th>User</th>
+                <th>Action</th>
+                <th>Message</th>
+                <th>IP Address</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:23:45</td>
+                <td><span class="log-level log-level-info">Info</span></td>
+                <td class="log-user">admin</td>
+                <td>User Login</td>
+                <td class="log-message">User logged in successfully</td>
+                <td>192.168.1.10</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:20:12</td>
+                <td><span class="log-level log-level-warning">Warning</span></td>
+                <td class="log-user">system</td>
+                <td>Database</td>
+                <td class="log-message">Database connection pool reaching capacity (85%)</td>
+                <td>-</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:15:33</td>
+                <td><span class="log-level log-level-error">Error</span></td>
+                <td class="log-user">john.doe</td>
+                <td>File Upload</td>
+                <td class="log-message">Failed to upload file: size exceeds limit</td>
+                <td>192.168.1.25</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:10:05</td>
+                <td><span class="log-level log-level-success">Success</span></td>
+                <td class="log-user">admin</td>
+                <td>Backup</td>
+                <td class="log-message">Database backup completed successfully</td>
+                <td>-</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:05:22</td>
+                <td><span class="log-level log-level-debug">Debug</span></td>
+                <td class="log-user">system</td>
+                <td>Cache</td>
+                <td class="log-message">Cache cleared for user sessions module</td>
+                <td>-</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 14:02:18</td>
+                <td><span class="log-level log-level-info">Info</span></td>
+                <td class="log-user">jane.smith</td>
+                <td>User Update</td>
+                <td class="log-message">User profile updated</td>
+                <td>192.168.1.42</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 13:58:07</td>
+                <td><span class="log-level log-level-critical">Critical</span></td>
+                <td class="log-user">system</td>
+                <td>Security</td>
+                <td class="log-message">Multiple failed login attempts detected</td>
+                <td>203.0.113.45</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+              <tr>
+                <td class="log-timestamp">2026-03-01 13:55:44</td>
+                <td><span class="log-level log-level-info">Info</span></td>
+                <td class="log-user">admin</td>
+                <td>Settings</td>
+                <td class="log-message">System settings updated</td>
+                <td>192.168.1.10</td>
+                <td><button class="log-action-btn">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="log-pagination">
+        <div class="log-pagination-info">
+          Showing 1-8 of 1,247 logs
+        </div>
+        <div class="log-pagination-controls">
+          <button disabled>‹‹</button>
+          <button disabled>‹</button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <button>5</button>
+          <button>›</button>
+          <button>››</button>
+        </div>
+      </div>
+      
+    </div>
   </div>
 </div>

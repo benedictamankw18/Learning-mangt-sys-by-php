@@ -1,6 +1,162 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-database"></i> Database</h3></div>
-  <div class="card-body">
-    <p>Database tools: backups, restores, and maintenance tasks.</p>
+<div class="database-page">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h2>Database Management</h2>
+        <p>Manage backups, restores, and maintenance tasks</p>
+      </div>
+      <div class="db-connection-status connected">Connected</div>
+    </div>
+    <div class="card-body">
+      
+      <!-- Database Stats -->
+      <div class="database-stats">
+        <div class="db-stat-card">
+          <div class="stat-icon bg-gradient-green">
+            <i class="fas fa-database"></i>
+          </div>
+          <div class="stat-value">-</div>
+          <div class="stat-label">Database Size</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="stat-icon bg-gradient-blue">
+            <i class="fas fa-table"></i>
+          </div>
+          <div class="stat-value">-</div>
+          <div class="stat-label">Total Tables</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="stat-icon bg-gradient-orange">
+            <i class="fas fa-hdd"></i>
+          </div>
+          <div class="stat-value">-</div>
+          <div class="stat-label">Backups</div>
+        </div>
+        <div class="db-stat-card">
+          <div class="stat-icon bg-gradient-purple">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-value">-</div>
+          <div class="stat-label">Last Backup</div>
+        </div>
+      </div>
+
+      <!-- Database Sections -->
+      <div class="database-sections">
+        
+        <!-- Backup Section -->
+        <div class="database-section">
+          <h3>
+            <i class="fas fa-download"></i>
+            Backup Database
+          </h3>
+          <p>Create a complete backup of your database for safekeeping and disaster recovery.</p>
+          <div class="action-buttons">
+            <button class="db-btn-backup">
+              <i class="fas fa-download"></i>
+              Create Backup Now
+            </button>
+            <button class="db-btn-secondary">
+              <i class="fas fa-cog"></i>
+              Schedule Automatic Backup
+            </button>
+            <button class="db-btn-secondary">
+              <i class="fas fa-history"></i>
+              View Backup History
+            </button>
+          </div>
+        </div>
+
+        <!-- Restore Section -->
+        <div class="database-section">
+          <h3>
+            <i class="fas fa-upload"></i>
+            Restore Database
+          </h3>
+          <p>Restore your database from a previous backup file. This will replace current data.</p>
+          <div class="action-buttons">
+            <button class="db-btn-restore">
+              <i class="fas fa-upload"></i>
+              Restore from Backup
+            </button>
+            <button class="db-btn-secondary">
+              <i class="fas fa-file-import"></i>
+              Import SQL File
+            </button>
+          </div>
+        </div>
+
+        <!-- Optimization Section -->
+        <div class="database-section">
+          <h3>
+            <i class="fas fa-tachometer-alt"></i>
+            Optimize Database
+          </h3>
+          <p>Optimize tables to improve query performance and reduce storage fragmentation.</p>
+          <div class="action-buttons">
+            <button class="db-btn-optimize">
+              <i class="fas fa-bolt"></i>
+              Optimize All Tables
+            </button>
+            <button class="db-btn-analyze">
+              <i class="fas fa-chart-line"></i>
+              Analyze Tables
+            </button>
+            <button class="db-btn-repair">
+              <i class="fas fa-wrench"></i>
+              Repair Tables
+            </button>
+          </div>
+        </div>
+
+        <!-- Maintenance Section -->
+        <div class="database-section">
+          <h3>
+            <i class="fas fa-tools"></i>
+            Maintenance
+          </h3>
+          <p>Additional database maintenance and management operations.</p>
+          <div class="action-buttons">
+            <button class="db-btn-secondary">
+              <i class="fas fa-compress"></i>
+              Compact Database
+            </button>
+            <button class="db-btn-secondary">
+              <i class="fas fa-broom"></i>
+              Clean Logs
+            </button>
+            <button class="db-btn-danger">
+              <i class="fas fa-exclamation-triangle"></i>
+              Reset Database
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Backup History Section -->
+      <div class="backup-history">
+        <h3>Recent Backups</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Backup Name</th>
+              <th>Date & Time</th>
+              <th>Size</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-tertiary);">
+                No backup history available
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </div>
 </div>

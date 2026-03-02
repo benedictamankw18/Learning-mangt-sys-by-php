@@ -171,6 +171,28 @@ function updateCharts(stats) {
     // Update system growth chart
     if (systemGrowthChart && stats.monthly_growth) {
         const growthData = stats.monthly_growth;
+        
+        // Update labels from database or generate them
+        if (growthData.labels && Array.isArray(growthData.labels)) {
+            systemGrowthChart.data.labels = growthData.labels;
+        } else {
+            // Generate month labels ending at current month
+            const dataLength = growthData.institutions?.length || growthData.users?.length || 12;
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentMonth = new Date().getMonth(); // 0-indexed (0=Jan, 11=Dec)
+            const labels = [];
+            
+            // Generate labels from (currentMonth - dataLength + 1) to currentMonth
+            for (let i = dataLength - 1; i >= 0; i--) {
+                const monthIndex = (currentMonth - i + 12) % 12;
+                labels.push(months[monthIndex]);
+            }
+            
+            systemGrowthChart.data.labels = labels;
+        }
+        
+        console.log('Updating system growth chart with data:', growthData);
+        // Update data
         systemGrowthChart.data.datasets[0].data = growthData.institutions || [];
         systemGrowthChart.data.datasets[1].data = growthData.users || [];
         systemGrowthChart.update();
@@ -187,11 +209,11 @@ function initializeSystemGrowthChart() {
     systemGrowthChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: [],
             datasets: [
                 {
                     label: 'Institutions',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    data: [],
                     borderColor: '#f97316',
                     backgroundColor: 'rgba(249, 115, 22, 0.1)',
                     tension: 0.4,
@@ -199,7 +221,7 @@ function initializeSystemGrowthChart() {
                 },
                 {
                     label: 'Total Users',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    data: [],
                     borderColor: '#ef4444',
                     backgroundColor: 'rgba(239, 68, 68, 0.1)',
                     tension: 0.4,
@@ -339,8 +361,32 @@ function setupEventListeners() {
     const actionButtons = document.querySelectorAll('.action-btn');
     actionButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            const action = btn.querySelector('span').textContent;
-            showToast(`${action} - Feature coming soon`, 'info');
+            const actionText = btn.querySelector('span').textContent;
+            
+            // Navigate based on button text
+            let targetPage = 'dashboard.html';
+            
+            if (actionText.includes('Institution')) {
+                targetPage = '#institutions';
+            } else if (actionText.includes('Admin')) {
+                targetPage = '#users';
+            } else if (actionText.includes('Role') || actionText.includes('Permission')) {
+                targetPage = '#roles';
+            } else if (actionText.includes('System') || actionText.includes('Setting')) {
+                targetPage = '#system';
+            } else if (actionText.includes('Backup')) {
+                targetPage = '#database';
+            } else if (actionText.includes('Security')) {
+                targetPage = '#security';
+            } else if (actionText.includes('Logs')) {
+                targetPage = '#logs';
+            }
+            
+            if (targetPage) {
+                window.location.href = targetPage;
+            } else {
+                showToast(`${actionText} - Feature coming soon`, 'info');
+            }
         });
     });
 

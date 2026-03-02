@@ -48,14 +48,8 @@ function initDashboard() {
  * Setup event listeners
  */
 function setupEventListeners() {
-    // Sidebar navigation
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleNavigation(item);
-        });
-    });
+    // Sidebar navigation - handled by hash routing script in dashboard.html
+    // No need to add listeners here as the hash routing script handles it
 
     // Mobile menu toggle
     const mobileMenuToggle = document.getElementById('mobileMenuToggle');
@@ -133,40 +127,7 @@ function setupEventListeners() {
     });
 }
 
-/**
- * Handle navigation between pages
- */
-function handleNavigation(navItem) {
-    const page = navItem.dataset.page;
-    
-    // Update active nav item
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    navItem.classList.add('active');
 
-    // Update page title
-    const pageTitle = document.getElementById('pageTitle');
-    if (pageTitle) {
-        pageTitle.textContent = navItem.querySelector('span').textContent;
-    }
-
-    // Show corresponding content section
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    const targetSection = document.getElementById(`${page}-section`);
-    if (targetSection) {
-        targetSection.classList.add('active');
-    }
-
-    // Close mobile menu
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && window.innerWidth <= 1024) {
-        sidebar.classList.remove('active');
-    }
-}
 
 /**
  * Toggle dropdown menu

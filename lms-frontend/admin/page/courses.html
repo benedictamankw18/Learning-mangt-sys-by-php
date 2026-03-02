@@ -1,5 +1,538 @@
-<div class="section-page" id="courses-page">
-    <h2>Courses</h2>
-    <p>Manage courses here. This page is loaded from <strong>courses.html</strong>.</p>
-    <div class="placeholder">Course management UI will be implemented here.</div>
+<div class="courses-page">
+  <div class="courses-card">
+    <div class="courses-card-header">
+      <h2>Class Subjects Management</h2>
+      <p>Manage subject assignments, teachers, and schedules for each class</p>
+    </div>
+    
+    <div class="courses-card-body">
+      
+      <!-- Toolbar -->
+      <div class="courses-toolbar">
+        <div class="courses-toolbar-left">
+          <div class="courses-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search subjects by name, class, or teacher...">
+          </div>
+          
+          <div class="courses-filter">
+            <select>
+              <option value="">All Programs</option>
+              <option value="general-science">General Science</option>
+              <option value="general-arts">General Arts</option>
+              <option value="business">Business</option>
+              <option value="visual-arts">Visual Arts</option>
+            </select>
+            
+            <select>
+              <option value="">All Grade Levels</option>
+              <option value="shs1">SHS 1</option>
+              <option value="shs2">SHS 2</option>
+              <option value="shs3">SHS 3</option>
+            </select>
+            
+            <select>
+              <option value="">All Types</option>
+              <option value="core">Core Subjects</option>
+              <option value="elective">Electives</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="courses-toolbar-right">
+          <button class="btn-import">
+            <i class="fas fa-upload"></i>
+            Import
+          </button>
+          <button class="btn-export">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+          <button class="btn-add-course">
+            <i class="fas fa-plus"></i>
+            Assign Subject
+          </button>
+        </div>
+      </div>
+      
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" id="bulkActions">
+        <span class="bulk-actions-text">
+          <span id="selectedCount">0</span> subjects selected
+        </span>
+        <div class="bulk-actions-buttons">
+          <button class="btn-bulk-activate">
+            <i class="fas fa-check"></i>
+            Activate
+          </button>
+          <button class="btn-bulk-archive">
+            <i class="fas fa-archive"></i>
+            Archive
+          </button>
+          <button class="btn-bulk-delete">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+      
+      <!-- Courses Table -->
+      <div class="courses-table-container">
+        <table class="courses-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAll">
+              </th>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Teacher</th>
+              <th>Type</th>
+              <th>Students</th>
+              <th>Schedule</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Core Subject: English Language - SHS 1 Science 2 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-book-open"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">English Language</span>
+                    <span class="course-code">ENG-CORE</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Science 2</span>
+                  <span class="program-name">General Science</span>
+                </div>
+              </td>
+              <td>Mr. Kofi Asante</td>
+              <td>
+                <span class="type-badge type-core">Core</span>
+              </td>
+              <td>
+                <span class="student-count">42 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Mon, Wed, Fri<br><small>8:00 AM - 9:00 AM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Elective: Biology - SHS 1 Science 2 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-dna"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Biology</span>
+                    <span class="course-code">BIO-ELEC</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Science 2</span>
+                  <span class="program-name">General Science</span>
+                </div>
+              </td>
+              <td>Dr. Ama Adjei</td>
+              <td>
+                <span class="type-badge type-elective">Elective</span>
+              </td>
+              <td>
+                <span class="student-count">42 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Tue, Thu<br><small>10:00 AM - 11:30 AM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Core Subject: Mathematics - SHS 1 Art 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-square-root-alt"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Core Mathematics</span>
+                    <span class="course-code">MATH-CORE</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Art 1</span>
+                  <span class="program-name">General Arts</span>
+                </div>
+              </td>
+              <td>Mr. Kwesi Owusu</td>
+              <td>
+                <span class="type-badge type-core">Core</span>
+              </td>
+              <td>
+                <span class="student-count">38 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Mon, Wed, Fri<br><small>9:00 AM - 10:00 AM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Elective: History - SHS 1 Art 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-landmark"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">History</span>
+                    <span class="course-code">HIST-ELEC</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Art 1</span>
+                  <span class="program-name">General Arts</span>
+                </div>
+              </td>
+              <td>Mrs. Akua Boateng</td>
+              <td>
+                <span class="type-badge type-elective">Elective</span>
+              </td>
+              <td>
+                <span class="student-count">38 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Tue, Thu<br><small>1:00 PM - 2:30 PM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Core Subject: Integrated Science - SHS 1 Science 2 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Integrated Science</span>
+                    <span class="course-code">SCI-CORE</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Science 2</span>
+                  <span class="program-name">General Science</span>
+                </div>
+              </td>
+              <td>Dr. Yaw Mensah</td>
+              <td>
+                <span class="type-badge type-core">Core</span>
+              </td>
+              <td>
+                <span class="student-count">42 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Mon, Thu<br><small>11:00 AM - 12:30 PM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Elective: Chemistry - SHS 2 Science 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-atom"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Chemistry</span>
+                    <span class="course-code">CHEM-ELEC</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 2 Science 1</span>
+                  <span class="program-name">General Science</span>
+                </div>
+              </td>
+              <td>Mr. Samuel Nkrumah</td>
+              <td>
+                <span class="type-badge type-elective">Elective</span>
+              </td>
+              <td>
+                <span class="student-count">45 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Wed, Fri<br><small>2:00 PM - 3:30 PM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Elective: Literature in English - SHS 1 Art 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-book"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Literature in English</span>
+                    <span class="course-code">LIT-ELEC</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 1 Art 1</span>
+                  <span class="program-name">General Arts</span>
+                </div>
+              </td>
+              <td>Mrs. Efua Agyeman</td>
+              <td>
+                <span class="type-badge type-elective">Elective</span>
+              </td>
+              <td>
+                <span class="student-count">38 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Mon, Wed<br><small>2:00 PM - 3:30 PM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Elective: Economics - SHS 3 Business 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="course-select">
+              </td>
+              <td>
+                <div class="course-cell">
+                  <div class="course-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="course-details">
+                    <span class="course-name">Economics</span>
+                    <span class="course-code">ECON-ELEC</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="class-info">
+                  <span class="class-name">SHS 3 Business 1</span>
+                  <span class="program-name">Business</span>
+                </div>
+              </td>
+              <td>Mr. Kwabena Ansah</td>
+              <td>
+                <span class="type-badge type-elective">Elective</span>
+              </td>
+              <td>
+                <span class="student-count">40 Students</span>
+              </td>
+              <td>
+                <span class="schedule-info">Tue, Thu, Fri<br><small>9:00 AM - 10:00 AM</small></span>
+              </td>
+              <td>
+                <div class="course-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Assignment">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Remove Assignment">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="courses-pagination">
+        <div class="pagination-info">
+          Showing 1-8 of 87 class subjects
+        </div>
+        <div class="pagination-controls">
+          <button disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <button>5</button>
+          <button>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
+
+<script>
+// Bulk selection logic
+(function() {
+    const selectAll = document.getElementById('selectAll');
+    const courseSelects = document.querySelectorAll('.course-select');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            courseSelects.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+    }
+    
+    courseSelects.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+    
+    function updateBulkActions() {
+        const selected = document.querySelectorAll('.course-select:checked').length;
+        if (selectedCount) selectedCount.textContent = selected;
+        
+        if (bulkActions) {
+            if (selected > 0) {
+                bulkActions.classList.add('active');
+            } else {
+                bulkActions.classList.remove('active');
+            }
+        }
+        
+        if (selectAll) {
+            selectAll.checked = selected === courseSelects.length;
+        }
+    }
+})();
+</script>

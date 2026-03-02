@@ -215,7 +215,25 @@ class AuthService {
             this.clearToken();
             this.clearRefreshToken();
             this.clearUser();
-            localStorage.removeItem(STORAGE_KEYS.REMEMBER_ME);
+            
+            // Clear ALL localStorage and sessionStorage
+            try {
+                localStorage.clear();
+                sessionStorage.clear();
+            } catch (e) {
+                console.warn('Storage unavailable when clearing on logout', e);
+            }
+            
+            // Clear in-memory fallbacks
+            this._inMemoryToken = null;
+            this._inMemoryRefresh = null;
+            this._inMemoryUser = null;
+            this._inMemoryRemember = false;
+            
+            // Stop token refresh
+            if (typeof stopTokenRefresh === 'function') {
+                stopTokenRefresh();
+            }
             
             // Redirect to login page
             window.location.href = '/auth/login.html';
@@ -395,11 +413,14 @@ function startTokenRefresh() {
         if (Auth.isAuthenticated()) {
             const refreshed = await Auth.refreshToken();
             if (!refreshed) {
-                console.warn('Token refresh failed');
-                // Optionally logout user
-                // Auth.logout();
-                // Auth.redirectToLogin();
+                console.warn('Token refresh failed - logging out');
+                // Auto logout when token expires
+                stopTokenRefresh();
+                await Auth.logout();
             }
+        } else {
+            // No longer authenticated, stop refresh interval
+            stopTokenRefresh();
         }
     }, 25 * 60 * 1000); // 25 minutes
 }

@@ -1,4 +1,609 @@
-<div class="section-page" id="departments-page">
-    <h2>Departments</h2>
-    <p>Department management placeholder (<strong>departments.html</strong>).</p>
+<div class="departments-page">
+  <div class="departments-card">
+    <div class="departments-card-header">
+      <h2>Programs & Classes</h2>
+      <p>Manage academic programs, classes, and student enrollment across grade levels</p>
+    </div>
+    
+    <div class="departments-card-body">
+      
+      <!-- Toolbar -->
+      <div class="departments-toolbar">
+        <div class="departments-toolbar-left">
+          <div class="departments-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search programs or classes...">
+          </div>
+          
+          <div class="departments-filter">
+            <select>
+              <option value="">All Programs</option>
+              <option value="general-science">General Science</option>
+              <option value="general-arts">General Arts</option>
+              <option value="business">Business</option>
+              <option value="visual-arts">Visual Arts</option>
+              <option value="home-economics">Home Economics</option>
+              <option value="agriculture">Agriculture</option>
+            </select>
+            
+            <select>
+              <option value="">All Grade Levels</option>
+              <option value="shs1">SHS 1</option>
+              <option value="shs2">SHS 2</option>
+              <option value="shs3">SHS 3</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="departments-toolbar-right">
+            <button class="btn-import">
+                <i class="fas fa-upload"></i>
+                Import
+            </button>
+          <button class="btn-export">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+          <button class="btn-add-department">
+            <i class="fas fa-plus"></i>
+            Add Class
+          </button>
+        </div>
+      </div>
+      
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" id="bulkActions">
+        <span class="bulk-actions-text">
+          <span id="selectedCount">0</span> classes selected
+        </span>
+        <div class="bulk-actions-buttons">
+          <button class="btn-bulk-activate">
+            <i class="fas fa-check"></i>
+            Activate
+          </button>
+          <button class="btn-bulk-deactivate">
+            <i class="fas fa-pause"></i>
+            Deactivate
+          </button>
+          <button class="btn-bulk-delete">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+      
+      <!-- Departments Table -->
+      <div class="departments-table-container">
+        <table class="departments-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAll">
+              </th>
+              <th>Class</th>
+              <th>Program</th>
+              <th>Grade Level</th>
+              <th>Class Teacher</th>
+              <th>Students</th>
+              <th>Capacity</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- SHS 1 Science 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">SHS 1 Science 1</span>
+                    <span class="department-code">1SCI1</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="program-badge program-science">General Science</span>
+              </td>
+              <td>
+                <span class="grade-level">SHS 1</span>
+              </td>
+              <td>
+                <div class="teacher-info">
+                  <span class="teacher-name">Mr. Joseph Owusu</span>
+                  <span class="teacher-id">TCH-2019-045</span>
+                </div>
+              </td>
+              <td>
+                <span class="student-count">58</span>
+              </td>
+              <td>
+                <span class="capacity-count">60</span>
+              </td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Class">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete Class">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- SHS 1 Science 2 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">SHS 1 Science 2</span>
+                    <span class="department-code">1SCI2</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="program-badge program-science">General Science</span>
+              </td>
+              <td>
+                <span class="grade-level">SHS 1</span>
+              </td>
+              <td>
+                <div class="teacher-info">
+                  <span class="teacher-name">Mrs. Comfort Boateng</span>
+                  <span class="teacher-id">TCH-2020-012</span>
+                </div>
+              </td>
+              <td>
+                <span class="student-count">60</span>
+              </td>
+              <td>
+                <span class="capacity-count">60</span>
+              </td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Class">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete Class">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- SHS 1 Arts 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-book"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">SHS 1 Arts 1</span>
+                    <span class="department-code">1ART1</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="program-badge program-arts">General Arts</span>
+              </td>
+              <td>
+                <span class="grade-level">SHS 1</span>
+              </td>
+              <td>
+                <div class="teacher-info">
+                  <span class="teacher-name">Mr. Kwesi Appiah</span>
+                  <span class="teacher-id">TCH-2018-089</span>
+                </div>
+              </td>
+              <td>
+                <span class="student-count">45</span>
+              </td>
+              <td>
+                <span class="capacity-count">50</span>
+              </td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit Class">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete Class">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- SHS 1 Business 1 -->
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-briefcase"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">SHS 1 Business 1</span>
+                    <span class="department-code">DEPT-MATH</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Prof. Emily Chen</span>
+                  <span class="head-email">e.chen@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">22</span>
+              </td>
+              <td>
+                <span class="student-count">612</span>
+              </td>
+              <td>
+                <span class="budget-amount">$1.8M</span>
+              </td>
+              <td>1985</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-atom"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">Physics</span>
+                    <span class="department-code">DEPT-PHYS</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Dr. James Anderson</span>
+                  <span class="head-email">j.anderson@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">18</span>
+              </td>
+              <td>
+                <span class="student-count">423</span>
+              </td>
+              <td>
+                <span class="budget-amount">$2.1M</span>
+              </td>
+              <td>1988</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-book"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">English Literature</span>
+                    <span class="department-code">DEPT-ENG</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Prof. Sarah Williams</span>
+                  <span class="head-email">s.williams@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">16</span>
+              </td>
+              <td>
+                <span class="student-count">534</span>
+              </td>
+              <td>
+                <span class="budget-amount">$1.2M</span>
+              </td>
+              <td>1980</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-chart-line"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">Business Administration</span>
+                    <span class="department-code">DEPT-BUS</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Dr. Michael Johnson</span>
+                  <span class="head-email">m.johnson@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">24</span>
+              </td>
+              <td>
+                <span class="student-count">1,156</span>
+              </td>
+              <td>
+                <span class="budget-amount">$3.2M</span>
+              </td>
+              <td>1990</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-heartbeat"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">Nursing</span>
+                    <span class="department-code">DEPT-NURS</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Dr. Linda Martinez</span>
+                  <span class="head-email">l.martinez@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">32</span>
+              </td>
+              <td>
+                <span class="student-count">967</span>
+              </td>
+              <td>
+                <span class="budget-amount">$2.8M</span>
+              </td>
+              <td>2000</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <tr>
+              <td>
+                <input type="checkbox" class="department-select">
+              </td>
+              <td>
+                <div class="department-cell">
+                  <div class="department-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <div class="department-details">
+                    <span class="department-name">Chemistry</span>
+                    <span class="department-code">DEPT-CHEM</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="head-info">
+                  <span class="head-name">Prof. David Lee</span>
+                  <span class="head-email">d.lee@university.edu</span>
+                </div>
+              </td>
+              <td>
+                <span class="faculty-count">20</span>
+              </td>
+              <td>
+                <span class="student-count">512</span>
+              </td>
+              <td>
+                <span class="budget-amount">$1.9M</span>
+              </td>
+              <td>1987</td>
+              <td>
+                <span class="status-badge status-inactive">Inactive</span>
+              </td>
+              <td>
+                <div class="department-actions">
+                  <button class="btn-view">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="departments-pagination">
+        <div class="pagination-info">
+          Showing 1-7 of 24 departments
+        </div>
+        <div class="pagination-controls">
+          <button disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <button>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
+
+<script>
+// Bulk selection logic
+(function() {
+    const selectAll = document.getElementById('selectAll');
+    const departmentSelects = document.querySelectorAll('.department-select');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            departmentSelects.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+    }
+    
+    departmentSelects.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+    
+    function updateBulkActions() {
+        const selected = document.querySelectorAll('.department-select:checked').length;
+        if (selectedCount) selectedCount.textContent = selected;
+        
+        if (bulkActions) {
+            if (selected > 0) {
+                bulkActions.classList.add('active');
+            } else {
+                bulkActions.classList.remove('active');
+            }
+        }
+        
+        if (selectAll) {
+            selectAll.checked = selected === departmentSelects.length;
+        }
+    }
+})();
+</script>

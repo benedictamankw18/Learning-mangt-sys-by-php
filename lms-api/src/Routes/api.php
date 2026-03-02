@@ -80,6 +80,10 @@ return [
     'PUT /permissions/{id}' => ['controller' => 'PermissionController', 'method' => 'update', 'auth' => true],
     'DELETE /permissions/{id}' => ['controller' => 'PermissionController', 'method' => 'delete', 'auth' => true],
 
+    // System settings (frontend system page)
+    'GET /system/settings' => ['controller' => 'SystemController', 'method' => 'getSettings', 'auth' => true],
+    'PUT /system/settings' => ['controller' => 'SystemController', 'method' => 'updateSettings', 'auth' => true],
+
     // Notification routes
     'GET /notifications' => ['controller' => 'NotificationController', 'method' => 'index', 'auth' => true],
     'GET /notifications/summary' => ['controller' => 'NotificationController', 'method' => 'getSummary', 'auth' => true],

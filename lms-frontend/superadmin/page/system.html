@@ -1,6 +1,150 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-server"></i> System Settings</h3></div>
-  <div class="card-body">
-    <p>Global system settings, integrations and configuration live here.</p>
-  </div>
+
+<!-- System Settings Page -->
+<div class="card system-settings-page">
+    <!-- Header -->
+    <div class="card-header">
+        <div class="last-saved-info">
+          <small>Last saved: <span id="lastSavedTime">Never</span></small>
+        </div>
+    </div>
+
+    <!-- Settings Card -->
+    <div class="card-body">
+        <!-- Tab Navigation -->
+        <div class="settings-tabs">
+            <button class="settings-tab active-tab" data-tab="site">
+                <i class="fas fa-globe tab-icon"></i>
+                <span>Site Settings</span>
+            </button>
+            <button class="settings-tab" data-tab="email">
+                <i class="fas fa-envelope tab-icon"></i>
+                <span>Email Configuration</span>
+            </button>
+            <button class="settings-tab" data-tab="auth">
+                <i class="fas fa-lock tab-icon"></i>
+                <span>Authentication</span>
+            </button>
+            <button class="settings-tab" data-tab="integrations">
+                <i class="fas fa-link tab-icon"></i>
+                <span>Integrations</span>
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="settings-content">
+            <!-- Site Settings Tab -->
+            <div id="tab-site" class="settings-panel active-panel">
+                <h3>Site Settings</h3>
+                <form id="siteForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="site_name">Site Name *</label>
+                        <input type="text" id="site_name" name="site_name" placeholder="Enter site name" required>
+                        <small class="form-text">The name of your LMS platform</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="site_url">Site URL *</label>
+                        <input type="url" id="site_url" name="site_url" placeholder="https://example.com" required>
+                        <small class="form-text">Your platform's primary URL</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="timezone">Timezone</label>
+                        <input type="text" id="timezone" name="timezone" placeholder="UTC" value="UTC">
+                        <small class="form-text">Default timezone for the system</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Save Site Settings</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Email Settings Tab -->
+            <div id="tab-email" class="settings-panel">
+                <h3>Email Configuration</h3>
+                <form id="emailForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="smtp_host">SMTP Host *</label>
+                        <input type="text" id="smtp_host" name="smtp_host" placeholder="smtp.example.com" required>
+                        <small class="form-text">Your SMTP server hostname</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="smtp_port">SMTP Port *</label>
+                        <input type="number" id="smtp_port" name="smtp_port" placeholder="587" required>
+                        <small class="form-text">Common ports: 587 (TLS), 465 (SSL), 25</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="from_address">From Email Address *</label>
+                        <input type="email" id="from_address" name="from_address" placeholder="noreply@example.com" required>
+                        <small class="form-text">Email address used for outgoing emails</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Save Email Settings</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Authentication Tab -->
+            <div id="tab-auth" class="settings-panel">
+                <h3>Authentication Settings</h3>
+                <form id="authForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="allow_registration">Allow Self Registration</label>
+                        <select id="allow_registration" name="allow_registration">
+                            <option value="1">Yes - Users can register themselves</option>
+                            <option value="0">No - Require admin invitation</option>
+                        </select>
+                        <small class="form-text">Control whether new users can register directly</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="require_verification">Require Email Verification</label>
+                        <select id="require_verification" name="require_verification">
+                            <option value="1">Yes - Verify email before access</option>
+                            <option value="0">No - Immediate access</option>
+                        </select>
+                        <small class="form-text">Require users to verify email before login</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Save Auth Settings</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Integrations Tab -->
+            <div id="tab-integrations" class="settings-panel">
+                <h3>Third-Party Integrations</h3>
+                <form id="integrationsForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="ga_id">Google Analytics ID</label>
+                        <input type="text" id="ga_id" name="ga_id" placeholder="UA-XXXXX-X or G-XXXXXXXXXX">
+                        <small class="form-text">Your Google Analytics tracking ID</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="integrations_note">Integration Notes</label>
+                        <textarea id="integrations_note" name="integrations_note" rows="4" placeholder="Add notes about integrations..."></textarea>
+                        <small class="form-text">Internal notes about configured integrations</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <span>Save Integration Settings</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

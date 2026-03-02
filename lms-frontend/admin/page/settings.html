@@ -1,4 +1,973 @@
-<div class="section-page" id="settings-page">
-    <h2>Settings</h2>
-    <p>Application and institution settings loaded from <strong>settings.html</strong>.</p>
+<div class="settings-page">
+  <div class="settings-card">
+    <div class="settings-card-header">
+      <h2>System Settings</h2>
+      <p>Configure institution, academic, and system preferences</p>
+    </div>
+
+    <div class="settings-card-body">
+
+      <!-- Settings Navigation Tabs -->
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="general">
+          <i class="fas fa-cog"></i>
+          General
+        </button>
+        <button class="settings-tab" data-tab="academic">
+          <i class="fas fa-graduation-cap"></i>
+          Academic
+        </button>
+        <button class="settings-tab" data-tab="users">
+          <i class="fas fa-users-cog"></i>
+          Users & Roles
+        </button>
+        <button class="settings-tab" data-tab="system">
+          <i class="fas fa-server"></i>
+          System
+        </button>
+        <button class="settings-tab" data-tab="notifications">
+          <i class="fas fa-bell"></i>
+          Notifications
+        </button>
+        <button class="settings-tab" data-tab="appearance">
+          <i class="fas fa-palette"></i>
+          Appearance
+        </button>
+      </div>
+
+      <!-- General Settings Tab -->
+      <div class="settings-tab-content active" id="general-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Institution Information</h3>
+            <p>Basic information about your educational institution</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label for="school-name">School Name</label>
+              <input type="text" id="school-name" value="Accra Senior High School" class="form-input">
+              <span class="form-hint">Official name of the institution</span>
+            </div>
+
+            <div class="form-group">
+              <label for="school-code">School Code</label>
+              <input type="text" id="school-code" value="ASHS-2024" class="form-input" readonly>
+              <span class="form-hint">Unique identifier for the school (cannot be changed)</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Official Email</label>
+                <input type="email" id="email" value="admin@accrashs.edu.gh" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" value="+233 30 276 1234" class="form-input">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="address">Physical Address</label>
+              <textarea id="address" rows="3" class="form-input">123 Independence Avenue, Accra, Ghana</textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="school-logo">School Logo</label>
+              <div class="file-upload-area">
+                <div class="current-logo">
+                  <img src="../../assets/img/Ghana-Coat-Of-Arms.jpg" alt="School Logo">
+                </div>
+                <button class="btn-upload">
+                  <i class="fas fa-upload"></i>
+                  Upload New Logo
+                </button>
+                <span class="form-hint">Recommended size: 512x512px, PNG or JPG</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Academic Year Settings</h3>
+            <p>Configure current academic year and terms</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="academic-year">Current Academic Year</label>
+                <input type="text" id="academic-year" value="2025/2026" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="current-term">Current Term</label>
+                <select id="current-term" class="form-input">
+                  <option value="1">Term 1</option>
+                  <option value="2" selected>Term 2</option>
+                  <option value="3">Term 3</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="term-start">Term Start Date</label>
+                <input type="date" id="term-start" value="2026-01-05" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="term-end">Term End Date</label>
+                <input type="date" id="term-end" value="2026-04-10" class="form-input">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <!-- <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button> -->
+        </div>
+      </div>
+
+      <!-- Academic Settings Tab -->
+      <div class="settings-tab-content" id="academic-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Grading System</h3>
+            <p>Configure grading scales and assessment methods</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label for="primary-scale">Primary Grading Scale</label>
+              <select id="primary-scale" class="form-input">
+                <option value="ghana-waec" selected>Ghana WAEC (A1-F9)</option>
+                <option value="gpa">GPA System (4.0 Scale)</option>
+                <option value="percentage">Percentage (0-100%)</option>
+              </select>
+              <span class="form-hint">Main grading system for final exams</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="pass-mark">Pass Mark (%)</label>
+                <input type="number" id="pass-mark" value="40" min="0" max="100" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="credit-threshold">Credit Threshold (Grade)</label>
+                <select id="credit-threshold" class="form-input">
+                  <option value="C6" selected>C6 (50%)</option>
+                  <option value="C5">C5 (55%)</option>
+                  <option value="C4">C4 (60%)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Enable continuous assessment tracking</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Show grade breakdown to students</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Programs & Classes</h3>
+            <p>Manage academic programs and class configurations</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Available Programs</label>
+              <div class="programs-list">
+                <div class="program-item">
+                  <div class="program-info">
+                    <i class="fas fa-flask" style="color: #3b82f6;"></i>
+                    <span>Science</span>
+                    <span class="program-count">6 classes</span>
+                  </div>
+                  <button class="btn-icon-action">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+
+                <div class="program-item">
+                  <div class="program-info">
+                    <i class="fas fa-briefcase" style="color: #10b981;"></i>
+                    <span>Business</span>
+                    <span class="program-count">4 classes</span>
+                  </div>
+                  <button class="btn-icon-action">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+
+                <div class="program-item">
+                  <div class="program-info">
+                    <i class="fas fa-palette" style="color: #f59e0b;"></i>
+                    <span>Visual Arts</span>
+                    <span class="program-count">2 classes</span>
+                  </div>
+                  <button class="btn-icon-action">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+
+                <div class="program-item">
+                  <div class="program-info">
+                    <i class="fas fa-book" style="color: #8b5cf6;"></i>
+                    <span>General Arts</span>
+                    <span class="program-count">3 classes</span>
+                  </div>
+                  <button class="btn-icon-action">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </div>
+              </div>
+              <button class="btn-add-program">
+                <i class="fas fa-plus"></i>
+                Add New Program
+              </button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="max-class-size">Maximum Class Size</label>
+                <input type="number" id="max-class-size" value="45" min="1" max="100" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="subjects-per-student">Max Subjects per Student</label>
+                <input type="number" id="subjects-per-student" value="9" min="1" max="15" class="form-input">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Users & Roles Settings Tab -->
+      <div class="settings-tab-content" id="users-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>User Roles & Permissions</h3>
+            <p>Configure access levels and permissions for different user roles</p>
+          </div>
+
+          <div class="roles-grid">
+            <div class="role-card">
+              <div class="role-header">
+                <div class="role-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                  <i class="fas fa-crown"></i>
+                </div>
+                <div class="role-info">
+                  <h4>Administrator</h4>
+                  <span class="role-count">3 users</span>
+                </div>
+              </div>
+              <div class="role-permissions">
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Full system access</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>User management</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Settings configuration</span>
+                </div>
+              </div>
+              <button class="btn-edit-role">
+                <i class="fas fa-edit"></i>
+                Edit Permissions
+              </button>
+            </div>
+
+            <div class="role-card">
+              <div class="role-header">
+                <div class="role-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                  <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div class="role-info">
+                  <h4>Teacher</h4>
+                  <span class="role-count">48 users</span>
+                </div>
+              </div>
+              <div class="role-permissions">
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Grade management</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Attendance tracking</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-times-circle"></i>
+                  <span>Reports generation</span>
+                </div>
+              </div>
+              <button class="btn-edit-role">
+                <i class="fas fa-edit"></i>
+                Edit Permissions
+              </button>
+            </div>
+
+            <div class="role-card">
+              <div class="role-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-user-graduate"></i>
+              </div>
+              <div class="role-info">
+                <h4>Student</h4>
+                <span class="role-count">1,247 users</span>
+              </div>
+              <div class="role-permissions">
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>View grades</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Submit assignments</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-times-circle"></i>
+                  <span>Edit records</span>
+                </div>
+              </div>
+              <button class="btn-edit-role">
+                <i class="fas fa-edit"></i>
+                Edit Permissions
+              </button>
+            </div>
+
+            <div class="role-card">
+              <div class="role-header">
+                <div class="role-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="role-info">
+                  <h4>Parent/Guardian</h4>
+                  <span class="role-count">892 users</span>
+                </div>
+              </div>
+              <div class="role-permissions">
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>View student data</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-check-circle"></i>
+                  <span>Communication</span>
+                </div>
+                <div class="permission-item">
+                  <i class="fas fa-times-circle"></i>
+                  <span>Grade modification</span>
+                </div>
+              </div>
+              <button class="btn-edit-role">
+                <i class="fas fa-edit"></i>
+                Edit Permissions
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Account Security</h3>
+            <p>Password policies and login security settings</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Require strong passwords (min 8 characters, uppercase, number, symbol)</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Enable two-factor authentication (2FA)</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox">
+                <span>Force password change every 90 days</span>
+              </label>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="session-timeout">Session Timeout (minutes)</label>
+                <input type="number" id="session-timeout" value="30" min="5" max="240" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="max-login-attempts">Max Login Attempts</label>
+                <input type="number" id="max-login-attempts" value="5" min="3" max="10" class="form-input">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- System Settings Tab -->
+      <div class="settings-tab-content" id="system-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Database & Backup</h3>
+            <p>Configure automatic backups and data retention policies</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Enable automatic daily backups</span>
+              </label>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="backup-time">Backup Time</label>
+                <input type="time" id="backup-time" value="02:00" class="form-input">
+              </div>
+
+              <div class="form-group">
+                <label for="backup-retention">Retention Period (days)</label>
+                <input type="number" id="backup-retention" value="30" min="7" max="365" class="form-input">
+              </div>
+            </div>
+
+            <div class="backup-actions">
+              <button class="btn-backup">
+                <i class="fas fa-database"></i>
+                Create Backup Now
+              </button>
+              <button class="btn-restore">
+                <i class="fas fa-upload"></i>
+                Restore from Backup
+              </button>
+            </div>
+
+            <div class="backup-status">
+              <i class="fas fa-check-circle"></i>
+              <span>Last backup: <strong>Mar 2, 2026 at 2:00 AM</strong> (42.3 MB)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>System Maintenance</h3>
+            <p>Performance optimization and maintenance tools</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="maintenance-actions">
+              <button class="maintenance-btn">
+                <i class="fas fa-broom"></i>
+                <div class="maintenance-info">
+                  <h4>Clear Cache</h4>
+                  <p>Remove temporary files and cached data</p>
+                </div>
+                <span class="maintenance-arrow">→</span>
+              </button>
+
+              <button class="maintenance-btn">
+                <i class="fas fa-compress-alt"></i>
+                <div class="maintenance-info">
+                  <h4>Optimize Database</h4>
+                  <p>Improve query performance and reduce size</p>
+                </div>
+                <span class="maintenance-arrow">→</span>
+              </button>
+
+              <button class="maintenance-btn">
+                <i class="fas fa-file-archive"></i>
+                <div class="maintenance-info">
+                  <h4>Archive Old Data</h4>
+                  <p>Move records older than 3 years to archive</p>
+                </div>
+                <span class="maintenance-arrow">→</span>
+              </button>
+
+              <button class="maintenance-btn">
+                <i class="fas fa-chart-line"></i>
+                <div class="maintenance-info">
+                  <h4>System Diagnostics</h4>
+                  <p>Check system health and performance metrics</p>
+                </div>
+                <span class="maintenance-arrow">→</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Integration & API</h3>
+            <p>Connect with external services and manage API access</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="integration-list">
+              <div class="integration-item active">
+                <div class="integration-icon" style="background: #4285f4;">
+                  <i class="fab fa-google"></i>
+                </div>
+                <div class="integration-info">
+                  <h4>Google Workspace</h4>
+                  <span class="integration-status connected">Connected</span>
+                </div>
+                <button class="btn-disconnect">Disconnect</button>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-icon" style="background: #0078d4;">
+                  <i class="fab fa-microsoft"></i>
+                </div>
+                <div class="integration-info">
+                  <h4>Microsoft 365</h4>
+                  <span class="integration-status">Not Connected</span>
+                </div>
+                <button class="btn-connect">Connect</button>
+              </div>
+
+              <div class="integration-item">
+                <div class="integration-icon" style="background: #00a4ef;">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="integration-info">
+                  <h4>Email Service</h4>
+                  <span class="integration-status">Not Connected</span>
+                </div>
+                <button class="btn-connect">Connect</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Notifications Settings Tab -->
+      <div class="settings-tab-content" id="notifications-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Email Notifications</h3>
+            <p>Configure automated email alerts and notifications</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="notification-group">
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Grade Published</h4>
+                  <p>Notify students when new grades are available</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Attendance Alert</h4>
+                  <p>Alert parents when student is absent or late</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Assignment Due</h4>
+                  <p>Remind students of upcoming assignment deadlines</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Low Performance Alert</h4>
+                  <p>Notify when student performance drops below threshold</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>System Updates</h4>
+                  <p>Inform administrators of new features and updates</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>SMS Notifications</h3>
+            <p>Text message alerts for urgent notifications</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Enable SMS notifications</span>
+              </label>
+            </div>
+
+            <div class="notification-group">
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Emergency Alerts</h4>
+                  <p>Critical school announcements and emergencies</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="notification-item">
+                <div class="notification-info">
+                  <h4>Absence Notification</h4>
+                  <p>Send SMS to parents for student absences</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="sms-credit-info">
+              <i class="fas fa-mobile-alt"></i>
+              <span>SMS Credits Remaining: <strong>2,450</strong></span>
+              <button class="btn-purchase-credits">Purchase More</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Appearance Settings Tab -->
+      <div class="settings-tab-content" id="appearance-tab">
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Theme & Display</h3>
+            <p>Customize the look and feel of the application</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Color Theme</label>
+              <div class="theme-selector">
+                <div class="theme-option active" data-theme="blue">
+                  <div class="theme-preview" style="background: linear-gradient(135deg, #3b82f6, #2563eb);"></div>
+                  <span>Blue (Default)</span>
+                </div>
+                <div class="theme-option" data-theme="green">
+                  <div class="theme-preview" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+                  <span>Green</span>
+                </div>
+                <div class="theme-option" data-theme="purple">
+                  <div class="theme-preview" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"></div>
+                  <span>Purple</span>
+                </div>
+                <div class="theme-option" data-theme="orange">
+                  <div class="theme-preview" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
+                  <span>Orange</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Display Mode</label>
+              <div class="display-mode-selector">
+                <button class="display-mode-btn active" data-mode="light">
+                  <i class="fas fa-sun"></i>
+                  <span>Light Mode</span>
+                </button>
+                <button class="display-mode-btn" data-mode="dark">
+                  <i class="fas fa-moon"></i>
+                  <span>Dark Mode</span>
+                </button>
+                <button class="display-mode-btn" data-mode="auto">
+                  <i class="fas fa-adjust"></i>
+                  <span>Auto</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="font-size">Base Font Size</label>
+                <select id="font-size" class="form-input">
+                  <option value="small">Small</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="large">Large</option>
+                  <option value="xlarge">Extra Large</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="language">Language</label>
+                <select id="language" class="form-input">
+                  <option value="en" selected>English</option>
+                  <option value="tw">Twi</option>
+                  <option value="ga">Ga</option>
+                  <option value="ee">Ewe</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Show animations and transitions</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox">
+                <span>Reduce motion (accessibility mode)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <h3>Dashboard Preferences</h3>
+            <p>Customize your dashboard layout and widgets</p>
+          </div>
+
+          <div class="settings-form">
+            <div class="form-group">
+              <label>Default Landing Page</label>
+              <select class="form-input">
+                <option value="dashboard" selected>Dashboard</option>
+                <option value="students">Students</option>
+                <option value="classes">Classes</option>
+                <option value="attendance">Attendance</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Show quick stats on dashboard</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" checked>
+                <span>Display recent activity feed</span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox">
+                <span>Compact mode (more content, less spacing)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save-settings">
+            <i class="fas fa-save"></i>
+            Save Changes
+          </button>
+          <button class="btn-reset-settings">
+            <i class="fas fa-undo"></i>
+            Reset
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
+
+<script src="../js/settings.js"></script>
+
+<script>
+  // Settings page functionality
+  (function () {
+    // Tab switching
+    const tabs = document.querySelectorAll('.settings-tab');
+    const tabContents = document.querySelectorAll('.settings-tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function () {
+        const tabName = this.getAttribute('data-tab');
+
+        // Remove active class from all tabs and contents
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(tc => tc.classList.remove('active'));
+
+        // Add active class to clicked tab and corresponding content
+        this.classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+      });
+    });
+
+    // Save settings buttons
+    const saveButtons = document.querySelectorAll('.btn-save-settings');
+    saveButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const activeTab = document.querySelector('.settings-tab.active').getAttribute('data-tab');
+        console.log('Saving settings for tab:', activeTab);
+
+        // Show success notification
+        alert('Settings saved successfully!');
+        // Add API call to save settings
+      });
+    });
+
+    // Reset settings buttons
+    const resetButtons = document.querySelectorAll('.btn-reset-settings');
+    resetButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        if (confirm('Reset all settings to default values?')) {
+          console.log('Resetting settings');
+          // Add reset logic
+        }
+      });
+    });
+
+    // Theme selector
+    const themeOptions = document.querySelectorAll('.theme-option');
+    themeOptions.forEach(option => {
+      option.addEventListener('click', function () {
+        themeOptions.forEach(opt => opt.classList.remove('active'));
+        this.classList.add('active');
+
+        const theme = this.getAttribute('data-theme');
+        console.log('Theme changed to:', theme);
+        // Apply theme
+      });
+    });
+
+    // Display mode selector
+    const displayModes = document.querySelectorAll('.display-mode-btn');
+    displayModes.forEach(btn => {
+      btn.addEventListener('click', function () {
+        displayModes.forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+
+        const mode = this.getAttribute('data-mode');
+        console.log('Display mode changed to:', mode);
+        // Apply display mode
+      });
+    });
+
+    // Backup actions
+    const backupBtn = document.querySelector('.btn-backup');
+    if (backupBtn) {
+      backupBtn.addEventListener('click', function () {
+        if (confirm('Create a new backup? This may take a few minutes.')) {
+          console.log('Creating backup...');
+          // Add backup logic
+        }
+      });
+    }
+
+    const restoreBtn = document.querySelector('.btn-restore');
+    if (restoreBtn) {
+      restoreBtn.addEventListener('click', function () {
+        if (confirm('Restore from backup? This will overwrite current data.')) {
+          console.log('Restoring from backup...');
+          // Add restore logic
+        }
+      });
+    }
+  })();
+</script>

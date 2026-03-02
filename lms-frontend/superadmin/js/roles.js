@@ -268,7 +268,7 @@
             // find role name from cached list
             const role = (state.lastRoles || []).find(r => String(r.role_id || r.id) === String(roleId));
             const roleName = role ? (role.role_name || role.name) : null;
-            const html = `<div id="roleUsersContainer"><div class="spinner"></div></div>`;
+            const html = `<div id="roleUsersContainer" class="role-users-container"><div class="spinner"></div></div>`;
             showModal('Users in role' + (roleName ? `: ${escapeHtml(roleName)}` : ''), html, () => {});
 
             try{
@@ -303,7 +303,7 @@
                 const tb = document.createElement('tbody');
                 users.forEach(u => {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${escapeHtml((u.first_name||'') + ' ' + (u.last_name||''))}</td><td>${escapeHtml(u.username||'')}</td><td>${escapeHtml(u.email||'')}</td><td>${u.is_active? 'Yes':'No'}</td>`;
+                    tr.innerHTML = `<td style="white-space: wrap; width: 50px;">${escapeHtml((u.first_name||'') + ' ' + (u.last_name||''))}</td><td style="white-space: wrap; width: 50px;">${escapeHtml(u.username||'')}</td><td style="white-space: wrap; width: 50px;">${escapeHtml(u.email||'')}</td><td style="white-space: wrap; width: 20px;">${u.is_active? 'Yes':'No'}</td>`;
                     tb.appendChild(tr);
                 });
                 table.appendChild(tb);
@@ -421,8 +421,93 @@
             const desc = p.description || '';
             const checked = state.currentRolePermissions.indexOf(pid) !== -1;
             const el = document.createElement('div'); el.className = 'perm-row';
-            el.innerHTML = `<label><input type="checkbox" data-id="${pid}" ${checked ? 'checked' : ''}/> <strong>${escapeHtml(name)}</strong> <small>${escapeHtml(desc)}</small></label>`;
+            el.innerHTML = `<label style="display: inline-block; margin-right:8px;"><input type="checkbox" data-id="${pid}" ${checked ? 'checked' : ''}/> <strong>${escapeHtml(name)}</strong> <small>${escapeHtml(desc)}</small></label><button class="btn-icon perm-edit" data-id="${pid}" title="Edit permission" style="margin-left:8px"><i class="fas fa-edit"></i></button><button class="btn-icon perm-delete" data-id="${pid}" title="Delete permission" style="margin-left:6px"><i class="fas fa-trash"></i></button>`;
             list.appendChild(el);
+
+            // wire edit button for this permission
+            const editBtn = el.querySelector('.perm-edit');
+            if (editBtn) {
+                editBtn.addEventListener('click', (ev) => {
+                    ev.preventDefault(); ev.stopPropagation();
+                    const pidStr = editBtn.getAttribute('data-id');
+                    const pidNum = pidStr ? Number(pidStr) : pidStr;
+                    const formHtml = `<form id="editPermForm"><div class="form-row"><label>Name (resource:action)</label><input name="permission_name" required value="${escapeHtml(name)}"/></div><div class="form-row"><label>Description</label><textarea name="description">${escapeHtml(desc)}</textarea></div></form>`;
+                    showModal('Edit Permission', formHtml, async () => {
+                        try {
+                            const form = document.getElementById('modalMessage').querySelector('#editPermForm');
+                            if (!form) return showToast('Form missing','error');
+                            const payload = serializeForm(form);
+                            if (typeof PermissionAPI !== 'undefined' && PermissionAPI) {
+                                if (typeof PermissionAPI.update === 'function') {
+                                    await PermissionAPI.update(pidNum, payload);
+                                } else if (typeof PermissionAPI.save === 'function') {
+                                    await PermissionAPI.save(pidNum, payload);
+                                } else if (typeof PermissionAPI.put === 'function') {
+                                    await PermissionAPI.put(pidNum, payload);
+                                } else {
+                                    throw new Error('PermissionAPI.update not available');
+                                }
+                            } else {
+                                throw new Error('PermissionAPI not available');
+                            }
+                            showToast('Permission updated', 'success');
+                            // update master list and re-render
+                            if (state.availablePermissions && Array.isArray(state.availablePermissions)) {
+                                state.availablePermissions = state.availablePermissions.map(p => {
+                                    const id = p.permission_id || p.id;
+                                    if (id === pidNum) {
+                                        return Object.assign({}, p, { permission_name: payload.permission_name || payload.name || p.permission_name || p.name, description: payload.description || p.description });
+                                    }
+                                    return p;
+                                });
+                            }
+                            if (activeRoleId) {
+                                try { openPermissionsDrawer(activeRoleId); } catch (e) { renderPermissionsList(state.availablePermissions || []); }
+                            } else {
+                                renderPermissionsList(state.availablePermissions || []);
+                            }
+                        } catch (err) {
+                            console.error('Failed to update permission', err);
+                            showToast('Failed to update permission', 'error');
+                        }
+                    });
+                });
+            }
+
+            // wire delete button for this permission
+            const delBtn = el.querySelector('.perm-delete');
+            if (delBtn) {
+                delBtn.addEventListener('click', (ev) => {
+                    ev.preventDefault(); ev.stopPropagation();
+                    const pidStr = delBtn.getAttribute('data-id');
+                    const pidNum = pidStr ? Number(pidStr) : pidStr;
+                    showModal('Confirm Delete', `<p>Are you sure you want to delete the permission <strong>${escapeHtml(name)}</strong>?</p>`, async () => {
+                        try {
+                            if (typeof PermissionAPI !== 'undefined' && PermissionAPI && typeof PermissionAPI.delete === 'function') {
+                                await PermissionAPI.delete(pidNum);
+                            } else if (typeof PermissionAPI !== 'undefined' && PermissionAPI && typeof PermissionAPI.remove === 'function') {
+                                await PermissionAPI.remove(pidNum);
+                            } else {
+                                throw new Error('PermissionAPI.delete not available');
+                            }
+                            showToast('Permission deleted', 'success');
+                            // remove from master list and re-render
+                            if (state.availablePermissions && Array.isArray(state.availablePermissions)) {
+                                state.availablePermissions = state.availablePermissions.filter(p => (p.permission_id || p.id) !== pidNum);
+                            }
+                            // refresh drawer view (if open for a role) or re-render list
+                            if (activeRoleId) {
+                                try { openPermissionsDrawer(activeRoleId); } catch (e) { renderPermissionsList(state.availablePermissions || []); }
+                            } else {
+                                renderPermissionsList(state.availablePermissions || []);
+                            }
+                        } catch (err) {
+                            console.error('Failed to delete permission', err);
+                            showToast('Failed to delete permission', 'error');
+                        }
+                    });
+                });
+            }
         });
     }
 

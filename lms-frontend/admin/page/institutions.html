@@ -1,4 +1,333 @@
-<div class="section-page" id="institutions-page">
-    <h2>Institutions</h2>
-    <p>Institution list and settings loaded from <strong>institutions.html</strong>.</p>
+<div class="institutions-page">
+  <div class="institutions-card">
+    <div class="institutions-card-header">
+      <h2>Institution Settings</h2>
+      <p>Manage your school information, contact details, and system settings</p>
+    </div>
+    
+    <div class="institutions-card-body">
+      
+      <!-- Institution Info Section -->
+      <div class="institution-section">
+        <div class="section-header">
+          <div>
+            <h3>Basic Information</h3>
+            <p>General details about your institution</p>
+          </div>
+          <button class="btn-edit-section">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+        </div>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Institution Name</label>
+            <div class="info-value">
+              <i class="fas fa-university"></i>
+              <span>Accra Senior High School</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Institution Code</label>
+            <div class="info-value">
+              <i class="fas fa-tag"></i>
+              <span>ACCRA-SHS-001</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Institution Type</label>
+            <div class="info-value">
+              <i class="fas fa-building"></i>
+              <span>Senior High School</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Date Established</label>
+            <div class="info-value">
+              <i class="fas fa-calendar"></i>
+              <span>January 15, 1952</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Motto</label>
+            <div class="info-value">
+              <i class="fas fa-quote-right"></i>
+              <span>Knowledge, Discipline, Excellence</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Academic Year</label>
+            <div class="info-value">
+              <i class="fas fa-calendar-alt"></i>
+              <span>2025/2026</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Contact Information Section -->
+      <div class="institution-section">
+        <div class="section-header">
+          <div>
+            <h3>Contact Information</h3>
+            <p>How to reach your institution</p>
+          </div>
+          <button class="btn-edit-section">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+        </div>
+        
+        <div class="info-grid">
+          <div class="info-item">
+            <label>Primary Phone</label>
+            <div class="info-value">
+              <i class="fas fa-phone"></i>
+              <span>+233 302 123 456</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Secondary Phone</label>
+            <div class="info-value">
+              <i class="fas fa-phone-alt"></i>
+              <span>+233 302 123 457</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Email Address</label>
+            <div class="info-value">
+              <i class="fas fa-envelope"></i>
+              <span>info@accrashs.edu.gh</span>
+            </div>
+          </div>
+          
+          <div class="info-item">
+            <label>Website</label>
+            <div class="info-value">
+              <i class="fas fa-globe"></i>
+              <span>www.accrashs.edu.gh</span>
+            </div>
+          </div>
+          
+          <div class="info-item full-width">
+            <label>Physical Address</label>
+            <div class="info-value">
+              <i class="fas fa-map-marker-alt"></i>
+              <span>123 Independence Avenue, Accra, Greater Accra Region, Ghana</span>
+            </div>
+          </div>
+          
+          <div class="info-item full-width">
+            <label>Postal Address</label>
+            <div class="info-value">
+              <i class="fas fa-mailbox"></i>
+              <span>P.O. Box 1234, Accra, Ghana</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Programs Offered Section -->
+      <div class="institution-section">
+        <div class="section-header">
+          <div>
+            <h3>Academic Programs</h3>
+            <p>Programs offered at your institution</p>
+          </div>
+          <button class="btn-edit-section">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+        </div>
+        
+        <div class="programs-list">
+          <div class="program-badge active">
+            <i class="fas fa-flask"></i>
+            <span>General Science</span>
+          </div>
+          <div class="program-badge active">
+            <i class="fas fa-book"></i>
+            <span>General Arts</span>
+          </div>
+          <div class="program-badge active">
+            <i class="fas fa-briefcase"></i>
+            <span>Business</span>
+          </div>
+          <div class="program-badge active">
+            <i class="fas fa-palette"></i>
+            <span>Visual Arts</span>
+          </div>
+          <div class="program-badge active">
+            <i class="fas fa-home-lg-alt"></i>
+            <span>Home Economics</span>
+          </div>
+          <div class="program-badge active">
+            <i class="fas fa-tractor"></i>
+            <span>Agriculture</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Institution Statistics -->
+      <div class="institution-section">
+        <div class="section-header">
+          <div>
+            <h3>Institution Statistics</h3>
+            <p>Current enrollment and staff numbers</p>
+          </div>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+              <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">1,847</div>
+              <div class="stat-label">Total Students</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+              <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">126</div>
+              <div class="stat-label">Teaching Staff</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+              <i class="fas fa-users-cog"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">34</div>
+              <div class="stat-label">Administrative Staff</div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+              <i class="fas fa-door-open"></i>
+            </div>
+            <div class="stat-details">
+              <div class="stat-value">45</div>
+              <div class="stat-label">Classrooms</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- System Settings Section -->
+      <div class="institution-section">
+        <div class="section-header">
+          <div>
+            <h3>System Settings</h3>
+            <p>Configure system preferences and defaults</p>
+          </div>
+          <button class="btn-edit-section">
+            <i class="fas fa-edit"></i>
+            Edit
+          </button>
+        </div>
+        
+        <div class="settings-list">
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">
+                <i class="fas fa-bell"></i>
+                Email Notifications
+              </div>
+              <div class="setting-description">Send automated emails for important events</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">
+                <i class="fas fa-sms"></i>
+                SMS Notifications
+              </div>
+              <div class="setting-description">Send SMS alerts to parents and staff</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">
+                <i class="fas fa-user-check"></i>
+                Student Self-Enrollment
+              </div>
+              <div class="setting-description">Allow students to register themselves online</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">
+                <i class="fas fa-user-friends"></i>
+                Parent Portal Access
+              </div>
+              <div class="setting-description">Enable parent access to student information</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label">
+                <i class="fas fa-calendar-check"></i>
+                Automatic Attendance Reminders
+              </div>
+              <div class="setting-description">Remind teachers to mark daily attendance</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
+
+<script>
+// Toggle switches functionality
+(function() {
+    const toggleSwitches = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
+    
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            // You can add API call here to save the setting
+            console.log('Setting changed:', this.parentElement.parentElement.querySelector('.setting-label').textContent.trim(), this.checked);
+        });
+    });
+})();
+</script>

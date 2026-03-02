@@ -1,5 +1,499 @@
-<div class="section-page" id="users-page">
-    <h2>Users</h2>
-    <p>Manage users here. This page is loaded from <strong>users.html</strong>.</p>
-    <div class="placeholder">User management UI will be implemented here.</div>
+<div class="users-page">
+  <div class="users-card">
+    <div class="users-card-header">
+      <h2>User Management</h2>
+      <p>Manage students, teachers, parents, and administrators</p>
+    </div>
+    
+    <div class="users-card-body">
+      
+      <!-- Toolbar -->
+      <div class="users-toolbar">
+        <div class="users-toolbar-left">
+          <div class="users-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search users by name, email, or ID...">
+          </div>
+          
+          <div class="users-filter">
+            <select>
+              <option value="">All Roles</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="parent">Parents</option>
+              <option value="admin">Admins</option>
+            </select>
+            
+            <select>
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="users-toolbar-right">
+            <button class="btn-import">
+                <i class="fas fa-upload"></i>
+                Import
+            </button>
+          <button class="btn-export">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+          <button class="btn-add-user">
+            <i class="fas fa-plus"></i>
+            Add User
+          </button>
+        </div>
+      </div>
+      
+      <!-- Bulk Actions -->
+      <div class="bulk-actions" id="bulkActions">
+        <span class="bulk-actions-text">
+          <span id="selectedCount">0</span> users selected
+        </span>
+        <div class="bulk-actions-buttons">
+          <button class="btn-bulk-activate">
+            <i class="fas fa-check"></i>
+            Activate
+          </button>
+          <button class="btn-bulk-deactivate">
+            <i class="fas fa-pause"></i>
+            Deactivate
+          </button>
+          <button class="btn-bulk-delete">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+      
+      <!-- Users Table -->
+      <div class="users-table-container">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAll">
+              </th>
+              <th>User</th>
+              <th>Role</th>
+              <th>ID Number</th>
+              <th>Program/Class</th>
+              <th>Date Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Student: Kwame Mensah -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">KM</div>
+                  <div class="user-details">
+                    <span class="user-name">Kwame Mensah</span>
+                    <span class="user-email">kwame.mensah@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-student">Student</span>
+              </td>
+              <td><code class="id-number">SHS2024001</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">General Science</span>
+                  <span class="class-name">SHS 1 Science 2</span>
+                </div>
+              </td>
+              <td>Sep 1, 2024</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Student: Abena Osei -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">AO</div>
+                  <div class="user-details">
+                    <span class="user-name">Abena Osei</span>
+                    <span class="user-email">abena.osei@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-student">Student</span>
+              </td>
+              <td><code class="id-number">SHS2024002</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">General Arts</span>
+                  <span class="class-name">SHS 1 Art 1</span>
+                </div>
+              </td>
+              <td>Sep 1, 2024</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Teacher: Mr. Kofi Asante -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">KA</div>
+                  <div class="user-details">
+                    <span class="user-name">Mr. Kofi Asante</span>
+                    <span class="user-email">kofi.asante@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-teacher">Teacher</span>
+              </td>
+              <td><code class="id-number">TCH-2020-001</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">English Language</span>
+                  <span class="class-name">3 Classes</span>
+                </div>
+              </td>
+              <td>Jan 15, 2020</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Teacher: Dr. Ama Adjei -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">AA</div>
+                  <div class="user-details">
+                    <span class="user-name">Dr. Ama Adjei</span>
+                    <span class="user-email">ama.adjei@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-teacher">Teacher</span>
+              </td>
+              <td><code class="id-number">TCH-2018-005</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">Biology</span>
+                  <span class="class-name">2 Classes</span>
+                </div>
+              </td>
+              <td>Aug 20, 2018</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Parent: Mrs. Akosua Mensah -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">AM</div>
+                  <div class="user-details">
+                    <span class="user-name">Mrs. Akosua Mensah</span>
+                    <span class="user-email">akosua.mensah@gmail.com</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-parent">Parent</span>
+              </td>
+              <td><code class="id-number">PAR-2024-001</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">Guardian</span>
+                  <span class="class-name">1 Child (Kwame M.)</span>
+                </div>
+              </td>
+              <td>Sep 1, 2024</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Admin: Headmaster -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">YB</div>
+                  <div class="user-details">
+                    <span class="user-name">Mr. Yaw Boateng</span>
+                    <span class="user-email">headmaster@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-admin">Admin</span>
+              </td>
+              <td><code class="id-number">ADM-2015-001</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">Headmaster</span>
+                  <span class="class-name">Administration</span>
+                </div>
+              </td>
+              <td>Jan 5, 2015</td>
+              <td>
+                <span class="status-badge status-active">Active</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Pending Student -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">EG</div>
+                  <div class="user-details">
+                    <span class="user-name">Ekow Gyamfi</span>
+                    <span class="user-email">ekow.gyamfi@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-student">Student</span>
+              </td>
+              <td><code class="id-number">SHS2026003</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">Business</span>
+                  <span class="class-name">Pending Assignment</span>
+                </div>
+              </td>
+              <td>Feb 28, 2026</td>
+              <td>
+                <span class="status-badge status-pending">Inactive</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            
+            <!-- Inactive Teacher -->
+            <tr>
+              <td>
+                <input type="checkbox" class="user-select">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-small">KO</div>
+                  <div class="user-details">
+                    <span class="user-name">Mr. Kwesi Owusu</span>
+                    <span class="user-email">kwesi.owusu@school.edu.gh</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="role-badge role-teacher">Teacher</span>
+              </td>
+              <td><code class="id-number">TCH-2019-012</code></td>
+              <td>
+                <div class="program-info">
+                  <span class="program-name">Mathematics</span>
+                  <span class="class-name">On Leave</span>
+                </div>
+              </td>
+              <td>Mar 10, 2019</td>
+              <td>
+                <span class="status-badge status-inactive">Inactive</span>
+              </td>
+              <td>
+                <div class="user-actions">
+                  <button class="btn-view" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn-edit" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn-delete" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <div class="users-pagination">
+        <div class="pagination-info">
+          Showing 1-6 of 124 users
+        </div>
+        <div class="pagination-controls">
+          <button disabled>
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <button class="active">1</button>
+          <button>2</button>
+          <button>3</button>
+          <button>4</button>
+          <button>5</button>
+          <button>
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
+
+<script>
+// Bulk selection logic
+(function() {
+    const selectAll = document.getElementById('selectAll');
+    const userSelects = document.querySelectorAll('.user-select');
+    const bulkActions = document.getElementById('bulkActions');
+    const selectedCount = document.getElementById('selectedCount');
+    
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            userSelects.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActions();
+        });
+    }
+    
+    userSelects.forEach(checkbox => {
+        checkbox.addEventListener('change', updateBulkActions);
+    });
+    
+    function updateBulkActions() {
+        const selected = document.querySelectorAll('.user-select:checked').length;
+        if (selectedCount) selectedCount.textContent = selected;
+        
+        if (bulkActions) {
+            if (selected > 0) {
+                bulkActions.classList.add('active');
+            } else {
+                bulkActions.classList.remove('active');
+            }
+        }
+        
+        if (selectAll) {
+            selectAll.checked = selected === userSelects.length;
+        }
+    }
+})();
+</script>

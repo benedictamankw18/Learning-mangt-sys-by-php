@@ -1,6 +1,282 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-shield-alt"></i> Security</h3></div>
-  <div class="card-body">
-    <p>Security settings, scans, and policies management interface.</p>
+<div class="security-page">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h2>Security & Compliance</h2>
+        <p>Monitor and manage system security settings and policies</p>
+      </div>
+      <div class="security-status status-secure">Secure</div>
+    </div>
+    
+    <div class="card-body">
+      
+      <!-- Security Score -->
+      <div class="security-score">
+        <div class="security-score-value">95</div>
+        <div class="security-score-label">Score</div>
+      </div>
+      
+      <!-- Security Metrics -->
+      <div class="security-metrics">
+        <div class="security-metric-card">
+          <div class="metric-header">
+            <div class="metric-icon bg-gradient-green">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+          </div>
+          <div class="metric-value">0</div>
+          <div class="metric-label">Active Threats</div>
+          <div class="metric-status">All systems secure</div>
+        </div>
+        
+        <div class="security-metric-card">
+          <div class="metric-header">
+            <div class="metric-icon bg-gradient-blue">
+              <i class="fas fa-user-lock"></i>
+            </div>
+          </div>
+          <div class="metric-value">-</div>
+          <div class="metric-label">Active Sessions</div>
+          <div class="metric-status">Normal activity</div>
+        </div>
+        
+        <div class="security-metric-card">
+          <div class="metric-header">
+            <div class="metric-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+          </div>
+          <div class="metric-value">2</div>
+          <div class="metric-label">Failed Logins</div>
+          <div class="metric-status">Last 24 hours</div>
+        </div>
+        
+        <div class="security-metric-card">
+          <div class="metric-header">
+            <div class="metric-icon bg-gradient-purple">
+              <i class="fas fa-clock"></i>
+            </div>
+          </div>
+          <div class="metric-value">2h ago</div>
+          <div class="metric-label">Last Scan</div>
+          <div class="metric-status">No issues found</div>
+        </div>
+      </div>
+      
+      <!-- Security Sections -->
+      <div class="security-sections">
+        
+        <!-- Security Scan -->
+        <div class="security-section">
+          <h3>
+            <i class="fas fa-search"></i>
+            Security Scan
+          </h3>
+          <p>Run comprehensive security scans to detect vulnerabilities and threats.</p>
+          <button class="security-scan-btn scan-now">
+            <i class="fas fa-search"></i>
+            Run Security Scan Now
+          </button>
+          <br><br>
+          <button class="security-scan-btn scan-schedule">
+            <i class="fas fa-calendar-alt"></i>
+            Schedule Automatic Scans
+          </button>
+        </div>
+        
+        <!-- Access Control -->
+        <div class="security-section">
+          <h3>
+            <i class="fas fa-user-shield"></i>
+            Access Control
+          </h3>
+          <p>Manage user authentication and authorization settings.</p>
+          <div class="security-settings-list">
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>Two-Factor Authentication</strong>
+                <small>Require 2FA for all admin users</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox" checked>
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>Session Timeout</strong>
+                <small>Auto logout after 30 minutes</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox" checked>
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>IP Restriction</strong>
+                <small>Allow access from specific IPs only</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox">
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Password Policy -->
+        <div class="security-section">
+          <h3>
+            <i class="fas fa-key"></i>
+            Password Policy
+          </h3>
+          <p>Configure password requirements and restrictions.</p>
+          <div class="security-settings-list">
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>Minimum Length: 8 characters</strong>
+                <small>Enforce minimum password length</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox" checked>
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>Require Special Characters</strong>
+                <small>Include symbols in passwords</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox" checked>
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+            <div class="security-setting-item">
+              <div class="security-setting-info">
+                <strong>Password Expiration: 90 days</strong>
+                <small>Force password change every 3 months</small>
+              </div>
+              <label class="security-toggle">
+                <input type="checkbox">
+                <span class="security-toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Firewall Rules -->
+        <div class="security-section">
+          <h3>
+            <i class="fas fa-fire"></i>
+            Firewall & IP Management
+          </h3>
+          <p>Control access based on IP addresses.</p>
+          
+          <h4 style="margin: 1rem 0 0.5rem 0; font-size: 1rem; color: var(--text-primary);">Whitelisted IPs</h4>
+          <div class="ip-list">
+            <div class="ip-list-item">
+              <code>192.168.1.100</code>
+              <button>Remove</button>
+            </div>
+            <div class="ip-list-item">
+              <code>203.0.113.50</code>
+              <button>Remove</button>
+            </div>
+          </div>
+          
+          <div class="add-ip-form">
+            <input type="text" placeholder="Enter IP address (e.g., 192.168.1.1)">
+            <button>Add IP</button>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- Security Alerts -->
+      <div class="security-alerts">
+        <h3>Recent Security Events</h3>
+        
+        <div class="security-alert-item alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div class="security-alert-content">
+            <strong>Multiple Failed Login Attempts</strong>
+            <span>User 'admin' from IP 203.0.113.45 - 2 hours ago</span>
+          </div>
+          <div class="security-alert-action">
+            <button>Block IP</button>
+          </div>
+        </div>
+        
+        <div class="security-alert-item alert-info">
+          <i class="fas fa-info-circle"></i>
+          <div class="security-alert-content">
+            <strong>Security Scan Completed</strong>
+            <span>No vulnerabilities detected - 2 hours ago</span>
+          </div>
+          <div class="security-alert-action">
+            <button>View Report</button>
+          </div>
+        </div>
+        
+        <div class="security-alert-item alert-info">
+          <i class="fas fa-key"></i>
+          <div class="security-alert-content">
+            <strong>Password Policy Updated</strong>
+            <span>Minimum length increased to 8 characters - 1 day ago</span>
+          </div>
+          <div class="security-alert-action">
+            <button>Details</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Active Sessions Table -->
+      <div style="margin-top: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">Active Sessions</h3>
+        <div style="overflow-x: auto; border-radius: var(--radius-lg); border: 2px solid var(--gray-200);">
+          <table class="security-policy-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>IP Address</th>
+                <th>Location</th>
+                <th>Login Time</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>admin</td>
+                <td>192.168.1.10</td>
+                <td>Local Network</td>
+                <td>2026-03-01 14:23</td>
+                <td><span class="log-level log-level-success">Active</span></td>
+                <td><button class="log-action-btn">Terminate</button></td>
+              </tr>
+              <tr>
+                <td>john.doe</td>
+                <td>192.168.1.25</td>
+                <td>Local Network</td>
+                <td>2026-03-01 13:45</td>
+                <td><span class="log-level log-level-success">Active</span></td>
+                <td><button class="log-action-btn">Terminate</button></td>
+              </tr>
+              <tr>
+                <td>jane.smith</td>
+                <td>203.0.113.100</td>
+                <td>Remote</td>
+                <td>2026-03-01 12:30</td>
+                <td><span class="log-level log-level-success">Active</span></td>
+                <td><button class="log-action-btn">Terminate</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+    </div>
   </div>
 </div>

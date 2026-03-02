@@ -279,6 +279,14 @@ const PermissionAPI = {
 };
 
 /**
+ * System APIs
+ */
+const SystemAPI = {
+    getSettings: () => API.get('/system/settings'),
+    saveSettings: (data) => API.put('/system/settings', data),
+};
+
+/**
  * Assignment APIs
  */
 const AssignmentAPI = {

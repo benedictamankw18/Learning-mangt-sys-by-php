@@ -1,4 +1,503 @@
-<div class="section-page" id="grades-page">
-    <h2>Grades</h2>
-    <p>Grades and transcripts interface placeholder (<strong>grades.html</strong>).</p>
+<div class="grades-page">
+  <div class="grades-card">
+    <div class="grades-card-header">
+      <h2>Grade Scales Management</h2>
+      <p>Configure and manage grading scales and assessment rubrics</p>
+    </div>
+    
+    <div class="grades-card-body">
+      
+      <!-- Stats Cards -->
+      <div class="grades-stats">
+        <div class="grades-stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <i class="fas fa-ruler"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">5</div>
+            <div class="stat-label">Active Grade Scales</div>
+            <div class="stat-sublabel">In use across programs</div>
+          </div>
+        </div>
+        
+        <div class="grades-stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">50%</div>
+            <div class="stat-label">Pass Threshold</div>
+            <div class="stat-sublabel">Minimum passing grade</div>
+          </div>
+        </div>
+        
+        <div class="grades-stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+            <i class="fas fa-award"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">9</div>
+            <div class="stat-label">Grade Levels</div>
+            <div class="stat-sublabel">A1 to F9 (Ghana WAEC)</div>
+          </div>
+        </div>
+        
+        <div class="grades-stat-card">
+          <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+            <i class="fas fa-check-double"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value">C6</div>
+            <div class="stat-label">Credit Threshold</div>
+            <div class="stat-sublabel">Minimum for university</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Toolbar -->
+      <div class="grades-toolbar">
+        <div class="grades-toolbar-left">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search grade scales...">
+          </div>
+          
+          <div class="grades-filter">
+            <select>
+              <option value="">All Types</option>
+              <option value="national">National Standard</option>
+              <option value="school">School Custom</option>
+              <option value="program">Program Specific</option>
+            </select>
+            
+            <select>
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="grades-toolbar-right">
+          <button class="btn-add-scale">
+            <i class="fas fa-plus"></i>
+            Add Grade Scale
+          </button>
+          <button class="btn-export">
+            <i class="fas fa-download"></i>
+            Export
+          </button>
+        </div>
+      </div>
+      
+      <!-- Ghana WAEC Grading Scale (Primary) -->
+      <div class="grade-scale-section">
+        <div class="scale-header">
+          <div class="scale-title">
+            <h3>Ghana WAEC Grading Scale</h3>
+            <span class="scale-badge primary">Primary Scale</span>
+            <span class="scale-badge active">Active</span>
+          </div>
+          <div class="scale-actions">
+            <button class="btn-edit-scale" title="Edit Scale">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-duplicate-scale" title="Duplicate Scale">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="scale-description">
+          Official grading scale used by the West African Examinations Council (WAEC) for Ghana SHS assessments. This is the standard scale for end-of-term and WASSCE examinations.
+        </div>
+        
+        <div class="scale-table-container">
+          <table class="scale-table">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Description</th>
+                <th>Score Range</th>
+                <th>Interpretation</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="grade-excellent">
+                <td><span class="grade-badge a1">A1</span></td>
+                <td><strong>Excellent</strong></td>
+                <td><span class="score-range">75% - 100%</span></td>
+                <td>Outstanding performance</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-very-good">
+                <td><span class="grade-badge b2">B2</span></td>
+                <td><strong>Very Good</strong></td>
+                <td><span class="score-range">70% - 74%</span></td>
+                <td>Very good performance</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-good">
+                <td><span class="grade-badge b3">B3</span></td>
+                <td><strong>Good</strong></td>
+                <td><span class="score-range">65% - 69%</span></td>
+                <td>Good performance</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-credit">
+                <td><span class="grade-badge c4">C4</span></td>
+                <td><strong>Credit</strong></td>
+                <td><span class="score-range">60% - 64%</span></td>
+                <td>Satisfactory credit</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-credit">
+                <td><span class="grade-badge c5">C5</span></td>
+                <td><strong>Credit</strong></td>
+                <td><span class="score-range">55% - 59%</span></td>
+                <td>Credit performance</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-credit">
+                <td><span class="grade-badge c6">C6</span></td>
+                <td><strong>Credit</strong></td>
+                <td><span class="score-range">50% - 54%</span></td>
+                <td>Credit performance</td>
+                <td><span class="status-indicator pass">Pass (Credit)</span></td>
+              </tr>
+              <tr class="grade-pass">
+                <td><span class="grade-badge d7">D7</span></td>
+                <td><strong>Pass</strong></td>
+                <td><span class="score-range">45% - 49%</span></td>
+                <td>Basic pass (not for university)</td>
+                <td><span class="status-indicator pass-weak">Pass</span></td>
+              </tr>
+              <tr class="grade-pass">
+                <td><span class="grade-badge e8">E8</span></td>
+                <td><strong>Pass</strong></td>
+                <td><span class="score-range">40% - 44%</span></td>
+                <td>Weak pass (not for university)</td>
+                <td><span class="status-indicator pass-weak">Pass</span></td>
+              </tr>
+              <tr class="grade-fail">
+                <td><span class="grade-badge f9">F9</span></td>
+                <td><strong>Fail</strong></td>
+                <td><span class="score-range">0% - 39%</span></td>
+                <td>Failure</td>
+                <td><span class="status-indicator fail">Fail</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="scale-meta">
+          <div class="meta-item">
+            <i class="fas fa-check-circle"></i>
+            <span>
+              <span class="meta-label">Pass Threshold</span>
+              <strong>40%</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-graduation-cap"></i>
+            <span>
+              <span class="meta-label">Total Grades</span>
+              <strong>9 levels</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-users"></i>
+            <span>
+              <span class="meta-label">Used By</span>
+              <strong>All Programs</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar"></i>
+            <span>
+              <span class="meta-label">Last Updated</span>
+              <strong>Sept 15, 2025</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Continuous Assessment Scale -->
+      <div class="grade-scale-section">
+        <div class="scale-header">
+          <div class="scale-title">
+            <h3>Continuous Assessment Scale</h3>
+            <span class="scale-badge school">School Scale</span>
+            <span class="scale-badge active">Active</span>
+          </div>
+          <div class="scale-actions">
+            <button class="btn-edit-scale" title="Edit Scale">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-duplicate-scale" title="Duplicate Scale">
+              <i class="fas fa-copy"></i>
+            </button>
+            <button class="btn-set-inactive" title="Set Inactive">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="scale-description">
+          Custom grading scale for class tests, assignments, and quizzes. Used for internal school assessments before official examinations.
+        </div>
+        
+        <div class="scale-table-container">
+          <table class="scale-table">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Description</th>
+                <th>Score Range</th>
+                <th>GPA Value</th>
+                <th>Interpretation</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="grade-excellent">
+                <td><span class="grade-badge a1">A</span></td>
+                <td><strong>Excellent</strong></td>
+                <td><span class="score-range">85% - 100%</span></td>
+                <td><span class="gpa-value">4.0</span></td>
+                <td>Exceptional work</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-very-good">
+                <td><span class="grade-badge b2">B+</span></td>
+                <td><strong>Very Good</strong></td>
+                <td><span class="score-range">75% - 84%</span></td>
+                <td><span class="gpa-value">3.5</span></td>
+                <td>Above average work</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-good">
+                <td><span class="grade-badge b3">B</span></td>
+                <td><strong>Good</strong></td>
+                <td><span class="score-range">65% - 74%</span></td>
+                <td><span class="gpa-value">3.0</span></td>
+                <td>Good understanding</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-credit">
+                <td><span class="grade-badge c4">C</span></td>
+                <td><strong>Average</strong></td>
+                <td><span class="score-range">55% - 64%</span></td>
+                <td><span class="gpa-value">2.0</span></td>
+                <td>Adequate performance</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-pass">
+                <td><span class="grade-badge d7">D</span></td>
+                <td><strong>Pass</strong></td>
+                <td><span class="score-range">50% - 54%</span></td>
+                <td><span class="gpa-value">1.0</span></td>
+                <td>Minimum pass</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-fail">
+                <td><span class="grade-badge f9">F</span></td>
+                <td><strong>Fail</strong></td>
+                <td><span class="score-range">0% - 49%</span></td>
+                <td><span class="gpa-value">0.0</span></td>
+                <td>Below standard</td>
+                <td><span class="status-indicator fail">Fail</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="scale-meta">
+          <div class="meta-item">
+            <i class="fas fa-check-circle"></i>
+            <span>
+              <span class="meta-label">Pass Threshold</span>
+              <strong>50%</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-graduation-cap"></i>
+            <span>
+              <span class="meta-label">Total Grades</span>
+              <strong>6 levels</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-users"></i>
+            <span>
+              <span class="meta-label">Used By</span>
+              <strong>Class Tests, Assignments</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar"></i>
+            <span>
+              <span class="meta-label">Last Updated</span>
+              <strong>Jan 10, 2026</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Pass/Fail Scale -->
+      <div class="grade-scale-section">
+        <div class="scale-header">
+          <div class="scale-title">
+            <h3>Pass/Fail Scale</h3>
+            <span class="scale-badge school">School Scale</span>
+            <span class="scale-badge active">Active</span>
+          </div>
+          <div class="scale-actions">
+            <button class="btn-edit-scale" title="Edit Scale">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-duplicate-scale" title="Duplicate Scale">
+              <i class="fas fa-copy"></i>
+            </button>
+            <button class="btn-set-inactive" title="Set Inactive">
+              <i class="fas fa-times-circle"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="scale-description">
+          Binary grading scale for participation-based activities, projects, and non-core assessments. Simple pass or fail evaluation.
+        </div>
+        
+        <div class="scale-table-container">
+          <table class="scale-table">
+            <thead>
+              <tr>
+                <th>Grade</th>
+                <th>Description</th>
+                <th>Score Range</th>
+                <th>GPA Value</th>
+                <th>Interpretation</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="grade-excellent">
+                <td><span class="grade-badge a1">P</span></td>
+                <td><strong>Pass</strong></td>
+                <td><span class="score-range">50% - 100%</span></td>
+                <td><span class="gpa-value">-</span></td>
+                <td>Meets requirements</td>
+                <td><span class="status-indicator pass">Pass</span></td>
+              </tr>
+              <tr class="grade-fail">
+                <td><span class="grade-badge f9">F</span></td>
+                <td><strong>Fail</strong></td>
+                <td><span class="score-range">0% - 49%</span></td>
+                <td><span class="gpa-value">-</span></td>
+                <td>Does not meet requirements</td>
+                <td><span class="status-indicator fail">Fail</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="scale-meta">
+          <div class="meta-item">
+            <i class="fas fa-check-circle"></i>
+            <span>
+              <span class="meta-label">Pass Threshold</span>
+              <strong>50%</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-graduation-cap"></i>
+            <span>
+              <span class="meta-label">Total Grades</span>
+              <strong>2 levels</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-users"></i>
+            <span>
+              <span class="meta-label">Used By</span>
+              <strong>Projects, Participation</strong>
+            </span>
+          </div>
+          <div class="meta-item">
+            <i class="fas fa-calendar"></i>
+            <span>
+              <span class="meta-label">Last Updated</span>
+              <strong>Nov 5, 2025</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
 </div>
+
+<script>
+// Grade scales page functionality
+(function() {
+    // Search functionality
+    const searchInput = document.querySelector('.search-box input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            console.log('Searching for:', searchTerm);
+            // Add search filtering logic
+        });
+    }
+    
+    // Edit scale buttons
+    const editButtons = document.querySelectorAll('.btn-edit-scale');
+    editButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const scaleSection = this.closest('.grade-scale-section');
+            const scaleName = scaleSection.querySelector('h3').textContent;
+            console.log('Editing scale:', scaleName);
+            // Add modal or redirect to edit page
+        });
+    });
+    
+    // Duplicate scale buttons
+    const duplicateButtons = document.querySelectorAll('.btn-duplicate-scale');
+    duplicateButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const scaleSection = this.closest('.grade-scale-section');
+            const scaleName = scaleSection.querySelector('h3').textContent;
+            
+            if (confirm(`Create a copy of "${scaleName}"?`)) {
+                console.log('Duplicating scale:', scaleName);
+                // Add API call to duplicate scale
+            }
+        });
+    });
+    
+    // Set inactive buttons
+    const inactiveButtons = document.querySelectorAll('.btn-set-inactive');
+    inactiveButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const scaleSection = this.closest('.grade-scale-section');
+            const scaleName = scaleSection.querySelector('h3').textContent;
+            
+            if (confirm(`Deactivate "${scaleName}"? This scale will no longer be available for new assessments.`)) {
+                console.log('Deactivating scale:', scaleName);
+                // Add API call to deactivate scale
+            }
+        });
+    });
+    
+    // Add grade scale button
+    const addScaleBtn = document.querySelector('.btn-add-scale');
+    if (addScaleBtn) {
+        addScaleBtn.addEventListener('click', function() {
+            console.log('Adding new grade scale');
+            // Add modal or redirect to create new scale
+        });
+    }
+})();
+</script>
