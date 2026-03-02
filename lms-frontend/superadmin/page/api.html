@@ -1,0 +1,413 @@
+<div class="api-page">
+  <div class="card">
+    <div class="card-header">
+      <h2>API Management</h2>
+      <p>Manage API keys, rate limits, webhooks, and monitor usage</p>
+    </div>
+    
+    <div class="card-body">
+      
+      <!-- API Stats -->
+      <div class="api-stats">
+        <div class="api-stat-card">
+          <div class="api-stat-icon bg-gradient-green">
+            <i class="fas fa-key"></i>
+          </div>
+          <div class="api-stat-info">
+            <div class="api-stat-value">5</div>
+            <div class="api-stat-label">Active Keys</div>
+          </div>
+        </div>
+        
+        <div class="api-stat-card">
+          <div class="api-stat-icon bg-gradient-blue">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="api-stat-info">
+            <div class="api-stat-value">12.4K</div>
+            <div class="api-stat-label">Requests Today</div>
+          </div>
+        </div>
+        
+        <div class="api-stat-card">
+          <div class="api-stat-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+            <i class="fas fa-tachometer-alt"></i>
+          </div>
+          <div class="api-stat-info">
+            <div class="api-stat-value">78%</div>
+            <div class="api-stat-label">Rate Limit Used</div>
+          </div>
+        </div>
+        
+        <div class="api-stat-card">
+          <div class="api-stat-icon bg-gradient-purple">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="api-stat-info">
+            <div class="api-stat-value">99.8%</div>
+            <div class="api-stat-label">Success Rate</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- API Usage Chart -->
+      <div class="api-usage-chart">
+        <h3><i class="fas fa-chart-area"></i> API Usage (Last 30 Days)</h3>
+        <div class="api-chart-placeholder">
+          <i class="fas fa-chart-bar" style="font-size: 3rem; margin-right: 1rem;"></i>
+          Chart visualization would appear here
+        </div>
+      </div>
+      
+      <!-- API Keys Section -->
+      <div class="api-toolbar">
+        <h3><i class="fas fa-key"></i> API Keys</h3>
+        <button class="api-create-btn">
+          <i class="fas fa-plus"></i>
+          Generate New API Key
+        </button>
+      </div>
+      
+      <div class="api-keys-list">
+        <div class="api-key-card">
+          <div class="api-key-header">
+            <div class="api-key-info">
+              <h4>
+                <i class="fas fa-cube"></i>
+                Production API Key
+              </h4>
+            </div>
+            <span class="api-key-status status-active">Active</span>
+          </div>
+          
+          <div class="api-key-value">
+            <code></code>
+            <button class="api-key-copy-btn">
+              <i class="fas fa-copy"></i>
+              Copy
+            </button>
+          </div>
+          
+          <div class="api-key-meta">
+            <div class="api-key-meta-item">
+              <i class="fas fa-calendar"></i>
+              Created: <strong>Jan 15, 2026</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-chart-line"></i>
+              Usage: <strong>8,234 requests</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-clock"></i>
+              Last used: <strong>2 hours ago</strong>
+            </div>
+          </div>
+          
+          <div class="api-key-actions">
+            <button class="btn-view">
+              <i class="fas fa-eye"></i>
+              View Details
+            </button>
+            <button class="btn-edit">
+              <i class="fas fa-edit"></i>
+              Edit Permissions
+            </button>
+            <button class="btn-revoke">
+              <i class="fas fa-ban"></i>
+              Revoke
+            </button>
+          </div>
+        </div>
+        
+        <div class="api-key-card">
+          <div class="api-key-header">
+            <div class="api-key-info">
+              <h4>
+                <i class="fas fa-vial"></i>
+                Testing API Key
+              </h4>
+            </div>
+            <span class="api-key-status status-active">Active</span>
+          </div>
+          
+          <div class="api-key-value">
+            <code></code>
+            <button class="api-key-copy-btn">
+              <i class="fas fa-copy"></i>
+              Copy
+            </button>
+          </div>
+          
+          <div class="api-key-meta">
+            <div class="api-key-meta-item">
+              <i class="fas fa-calendar"></i>
+              Created: <strong>Feb 20, 2026</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-chart-line"></i>
+              Usage: <strong>1,542 requests</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-clock"></i>
+              Last used: <strong>1 day ago</strong>
+            </div>
+          </div>
+          
+          <div class="api-key-actions">
+            <button class="btn-view">
+              <i class="fas fa-eye"></i>
+              View Details
+            </button>
+            <button class="btn-edit">
+              <i class="fas fa-edit"></i>
+              Edit Permissions
+            </button>
+            <button class="btn-revoke">
+              <i class="fas fa-ban"></i>
+              Revoke
+            </button>
+          </div>
+        </div>
+        
+        <div class="api-key-card">
+          <div class="api-key-header">
+            <div class="api-key-info">
+              <h4>
+                <i class="fas fa-mobile-alt"></i>
+                Mobile App Key
+              </h4>
+            </div>
+            <span class="api-key-status status-revoked">Revoked</span>
+          </div>
+          
+          <div class="api-key-value">
+            <code></code>
+            <button class="api-key-copy-btn" disabled style="opacity: 0.5; cursor: not-allowed;">
+              <i class="fas fa-ban"></i>
+              Revoked
+            </button>
+          </div>
+          
+          <div class="api-key-meta">
+            <div class="api-key-meta-item">
+              <i class="fas fa-calendar"></i>
+              Created: <strong>Dec 10, 2025</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-ban"></i>
+              Revoked: <strong>Feb 28, 2026</strong>
+            </div>
+            <div class="api-key-meta-item">
+              <i class="fas fa-chart-line"></i>
+              Total usage: <strong>45,821 requests</strong>
+            </div>
+          </div>
+          
+          <div class="api-key-actions">
+            <button class="btn-view">
+              <i class="fas fa-eye"></i>
+              View Details
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Rate Limiting Section -->
+      <div class="rate-limit-section">
+        <h3>
+          <i class="fas fa-tachometer-alt"></i>
+          Rate Limit Configuration
+        </h3>
+        
+        <div class="rate-limit-grid">
+          <div class="rate-limit-item">
+            <h4>Global Limits</h4>
+            <div class="rate-limit-controls">
+              <div class="rate-limit-control">
+                <label>Requests per minute:</label>
+                <input type="number" value="100" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per hour:</label>
+                <input type="number" value="5000" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per day:</label>
+                <input type="number" value="100000" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="rate-limit-item">
+            <h4>Authenticated Users</h4>
+            <div class="rate-limit-controls">
+              <div class="rate-limit-control">
+                <label>Requests per minute:</label>
+                <input type="number" value="200" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per hour:</label>
+                <input type="number" value="10000" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per day:</label>
+                <input type="number" value="250000" />
+              </div>
+            </div>
+          </div>
+          
+          <div class="rate-limit-item">
+            <h4>Premium Tier</h4>
+            <div class="rate-limit-controls">
+              <div class="rate-limit-control">
+                <label>Requests per minute:</label>
+                <input type="number" value="500" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per hour:</label>
+                <input type="number" value="25000" />
+              </div>
+              <div class="rate-limit-control">
+                <label>Requests per day:</label>
+                <input type="number" value="1000000" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Webhooks Section -->
+      <div class="webhook-section">
+        <h3>
+          <i class="fas fa-webhook"></i>
+          Webhooks
+        </h3>
+        
+        <div class="webhook-list">
+          <div class="webhook-item">
+            <div class="webhook-info">
+              <strong>User Creation Event</strong>
+              <code>https://api.example.com/webhooks/user-created</code>
+            </div>
+            <div class="webhook-actions">
+              <button class="btn-test">Test</button>
+              <button class="btn-delete">Delete</button>
+            </div>
+          </div>
+          
+          <div class="webhook-item">
+            <div class="webhook-info">
+              <strong>Payment Success</strong>
+              <code>https://api.example.com/webhooks/payment-success</code>
+            </div>
+            <div class="webhook-actions">
+              <button class="btn-test">Test</button>
+              <button class="btn-delete">Delete</button>
+            </div>
+          </div>
+        </div>
+        
+        <button class="webhook-add-btn">
+          <i class="fas fa-plus"></i>
+          Add New Webhook
+        </button>
+      </div>
+      
+      <!-- API Documentation -->
+      <div class="api-docs-section">
+        <h3><i class="fas fa-book"></i> Developer Resources</h3>
+        <p>Access comprehensive documentation, code samples, and integration guides to help you get started with our API.</p>
+        <div class="api-docs-links">
+          <a href="#" class="api-docs-link">
+            <i class="fas fa-file-code"></i>
+            API Documentation
+          </a>
+          <a href="#" class="api-docs-link">
+            <i class="fas fa-code"></i>
+            Code Examples
+          </a>
+          <a href="#" class="api-docs-link">
+            <i class="fas fa-play-circle"></i>
+            Quick Start Guide
+          </a>
+          <a href="#" class="api-docs-link">
+            <i class="fas fa-question-circle"></i>
+            API Reference
+          </a>
+        </div>
+      </div>
+      
+      <!-- Recent API Requests -->
+      <div style="margin-top: 2rem;">
+        <h3 style="margin: 0 0 1.5rem 0; font-size: 1.25rem; font-weight: 600; color: var(--text-primary);">
+          <i class="fas fa-history"></i> Recent API Requests
+        </h3>
+        <div style="overflow-x: auto; border-radius: var(--radius-lg); border: 2px solid var(--gray-200);">
+          <table class="api-logs-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Status</th>
+                <th>Response Time</th>
+                <th>API Key</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2026-03-01 14:35:22</td>
+                <td><span class="api-method method-get">GET</span></td>
+                <td><code>/api/v1/users</code></td>
+                <td><span class="api-status-code status-2xx">200</span></td>
+                <td>145ms</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2026-03-01 14:34:18</td>
+                <td><span class="api-method method-post">POST</span></td>
+                <td><code>/api/v1/users</code></td>
+                <td><span class="api-status-code status-2xx">201</span></td>
+                <td>298ms</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2026-03-01 14:33:45</td>
+                <td><span class="api-method method-get">GET</span></td>
+                <td><code>/api/v1/institutions</code></td>
+                <td><span class="api-status-code status-2xx">200</span></td>
+                <td>87ms</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2026-03-01 14:32:10</td>
+                <td><span class="api-method method-put">PUT</span></td>
+                <td><code>/api/v1/users/123</code></td>
+                <td><span class="api-status-code status-2xx">200</span></td>
+                <td>223ms</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2026-03-01 14:30:55</td>
+                <td><span class="api-method method-delete">DELETE</span></td>
+                <td><code>/api/v1/sessions/456</code></td>
+                <td><span class="api-status-code status-2xx">204</span></td>
+                <td>56ms</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>2026-03-01 14:29:30</td>
+                <td><span class="api-method method-get">GET</span></td>
+                <td><code>/api/v1/invalid</code></td>
+                <td><span class="api-status-code status-4xx">404</span></td>
+                <td>12ms</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</div>
