@@ -337,4 +337,69 @@ return [
     'POST /error-logs' => ['controller' => 'ErrorLogController', 'method' => 'create', 'auth' => true],
     'PUT /error-logs/{id}/resolve' => ['controller' => 'ErrorLogController', 'method' => 'markResolved', 'auth' => true],
     'DELETE /error-logs/{id}' => ['controller' => 'ErrorLogController', 'method' => 'delete', 'auth' => true],
+
+    // Event routes (Calendar & Events Management)
+    'GET /events' => ['controller' => 'EventController', 'method' => 'index', 'auth' => true],
+    'GET /events/upcoming' => ['controller' => 'EventController', 'method' => 'getUpcoming', 'auth' => true],
+    'GET /events/calendar' => ['controller' => 'EventController', 'method' => 'getCalendar', 'auth' => true],
+    'GET /events/academic-calendar' => ['controller' => 'EventController', 'method' => 'getAcademicCalendar', 'auth' => true],
+    'GET /events/type/{type}' => ['controller' => 'EventController', 'method' => 'getByType', 'auth' => true],
+    'GET /events/{id}' => ['controller' => 'EventController', 'method' => 'show', 'auth' => true],
+    'POST /events' => ['controller' => 'EventController', 'method' => 'create', 'auth' => true],
+    'PUT /events/{id}' => ['controller' => 'EventController', 'method' => 'update', 'auth' => true],
+    'DELETE /events/{id}' => ['controller' => 'EventController', 'method' => 'delete', 'auth' => true],
+
+    // Grade Report routes (Report Cards, Transcripts)
+    'GET /grade-reports' => ['controller' => 'GradeReportController', 'method' => 'index', 'auth' => true],
+    'GET /grade-reports/stats' => ['controller' => 'GradeReportController', 'method' => 'getStatistics', 'auth' => true],
+    'GET /grade-reports/class/{classId}' => ['controller' => 'GradeReportController', 'method' => 'getClassReports', 'auth' => true],
+    'GET /grade-reports/student/{studentId}/report-card' => ['controller' => 'GradeReportController', 'method' => 'getReportCard', 'auth' => true],
+    'GET /grade-reports/student/{studentId}/transcript' => ['controller' => 'GradeReportController', 'method' => 'getTranscript', 'auth' => true],
+    'GET /grade-reports/{id}' => ['controller' => 'GradeReportController', 'method' => 'show', 'auth' => true],
+    'POST /grade-reports/generate' => ['controller' => 'GradeReportController', 'method' => 'generate', 'auth' => true],
+    'POST /grade-reports/bulk-generate' => ['controller' => 'GradeReportController', 'method' => 'bulkGenerate', 'auth' => true],
+    'PUT /grade-reports/{id}' => ['controller' => 'GradeReportController', 'method' => 'update', 'auth' => true],
+    'PUT /grade-reports/{id}/publish' => ['controller' => 'GradeReportController', 'method' => 'publish', 'auth' => true],
+    'DELETE /grade-reports/{id}' => ['controller' => 'GradeReportController', 'method' => 'delete', 'auth' => true],
+
+    // User Activity routes (Activity Tracking & Audit Trail)
+    'GET /user-activity' => ['controller' => 'UserActivityController', 'method' => 'index', 'auth' => true],
+    'GET /user-activity/recent' => ['controller' => 'UserActivityController', 'method' => 'getRecent', 'auth' => true],
+    'GET /user-activity/stats' => ['controller' => 'UserActivityController', 'method' => 'getStatistics', 'auth' => true],
+    'GET /user-activity/audit-trail' => ['controller' => 'UserActivityController', 'method' => 'getAuditTrail', 'auth' => true],
+    'GET /user-activity/user/{userId}' => ['controller' => 'UserActivityController', 'method' => 'getUserHistory', 'auth' => true],
+    'GET /user-activity/action/{action}' => ['controller' => 'UserActivityController', 'method' => 'getByAction', 'auth' => true],
+    'GET /user-activity/entity/{entityType}/{entityId}' => ['controller' => 'UserActivityController', 'method' => 'getByEntity', 'auth' => true],
+    'GET /user-activity/{id}' => ['controller' => 'UserActivityController', 'method' => 'show', 'auth' => true],
+    'POST /user-activity' => ['controller' => 'UserActivityController', 'method' => 'log', 'auth' => true],
+    'DELETE /user-activity/cleanup' => ['controller' => 'UserActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Course Content routes (Lesson Plans & Content Management)
+    'GET /course-content' => ['controller' => 'CourseContentController', 'method' => 'index', 'auth' => true],
+    'GET /course-content/class-subject/{classSubjectId}' => ['controller' => 'CourseContentController', 'method' => 'getByClassSubject', 'auth' => true],
+    'GET /course-content/{id}' => ['controller' => 'CourseContentController', 'method' => 'show', 'auth' => true],
+    'POST /course-content' => ['controller' => 'CourseContentController', 'method' => 'create', 'auth' => true],
+    'POST /course-content/{id}/duplicate' => ['controller' => 'CourseContentController', 'method' => 'duplicate', 'auth' => true],
+    'PUT /course-content/reorder' => ['controller' => 'CourseContentController', 'method' => 'reorder', 'auth' => true],
+    'PUT /course-content/{id}' => ['controller' => 'CourseContentController', 'method' => 'update', 'auth' => true],
+    'PUT /course-content/{id}/publish' => ['controller' => 'CourseContentController', 'method' => 'publish', 'auth' => true],
+    'DELETE /course-content/{id}' => ['controller' => 'CourseContentController', 'method' => 'delete', 'auth' => true],
+
+    // Subscription routes (Billing & Subscription Management)
+    'GET /subscriptions' => ['controller' => 'SubscriptionController', 'method' => 'index', 'auth' => true],
+    'GET /subscriptions/plans' => ['controller' => 'SubscriptionController', 'method' => 'getPlans', 'auth' => false],
+    'GET /subscriptions/stats' => ['controller' => 'SubscriptionController', 'method' => 'getStatistics', 'auth' => true],
+    'GET /subscriptions/institution/{institutionId}/active' => ['controller' => 'SubscriptionController', 'method' => 'getActiveSubscription', 'auth' => true],
+    'GET /subscriptions/check/{institutionId}' => ['controller' => 'SubscriptionController', 'method' => 'checkStatus', 'auth' => true],
+    'GET /subscriptions/{id}' => ['controller' => 'SubscriptionController', 'method' => 'show', 'auth' => true],
+    'POST /subscriptions' => ['controller' => 'SubscriptionController', 'method' => 'create', 'auth' => true],
+    'POST /subscriptions/{id}/renew' => ['controller' => 'SubscriptionController', 'method' => 'renew', 'auth' => true],
+    'PUT /subscriptions/{id}' => ['controller' => 'SubscriptionController', 'method' => 'update', 'auth' => true],
+    'DELETE /subscriptions/{id}' => ['controller' => 'SubscriptionController', 'method' => 'cancel', 'auth' => true],
+
+    // File Upload routes
+    'POST /upload' => ['controller' => 'FileUploadController', 'method' => 'upload', 'auth' => true],
+    'POST /upload/multiple' => ['controller' => 'FileUploadController', 'method' => 'uploadMultiple', 'auth' => true],
+    'GET /upload/{category}/{filename}/info' => ['controller' => 'FileUploadController', 'method' => 'getFileInfo', 'auth' => true],
+    'DELETE /upload/{category}/{filename}' => ['controller' => 'FileUploadController', 'method' => 'delete', 'auth' => true],
 ];

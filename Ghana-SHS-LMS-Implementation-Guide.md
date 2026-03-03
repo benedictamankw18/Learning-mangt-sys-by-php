@@ -66,12 +66,12 @@
 
 ### 1.2 Implementation Phases
 
-| Phase | Focus Area | Duration | Pages |
-|-------|------------|----------|-------|
+| Phase       | Focus Area                       | Duration  | Pages    |
+| ----------- | -------------------------------- | --------- | -------- |
 | **Phase 1** | Core Authentication & Dashboards | 4-6 weeks | 15 pages |
-| **Phase 2** | Academic Management | 6-8 weeks | 25 pages |
-| **Phase 3** | Communication & Reporting | 4-6 weeks | 18 pages |
-| **Phase 4** | Advanced Features & Polish | 4-6 weeks | 14 pages |
+| **Phase 2** | Academic Management              | 6-8 weeks | 25 pages |
+| **Phase 3** | Communication & Reporting        | 4-6 weeks | 18 pages |
+| **Phase 4** | Advanced Features & Polish       | 4-6 weeks | 14 pages |
 
 **Total Estimated Timeline:** 18-26 weeks (4.5-6.5 months)
 
@@ -82,6 +82,7 @@
 ### 2.1 Required Software
 
 #### Development Environment
+
 ```bash
 # Required installations
 Node.js >= 18.x
@@ -95,6 +96,7 @@ Postman or similar API testing tool
 #### Recommended Stack
 
 **Option A: MERN Stack (Recommended)**
+
 ```
 Frontend:  React 18+ with TypeScript
 Backend:   Node.js + Express.js
@@ -104,6 +106,7 @@ Auth:      JWT + Passport.js
 ```
 
 **Option B: Laravel Stack**
+
 ```
 Frontend:  Vue.js 3 or React 18
 Backend:   Laravel 10+
@@ -112,6 +115,7 @@ Auth:      Laravel Sanctum + Fortify
 ```
 
 **Option C: Current Setup (PHP + Vanilla JS)**
+
 ```
 Frontend:  HTML5 + CSS3 + Vanilla JavaScript
 Backend:   PHP 8.1+ (Procedural or OOP)
@@ -127,7 +131,7 @@ Required Services:
   - SMS Gateway: Hubtel (Ghana), Twilio, or Africa's Talking
   - Cloud Storage: AWS S3, Cloudinary, or Google Cloud Storage
   - Payment Gateway: Paystack (Ghana), Flutterwave (optional for fees)
-  
+
 Optional Services:
   - Analytics: Google Analytics, Mixpanel
   - Error Tracking: Sentry, Rollbar
@@ -164,6 +168,7 @@ Prettier (Code formatting)
 ### 3.1 Directory Structure
 
 #### Option A: Monorepo Structure (MERN)
+
 ```
 ghana-shs-lms/
 ├── backend/
@@ -272,6 +277,7 @@ ghana-shs-lms/
 ```
 
 #### Option B: Current Structure (PHP + Vanilla JS)
+
 ```
 lms-frontend/
 ├── superadmin/
@@ -338,6 +344,7 @@ lms-backend/ (PHP)
 ### 3.2 Initialize Project
 
 #### For MERN Stack
+
 ```bash
 # Create project directory
 mkdir ghana-shs-lms
@@ -364,6 +371,7 @@ echo "node_modules/\n.env\ndist/\nbuild/" > .gitignore
 ```
 
 #### For Laravel Stack
+
 ```bash
 # Create Laravel project
 composer create-project laravel/laravel ghana-shs-lms
@@ -375,6 +383,7 @@ npm install vue@next vue-router@4 axios
 ```
 
 #### For Current PHP Setup
+
 ```bash
 # Already exists, just organize
 cd lms-frontend
@@ -521,6 +530,7 @@ mysql -u lms_user -p ghana_shs_lms < database/seeders/003_users.sql
 ### 5.1 API Structure & Endpoints
 
 #### Authentication Endpoints
+
 ```
 POST   /api/auth/register          - Register new user
 POST   /api/auth/login             - Login
@@ -534,6 +544,7 @@ PUT    /api/auth/change-password   - Change password
 ```
 
 #### Super Admin Endpoints
+
 ```
 GET    /api/superadmin/dashboard              - Dashboard stats
 GET    /api/superadmin/institutions           - List institutions
@@ -541,9 +552,11 @@ POST   /api/superadmin/institutions           - Create institution
 GET    /api/superadmin/institutions/:id       - Get institution
 PUT    /api/superadmin/institutions/:id       - Update institution
 DELETE /api/superadmin/institutions/:id       - Delete institution
+POST   /api/superadmin/institutions/bulk-upload - Bulk import institution
 
 GET    /api/superadmin/platform-users         - List super admins (🔴 RESTRICTED)
 POST   /api/superadmin/platform-users         - Create super admin (🔴 RESTRICTED)
+POST   /api/superadmin/platform-users/bulk-upload - Bulk import super admin (🔴 RESTRICTED)
 POST   /api/superadmin/verify-access          - Verify elevated access
 
 GET    /api/superadmin/subscriptions          - List subscriptions
@@ -552,6 +565,7 @@ GET    /api/superadmin/activity-logs          - Activity logs
 ```
 
 #### Admin Endpoints
+
 ```
 GET    /api/admin/dashboard                   - Dashboard stats
 GET    /api/admin/students                    - List students
@@ -565,27 +579,36 @@ GET    /api/admin/teachers                    - List teachers
 POST   /api/admin/teachers                    - Add teacher
 GET    /api/admin/teachers/:id                - Get teacher
 PUT    /api/admin/teachers/:id                - Update teacher
+POST   /api/admin/teachers/bulk-upload        - Bulk import teacher
+
 
 GET    /api/admin/classes                     - List classes
 POST   /api/admin/classes                     - Create class
+POST   /api/admin/classes/bulk-upload         - Bulk import class
 GET    /api/admin/attendance                  - Attendance overview
 GET    /api/admin/grades                      - Grades overview
 GET    /api/admin/reports                     - Institution reports
 ```
 
 #### Teacher Endpoints
+
 ```
 GET    /api/teacher/dashboard                 - Dashboard stats
 GET    /api/teacher/classes                   - My classes
 GET    /api/teacher/students                  - My students
 POST   /api/teacher/attendance                - Mark attendance
+POST   /api/teacher/attendance/bulk-upload    - Bulk import attendance
 GET    /api/teacher/assignments               - My assignments
 POST   /api/teacher/assignments               - Create assignment
+POST   /api/teacher/assignments/bulk-upload   - Bulk import assignment
 POST   /api/teacher/assessments               - Create assessment
+POST   /api/teacher/assessments/bulk-upload   - Bulk import assessment
 POST   /api/teacher/grades                    - Submit grades
+POST   /api/teacher/grades//bulk-upload       - Bulk import grades
 ```
 
 #### Student Endpoints
+
 ```
 GET    /api/student/dashboard                 - Dashboard stats
 GET    /api/student/classes                   - My classes
@@ -597,6 +620,7 @@ GET    /api/student/materials                 - Course materials
 ```
 
 #### Parent Endpoints
+
 ```
 GET    /api/parent/dashboard                  - Dashboard stats
 GET    /api/parent/children                   - My children
@@ -610,8 +634,8 @@ GET    /api/parent/children/:id/assignments   - Child's assignments
 ```javascript
 // File: backend/src/controllers/student.controller.js
 
-const { Student, User, Class, Result } = require('../models');
-const { validationResult } = require('express-validator');
+const { Student, User, Class, Result } = require("../models");
+const { validationResult } = require("express-validator");
 
 class StudentController {
   // Get all students (Admin only)
@@ -619,7 +643,7 @@ class StudentController {
     try {
       const { page = 1, limit = 20, class_id, program, search } = req.query;
       const offset = (page - 1) * limit;
-      
+
       // Build query
       const where = { institution_id: req.user.institution_id };
       if (class_id) where.class_id = class_id;
@@ -628,21 +652,21 @@ class StudentController {
         where[Op.or] = [
           { first_name: { [Op.like]: `%${search}%` } },
           { last_name: { [Op.like]: `%${search}%` } },
-          { student_id: { [Op.like]: `%${search}%` } }
+          { student_id: { [Op.like]: `%${search}%` } },
         ];
       }
-      
+
       const students = await Student.findAndCountAll({
         where,
         include: [
-          { model: User, attributes: ['id', 'email', 'status'] },
-          { model: Class, attributes: ['id', 'name'] }
+          { model: User, attributes: ["id", "email", "status"] },
+          { model: Class, attributes: ["id", "name"] },
         ],
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['created_at', 'DESC']]
+        order: [["created_at", "DESC"]],
       });
-      
+
       res.json({
         success: true,
         data: students.rows,
@@ -650,14 +674,14 @@ class StudentController {
           total: students.count,
           page: parseInt(page),
           limit: parseInt(limit),
-          pages: Math.ceil(students.count / limit)
-        }
+          pages: Math.ceil(students.count / limit),
+        },
       });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   }
-  
+
   // Create new student
   async createStudent(req, res) {
     try {
@@ -666,7 +690,7 @@ class StudentController {
       if (!errors.isEmpty()) {
         return res.status(400).json({ success: false, errors: errors.array() });
       }
-      
+
       const {
         first_name,
         last_name,
@@ -675,21 +699,21 @@ class StudentController {
         gender,
         class_id,
         program_id,
-        phone
+        phone,
       } = req.body;
-      
+
       // Create user account
       const user = await User.create({
-        username: email.split('@')[0],
+        username: email.split("@")[0],
         email,
-        password: await bcrypt.hash('DefaultPassword123', 10),
-        role: 'student',
-        status: 'active'
+        password: await bcrypt.hash("DefaultPassword123", 10),
+        role: "student",
+        status: "active",
       });
-      
+
       // Generate student ID
       const student_id = await this.generateStudentID(req.user.institution_id);
-      
+
       // Create student record
       const student = await Student.create({
         user_id: user.id,
@@ -702,24 +726,24 @@ class StudentController {
         class_id,
         program_id,
         phone,
-        status: 'active'
+        status: "active",
       });
-      
+
       res.status(201).json({
         success: true,
-        message: 'Student created successfully',
-        data: student
+        message: "Student created successfully",
+        data: student,
       });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   }
-  
+
   // Helper function to generate student ID
   async generateStudentID(institution_id) {
     const year = new Date().getFullYear();
     const count = await Student.count({ where: { institution_id } });
-    return `STU${year}${String(count + 1).padStart(4, '0')}`;
+    return `STU${year}${String(count + 1).padStart(4, "0")}`;
   }
 }
 
@@ -731,25 +755,25 @@ module.exports = new StudentController();
 ```javascript
 // File: backend/src/routes/admin.routes.js
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const studentController = require('../controllers/student.controller');
-const { authenticate, authorize } = require('../middleware/auth.middleware');
-const { validateStudent } = require('../middleware/validation.middleware');
+const studentController = require("../controllers/student.controller");
+const { authenticate, authorize } = require("../middleware/auth.middleware");
+const { validateStudent } = require("../middleware/validation.middleware");
 
 // All routes require authentication and admin role
 router.use(authenticate);
-router.use(authorize(['admin']));
+router.use(authorize(["admin"]));
 
 // Student routes
-router.get('/students', studentController.getAllStudents);
-router.post('/students', validateStudent, studentController.createStudent);
-router.get('/students/:id', studentController.getStudent);
-router.put('/students/:id', validateStudent, studentController.updateStudent);
-router.delete('/students/:id', studentController.deleteStudent);
+router.get("/students", studentController.getAllStudents);
+router.post("/students", validateStudent, studentController.createStudent);
+router.get("/students/:id", studentController.getStudent);
+router.put("/students/:id", validateStudent, studentController.updateStudent);
+router.delete("/students/:id", studentController.deleteStudent);
 
 // Bulk operations
-router.post('/students/bulk-upload', studentController.bulkUploadStudents);
+router.post("/students/bulk-upload", studentController.bulkUploadStudents);
 
 module.exports = router;
 ```
@@ -763,44 +787,44 @@ module.exports = router;
 ```javascript
 // File: backend/src/middleware/auth.middleware.js
 
-const jwt = require('jsonwebtoken');
-const { User, Role } = require('../models');
+const jwt = require("jsonwebtoken");
+const { User, Role } = require("../models");
 
 // Authenticate user
 exports.authenticate = async (req, res, next) => {
   try {
     // Get token from header
-    const token = req.headers.authorization?.split(' ')[1];
-    
+    const token = req.headers.authorization?.split(" ")[1];
+
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No token provided'
+        message: "No token provided",
       });
     }
-    
+
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+
     // Get user
     const user = await User.findByPk(decoded.id, {
-      include: [{ model: Role }]
+      include: [{ model: Role }],
     });
-    
-    if (!user || user.status !== 'active') {
+
+    if (!user || user.status !== "active") {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token or user inactive'
+        message: "Invalid token or user inactive",
       });
     }
-    
+
     // Attach user to request
     req.user = user;
     next();
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: 'Invalid token'
+      message: "Invalid token",
     });
   }
 };
@@ -811,7 +835,7 @@ exports.authorize = (roles = []) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: "Access denied",
       });
     }
     next();
@@ -820,53 +844,55 @@ exports.authorize = (roles = []) => {
 
 // Restrict to institution (data isolation)
 exports.restrictToInstitution = (req, res, next) => {
-  if (req.user.role === 'super_admin') {
+  if (req.user.role === "super_admin") {
     return next(); // Super admin can access all
   }
-  
+
   // Check if accessing own institution's data
-  if (req.params.institution_id && 
-      req.params.institution_id != req.user.institution_id) {
+  if (
+    req.params.institution_id &&
+    req.params.institution_id != req.user.institution_id
+  ) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied to this institution'
+      message: "Access denied to this institution",
     });
   }
-  
+
   next();
 };
 
 // Super Admin Restricted Access (🔴)
 exports.requireElevatedAccess = async (req, res, next) => {
   try {
-    if (req.user.role !== 'super_admin') {
+    if (req.user.role !== "super_admin") {
       return res.status(403).json({
         success: false,
-        message: 'Super admin access required'
+        message: "Super admin access required",
       });
     }
-    
+
     // Check for access token in headers
-    const accessToken = req.headers['x-elevated-access'];
-    
+    const accessToken = req.headers["x-elevated-access"];
+
     if (!accessToken) {
       return res.status(403).json({
         success: false,
-        message: 'Elevated access token required',
-        requiresElevation: true
+        message: "Elevated access token required",
+        requiresElevation: true,
       });
     }
-    
+
     // Verify elevated access (could be 2FA, PIN, etc.)
     const isValid = await verifyElevatedAccess(req.user.id, accessToken);
-    
+
     if (!isValid) {
       return res.status(403).json({
         success: false,
-        message: 'Invalid elevated access token'
+        message: "Invalid elevated access token",
       });
     }
-    
+
     next();
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -879,61 +905,61 @@ exports.requireElevatedAccess = async (req, res, next) => {
 ```javascript
 // File: backend/src/controllers/auth.controller.js
 
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { User } = require("../models");
 
 class AuthController {
   async login(req, res) {
     try {
       const { email, password } = req.body;
-      
+
       // Find user
       const user = await User.findOne({ where: { email } });
-      
+
       if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid credentials'
+          message: "Invalid credentials",
         });
       }
-      
+
       // Check password
       const isValid = await bcrypt.compare(password, user.password);
-      
+
       if (!isValid) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid credentials'
+          message: "Invalid credentials",
         });
       }
-      
+
       // Check if 2FA is enabled
       if (user.two_factor_enabled) {
         // Generate temp token for 2FA verification
         const tempToken = jwt.sign(
           { id: user.id, requires2FA: true },
           process.env.JWT_SECRET,
-          { expiresIn: '5m' }
+          { expiresIn: "5m" },
         );
-        
+
         return res.json({
           success: true,
           requires2FA: true,
-          tempToken
+          tempToken,
         });
       }
-      
+
       // Generate JWT token
       const token = jwt.sign(
         { id: user.id, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" },
       );
-      
+
       // Log login activity
       await this.logLoginActivity(user.id, req);
-      
+
       res.json({
         success: true,
         token,
@@ -941,21 +967,21 @@ class AuthController {
           id: user.id,
           email: user.email,
           role: user.role,
-          institution_id: user.institution_id
-        }
+          institution_id: user.institution_id,
+        },
       });
     } catch (error) {
       res.status(500).json({ success: false, error: error.message });
     }
   }
-  
+
   async logLoginActivity(userId, req) {
-    const { LoginActivity } = require('../models');
+    const { LoginActivity } = require("../models");
     await LoginActivity.create({
       user_id: userId,
       ip_address: req.ip,
-      user_agent: req.headers['user-agent'],
-      status: 'success'
+      user_agent: req.headers["user-agent"],
+      status: "success",
     });
   }
 }
@@ -970,9 +996,11 @@ module.exports = new AuthController();
 ### 7.1 Super Admin Pages (10 pages)
 
 #### Page 1: Overview Dashboard
+
 **File:** `frontend/src/pages/superadmin/Dashboard.jsx`
 
 **Features to Implement:**
+
 - Total institutions count
 - Total users breakdown (by role)
 - Active subscriptions count
@@ -981,11 +1009,13 @@ module.exports = new AuthController();
 - Platform usage charts
 
 **API Calls:**
+
 ```javascript
-GET /api/superadmin/dashboard
+GET / api / superadmin / dashboard;
 ```
 
 **Key Components:**
+
 - StatCard (for metrics)
 - LineChart (usage trends)
 - RecentActivityTable
@@ -994,9 +1024,11 @@ GET /api/superadmin/dashboard
 ---
 
 #### Page 2: Institutions Management
+
 **File:** `frontend/src/pages/superadmin/Institutions.jsx`
 
 **Features:**
+
 - Search and filter institutions
 - Create new institution (modal/form)
 - Edit institution details
@@ -1005,6 +1037,7 @@ GET /api/superadmin/dashboard
 - Assign administrators
 
 **API Calls:**
+
 ```javascript
 GET    /api/superadmin/institutions?page=1&limit=20&search=
 POST   /api/superadmin/institutions
@@ -1015,9 +1048,11 @@ DELETE /api/superadmin/institutions/:id
 ---
 
 #### Page 4: Platform Users (🔴 RESTRICTED)
+
 **File:** `frontend/src/pages/superadmin/PlatformUsers.jsx`
 
 **Special Implementation:**
+
 ```javascript
 // Add elevated access verification before page loads
 useEffect(() => {
@@ -1025,23 +1060,24 @@ useEffect(() => {
     try {
       // Show PIN/2FA modal
       const accessToken = await showElevatedAccessModal();
-      
+
       // Store token for API calls
       setElevatedToken(accessToken);
-      
+
       // Fetch data with elevated token
       fetchPlatformUsers();
     } catch (error) {
       // Redirect if access denied
-      navigate('/superadmin/dashboard');
+      navigate("/superadmin/dashboard");
     }
   };
-  
+
   verifyAccess();
 }, []);
 ```
 
 **Features:**
+
 - List all super admins
 - Create super admin (with email verification)
 - Edit permissions
@@ -1053,50 +1089,58 @@ useEffect(() => {
 ### 7.2 Admin Pages (18 pages)
 
 #### Page 1: Dashboard Overview
+
 **File:** `frontend/src/pages/admin/Dashboard.jsx` OR `lms-frontend/admin/page/dashboard.html`
 
 **Current Status:** ✅ Exists (dashboard.html with dynamic loading)
 
 **Features to Add:**
+
 - Real API integration instead of static data
 - Live attendance rate calculation
 - Upcoming exams countdown
 - Pending tasks notifications
 
 **API Integration:**
+
 ```javascript
 // File: lms-frontend/admin/js/dashboard.js
 async function loadDashboardStats() {
   try {
-    const response = await fetch('/api/admin/dashboard', {
+    const response = await fetch("/api/admin/dashboard", {
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
     });
     const data = await response.json();
-    
+
     // Update UI with real data
-    document.getElementById('total-students').textContent = data.stats.total_students;
-    document.getElementById('total-teachers').textContent = data.stats.total_teachers;
-    document.getElementById('attendance-rate').textContent = data.stats.attendance_rate + '%';
+    document.getElementById("total-students").textContent =
+      data.stats.total_students;
+    document.getElementById("total-teachers").textContent =
+      data.stats.total_teachers;
+    document.getElementById("attendance-rate").textContent =
+      data.stats.attendance_rate + "%";
   } catch (error) {
-    console.error('Error loading dashboard:', error);
+    console.error("Error loading dashboard:", error);
   }
 }
 
 // Call on page load
-document.addEventListener('DOMContentLoaded', loadDashboardStats);
-document.addEventListener('page:loaded', (e) => {
-  if (e.detail.page === 'dashboard') loadDashboardStats();
+document.addEventListener("DOMContentLoaded", loadDashboardStats);
+document.addEventListener("page:loaded", (e) => {
+  if (e.detail.page === "dashboard") loadDashboardStats();
 });
 ```
 
 ---
 
 #### Page 2: Students Management
+
 **File:** `lms-frontend/admin/page/students.html` (needs creation)
 
 **HTML Structure:**
+
 ```html
 <div class="students-page">
   <div class="page-header">
@@ -1110,9 +1154,9 @@ document.addEventListener('page:loaded', (e) => {
       </button>
     </div>
   </div>
-  
+
   <div class="filters">
-    <input type="text" id="searchStudent" placeholder="Search students...">
+    <input type="text" id="searchStudent" placeholder="Search students..." />
     <select id="filterClass">
       <option value="">All Classes</option>
     </select>
@@ -1120,7 +1164,7 @@ document.addEventListener('page:loaded', (e) => {
       <option value="">All Programs</option>
     </select>
   </div>
-  
+
   <div class="students-table">
     <table>
       <thead>
@@ -1139,7 +1183,7 @@ document.addEventListener('page:loaded', (e) => {
       </tbody>
     </table>
   </div>
-  
+
   <div class="pagination" id="studentsPagination"></div>
 </div>
 
@@ -1151,17 +1195,19 @@ document.addEventListener('page:loaded', (e) => {
       <div class="form-row">
         <div class="form-group">
           <label>First Name *</label>
-          <input type="text" name="first_name" required>
+          <input type="text" name="first_name" required />
         </div>
         <div class="form-group">
           <label>Last Name *</label>
-          <input type="text" name="last_name" required>
+          <input type="text" name="last_name" required />
         </div>
       </div>
       <!-- More fields... -->
       <div class="form-actions">
         <button type="submit" class="btn btn-primary">Add Student</button>
-        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">
+          Cancel
+        </button>
       </div>
     </form>
   </div>
@@ -1169,37 +1215,40 @@ document.addEventListener('page:loaded', (e) => {
 ```
 
 **JavaScript:**
+
 ```javascript
 // File: lms-frontend/admin/js/students.js
 
 function initializeStudentsPage() {
   let currentPage = 1;
-  
+
   // Load students
   async function loadStudents() {
-    const search = document.getElementById('searchStudent').value;
-    const classId = document.getElementById('filterClass').value;
-    const program = document.getElementById('filterProgram').value;
-    
+    const search = document.getElementById("searchStudent").value;
+    const classId = document.getElementById("filterClass").value;
+    const program = document.getElementById("filterProgram").value;
+
     const response = await fetch(
       `/api/admin/students?page=${currentPage}&search=${search}&class_id=${classId}&program=${program}`,
-      { headers: { 'Authorization': `Bearer ${getToken()}` } }
+      { headers: { Authorization: `Bearer ${getToken()}` } },
     );
-    
+
     const data = await response.json();
     renderStudentsTable(data.data);
     renderPagination(data.pagination);
   }
-  
+
   // Render table
   function renderStudentsTable(students) {
-    const tbody = document.getElementById('studentsTableBody');
-    tbody.innerHTML = students.map(student => `
+    const tbody = document.getElementById("studentsTableBody");
+    tbody.innerHTML = students
+      .map(
+        (student) => `
       <tr>
         <td>${student.student_id}</td>
         <td>${student.first_name} ${student.last_name}</td>
-        <td>${student.Class?.name || 'N/A'}</td>
-        <td>${student.Program?.name || 'N/A'}</td>
+        <td>${student.Class?.name || "N/A"}</td>
+        <td>${student.Program?.name || "N/A"}</td>
         <td>${student.gender}</td>
         <td><span class="badge ${student.status}">${student.status}</span></td>
         <td>
@@ -1207,49 +1256,55 @@ function initializeStudentsPage() {
           <button onclick="editStudent(${student.id})">Edit</button>
         </td>
       </tr>
-    `).join('');
+    `,
+      )
+      .join("");
   }
-  
+
   // Add student form submission
-  document.getElementById('addStudentForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    
-    const response = await fetch('/api/admin/students', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${getToken()}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(Object.fromEntries(formData))
+  document
+    .getElementById("addStudentForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      const response = await fetch("/api/admin/students", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(Object.fromEntries(formData)),
+      });
+
+      if (response.ok) {
+        closeModal();
+        loadStudents();
+        showNotification("Student added successfully", "success");
+      }
     });
-    
-    if (response.ok) {
-      closeModal();
-      loadStudents();
-      showNotification('Student added successfully', 'success');
-    }
-  });
-  
+
   // Initialize
   loadStudents();
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', initializeStudentsPage);
-document.addEventListener('page:loaded', (e) => {
-  if (e.detail.page === 'students') initializeStudentsPage();
+document.addEventListener("DOMContentLoaded", initializeStudentsPage);
+document.addEventListener("page:loaded", (e) => {
+  if (e.detail.page === "students") initializeStudentsPage();
 });
 ```
 
 ---
 
 #### Page 6: Attendance Management
+
 **File:** `lms-frontend/admin/page/attendance.html`
 
 **Current Status:** ✅ Exists (placeholder needs full implementation)
 
 **Features:**
+
 - Daily attendance overview (all classes)
 - Attendance by class view
 - Attendance statistics (present %, absent %, late %)
@@ -1260,11 +1315,13 @@ document.addEventListener('page:loaded', (e) => {
 ---
 
 #### Page 7: Grades & Assessments
+
 **File:** `lms-frontend/admin/page/grades.html`
 
 **Current Status:** ✅ Exists (placeholder needs full implementation)
 
 **Features:**
+
 - Ghana WAEC grading scale display (A1-F9)
 - Assessment categories management
 - Grade reports overview
@@ -1276,9 +1333,11 @@ document.addEventListener('page:loaded', (e) => {
 ### 7.3 Teacher Pages (16 pages)
 
 #### Page 1: Dashboard
+
 **File:** `lms-frontend/teacher/page/dashboard.html`
 
 **Features:**
+
 - Today's classes schedule
 - Pending assignments to grade (count)
 - Recent student submissions
@@ -1288,33 +1347,38 @@ document.addEventListener('page:loaded', (e) => {
 ---
 
 #### Page 5: Attendance
+
 **File:** `lms-frontend/teacher/page/attendance.html`
 
 **Features:**
+
 - Take attendance for today's class
 - Bulk mark attendance
 - View attendance history
 - Export class attendance
 
 **Implementation:**
+
 ```javascript
 // Attendance marking interface
 function initializeAttendance() {
   // Load today's classes
   async function loadTodayClasses() {
-    const response = await fetch('/api/teacher/classes/today', {
-      headers: { 'Authorization': `Bearer ${getToken()}` }
+    const response = await fetch("/api/teacher/classes/today", {
+      headers: { Authorization: `Bearer ${getToken()}` },
     });
     const classes = await response.json();
     renderClassSelector(classes);
   }
-  
+
   // Mark attendance
   async function markAttendance(classId) {
     const students = await fetchClassStudents(classId);
-    
+
     // Render attendance grid
-    const grid = students.map(student => `
+    const grid = students
+      .map(
+        (student) => `
       <div class="attendance-row">
         <span>${student.name}</span>
         <div class="attendance-options">
@@ -1332,11 +1396,13 @@ function initializeAttendance() {
           </label>
         </div>
       </div>
-    `).join('');
-    
-    document.getElementById('attendanceGrid').innerHTML = grid;
+    `,
+      )
+      .join("");
+
+    document.getElementById("attendanceGrid").innerHTML = grid;
   }
-  
+
   // Submit attendance
   async function submitAttendance() {
     const attendanceData = [];
@@ -1351,9 +1417,11 @@ function initializeAttendance() {
 ### 7.4 Student Pages (15 pages)
 
 #### Page 6: My Grades
+
 **File:** `lms-frontend/student/page/grades.html`
 
 **Features:**
+
 - Current grades by subject
 - Grade breakdown (CA + Exam)
 - Ghana WAEC scale display
@@ -1361,15 +1429,16 @@ function initializeAttendance() {
 - Download report card
 
 **Implementation:**
+
 ```javascript
 async function loadMyGrades() {
-  const response = await fetch('/api/student/grades', {
-    headers: { 'Authorization': `Bearer ${getToken()}` }
+  const response = await fetch("/api/student/grades", {
+    headers: { Authorization: `Bearer ${getToken()}` },
   });
   const grades = await response.json();
-  
+
   // Render grades table
-  grades.forEach(grade => {
+  grades.forEach((grade) => {
     const row = `
       <tr>
         <td>${grade.subject_name}</td>
@@ -1389,9 +1458,11 @@ async function loadMyGrades() {
 ### 7.5 Parent Pages (13 pages)
 
 #### Page 3: Academic Performance
+
 **File:** `lms-frontend/parent/page/performance.html`
 
 **Features:**
+
 - Select child (if multiple)
 - Current grades by subject
 - Grade trends (charts)
@@ -1408,19 +1479,82 @@ async function loadMyGrades() {
 // File: utils/grading.js
 
 const WAEC_SCALE = [
-  { grade: 'A1', min: 75, max: 100, interpretation: 'Excellent', gpa: 4.0, credit: true },
-  { grade: 'B2', min: 70, max: 74, interpretation: 'Very Good', gpa: 3.5, credit: true },
-  { grade: 'B3', min: 65, max: 69, interpretation: 'Good', gpa: 3.0, credit: true },
-  { grade: 'C4', min: 60, max: 64, interpretation: 'Credit', gpa: 2.5, credit: true },
-  { grade: 'C5', min: 55, max: 59, interpretation: 'Credit', gpa: 2.0, credit: true },
-  { grade: 'C6', min: 50, max: 54, interpretation: 'Credit', gpa: 1.5, credit: true },
-  { grade: 'D7', min: 45, max: 49, interpretation: 'Pass', gpa: 1.0, credit: false },
-  { grade: 'E8', min: 40, max: 44, interpretation: 'Pass', gpa: 0.5, credit: false },
-  { grade: 'F9', min: 0, max: 39, interpretation: 'Fail', gpa: 0.0, credit: false }
+  {
+    grade: "A1",
+    min: 75,
+    max: 100,
+    interpretation: "Excellent",
+    gpa: 4.0,
+    credit: true,
+  },
+  {
+    grade: "B2",
+    min: 70,
+    max: 74,
+    interpretation: "Very Good",
+    gpa: 3.5,
+    credit: true,
+  },
+  {
+    grade: "B3",
+    min: 65,
+    max: 69,
+    interpretation: "Good",
+    gpa: 3.0,
+    credit: true,
+  },
+  {
+    grade: "C4",
+    min: 60,
+    max: 64,
+    interpretation: "Credit",
+    gpa: 2.5,
+    credit: true,
+  },
+  {
+    grade: "C5",
+    min: 55,
+    max: 59,
+    interpretation: "Credit",
+    gpa: 2.0,
+    credit: true,
+  },
+  {
+    grade: "C6",
+    min: 50,
+    max: 54,
+    interpretation: "Credit",
+    gpa: 1.5,
+    credit: true,
+  },
+  {
+    grade: "D7",
+    min: 45,
+    max: 49,
+    interpretation: "Pass",
+    gpa: 1.0,
+    credit: false,
+  },
+  {
+    grade: "E8",
+    min: 40,
+    max: 44,
+    interpretation: "Pass",
+    gpa: 0.5,
+    credit: false,
+  },
+  {
+    grade: "F9",
+    min: 0,
+    max: 39,
+    interpretation: "Fail",
+    gpa: 0.0,
+    credit: false,
+  },
 ];
 
 function calculateGrade(score) {
-  const gradeInfo = WAEC_SCALE.find(g => score >= g.min && score <= g.max);
+  const gradeInfo = WAEC_SCALE.find((g) => score >= g.min && score <= g.max);
   return gradeInfo || WAEC_SCALE[WAEC_SCALE.length - 1]; // Default to F9
 }
 
@@ -1432,40 +1566,45 @@ function calculateGPA(grades) {
 
 function isUniversityEligible(grades) {
   // Need at least 6 credits (A1-C6) including core subjects
-  const credits = grades.filter(g => g.credit).length;
+  const credits = grades.filter((g) => g.credit).length;
   return credits >= 6;
 }
 
-module.exports = { calculateGrade, calculateGPA, isUniversityEligible, WAEC_SCALE };
+module.exports = {
+  calculateGrade,
+  calculateGPA,
+  isUniversityEligible,
+  WAEC_SCALE,
+};
 ```
 
 ### 8.2 Ghana Regions Dropdown
 
 ```javascript
 const GHANA_REGIONS = [
-  'Greater Accra',
-  'Ashanti',
-  'Western',
-  'Eastern',
-  'Central',
-  'Volta',
-  'Northern',
-  'Upper East',
-  'Upper West',
-  'Brong-Ahafo',
-  'Savannah',
-  'Bono East',
-  'Ahafo',
-  'Western North',
-  'North East',
-  'Oti'
+  "Greater Accra",
+  "Ashanti",
+  "Western",
+  "Eastern",
+  "Central",
+  "Volta",
+  "Northern",
+  "Upper East",
+  "Upper West",
+  "Brong-Ahafo",
+  "Savannah",
+  "Bono East",
+  "Ahafo",
+  "Western North",
+  "North East",
+  "Oti",
 ];
 
 // Render in forms
 function renderRegionDropdown(selectElement) {
-  selectElement.innerHTML = GHANA_REGIONS.map(region => 
-    `<option value="${region}">${region}</option>`
-  ).join('');
+  selectElement.innerHTML = GHANA_REGIONS.map(
+    (region) => `<option value="${region}">${region}</option>`,
+  ).join("");
 }
 ```
 
@@ -1474,62 +1613,62 @@ function renderRegionDropdown(selectElement) {
 ```javascript
 // File: backend/src/services/sms.service.js
 
-const axios = require('axios');
+const axios = require("axios");
 
 class SMSService {
   constructor() {
     this.apiKey = process.env.HUBTEL_API_KEY;
     this.apiSecret = process.env.HUBTEL_API_SECRET;
-    this.senderId = process.env.HUBTEL_SENDER_ID || 'SchoolSMS';
-    this.baseURL = 'https://smsc.hubtel.com/v1/messages/send';
+    this.senderId = process.env.HUBTEL_SENDER_ID || "SchoolSMS";
+    this.baseURL = "https://smsc.hubtel.com/v1/messages/send";
   }
-  
+
   async sendSMS(phone, message) {
     try {
       // Format Ghana phone number
       const formattedPhone = this.formatGhanaPhone(phone);
-      
+
       const response = await axios.get(this.baseURL, {
         params: {
           clientsecret: this.apiSecret,
           clientid: this.apiKey,
           from: this.senderId,
           to: formattedPhone,
-          content: message
-        }
+          content: message,
+        },
       });
-      
+
       return {
         success: true,
-        messageId: response.data.MessageId
+        messageId: response.data.MessageId,
       };
     } catch (error) {
-      console.error('SMS Error:', error);
+      console.error("SMS Error:", error);
       return { success: false, error: error.message };
     }
   }
-  
+
   formatGhanaPhone(phone) {
     // Convert to international format
-    let formatted = phone.replace(/\s/g, '');
-    
-    if (formatted.startsWith('0')) {
-      formatted = '233' + formatted.substring(1);
+    let formatted = phone.replace(/\s/g, "");
+
+    if (formatted.startsWith("0")) {
+      formatted = "233" + formatted.substring(1);
     }
-    
-    if (!formatted.startsWith('233')) {
-      formatted = '233' + formatted;
+
+    if (!formatted.startsWith("233")) {
+      formatted = "233" + formatted;
     }
-    
+
     return formatted;
   }
-  
+
   // Send attendance notification to parent
   async sendAttendanceAlert(student, status, date) {
     const message = `${student.name} was marked ${status} on ${date}. - ${student.institution_name}`;
     return this.sendSMS(student.parent_phone, message);
   }
-  
+
   // Send grade notification
   async sendGradeNotification(student, subject, grade) {
     const message = `${student.name} scored ${grade} in ${subject}. View full report at [link]. - ${student.institution_name}`;
@@ -1547,42 +1686,43 @@ module.exports = new SMSService();
 ### 9.1 Super Admin Elevated Access (🔴)
 
 #### Backend Implementation
+
 ```javascript
 // File: backend/src/services/elevatedAccess.service.js
 
-const crypto = require('crypto');
-const { ElevatedAccessToken } = require('../models');
+const crypto = require("crypto");
+const { ElevatedAccessToken } = require("../models");
 
 class ElevatedAccessService {
   // Generate access token (master PIN method)
   async generateAccessToken(userId, pin) {
     // Verify PIN (stored in user record or separate table)
     const user = await User.findByPk(userId);
-    
+
     if (!user || !user.master_pin) {
-      throw new Error('Master PIN not set');
+      throw new Error("Master PIN not set");
     }
-    
+
     const isValid = await bcrypt.compare(pin, user.master_pin);
-    
+
     if (!isValid) {
-      throw new Error('Invalid PIN');
+      throw new Error("Invalid PIN");
     }
-    
+
     // Generate token (valid for 15 minutes)
-    const token = crypto.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString("hex");
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    
+
     await ElevatedAccessToken.create({
       user_id: userId,
       token,
       expires_at: expiresAt,
-      used: false
+      used: false,
     });
-    
+
     return token;
   }
-  
+
   // Verify access token
   async verifyAccessToken(userId, token) {
     const record = await ElevatedAccessToken.findOne({
@@ -1590,31 +1730,31 @@ class ElevatedAccessService {
         user_id: userId,
         token,
         used: false,
-        expires_at: { [Op.gt]: new Date() }
-      }
+        expires_at: { [Op.gt]: new Date() },
+      },
     });
-    
+
     if (!record) {
       return false;
     }
-    
+
     // Mark as used (one-time use)
     await record.update({ used: true });
-    
+
     return true;
   }
-  
+
   // Generate 2FA code
   async generate2FACode(userId) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store in cache (Redis) or database with 5-minute expiry
     await this.store2FACode(userId, code);
-    
+
     // Send via SMS/Email
     const user = await User.findByPk(userId);
     await smsService.sendSMS(user.phone, `Your verification code is: ${code}`);
-    
+
     return true;
   }
 }
@@ -1623,44 +1763,45 @@ module.exports = new ElevatedAccessService();
 ```
 
 #### Frontend Implementation
+
 ```javascript
 // File: frontend/src/components/ElevatedAccessModal.jsx
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 function ElevatedAccessModal({ onSuccess, onCancel }) {
-  const [pin, setPin] = useState('');
+  const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      const response = await fetch('/api/superadmin/verify-access', {
-        method: 'POST',
+      const response = await fetch("/api/superadmin/verify-access", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${getToken()}`,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ pin })
+        body: JSON.stringify({ pin }),
       });
-      
+
       if (response.ok) {
         const { accessToken } = await response.json();
         onSuccess(accessToken);
       } else {
-        setError('Invalid PIN. Please try again.');
+        setError("Invalid PIN. Please try again.");
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="modal-overlay">
       <div className="modal elevated-access">
@@ -1668,7 +1809,7 @@ function ElevatedAccessModal({ onSuccess, onCancel }) {
           <h2>🔐 Elevated Access Required</h2>
           <p>This page requires additional authentication</p>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Master PIN</label>
@@ -1681,17 +1822,19 @@ function ElevatedAccessModal({ onSuccess, onCancel }) {
               required
             />
           </div>
-          
+
           {error && <div className="error">{error}</div>}
-          
+
           <div className="modal-actions">
             <button type="submit" disabled={loading}>
-              {loading ? 'Verifying...' : 'Verify'}
+              {loading ? "Verifying..." : "Verify"}
             </button>
-            <button type="button" onClick={onCancel}>Cancel</button>
+            <button type="button" onClick={onCancel}>
+              Cancel
+            </button>
           </div>
         </form>
-        
+
         <div className="help-text">
           Need help? Contact your system administrator.
         </div>
@@ -1708,24 +1851,32 @@ export default ElevatedAccessModal;
 ```javascript
 // File: backend/src/utils/encryption.js
 
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY; // 32 bytes
 const IV_LENGTH = 16;
 
 function encrypt(text) {
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  const cipher = crypto.createCipheriv(
+    "aes-256-cbc",
+    Buffer.from(ENCRYPTION_KEY),
+    iv,
+  );
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString('hex') + ':' + encrypted.toString('hex');
+  return iv.toString("hex") + ":" + encrypted.toString("hex");
 }
 
 function decrypt(text) {
-  const parts = text.split(':');
-  const iv = Buffer.from(parts.shift(), 'hex');
-  const encryptedText = Buffer.from(parts.join(':'), 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  const parts = text.split(":");
+  const iv = Buffer.from(parts.shift(), "hex");
+  const encryptedText = Buffer.from(parts.join(":"), "hex");
+  const decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    Buffer.from(ENCRYPTION_KEY),
+    iv,
+  );
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
   return decrypted.toString();
@@ -1739,27 +1890,27 @@ module.exports = { encrypt, decrypt };
 ```javascript
 // File: backend/src/middleware/rateLimit.middleware.js
 
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 // General API rate limit
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 requests per window
-  message: 'Too many requests, please try again later'
+  message: "Too many requests, please try again later",
 });
 
 // Login rate limit (stricter)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5, // 5 login attempts
-  message: 'Too many login attempts, please try again later'
+  message: "Too many login attempts, please try again later",
 });
 
 // Super admin restricted actions
 const restrictedLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: 10,
-  message: 'Rate limit exceeded for sensitive operations'
+  message: "Rate limit exceeded for sensitive operations",
 });
 
 module.exports = { apiLimiter, loginLimiter, restrictedLimiter };
@@ -1774,30 +1925,26 @@ module.exports = { apiLimiter, loginLimiter, restrictedLimiter };
 ```javascript
 // File: backend/tests/unit/grading.test.js
 
-const { calculateGrade, calculateGPA } = require('../../src/utils/grading');
+const { calculateGrade, calculateGPA } = require("../../src/utils/grading");
 
-describe('WAEC Grading System', () => {
-  test('should return A1 for score 85', () => {
+describe("WAEC Grading System", () => {
+  test("should return A1 for score 85", () => {
     const grade = calculateGrade(85);
-    expect(grade.grade).toBe('A1');
-    expect(grade.interpretation).toBe('Excellent');
+    expect(grade.grade).toBe("A1");
+    expect(grade.interpretation).toBe("Excellent");
     expect(grade.credit).toBe(true);
   });
-  
-  test('should return F9 for score 25', () => {
+
+  test("should return F9 for score 25", () => {
     const grade = calculateGrade(25);
-    expect(grade.grade).toBe('F9');
+    expect(grade.grade).toBe("F9");
     expect(grade.credit).toBe(false);
   });
-  
-  test('should calculate GPA correctly', () => {
-    const grades = [
-      { gpa: 4.0 },
-      { gpa: 3.5 },
-      { gpa: 3.0 }
-    ];
+
+  test("should calculate GPA correctly", () => {
+    const grades = [{ gpa: 4.0 }, { gpa: 3.5 }, { gpa: 3.0 }];
     const gpa = calculateGPA(grades);
-    expect(gpa).toBe('3.50');
+    expect(gpa).toBe("3.50");
   });
 });
 ```
@@ -1807,31 +1954,27 @@ describe('WAEC Grading System', () => {
 ```javascript
 // File: backend/tests/integration/auth.test.js
 
-const request = require('supertest');
-const app = require('../../src/app');
+const request = require("supertest");
+const app = require("../../src/app");
 
-describe('Authentication', () => {
-  test('POST /api/auth/login - should login successfully', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: 'admin@achimota.edu.gh',
-        password: 'password'
-      });
-    
+describe("Authentication", () => {
+  test("POST /api/auth/login - should login successfully", async () => {
+    const response = await request(app).post("/api/auth/login").send({
+      email: "admin@achimota.edu.gh",
+      password: "password",
+    });
+
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('token');
-    expect(response.body).toHaveProperty('user');
+    expect(response.body).toHaveProperty("token");
+    expect(response.body).toHaveProperty("user");
   });
-  
-  test('POST /api/auth/login - should fail with invalid credentials', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: 'admin@achimota.edu.gh',
-        password: 'wrongpassword'
-      });
-    
+
+  test("POST /api/auth/login - should fail with invalid credentials", async () => {
+    const response = await request(app).post("/api/auth/login").send({
+      email: "admin@achimota.edu.gh",
+      password: "wrongpassword",
+    });
+
     expect(response.status).toBe(401);
   });
 });
@@ -1842,35 +1985,35 @@ describe('Authentication', () => {
 ```javascript
 // File: frontend/cypress/e2e/admin/students.cy.js
 
-describe('Students Management', () => {
+describe("Students Management", () => {
   beforeEach(() => {
     // Login as admin
-    cy.login('admin@achimota.edu.gh', 'password');
-    cy.visit('/admin/students');
+    cy.login("admin@achimota.edu.gh", "password");
+    cy.visit("/admin/students");
   });
-  
-  it('should display students list', () => {
-    cy.get('.students-table tbody tr').should('have.length.at.least', 1);
+
+  it("should display students list", () => {
+    cy.get(".students-table tbody tr").should("have.length.at.least", 1);
   });
-  
-  it('should add new student', () => {
-    cy.get('#addStudentBtn').click();
-    cy.get('#addStudentModal').should('be.visible');
-    
-    cy.get('input[name="first_name"]').type('Kofi');
-    cy.get('input[name="last_name"]').type('Mensah');
-    cy.get('input[name="email"]').type('kofi.mensah@example.com');
-    cy.get('select[name="gender"]').select('Male');
-    cy.get('select[name="class_id"]').select('SHS 1A');
-    
-    cy.get('#addStudentForm').submit();
-    
-    cy.contains('Student added successfully').should('be.visible');
+
+  it("should add new student", () => {
+    cy.get("#addStudentBtn").click();
+    cy.get("#addStudentModal").should("be.visible");
+
+    cy.get('input[name="first_name"]').type("Kofi");
+    cy.get('input[name="last_name"]').type("Mensah");
+    cy.get('input[name="email"]').type("kofi.mensah@example.com");
+    cy.get('select[name="gender"]').select("Male");
+    cy.get('select[name="class_id"]').select("SHS 1A");
+
+    cy.get("#addStudentForm").submit();
+
+    cy.contains("Student added successfully").should("be.visible");
   });
-  
-  it('should search students', () => {
-    cy.get('#searchStudent').type('Kofi');
-    cy.get('.students-table tbody tr').should('contain', 'Kofi');
+
+  it("should search students", () => {
+    cy.get("#searchStudent").type("Kofi");
+    cy.get(".students-table tbody tr").should("contain", "Kofi");
   });
 });
 ```
@@ -1887,7 +2030,7 @@ Production Server Specifications:
   CPU: 4+ cores
   RAM: 8GB minimum, 16GB recommended
   Storage: 100GB SSD minimum
-  
+
 Software Stack:
   - Node.js 18+ (if using MERN)
   - MySQL 8.0
@@ -1899,6 +2042,7 @@ Software Stack:
 ### 11.2 Deployment Steps
 
 #### Step 1: Server Setup
+
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
@@ -1919,6 +2063,7 @@ sudo npm install -g pm2
 ```
 
 #### Step 2: Database Setup
+
 ```bash
 # Create database
 sudo mysql -u root -p
@@ -1934,6 +2079,7 @@ mysql -u lms_user -p ghana_shs_lms < /path/to/lms.sql
 ```
 
 #### Step 3: Deploy Backend
+
 ```bash
 # Clone repository
 cd /var/www
@@ -1962,6 +2108,7 @@ pm2 startup
 ```
 
 #### Step 4: Deploy Frontend
+
 ```bash
 cd /var/www/ghana-shs-lms/frontend
 
@@ -1973,13 +2120,14 @@ sudo cp -r dist/* /var/www/html/lms/
 ```
 
 #### Step 5: Configure Nginx
+
 ```nginx
 # File: /etc/nginx/sites-available/lms
 
 server {
     listen 80;
     server_name yourdomain.com www.yourdomain.com;
-    
+
     # Redirect to HTTPS
     return 301 https://$server_name$request_uri;
 }
@@ -1987,17 +2135,17 @@ server {
 server {
     listen 443 ssl http2;
     server_name yourdomain.com www.yourdomain.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
-    
+
     # Frontend
     location / {
         root /var/www/html/lms;
         index index.html;
         try_files $uri $uri/ /index.html;
     }
-    
+
     # API
     location /api {
         proxy_pass http://localhost:5000;
@@ -2007,7 +2155,7 @@ server {
         proxy_set_header Host $host;
         proxy_cache_bypass $http_upgrade;
     }
-    
+
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
@@ -2187,21 +2335,21 @@ pm2 monit            # Monitor resources
 
 ### 13.3 Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
+| Issue                      | Solution                                           |
+| -------------------------- | -------------------------------------------------- |
 | Cannot connect to database | Check MySQL service: `sudo systemctl status mysql` |
-| JWT token invalid | Check JWT_SECRET in .env matches |
-| File upload fails | Check permissions on upload directory |
-| 502 Bad Gateway | Check if API is running: `pm2 status` |
-| CORS errors | Check CORS settings in backend config |
+| JWT token invalid          | Check JWT_SECRET in .env matches                   |
+| File upload fails          | Check permissions on upload directory              |
+| 502 Bad Gateway            | Check if API is running: `pm2 status`              |
+| CORS errors                | Check CORS settings in backend config              |
 
 ---
 
 ## Document History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | March 2, 2026 | Initial implementation guide | System |
+| Version | Date          | Changes                      | Author |
+| ------- | ------------- | ---------------------------- | ------ |
+| 1.0     | March 2, 2026 | Initial implementation guide | System |
 
 ---
 
