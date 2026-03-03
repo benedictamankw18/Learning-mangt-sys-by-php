@@ -206,6 +206,7 @@ class ProgramRepository
     {
         try {
             $allowedFields = [
+                'institution_id',
                 'program_code',
                 'program_name',
                 'description',

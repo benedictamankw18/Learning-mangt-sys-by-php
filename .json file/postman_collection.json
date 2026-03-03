@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ghana SHS LMS REST API",
-    "description": "Ghana Senior High School Learning Management System REST API Collection\n\nIMPORTANT SETUP STEPS:\n1. Import database_lms_api.sql to create the database schema\n2. Run setup.sql to create sample data (Accra SHS)\n3. Use the 'Setup & Configuration' folder to retrieve IDs\n4. Update collection variables with the retrieved IDs\n5. Login to get access token (saved automatically)\n\nDEFAULT CREDENTIALS (from setup.sql):\n- Super Admin: superadmin / password\n- Admin: admin / password\n- Teacher: kofi.mensah / password\n- Teacher: ama.asante / password\n- Student: kwame.osei / password\n- Student: abena.adjei / password",
+    "description": "Ghana Senior High School Learning Management System REST API Collection\n\nLast Updated: March 3, 2026\nTotal Endpoints: 230+\n\n🔒 UUID SECURITY UPDATE (March 3, 2026):\nAPI now uses UUIDs instead of integer IDs for enhanced security.\n- UUIDs prevent ID enumeration attacks\n- UUID variables: student_uuid, teacher_uuid, user_uuid, institution_uuid, class_uuid, subject_uuid, assignment_uuid, message_uuid, notification_uuid, announcement_uuid, event_uuid, grade_report_uuid, course_content_uuid\n- Integer ID variables (unchanged): course_id, assessment_id, parent_id, role_id, etc.\n- Setup scripts automatically retrieve UUIDs and populate collection variables\n\nIMPORTANT SETUP STEPS:\n1. Import database_lms_api.sql to create the database schema\n2. Run setup.sql to create sample data (Accra SHS)\n3. Use the 'Setup & Configuration' folder to retrieve UUIDs\n4. Update collection variables with the retrieved UUIDs (done automatically by setup scripts)\n5. Login to get access token (saved automatically)\n\nDEFAULT CREDENTIALS (from setup.sql):\n- Super Admin: superadmin / password\n- Admin: admin / password\n- Teacher: kofi.mensah / password\n- Teacher: ama.asante / password\n- Student: kwame.osei / password\n- Student: abena.adjei / password\n\nNEW API SECTIONS (March 2026):\n- Events & Calendar (9 endpoints)\n- Grade Reports & Transcripts (11 endpoints)\n- User Activity & Audit Trail (10 endpoints)\n- Course Content & Lesson Plans (9 endpoints)\n- Subscriptions & Billing (10 endpoints)\n- File Upload (4 endpoints)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -16,13 +16,68 @@
       "type": "string"
     },
     {
-      "key": "student_id",
-      "value": "1",
+      "key": "student_uuid",
+      "value": "",
       "type": "string"
     },
     {
-      "key": "teacher_id",
-      "value": "1",
+      "key": "teacher_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "institution_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "class_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subject_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "assignment_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "message_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notification_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "announcement_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "event_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "grade_report_uuid",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_content_uuid",
+      "value": "",
       "type": "string"
     },
     {
@@ -51,11 +106,6 @@
       "type": "string"
     },
     {
-      "key": "subject_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
       "key": "parent_id",
       "value": "1",
       "type": "string"
@@ -67,11 +117,6 @@
     },
     {
       "key": "section_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
-      "key": "assignment_id",
       "value": "1",
       "type": "string"
     },
@@ -91,11 +136,6 @@
       "type": "string"
     },
     {
-      "key": "institution_id",
-      "value": "1",
-      "type": "string"
-    },
-    {
       "key": "program_id",
       "value": "1",
       "type": "string"
@@ -106,12 +146,17 @@
       "type": "string"
     },
     {
-      "key": "class_id",
+      "key": "class_subject_id",
       "value": "1",
       "type": "string"
     },
     {
-      "key": "class_subject_id",
+      "key": "user_activity_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "subscription_id",
       "value": "1",
       "type": "string"
     }
@@ -200,7 +245,7 @@
                   "if (jsonData.data && jsonData.data.length > 0) {",
                   "    var accraInstitution = jsonData.data.find(i => i.institution_code === 'ACCRA-SHS-001');",
                   "    if (accraInstitution) {",
-                  "        pm.collectionVariables.set('institution_id', accraInstitution.institution_id);",
+                  "        pm.collectionVariables.set('institution_uuid', accraInstitution.institution_id);",
                   "        console.log('Institution ID set to: ' + accraInstitution.institution_id);",
                   "    }",
                   "}"
@@ -303,7 +348,7 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.length > 0) {",
                   "    // Set first class as default",
-                  "    pm.collectionVariables.set('class_id', jsonData.data[0].class_id);",
+                  "    pm.collectionVariables.set('class_uuid', jsonData.data[0].class_id);",
                   "    console.log('Class IDs available:');",
                   "    jsonData.data.forEach(c => {",
                   "        console.log('- ' + c.class_name + ': ' + c.class_id + ' (' + c.class_code + ')');",
@@ -374,7 +419,7 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.length > 0) {",
                   "    // Set first student as default",
-                  "    pm.collectionVariables.set('student_id', jsonData.data[0].student_id);",
+                  "    pm.collectionVariables.set('student_uuid', jsonData.data[0].student_id);",
                   "    console.log('Student IDs available:');",
                   "    jsonData.data.forEach(s => {",
                   "        console.log('- ' + s.first_name + ' ' + s.last_name + ': ' + s.student_id + ' (' + s.student_id_number + ')');",
@@ -406,7 +451,7 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.length > 0) {",
                   "    // Set first teacher as default",
-                  "    pm.collectionVariables.set('teacher_id', jsonData.data[0].teacher_id);",
+                  "    pm.collectionVariables.set('teacher_uuid', jsonData.data[0].teacher_id);",
                   "    console.log('Teacher IDs available:');",
                   "    jsonData.data.forEach(t => {",
                   "        console.log('- ' + t.first_name + ' ' + t.last_name + ': ' + t.teacher_id + ' (' + t.employee_id + ')');",
@@ -438,7 +483,7 @@
                   "var jsonData = pm.response.json();",
                   "if (jsonData.data && jsonData.data.length > 0) {",
                   "    // Set first subject as default",
-                  "    pm.collectionVariables.set('subject_id', jsonData.data[0].subject_id);",
+                  "    pm.collectionVariables.set('subject_uuid', jsonData.data[0].subject_id);",
                   "    console.log('Subject IDs available:');",
                   "    jsonData.data.forEach(s => {",
                   "        console.log('- ' + s.subject_name + ': ' + s.subject_id + ' (' + s.subject_code + ')');",
@@ -682,9 +727,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}"]
+              "path": ["institutions", "{{institution_uuid}}"]
             }
           }
         },
@@ -720,9 +765,9 @@
               "raw": "{\n  \"institution_name\": \"Accra Senior High School\",\n  \"phone\": \"+233-20-123-4568\",\n  \"email\": \"contact@accrashs.edu.gh\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}"]
+              "path": ["institutions", "{{institution_uuid}}"]
             }
           }
         },
@@ -734,9 +779,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/statistics",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/statistics",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "statistics"]
+              "path": ["institutions", "{{institution_uuid}}", "statistics"]
             }
           }
         },
@@ -748,9 +793,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/users?page=1&limit=20",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/users?page=1&limit=20",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "users"],
+              "path": ["institutions", "{{institution_uuid}}", "users"],
               "query": [
                 {"key": "page", "value": "1"},
                 {"key": "limit", "value": "20"}
@@ -766,9 +811,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/programs",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/programs",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "programs"]
+              "path": ["institutions", "{{institution_uuid}}", "programs"]
             }
           }
         },
@@ -780,9 +825,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/classes?page=1&limit=20",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/classes?page=1&limit=20",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "classes"],
+              "path": ["institutions", "{{institution_uuid}}", "classes"],
               "query": [
                 {"key": "page", "value": "1"},
                 {"key": "limit", "value": "20"}
@@ -803,9 +848,9 @@
               "raw": "{\n  \"status\": \"active\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/status",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/status",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "status"]
+              "path": ["institutions", "{{institution_uuid}}", "status"]
             }
           }
         },
@@ -817,9 +862,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/settings",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/settings",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "settings"]
+              "path": ["institutions", "{{institution_uuid}}", "settings"]
             }
           }
         },
@@ -836,9 +881,9 @@
               "raw": "{\n  \"school_name\": \"Accra Senior High School\",\n  \"motto\": \"Excellence in Education\",\n  \"logo_url\": \"https://accrashs.edu.gh/logo.png\",\n  \"primary_color\": \"#1E40AF\",\n  \"secondary_color\": \"#FBBF24\",\n  \"accent_color\": \"#10B981\",\n  \"timezone\": \"Africa/Accra\",\n  \"date_format\": \"d/m/Y\",\n  \"time_format\": \"H:i\",\n  \"currency_code\": \"GHS\",\n  \"language_code\": \"en\",\n  \"grading_system\": \"percentage\",\n  \"min_passing_grade\": 50,\n  \"max_students_per_class\": 40,\n  \"academic_year_start_month\": 9,\n  \"allow_student_registration\": true,\n  \"require_email_verification\": true,\n  \"enable_notifications\": true,\n  \"enable_attendance_tracking\": true,\n  \"facebook_url\": \"https://facebook.com/accrashs\",\n  \"twitter_url\": \"https://twitter.com/accrashs\",\n  \"instagram_url\": \"https://instagram.com/accrashs\",\n  \"linkedin_url\": \"https://linkedin.com/school/accrashs\",\n  \"youtube_url\": \"https://youtube.com/accrashs\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}/settings",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}/settings",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}", "settings"]
+              "path": ["institutions", "{{institution_uuid}}", "settings"]
             }
           }
         },
@@ -850,9 +895,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/institutions/{{institution_id}}",
+              "raw": "{{base_url}}/institutions/{{institution_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["institutions", "{{institution_id}}"]
+              "path": ["institutions", "{{institution_uuid}}"]
             }
           }
         }
@@ -1132,9 +1177,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}",
+              "raw": "{{base_url}}/classes/{{class_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}"]
+              "path": ["classes", "{{class_uuid}}"]
             }
           }
         },
@@ -1170,9 +1215,9 @@
               "raw": "{\n  \"class_name\": \"SHS 1 Art 1 (Updated)\",\n  \"capacity\": 45\n}"
             },
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}",
+              "raw": "{{base_url}}/classes/{{class_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}"]
+              "path": ["classes", "{{class_uuid}}"]
             }
           }
         },
@@ -1184,9 +1229,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}/students",
+              "raw": "{{base_url}}/classes/{{class_uuid}}/students",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}", "students"]
+              "path": ["classes", "{{class_uuid}}", "students"]
             }
           }
         },
@@ -1198,9 +1243,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}/class-subjects",
+              "raw": "{{base_url}}/classes/{{class_uuid}}/class-subjects",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}", "class-subjects"]
+              "path": ["classes", "{{class_uuid}}", "class-subjects"]
             }
           }
         },
@@ -1212,9 +1257,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}/schedule",
+              "raw": "{{base_url}}/classes/{{class_uuid}}/schedule",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}", "schedule"]
+              "path": ["classes", "{{class_uuid}}", "schedule"]
             }
           }
         },
@@ -1231,9 +1276,9 @@
               "raw": "{\n  \"teacher_id\": {{teacher_id}}\n}"
             },
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}/assign-teacher",
+              "raw": "{{base_url}}/classes/{{class_uuid}}/assign-teacher",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}", "assign-teacher"]
+              "path": ["classes", "{{class_uuid}}", "assign-teacher"]
             }
           }
         },
@@ -1245,9 +1290,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/classes/{{class_id}}",
+              "raw": "{{base_url}}/classes/{{class_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["classes", "{{class_id}}"]
+              "path": ["classes", "{{class_uuid}}"]
             }
           }
         }
@@ -1264,14 +1309,14 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/class-subjects?institution_id={{institution_id}}&class_id={{class_id}}&subject_id={{subject_id}}&teacher_id={{teacher_id}}&page=1&limit=20",
+              "raw": "{{base_url}}/class-subjects?institution_id={{institution_uuid}}&class_id={{class_uuid}}&subject_id={{subject_uuid}}&teacher_id={{teacher_uuid}}&page=1&limit=20",
               "host": ["{{base_url}}"],
               "path": ["class-subjects"],
               "query": [
-                {"key": "institution_id", "value": "{{institution_id}}"},
-                {"key": "class_id", "value": "{{class_id}}"},
-                {"key": "subject_id", "value": "{{subject_id}}"},
-                {"key": "teacher_id", "value": "{{teacher_id}}"},
+                {"key": "institution_id", "value": "{{institution_uuid}}"},
+                {"key": "class_id", "value": "{{class_uuid}}"},
+                {"key": "subject_id", "value": "{{subject_uuid}}"},
+                {"key": "teacher_id", "value": "{{teacher_uuid}}"},
                 {"key": "page", "value": "1"},
                 {"key": "limit", "value": "20"}
               ]
@@ -1302,7 +1347,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"class_id\": {{class_id}},\n  \"subject_id\": {{subject_id}},\n  \"teacher_id\": {{teacher_id}},\n  \"academic_year_id\": {{academic_year_id}},\n  \"semester_id\": {{semester_id}},\n  \"status\": \"active\"\n}"
+              "raw": "{\n  \"institution_id\": {{institution_uuid}},\n  \"class_id\": {{class_uuid}},\n  \"subject_id\": {{subject_uuid}},\n  \"teacher_id\": {{teacher_uuid}},\n  \"academic_year_id\": {{academic_year_id}},\n  \"semester_id\": {{semester_id}},\n  \"status\": \"active\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/class-subjects",
@@ -1321,7 +1366,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacher_id\": {{teacher_id}},\n  \"status\": \"active\",\n  \"duration_weeks\": 18\n}"
+              "raw": "{\n  \"teacher_id\": {{teacher_uuid}},\n  \"status\": \"active\",\n  \"duration_weeks\": 18\n}"
             },
             "url": {
               "raw": "{{base_url}}/class-subjects/{{class_subject_id}}",
@@ -1671,9 +1716,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}",
+              "raw": "{{base_url}}/students/{{student_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}"]
+              "path": ["students", "{{student_uuid}}"]
             }
           }
         },
@@ -1685,9 +1730,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}/courses",
+              "raw": "{{base_url}}/students/{{student_uuid}}/courses",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}", "courses"]
+              "path": ["students", "{{student_uuid}}", "courses"]
             }
           }
         },
@@ -1701,7 +1746,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"course_id\": {{course_id}},\n  \"student_id\": {{student_id}}\n}",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"student_id\": {{student_uuid}}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1761,9 +1806,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}",
+              "raw": "{{base_url}}/students/{{student_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}"]
+              "path": ["students", "{{student_uuid}}"]
             }
           }
         }
@@ -1798,9 +1843,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/teachers/{{teacher_id}}",
+              "raw": "{{base_url}}/teachers/{{teacher_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["teachers", "{{teacher_id}}"]
+              "path": ["teachers", "{{teacher_uuid}}"]
             }
           }
         },
@@ -1860,9 +1905,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/teachers/{{teacher_id}}/courses",
+              "raw": "{{base_url}}/teachers/{{teacher_uuid}}/courses",
               "host": ["{{base_url}}"],
-              "path": ["teachers", "{{teacher_id}}", "courses"]
+              "path": ["teachers", "{{teacher_uuid}}", "courses"]
             }
           }
         },
@@ -1874,9 +1919,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/teachers/{{teacher_id}}/schedule",
+              "raw": "{{base_url}}/teachers/{{teacher_uuid}}/schedule",
               "host": ["{{base_url}}"],
-              "path": ["teachers", "{{teacher_id}}", "schedule"]
+              "path": ["teachers", "{{teacher_uuid}}", "schedule"]
             }
           }
         },
@@ -1888,9 +1933,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/teachers/{{teacher_id}}",
+              "raw": "{{base_url}}/teachers/{{teacher_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["teachers", "{{teacher_id}}"]
+              "path": ["teachers", "{{teacher_uuid}}"]
             }
           }
         }
@@ -2439,7 +2484,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"user_id\": 2,\n  \"title\": \"New Assignment Posted\",\n  \"message\": \"A new assignment has been posted for Data Structures course. Due date: Feb 20, 2026\",\n  \"notification_type\": \"assignment\",\n  \"priority_level\": \"High\",\n  \"expires_at\": \"2026-02-20 23:59:59\"\n}",
+              "raw": "{\n  \"user_id\": 2,\n  \"title\": \"New Assignment Posted\",\n  \"message\": \"A new assignment has been posted for Data Structures course. Due date: Feb 20, 2026\",\n  \"notification_type\": \"assignment\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3025,9 +3070,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}/attendance?course_id={{course_id}}",
+              "raw": "{{base_url}}/students/{{student_uuid}}/attendance?course_id={{course_id}}",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}", "attendance"],
+              "path": ["students", "{{student_uuid}}", "attendance"],
               "query": [{"key": "course_id", "value": "{{course_id}}"}]
             }
           }
@@ -3040,9 +3085,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}/attendance/stats?course_id={{course_id}}",
+              "raw": "{{base_url}}/students/{{student_uuid}}/attendance/stats?course_id={{course_id}}",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}", "attendance", "stats"],
+              "path": ["students", "{{student_uuid}}", "attendance", "stats"],
               "query": [{"key": "course_id", "value": "{{course_id}}"}]
             }
           }
@@ -3057,7 +3102,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"status\": \"present\"\n}",
+              "raw": "{\n  \"student_id\": {{student_uuid}},\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"status\": \"present\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3081,7 +3126,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"students\": [\n    {\"student_id\": {{student_id}}, \"status\": \"present\"},\n    {\"student_id\": 2, \"status\": \"absent\"},\n    {\"student_id\": 3, \"status\": \"late\", \"remarks\": \"Traffic\"}\n  ]\n}",
+              "raw": "{\n  \"course_id\": {{course_id}},\n  \"attendance_date\": \"2026-02-14\",\n  \"students\": [\n    {\"student_id\": {{student_uuid}}, \"status\": \"present\"},\n    {\"student_id\": 2, \"status\": \"absent\"},\n    {\"student_id\": 3, \"status\": \"late\", \"remarks\": \"Traffic\"}\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3420,9 +3465,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "raw": "{{base_url}}/subjects/{{subject_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["subjects", "{{subject_id}}"]
+              "path": ["subjects", "{{subject_uuid}}"]
             }
           }
         },
@@ -3468,9 +3513,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "raw": "{{base_url}}/subjects/{{subject_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["subjects", "{{subject_id}}"]
+              "path": ["subjects", "{{subject_uuid}}"]
             }
           }
         },
@@ -3482,9 +3527,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/subjects/{{subject_id}}",
+              "raw": "{{base_url}}/subjects/{{subject_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["subjects", "{{subject_id}}"]
+              "path": ["subjects", "{{subject_uuid}}"]
             }
           }
         }
@@ -3808,9 +3853,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}/results?semester_id={{semester_id}}",
+              "raw": "{{base_url}}/students/{{student_uuid}}/results?semester_id={{semester_id}}",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}", "results"],
+              "path": ["students", "{{student_uuid}}", "results"],
               "query": [
                 {"key": "semester_id", "value": "{{semester_id}}"}
               ]
@@ -3858,7 +3903,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"student_id\": {{student_id}},\n  \"course_id\": {{course_id}},\n  \"subject_id\": {{subject_id}},\n  \"semester_id\": {{semester_id}},\n  \"class_score\": 35,\n  \"exam_score\": 55,\n  \"total_score\": 90,\n  \"grade\": \"A\",\n  \"grade_point\": 4.0,\n  \"remark\": \"Excellent performance\"\n}",
+              "raw": "{\n  \"student_id\": {{student_uuid}},\n  \"course_id\": {{course_id}},\n  \"subject_id\": {{subject_uuid}},\n  \"semester_id\": {{semester_id}},\n  \"class_score\": 35,\n  \"exam_score\": 55,\n  \"total_score\": 90,\n  \"grade\": \"A\",\n  \"grade_point\": 4.0,\n  \"remark\": \"Excellent performance\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3923,9 +3968,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/teachers/{{teacher_id}}/subjects",
+              "raw": "{{base_url}}/teachers/{{teacher_uuid}}/subjects",
               "host": ["{{base_url}}"],
-              "path": ["teachers", "{{teacher_id}}", "subjects"]
+              "path": ["teachers", "{{teacher_uuid}}", "subjects"]
             }
           }
         },
@@ -3937,9 +3982,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/subjects/{{subject_id}}/teachers",
+              "raw": "{{base_url}}/subjects/{{subject_uuid}}/teachers",
               "host": ["{{base_url}}"],
-              "path": ["subjects", "{{subject_id}}", "teachers"]
+              "path": ["subjects", "{{subject_uuid}}", "teachers"]
             }
           }
         },
@@ -3967,7 +4012,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"teacher_id\": {{teacher_id}},\n  \"subject_id\": {{subject_id}},\n  \"assigned_date\": \"2026-02-14\"\n}",
+              "raw": "{\n  \"teacher_id\": {{teacher_uuid}},\n  \"subject_id\": {{subject_uuid}},\n  \"assigned_date\": \"2026-02-14\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4046,9 +4091,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/students/{{student_id}}/parents",
+              "raw": "{{base_url}}/students/{{student_uuid}}/parents",
               "host": ["{{base_url}}"],
-              "path": ["students", "{{student_id}}", "parents"]
+              "path": ["students", "{{student_uuid}}", "parents"]
             }
           }
         },
@@ -4076,7 +4121,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"parent_id\": {{parent_id}},\n  \"student_id\": {{student_id}},\n  \"relationship_type\": \"Father\",\n  \"is_primary_contact\": 1,\n  \"can_pickup\": 1\n}",
+              "raw": "{\n  \"parent_id\": {{parent_id}},\n  \"student_id\": {{student_uuid}},\n  \"relationship_type\": \"Father\",\n  \"is_primary_contact\": 1,\n  \"can_pickup\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4236,9 +4281,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "raw": "{{base_url}}/assignments/{{assignment_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["assignments", "{{assignment_id}}"]
+              "path": ["assignments", "{{assignment_uuid}}"]
             }
           }
         },
@@ -4284,9 +4329,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "raw": "{{base_url}}/assignments/{{assignment_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["assignments", "{{assignment_id}}"]
+              "path": ["assignments", "{{assignment_uuid}}"]
             }
           }
         },
@@ -4298,9 +4343,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/assignments/{{assignment_id}}",
+              "raw": "{{base_url}}/assignments/{{assignment_uuid}}",
               "host": ["{{base_url}}"],
-              "path": ["assignments", "{{assignment_id}}"]
+              "path": ["assignments", "{{assignment_uuid}}"]
             }
           }
         },
@@ -4312,9 +4357,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/assignments/{{assignment_id}}/submissions",
+              "raw": "{{base_url}}/assignments/{{assignment_uuid}}/submissions",
               "host": ["{{base_url}}"],
-              "path": ["assignments", "{{assignment_id}}", "submissions"]
+              "path": ["assignments", "{{assignment_uuid}}", "submissions"]
             }
           }
         },
@@ -4336,9 +4381,9 @@
               }
             },
             "url": {
-              "raw": "{{base_url}}/assignments/{{assignment_id}}/submit",
+              "raw": "{{base_url}}/assignments/{{assignment_uuid}}/submit",
               "host": ["{{base_url}}"],
-              "path": ["assignments", "{{assignment_id}}", "submit"]
+              "path": ["assignments", "{{assignment_uuid}}", "submit"]
             }
           }
         },
@@ -4792,9 +4837,9 @@
               {"key": "Authorization", "value": "Bearer {{access_token}}"}
             ],
             "url": {
-              "raw": "{{base_url}}/users/{{student_id}}/login-activity?page=1&limit=20",
+              "raw": "{{base_url}}/users/{{student_uuid}}/login-activity?page=1&limit=20",
               "host": ["{{base_url}}"],
-              "path": ["users", "{{student_id}}", "login-activity"],
+              "path": ["users", "{{student_uuid}}", "login-activity"],
               "query": [
                 {"key": "page", "value": "1"},
                 {"key": "limit", "value": "20"}
@@ -4930,6 +4975,1010 @@
                 {"key": "page", "value": "1"},
                 {"key": "limit", "value": "20"}
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events & Calendar",
+      "description": "Event management and calendar system for academic and school events",
+      "item": [
+        {
+          "name": "Get All Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events?institution_id={{institution_id}}&type=academic&page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["events"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "type", "value": "academic", "description": "school, academic, sports, cultural, exam, holiday, meeting, other"},
+                {"key": "start_date", "value": "", "disabled": true},
+                {"key": "end_date", "value": "", "disabled": true},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Upcoming Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/upcoming?days=30&institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["events", "upcoming"],
+              "query": [
+                {"key": "days", "value": "30"},
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar View",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/calendar?month=3&year=2026&institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["events", "calendar"],
+              "query": [
+                {"key": "month", "value": "3"},
+                {"key": "year", "value": "2026"},
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Academic Calendar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/academic-calendar?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["events", "academic-calendar"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "academic_year_id", "value": "{{academic_year_id}}", "disabled": true, "description": "Not supported - events table doesn't have academic_year_id column"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Events by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/type/exam?institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["events", "type", "exam"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Event by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/1",
+              "host": ["{{base_url}}"],
+              "path": ["events", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Event (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"type\": \"academic\",\n  \"title\": \"Mid-Term Examination\",\n  \"description\": \"SHS 2 Mathematics Mid-Term Exam\",\n  \"start_date\": \"2026-04-15\",\n  \"end_date\": \"2026-04-20\",\n  \"location\": \"Exam Hall A\",\n  \"all_day\": false,\n  \"start_time\": \"08:00:00\",\n  \"end_time\": \"11:00:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/events",
+              "host": ["{{base_url}}"],
+              "path": ["events"]
+            }
+          }
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Mid-Term Examination (Updated)\",\n  \"description\": \"Updated exam details\",\n  \"start_date\": \"2026-04-16\",\n  \"end_date\": \"2026-04-21\",\n  \"location\": \"Exam Hall B\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/events/1",
+              "host": ["{{base_url}}"],
+              "path": ["events", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/events/1",
+              "host": ["{{base_url}}"],
+              "path": ["events", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Grade Reports & Transcripts",
+      "description": "Student report cards, transcripts, and grade report generation",
+      "item": [
+        {
+          "name": "Get All Grade Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports?student_id={{student_uuid}}&semester_id={{semester_id}}&page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports"],
+              "query": [
+                {"key": "student_id", "value": "{{student_uuid}}"},
+                {"key": "semester_id", "value": "{{semester_id}}"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Report Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/stats?institution_id={{institution_id}}&semester_id={{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "stats"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "semester_id", "value": "{{semester_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Class Reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/class/{{class_uuid}}?semester_id={{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "class", "{{class_uuid}}"],
+              "query": [
+                {"key": "semester_id", "value": "{{semester_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Student Report Card",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/student/{{student_uuid}}/report-card?semester_id={{semester_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "student", "{{student_uuid}}", "report-card"],
+              "query": [
+                {"key": "semester_id", "value": "{{semester_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Student Transcript",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/student/{{student_uuid}}/transcript",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "student", "{{student_uuid}}", "transcript"]
+            }
+          }
+        },
+        {
+          "name": "Get Grade Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "1"]
+            }
+          }
+        },
+        {
+          "name": "Generate Grade Report (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_uuid}},\n  \"semester_id\": {{semester_id}},\n  \"class_id\": {{class_uuid}},\n  \"academic_year_id\": {{academic_year_id}},\n  \"remarks\": \"Excellent performance in all subjects. Keep it up!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-reports/generate",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Generate Reports (Teacher/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_id\": {{class_id}},\n  \"semester_id\": {{semester_id}},\n  \"academic_year_id\": {{academic_year_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-reports/bulk-generate",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "bulk-generate"]
+            }
+          }
+        },
+        {
+          "name": "Update Grade Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"remarks\": \"Good performance. Needs improvement in Mathematics.\",\n  \"attendance_percentage\": 95.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-reports/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "1"]
+            }
+          }
+        },
+        {
+          "name": "Publish/Unpublish Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/grade-reports/1/publish",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "1", "publish"]
+            }
+          }
+        },
+        {
+          "name": "Delete Grade Report",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/grade-reports/1",
+              "host": ["{{base_url}}"],
+              "path": ["grade-reports", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Activity & Audit Trail",
+      "description": "Activity tracking, audit logs, and user history monitoring",
+      "item": [
+        {
+          "name": "Get All Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity?user_id={{student_uuid}}&action=view&page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity"],
+              "query": [
+                {"key": "user_id", "value": "{{student_uuid}}"},
+                {"key": "action", "value": "view", "description": "create, update, delete, view, login, logout"},
+                {"key": "entity_type", "value": "", "disabled": true},
+                {"key": "start_date", "value": "", "disabled": true},
+                {"key": "end_date", "value": "", "disabled": true},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Activities",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/recent?limit=100&institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "recent"],
+              "query": [
+                {"key": "limit", "value": "100"},
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activity Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/stats?start_date=2026-01-01&end_date=2026-12-31&institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "stats"],
+              "query": [
+                {"key": "start_date", "value": "2026-01-01"},
+                {"key": "end_date", "value": "2026-12-31"},
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Audit Trail (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/audit-trail?start_date=2026-03-01&end_date=2026-03-03&institution_id={{institution_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "audit-trail"],
+              "query": [
+                {"key": "start_date", "value": "2026-03-01"},
+                {"key": "end_date", "value": "2026-03-03"},
+                {"key": "institution_id", "value": "{{institution_id}}"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/user/{{student_uuid}}?start_date=2026-01-01&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "user", "{{student_uuid}}"],
+              "query": [
+                {"key": "start_date", "value": "2026-01-01"},
+                {"key": "limit", "value": "100"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Action",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/action/delete?institution_id={{institution_id}}&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "action", "delete"],
+              "query": [
+                {"key": "institution_id", "value": "{{institution_id}}"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Entity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/entity/student/{{student_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "entity", "student", "{{student_uuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Activity by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/1",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "1"]
+            }
+          }
+        },
+        {
+          "name": "Log Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": {{student_uuid}},\n  \"institution_id\": {{institution_uuid}},\n  \"action\": \"view\",\n  \"entity_type\": \"student\",\n  \"entity_id\": {{student_uuid}},\n  \"description\": \"Viewed student profile\",\n  \"ip_address\": \"192.168.1.100\",\n  \"user_agent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/user-activity",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity"]
+            }
+          }
+        },
+        {
+          "name": "Cleanup Old Activities (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/user-activity/cleanup?older_than_days=90",
+              "host": ["{{base_url}}"],
+              "path": ["user-activity", "cleanup"],
+              "query": [
+                {"key": "older_than_days", "value": "90"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Course Content & Lesson Plans",
+      "description": "Lesson plans, course materials, and content management for teachers",
+      "item": [
+        {
+          "name": "Get All Course Content",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-content?teacher_id={{teacher_uuid}}&type=lesson&page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["course-content"],
+              "query": [
+                {"key": "teacher_id", "value": "{{teacher_uuid}}"},
+                {"key": "type", "value": "lesson", "description": "lesson, module, unit, topic, video, document, quiz, assignment"},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Content by Class Subject",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-content/class-subject/{{class_subject_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "class-subject", "{{class_subject_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Content by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-content/1",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Course Content (Teacher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"class_subject_id\": {{class_subject_id}},\n  \"teacher_id\": {{teacher_uuid}},\n  \"type\": \"lesson\",\n  \"title\": \"Introduction to Quadratic Equations\",\n  \"description\": \"Learn the basics of quadratic equations and their applications\",\n  \"content\": \"<h2>Lesson Objectives</h2><p>By the end of this lesson, students will be able to:</p><ul><li>Define quadratic equations</li><li>Identify coefficients</li><li>Solve simple quadratic equations</li></ul>\",\n  \"video_url\": \"https://youtube.com/watch?v=example\",\n  \"duration_minutes\": 45,\n  \"order_position\": 1,\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/course-content",
+              "host": ["{{base_url}}"],
+              "path": ["course-content"]
+            }
+          }
+        },
+        {
+          "name": "Duplicate Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"target_class_subject_id\": 5,\n  \"modifications\": {\n    \"title\": \"Introduction to Quadratic Equations (SHS 2B)\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/course-content/1/duplicate",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "1", "duplicate"]
+            }
+          }
+        },
+        {
+          "name": "Reorder Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\"id\": 1, \"order_position\": 1},\n    {\"id\": 3, \"order_position\": 2},\n    {\"id\": 2, \"order_position\": 3}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/course-content/reorder",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "reorder"]
+            }
+          }
+        },
+        {
+          "name": "Update Course Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Quadratic Equations (Updated)\",\n  \"description\": \"Updated lesson content\",\n  \"content\": \"<h2>Updated Content</h2><p>New content here...</p>\",\n  \"duration_minutes\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/course-content/1",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "1"]
+            }
+          }
+        },
+        {
+          "name": "Publish/Unpublish Content",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_published\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/course-content/1/publish",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "1", "publish"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course Content",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/course-content/1",
+              "host": ["{{base_url}}"],
+              "path": ["course-content", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions & Billing (Super Admin)",
+      "description": "Institution subscription management and billing system",
+      "item": [
+        {
+          "name": "Get All Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions?status=active&page=1&limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions"],
+              "query": [
+                {"key": "status", "value": "active", "description": "active, expired, cancelled"},
+                {"key": "institution_id", "value": "", "disabled": true},
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "50"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Plans (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/plans",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "plans"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/stats",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Institution Active Subscription",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/institution/{{institution_uuid}}/active",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "institution", "{{institution_uuid}}", "active"]
+            }
+          }
+        },
+        {
+          "name": "Check Subscription Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/check/{{institution_uuid}}",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "check", "{{institution_uuid}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/1",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"institution_id\": {{institution_id}},\n  \"plan_name\": \"Standard\",\n  \"start_date\": \"2026-03-03\",\n  \"end_date\": \"2027-03-02\",\n  \"amount_paid\": 10000,\n  \"payment_method\": \"bank_transfer\",\n  \"payment_reference\": \"TXN123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions"]
+            }
+          }
+        },
+        {
+          "name": "Renew Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_name\": \"Premium\",\n  \"duration_months\": 12,\n  \"amount_paid\": 20000,\n  \"payment_method\": \"momo\",\n  \"payment_reference\": \"MOMO987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions/1/renew",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "1", "renew"]
+            }
+          }
+        },
+        {
+          "name": "Update Subscription",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan_name\": \"Premium\",\n  \"end_date\": \"2027-06-02\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions/1",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/1",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "File Upload",
+      "description": "File upload management for assignments, materials, and documents",
+      "item": [
+        {
+          "name": "Upload Single File",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "category",
+                  "value": "assignments",
+                  "type": "text",
+                  "description": "assignments, materials, profiles, documents, videos, audio, images, other"
+                },
+                {
+                  "key": "institution_id",
+                  "value": "{{institution_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "uploader_id",
+                  "value": "{{student_uuid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "uploader_type",
+                  "value": "student",
+                  "type": "text",
+                  "description": "student, teacher, admin"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/upload",
+              "host": ["{{base_url}}"],
+              "path": ["upload"]
+            }
+          }
+        },
+        {
+          "name": "Upload Multiple Files",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "files[]",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "files[]",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "category",
+                  "value": "materials",
+                  "type": "text"
+                },
+                {
+                  "key": "institution_id",
+                  "value": "{{institution_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "uploader_id",
+                  "value": "{{teacher_uuid}}",
+                  "type": "text"
+                },
+                {
+                  "key": "uploader_type",
+                  "value": "teacher",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/upload/multiple",
+              "host": ["{{base_url}}"],
+              "path": ["upload", "multiple"]
+            }
+          }
+        },
+        {
+          "name": "Get File Info",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload/assignments/1_student_1_1234567890_assignment.pdf/info",
+              "host": ["{{base_url}}"],
+              "path": ["upload", "assignments", "1_student_1_1234567890_assignment.pdf", "info"]
+            }
+          }
+        },
+        {
+          "name": "Delete File",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/upload/assignments/1_student_1_1234567890_assignment.pdf",
+              "host": ["{{base_url}}"],
+              "path": ["upload", "assignments", "1_student_1_1234567890_assignment.pdf"]
             }
           }
         }

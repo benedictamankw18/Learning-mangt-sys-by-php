@@ -4,8 +4,17 @@ namespace App\Utils;
 
 class Response
 {
-    public static function success($data = null, int $code = 200, string $message = 'Success'): void
+    public static function success($data = null, $messageOrCode = 'Success', $codeOrNull = null): void
     {
+        // Handle flexible parameter order: success($data, $message) or success($data, $code, $message)
+        if (is_int($messageOrCode)) {
+            $code = $messageOrCode;
+            $message = $codeOrNull ?? 'Success';
+        } else {
+            $message = $messageOrCode;
+            $code = is_int($codeOrNull) ? $codeOrNull : 200;
+        }
+        
         http_response_code($code);
         echo json_encode([
             'success' => true,

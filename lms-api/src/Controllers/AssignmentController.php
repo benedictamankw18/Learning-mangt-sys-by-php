@@ -6,6 +6,7 @@ use App\Repositories\AssignmentRepository;
 use App\Repositories\ClassSubjectRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Middleware\RoleMiddleware;
 
 class AssignmentController
@@ -49,11 +50,17 @@ class AssignmentController
 
     /**
      * Get a single assignment
-     * GET /assignments/{id}
+     * GET /assignments/{uuid}
      */
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
-        $assignment = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $assignment = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$assignment) {
             Response::error('Assignment not found', 404);
@@ -128,22 +135,30 @@ class AssignmentController
 
     /**
      * Update an assignment (teacher/admin)
-     * PUT /assignments/{id}
+     * PUT /assignments/{uuid}
      */
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
             return;
         }
 
         // Check if assignment exists
-        $assignment = $this->repo->findById($id);
+        $assignment = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$assignment) {
             Response::error('Assignment not found', 404);
             return;
         }
+
+        $assignmentId = $assignment['assignment_id'];
 
         // Check authorization
         if ($user['role'] !== 'super_admin' && $assignment['institution_id'] != $user['institution_id']) {
@@ -173,29 +188,37 @@ class AssignmentController
             return;
         }
 
-        $this->repo->update($id, $data);
+        $this->repo->update($assignmentId, $data);
 
         Response::success(['message' => 'Assignment updated successfully']);
     }
 
     /**
      * Delete an assignment (teacher/admin)
-     * DELETE /assignments/{id}
+     * DELETE /assignments/{uuid}
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
             return;
         }
 
         // Check if assignment exists
-        $assignment = $this->repo->findById($id);
+        $assignment = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$assignment) {
             Response::error('Assignment not found', 404);
             return;
         }
+
+        $assignmentId = $assignment['assignment_id'];
 
         // Check authorization
         if ($user['role'] !== 'super_admin' && $assignment['institution_id'] != $user['institution_id']) {
@@ -209,29 +232,37 @@ class AssignmentController
             return;
         }
 
-        $this->repo->delete($id);
+        $this->repo->delete($assignmentId);
 
         Response::success(['message' => 'Assignment deleted successfully']);
     }
 
     /**
      * Get submissions for an assignment (teacher/admin)
-     * GET /assignments/{id}/submissions
+     * GET /assignments/{uuid}/submissions
      */
-    public function getSubmissions(array $user, int $id): void
+    public function getSubmissions(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
             return;
         }
 
         // Check if assignment exists
-        $assignment = $this->repo->findById($id);
+        $assignment = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$assignment) {
             Response::error('Assignment not found', 404);
             return;
         }
+
+        $assignmentId = $assignment['assignment_id'];
 
         // Check authorization
         if ($user['role'] !== 'super_admin' && $assignment['institution_id'] != $user['institution_id']) {
@@ -245,7 +276,7 @@ class AssignmentController
             return;
         }
 
-        $submissions = $this->repo->getSubmissions($id);
+        $submissions = $this->repo->getSubmissions($assignmentId);
 
         Response::success([
             'submissions' => $submissions,
@@ -255,22 +286,30 @@ class AssignmentController
 
     /**
      * Submit an assignment (student)
-     * POST /assignments/{id}/submit
+     * POST /assignments/{uuid}/submit
      */
-    public function submit(array $user, int $id): void
+    public function submit(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         if (!$roleMiddleware->requireRole(['student'])) {
             return;
         }
 
         // Check if assignment exists
-        $assignment = $this->repo->findById($id);
+        $assignment = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$assignment) {
             Response::error('Assignment not found', 404);
             return;
         }
+
+        $assignmentId = $assignment['assignment_id'];
 
         // Check authorization (student must be enrolled in the course)
         if ($user['role'] !== 'super_admin' && $assignment['institution_id'] != $user['institution_id']) {
@@ -288,7 +327,7 @@ class AssignmentController
             return;
         }
 
-        $data['assignment_id'] = $id;
+        $data['assignment_id'] = $assignmentId;
         $data['student_id'] = $user['student_id'];
         $data['course_id'] = $assignment['course_id'];
 

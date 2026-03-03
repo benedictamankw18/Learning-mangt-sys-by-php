@@ -6,25 +6,26 @@ use App\Repositories\NotificationRepository;
 use App\Repositories\MessageRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 
 class NotificationController
 {
     private NotificationRepository $notificationRepo;
     private MessageRepository $messageRepo;
 
-    public function __construct(NotificationRepository $notificationRepo, MessageRepository $messageRepo)
+    public function __construct()
     {
-        $this->notificationRepo = $notificationRepo;
-        $this->messageRepo = $messageRepo;
+        $this->notificationRepo = new NotificationRepository();
+        $this->messageRepo = new MessageRepository();
     }
 
     /**
      * Get notifications for the authenticated user
      * GET /api/notifications
      */
-    public function index(): void
+    public function index(array $user): void
     {
-        $userId = $_SESSION['user']['user_id'];
+        $userId = $user['user_id'];
         $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
         $limit = isset($_GET['limit']) ? min(100, max(1, (int) $_GET['limit'])) : 20;
         $offset = ($page - 1) * $limit;
@@ -47,12 +48,18 @@ class NotificationController
 
     /**
      * Get a single notification
-     * GET /api/notifications/{id}
+     * GET /api/notifications/{uuid}
      */
-    public function show(int $id): void
+    public function show(array $user, string $uuid): void
     {
-        $userId = $_SESSION['user']['user_id'];
-        $notification = $this->notificationRepo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
@@ -72,9 +79,9 @@ class NotificationController
      * Create a new notification (admin only)
      * POST /api/notifications
      */
-    public function create(): void
+    public function create(array $user): void
     {
-        $roleId = $_SESSION['user']['role_id'];
+        $roleId = $user['role_id'];
 
         // Only admins can create notifications
         if ($roleId !== 1) {
@@ -84,17 +91,11 @@ class NotificationController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'user_id' => 'required|integer',
-            'title' => 'required|string|max:200',
-            'message' => 'required|string',
-            'notification_type' => 'string|max:50',
-            'priority_level' => 'string|in:Low,Normal,High,Urgent',
-            'expires_at' => 'datetime'
-        ]);
+        $validator = new Validator($data);
+        $validator->required(['user_id', 'title', 'message']);
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 
@@ -108,17 +109,25 @@ class NotificationController
 
     /**
      * Mark notification as read
-     * PUT /api/notifications/{id}/read
+     * PUT /api/notifications/{uuid}/read
      */
-    public function markAsRead(int $id): void
+    public function markAsRead(array $user, string $uuid): void
     {
-        $userId = $_SESSION['user']['user_id'];
-        $notification = $this->notificationRepo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
             return;
         }
+
+        $notificationId = $notification['notification_id'];
 
         // Check if notification belongs to the user
         if ($notification['user_id'] !== $userId) {
@@ -126,7 +135,7 @@ class NotificationController
             return;
         }
 
-        $this->notificationRepo->markAsRead($id);
+        $this->notificationRepo->markAsRead($notificationId);
 
         Response::success(['message' => 'Notification marked as read']);
     }
@@ -135,9 +144,9 @@ class NotificationController
      * Mark all notifications as read
      * PUT /api/notifications/read-all
      */
-    public function markAllAsRead(): void
+    public function markAllAsRead(array $user): void
     {
-        $userId = $_SESSION['user']['user_id'];
+        $userId = $user['user_id'];
         $this->notificationRepo->markAllAsRead($userId);
 
         Response::success(['message' => 'All notifications marked as read']);
@@ -147,9 +156,9 @@ class NotificationController
      * Get unread notification count
      * GET /api/notifications/unread-count
      */
-    public function getUnreadCount(): void
+    public function getUnreadCount(array $user): void
     {
-        $userId = $_SESSION['user']['user_id'];
+        $userId = $user['user_id'];
         $unreadCount = $this->notificationRepo->getUnreadCount($userId);
 
         Response::success(['unread_count' => $unreadCount]);
@@ -159,9 +168,9 @@ class NotificationController
      * Get notification and message summary
      * GET /api/notifications/summary
      */
-    public function getSummary(): void
+    public function getSummary(array $user): void
     {
-        $userId = $_SESSION['user']['user_id'];
+        $userId = $user['user_id'];
 
         // Get unread counts
         $notificationsCount = $this->notificationRepo->getUnreadCount($userId);
@@ -187,17 +196,25 @@ class NotificationController
      * 
     /**
      * Delete a notification
-     * DELETE /api/notifications/{id}
+     * DELETE /api/notifications/{uuid}
      */
-    public function delete(int $id): void
+    public function delete(array $user, string $uuid): void
     {
-        $userId = $_SESSION['user']['user_id'];
-        $notification = $this->notificationRepo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
             return;
         }
+
+        $notificationId = $notification['notification_id'];
 
         // Check if notification belongs to the user
         if ($notification['user_id'] !== $userId) {
@@ -205,7 +222,7 @@ class NotificationController
             return;
         }
 
-        $this->notificationRepo->delete($id);
+        $this->notificationRepo->delete($notificationId);
 
         Response::success(['message' => 'Notification deleted successfully']);
     }
@@ -214,9 +231,9 @@ class NotificationController
      * Delete all read notifications
      * DELETE /api/notifications/read
      */
-    public function deleteAllRead(): void
+    public function deleteAllRead(array $user): void
     {
-        $userId = $_SESSION['user']['user_id'];
+        $userId = $user['user_id'];
         $this->notificationRepo->deleteAllRead($userId);
 
         Response::success(['message' => 'All read notifications deleted successfully']);

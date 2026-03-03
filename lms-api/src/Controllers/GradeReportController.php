@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Repositories\GradeReportRepository;
 use App\Repositories\StudentRepository;
 use App\Repositories\ResultRepository;
+use App\Utils\Response;
+use App\Utils\UuidHelper;
 
 class GradeReportController
 {
@@ -23,74 +25,70 @@ class GradeReportController
      * Get all grade reports
      * GET /grade-reports?student_id=1&semester_id=1&academic_year_id=1
      */
-    public function index($request)
+    public function index(array $user): void
     {
         try {
-            $studentId = $request['query']['student_id'] ?? null;
-            $semesterId = $request['query']['semester_id'] ?? null;
-            $academicYearId = $request['query']['academic_year_id'] ?? null;
-            $page = $request['query']['page'] ?? 1;
-            $limit = $request['query']['limit'] ?? 50;
+            $studentId = $_GET['student_id'] ?? null;
+            $semesterId = $_GET['semester_id'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
+            $page = $_GET['page'] ?? 1;
+            $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
 
             $filters = [];
-            if ($studentId) $filters['student_id'] = $studentId;
-            if ($semesterId) $filters['semester_id'] = $semesterId;
-            if ($academicYearId) $filters['academic_year_id'] = $academicYearId;
+            if ($studentId)
+                $filters['student_id'] = $studentId;
+            if ($semesterId)
+                $filters['semester_id'] = $semesterId;
+            if ($academicYearId)
+                $filters['academic_year_id'] = $academicYearId;
 
             $reports = $this->gradeReportRepository->getAll($filters, $limit, $offset);
             $total = $this->gradeReportRepository->count($filters);
 
-            return [
-                'success' => true,
-                'data' => $reports,
+            Response::success([
+                'reports' => $reports,
                 'pagination' => [
                     'total' => $total,
-                    'page' => (int)$page,
-                    'limit' => (int)$limit,
+                    'page' => (int) $page,
+                    'limit' => (int) $limit,
                     'pages' => ceil($total / $limit)
                 ]
-            ];
+            ]);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch grade reports',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch grade reports: ' . $e->getMessage());
         }
     }
 
     /**
      * Get single grade report
-     * GET /grade-reports/{id}
+     * GET /grade-reports/{uuid}
      */
-    public function show($request)
+    public function show(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $report = $this->gradeReportRepository->findById($id);
-
-            if (!$report) {
-                return [
-                    'success' => false,
-                    'message' => 'Grade report not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
+            $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
+
+            if (!$report) {
+                Response::notFound('Grade report not found');
+                return;
+            }
+
+            $reportId = $report['report_id'];
+
             // Get report details (individual subject grades)
-            $details = $this->gradeReportRepository->getReportDetails($id);
+            $details = $this->gradeReportRepository->getReportDetails($reportId);
             $report['details'] = $details;
 
-            return [
-                'success' => true,
-                'data' => $report
-            ];
+            Response::success($report);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch grade report',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch grade report: ' . $e->getMessage());
         }
     }
 
@@ -98,29 +96,30 @@ class GradeReportController
      * Generate grade report for student
      * POST /grade-reports/generate
      */
-    public function generate($request)
+    public function generate(array $user): void
     {
         try {
-            $data = $request['body'];
+            $data = $_POST;
 
             // Validate required fields
             $required = ['student_id', 'semester_id', 'academic_year_id'];
+            $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return [
-                        'success' => false,
-                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
-                    ];
+                    $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
             }
 
             // Check if student exists
             $student = $this->studentRepository->findById($data['student_id']);
             if (!$student) {
-                return [
-                    'success' => false,
-                    'message' => 'Student not found'
-                ];
+                Response::notFound('Student not found');
+                return;
             }
 
             // Generate report
@@ -132,17 +131,9 @@ class GradeReportController
                 $data['generated_by'] ?? null
             );
 
-            return [
-                'success' => true,
-                'message' => 'Grade report generated successfully',
-                'data' => ['id' => $reportId]
-            ];
+            Response::success(['id' => $reportId], 'Grade report generated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to generate grade report',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to generate grade report: ' . $e->getMessage());
         }
     }
 
@@ -150,12 +141,11 @@ class GradeReportController
      * Get student report card
      * GET /grade-reports/student/{studentId}/report-card?semester_id=1
      */
-    public function getReportCard($request)
+    public function getReportCard(array $user, int $studentId): void
     {
         try {
-            $studentId = $request['params']['studentId'];
-            $semesterId = $request['query']['semester_id'] ?? null;
-            $academicYearId = $request['query']['academic_year_id'] ?? null;
+            $semesterId = $_GET['semester_id'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
 
             $reportCard = $this->gradeReportRepository->getReportCard(
                 $studentId,
@@ -164,22 +154,13 @@ class GradeReportController
             );
 
             if (!$reportCard) {
-                return [
-                    'success' => false,
-                    'message' => 'Report card not found'
-                ];
+                Response::notFound('Report card not found');
+                return;
             }
 
-            return [
-                'success' => true,
-                'data' => $reportCard
-            ];
+            Response::success($reportCard);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch report card',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch report card: ' . $e->getMessage());
         }
     }
 
@@ -187,123 +168,108 @@ class GradeReportController
      * Get student transcript (all terms)
      * GET /grade-reports/student/{studentId}/transcript
      */
-    public function getTranscript($request)
+    public function getTranscript(array $user, int $studentId): void
     {
         try {
-            $studentId = $request['params']['studentId'];
-            $academicYearId = $request['query']['academic_year_id'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
 
             $transcript = $this->gradeReportRepository->getTranscript($studentId, $academicYearId);
 
-            return [
-                'success' => true,
-                'data' => $transcript
-            ];
+            Response::success($transcript);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch transcript',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch transcript: ' . $e->getMessage());
         }
     }
 
     /**
      * Update grade report
-     * PUT /grade-reports/{id}
+     * PUT /grade-reports/{uuid}
      */
-    public function update($request)
+    public function update(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
-
-            $report = $this->gradeReportRepository->findById($id);
-            if (!$report) {
-                return [
-                    'success' => false,
-                    'message' => 'Grade report not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $this->gradeReportRepository->update($id, $data);
+            $data = $_POST;
 
-            return [
-                'success' => true,
-                'message' => 'Grade report updated successfully'
-            ];
+            $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
+            if (!$report) {
+                Response::notFound('Grade report not found');
+                return;
+            }
+
+            $reportId = $report['report_id'];
+
+            $this->gradeReportRepository->update($reportId, $data);
+
+            Response::success(null, 'Grade report updated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update grade report',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to update grade report: ' . $e->getMessage());
         }
     }
 
     /**
      * Delete grade report
-     * DELETE /grade-reports/{id}
+     * DELETE /grade-reports/{uuid}
      */
-    public function delete($request)
+    public function delete(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-
-            $report = $this->gradeReportRepository->findById($id);
-            if (!$report) {
-                return [
-                    'success' => false,
-                    'message' => 'Grade report not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $this->gradeReportRepository->delete($id);
+            $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
+            if (!$report) {
+                Response::notFound('Grade report not found');
+                return;
+            }
 
-            return [
-                'success' => true,
-                'message' => 'Grade report deleted successfully'
-            ];
+            $reportId = $report['report_id'];
+
+            $this->gradeReportRepository->delete($reportId);
+
+            Response::success(null, 'Grade report deleted successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to delete grade report',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to delete grade report: ' . $e->getMessage());
         }
     }
 
     /**
      * Publish/unpublish grade report
-     * PUT /grade-reports/{id}/publish
+     * PUT /grade-reports/{uuid}/publish
      */
-    public function publish($request)
+    public function publish(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
-            $published = $data['published'] ?? true;
-
-            $report = $this->gradeReportRepository->findById($id);
-            if (!$report) {
-                return [
-                    'success' => false,
-                    'message' => 'Grade report not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $this->gradeReportRepository->update($id, ['published' => $published ? 1 : 0]);
+            $data = $_POST;
+            $published = $data['published'] ?? true;
 
-            return [
-                'success' => true,
-                'message' => $published ? 'Grade report published successfully' : 'Grade report unpublished successfully'
-            ];
+            $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
+            if (!$report) {
+                Response::notFound('Grade report not found');
+                return;
+            }
+
+            $reportId = $report['report_id'];
+
+            $this->gradeReportRepository->update($reportId, ['published' => $published ? 1 : 0]);
+
+            Response::success(null, $published ? 'Grade report published successfully' : 'Grade report unpublished successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update report status',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to update report status: ' . $e->getMessage());
         }
     }
 
@@ -311,12 +277,11 @@ class GradeReportController
      * Get class grade reports
      * GET /grade-reports/class/{classId}?semester_id=1
      */
-    public function getClassReports($request)
+    public function getClassReports(array $user, int $classId): void
     {
         try {
-            $classId = $request['params']['classId'];
-            $semesterId = $request['query']['semester_id'] ?? null;
-            $academicYearId = $request['query']['academic_year_id'] ?? null;
+            $semesterId = $_GET['semester_id'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
 
             $reports = $this->gradeReportRepository->getClassReports(
                 $classId,
@@ -324,16 +289,9 @@ class GradeReportController
                 $academicYearId
             );
 
-            return [
-                'success' => true,
-                'data' => $reports
-            ];
+            Response::success($reports);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch class reports',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch class reports: ' . $e->getMessage());
         }
     }
 
@@ -341,20 +299,23 @@ class GradeReportController
      * Bulk generate reports for class
      * POST /grade-reports/bulk-generate
      */
-    public function bulkGenerate($request)
+    public function bulkGenerate(array $user): void
     {
         try {
-            $data = $request['body'];
+            $data = $_POST;
 
             // Validate required fields
             $required = ['class_id', 'semester_id', 'academic_year_id'];
+            $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return [
-                        'success' => false,
-                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
-                    ];
+                    $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
             }
 
             $generatedCount = $this->gradeReportRepository->bulkGenerateForClass(
@@ -364,17 +325,9 @@ class GradeReportController
                 $data['generated_by'] ?? null
             );
 
-            return [
-                'success' => true,
-                'message' => "Successfully generated {$generatedCount} grade reports",
-                'data' => ['count' => $generatedCount]
-            ];
+            Response::success(['count' => $generatedCount], "Successfully generated {$generatedCount} grade reports");
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to generate bulk reports',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to generate bulk reports: ' . $e->getMessage());
         }
     }
 
@@ -382,12 +335,12 @@ class GradeReportController
      * Get report statistics
      * GET /grade-reports/stats?institution_id=1&semester_id=1
      */
-    public function getStatistics($request)
+    public function getStatistics(array $user): void
     {
         try {
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $semesterId = $request['query']['semester_id'] ?? null;
-            $academicYearId = $request['query']['academic_year_id'] ?? null;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $semesterId = $_GET['semester_id'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
 
             $stats = $this->gradeReportRepository->getStatistics(
                 $institutionId,
@@ -395,16 +348,9 @@ class GradeReportController
                 $academicYearId
             );
 
-            return [
-                'success' => true,
-                'data' => $stats
-            ];
+            Response::success($stats);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch statistics',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch statistics: ' . $e->getMessage());
         }
     }
 }

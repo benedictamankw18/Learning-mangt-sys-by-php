@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class InstitutionRepository
@@ -403,6 +404,42 @@ class InstitutionRepository
     }
 
     /**
+     * Find institution by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    i.*,
+                    s.school_name,
+                    s.motto,
+                    s.description as institution_description,
+                    s.logo_url,
+                    s.theme_primary_color,
+                    s.theme_secondary_color
+                FROM institutions i
+                LEFT JOIN institution_settings s ON i.institution_id = s.institution_id
+                WHERE i.uuid = :uuid
+            ");
+            $stmt->execute(['uuid' => $uuid]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (\PDOException $e) {
+            error_log("Find Institution By UUID Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Check whether an institution has at least one admin user
      *
      * @param int $id
@@ -456,15 +493,20 @@ class InstitutionRepository
         try {
             $this->db->beginTransaction();
 
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
                 INSERT INTO institutions (
-                    institution_code, institution_name, institution_type, 
+                    uuid, institution_code, institution_name, institution_type, 
                     email, phone, address, city, state, country, 
                     postal_code, website, status, subscription_plan,
                     subscription_expires_at, max_students, max_teachers
                 )
                 VALUES (
-                    :institution_code, :institution_name, :institution_type,
+                    :uuid, :institution_code, :institution_name, :institution_type,
                     :email, :phone, :address, :city, :state, :country,
                     :postal_code, :website, :status, :subscription_plan,
                     :subscription_expires_at, :max_students, :max_teachers
@@ -472,6 +514,7 @@ class InstitutionRepository
             ");
 
             $stmt->execute([
+                'uuid' => $data['uuid'],
                 'institution_code' => $data['institution_code'],
                 'institution_name' => $data['institution_name'],
                 'institution_type' => $data['institution_type'] ?? 'shs',

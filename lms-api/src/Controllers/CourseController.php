@@ -138,6 +138,11 @@ class CourseController
             }
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         $courseId = $this->courseRepo->create($data);
 
         if (!$courseId) {
@@ -286,7 +291,7 @@ class CourseController
         $data = json_decode(file_get_contents('php://input'), true);
 
         $validator = new Validator($data);
-        $validator->required('title')
+        $validator->required(['title'])
             ->max('title', 200);
 
         if ($validator->fails()) {
@@ -346,18 +351,11 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'title' => 'string|max:200',
-            'description' => 'string',
-            'material_type' => 'string|max:50',
-            'file_path' => 'string|max:500',
-            'file_size' => 'integer',
-            'order_index' => 'integer',
-            'is_active' => 'boolean'
-        ]);
+        $validator = new Validator($data);
+        // No required fields for update
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 
@@ -525,13 +523,11 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'rating' => 'required|integer|min:1|max:5',
-            'review_text' => 'string'
-        ]);
+        $validator = new Validator($data);
+        $validator->required(['rating']);
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 
@@ -568,13 +564,11 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'rating' => 'integer|min:1|max:5',
-            'review_text' => 'string'
-        ]);
+        $validator = new Validator($data);
+        // No required fields for update
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 
@@ -677,15 +671,11 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'day_of_week' => 'required|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'start_time' => 'required|string',
-            'end_time' => 'required|string',
-            'room' => 'string|max:50'
-        ]);
+        $validator = new Validator($data);
+        $validator->required(['day_of_week', 'start_time', 'end_time']);
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 
@@ -735,15 +725,11 @@ class CourseController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        $errors = Validator::validate($data, [
-            'day_of_week' => 'string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
-            'start_time' => 'string',
-            'end_time' => 'string',
-            'room' => 'string|max:50'
-        ]);
+        $validator = new Validator($data);
+        // No required fields for update
 
-        if (!empty($errors)) {
-            Response::error('Validation failed', 400, $errors);
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
             return;
         }
 

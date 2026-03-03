@@ -3,40 +3,52 @@
 namespace App\Repositories;
 
 use PDO;
+use App\Utils\UuidHelper;
 
 class SubscriptionRepository extends BaseRepository
 {
-    protected $table = 'institution_settings';
+    protected $table = 'institutions';
 
     /**
-     * Get all subscriptions (from institution_settings)
-     * Note: Subscription data stored in institution_settings JSON fields
+     * Get all subscriptions (from institutions table)
+     * Note: Subscription data stored directly in institutions table
      */
-    public function getAll($filters = [], $limit = 50, $offset = 0)
+    public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
-        $sql = "SELECT i.id as institution_id, i.name as institution_name, 
-                is.subscription_plan, is.subscription_status, 
-                is.subscription_start_date, is.subscription_end_date,
-                is.subscription_amount, is.max_students, is.max_teachers,
-                is.created_at, is.updated_at
-                FROM institutions i
-                LEFT JOIN {$this->table} is ON i.id = is.institution_id
+        $sql = "SELECT i.institution_id, i.institution_name, i.institution_code,
+                i.subscription_plan, i.status, i.subscription_expires_at,
+                i.max_students, i.max_teachers, i.created_at, i.updated_at,
+                CASE 
+                    WHEN i.subscription_expires_at < CURDATE() THEN 'expired'
+                    WHEN i.subscription_expires_at <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'expiring_soon'
+                    WHEN i.status = 'active' THEN 'active'
+                    ELSE 'inactive'
+                END as subscription_status
+                FROM {$this->table} i
                 WHERE 1=1";
         $params = [];
 
         if (!empty($filters['institution_id'])) {
-            $sql .= " AND i.id = :institution_id";
+            $sql .= " AND i.institution_id = :institution_id";
             $params[':institution_id'] = $filters['institution_id'];
         }
 
         if (!empty($filters['status'])) {
-            $sql .= " AND is.subscription_status = :status";
-            $params[':status'] = $filters['status'];
+            if ($filters['status'] === 'active') {
+                $sql .= " AND i.status = 'active' AND i.subscription_expires_at >= CURDATE()";
+            } elseif ($filters['status'] === 'expired') {
+                $sql .= " AND i.subscription_expires_at < CURDATE()";
+            } elseif ($filters['status'] === 'expiring_soon') {
+                $sql .= " AND i.subscription_expires_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+            } else {
+                $sql .= " AND i.status = :status";
+                $params[':status'] = $filters['status'];
+            }
         }
 
-        $sql .= " ORDER BY is.subscription_end_date DESC LIMIT :limit OFFSET :offset";
-        $params[':limit'] = (int)$limit;
-        $params[':offset'] = (int)$offset;
+        $sql .= " ORDER BY i.subscription_expires_at DESC LIMIT :limit OFFSET :offset";
+        $params[':limit'] = (int) $limit;
+        $params[':offset'] = (int) $offset;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -51,22 +63,27 @@ class SubscriptionRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function count($filters = [])
+    public function count(array $filters = []): int
     {
-        $sql = "SELECT COUNT(*) as total 
-                FROM institutions i
-                LEFT JOIN {$this->table} is ON i.id = is.institution_id
-                WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total FROM {$this->table} i WHERE 1=1";
         $params = [];
 
         if (!empty($filters['institution_id'])) {
-            $sql .= " AND i.id = :institution_id";
+            $sql .= " AND i.institution_id = :institution_id";
             $params[':institution_id'] = $filters['institution_id'];
         }
 
         if (!empty($filters['status'])) {
-            $sql .= " AND is.subscription_status = :status";
-            $params[':status'] = $filters['status'];
+            if ($filters['status'] === 'active') {
+                $sql .= " AND i.status = 'active' AND i.subscription_expires_at >= CURDATE()";
+            } elseif ($filters['status'] === 'expired') {
+                $sql .= " AND i.subscription_expires_at < CURDATE()";
+            } elseif ($filters['status'] === 'expiring_soon') {
+                $sql .= " AND i.subscription_expires_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+            } else {
+                $sql .= " AND i.status = :status";
+                $params[':status'] = $filters['status'];
+            }
         }
 
         $stmt = $this->db->prepare($sql);
@@ -76,13 +93,17 @@ class SubscriptionRepository extends BaseRepository
         return $result['total'];
     }
 
-    public function findById($id)
+    public function findById(int $id): ?array
     {
-        $sql = "SELECT i.id as institution_id, i.name as institution_name, 
-                is.*, is.id as settings_id
-                FROM {$this->table} is
-                LEFT JOIN institutions i ON is.institution_id = i.id
-                WHERE is.institution_id = :id";
+        $sql = "SELECT i.*,
+                CASE 
+                    WHEN i.subscription_expires_at < CURDATE() THEN 'expired'
+                    WHEN i.subscription_expires_at <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'expiring_soon'
+                    WHEN i.status = 'active' THEN 'active'
+                    ELSE 'inactive'
+                END as subscription_status
+                FROM {$this->table} i
+                WHERE i.institution_id = :id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':id' => $id]);
@@ -90,78 +111,78 @@ class SubscriptionRepository extends BaseRepository
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function create($data)
+    public function create(array $data): int
     {
-        // Update institution settings with subscription data
+        // Auto-generate UUID if not provided
+        if (!isset($data['uuid'])) {
+            $data['uuid'] = UuidHelper::generate();
+        }
+
+        // Create new institution with subscription data
         $sql = "INSERT INTO {$this->table} 
-                (institution_id, subscription_plan, subscription_status, subscription_start_date, 
-                 subscription_end_date, subscription_amount, max_students, max_teachers, created_at)
+                (uuid, institution_code, institution_name, institution_type, email, phone,
+                 address, city, state, country, postal_code, website,
+                 subscription_plan, subscription_expires_at, max_students, max_teachers, 
+                 status, created_at)
                 VALUES 
-                (:institution_id, :plan_name, :status, :start_date, :end_date, :amount, 
-                 :max_students, :max_teachers, NOW())
-                ON DUPLICATE KEY UPDATE
-                subscription_plan = VALUES(subscription_plan),
-                subscription_status = VALUES(subscription_status),
-                subscription_start_date = VALUES(subscription_start_date),
-                subscription_end_date = VALUES(subscription_end_date),
-                subscription_amount = VALUES(subscription_amount),
-                max_students = VALUES(max_students),
-                max_teachers = VALUES(max_teachers),
-                updated_at = NOW()";
+                (:uuid, :code, :name, :type, :email, :phone,
+                 :address, :city, :state, :country, :postal_code, :website,
+                 :plan, :expires_at, :max_students, :max_teachers,
+                 :status, NOW())";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
-            ':institution_id' => $data['institution_id'],
-            ':plan_name' => $data['plan_name'],
-            ':status' => $data['status'] ?? 'active',
-            ':start_date' => $data['start_date'],
-            ':end_date' => $data['end_date'],
-            ':amount' => $data['amount'],
-            ':max_students' => $data['max_students'] ?? 1000,
-            ':max_teachers' => $data['max_teachers'] ?? 100
+            ':uuid' => $data['uuid'],
+            ':code' => $data['institution_code'],
+            ':name' => $data['institution_name'],
+            ':type' => $data['institution_type'] ?? 'shs',
+            ':email' => $data['email'] ?? null,
+            ':phone' => $data['phone'] ?? null,
+            ':address' => $data['address'] ?? null,
+            ':city' => $data['city'] ?? null,
+            ':state' => $data['state'] ?? null,
+            ':country' => $data['country'] ?? 'Ghana',
+            ':postal_code' => $data['postal_code'] ?? null,
+            ':website' => $data['website'] ?? null,
+            ':plan' => $data['subscription_plan'],
+            ':expires_at' => $data['subscription_expires_at'],
+            ':max_students' => $data['max_students'] ?? 500,
+            ':max_teachers' => $data['max_teachers'] ?? 50,
+            ':status' => $data['status'] ?? 'active'
         ]);
 
-        return $data['institution_id'];
+        return (int) $this->db->lastInsertId();
     }
 
-    public function update($id, $data)
+    public function update(int $id, array $data): bool
     {
         $fields = [];
         $params = [':institution_id' => $id];
 
-        if (isset($data['plan_name'])) {
-            $fields[] = "subscription_plan = :plan_name";
-            $params[':plan_name'] = $data['plan_name'];
-        }
+        $allowedFields = [
+            'institution_code' => ':code',
+            'institution_name' => ':name',
+            'institution_type' => ':type',
+            'email' => ':email',
+            'phone' => ':phone',
+            'address' => ':address',
+            'city' => ':city',
+            'state' => ':state',
+            'country' => ':country',
+            'postal_code' => ':postal_code',
+            'website' => ':website',
+            'subscription_plan' => ':plan',
+            'subscription_expires_at' => ':expires_at',
+            'max_students' => ':max_students',
+            'max_teachers' => ':max_teachers',
+            'status' => ':status'
+        ];
 
-        if (isset($data['status'])) {
-            $fields[] = "subscription_status = :status";
-            $params[':status'] = $data['status'];
-        }
-
-        if (isset($data['start_date'])) {
-            $fields[] = "subscription_start_date = :start_date";
-            $params[':start_date'] = $data['start_date'];
-        }
-
-        if (isset($data['end_date'])) {
-            $fields[] = "subscription_end_date = :end_date";
-            $params[':end_date'] = $data['end_date'];
-        }
-
-        if (isset($data['amount'])) {
-            $fields[] = "subscription_amount = :amount";
-            $params[':amount'] = $data['amount'];
-        }
-
-        if (isset($data['max_students'])) {
-            $fields[] = "max_students = :max_students";
-            $params[':max_students'] = $data['max_students'];
-        }
-
-        if (isset($data['max_teachers'])) {
-            $fields[] = "max_teachers = :max_teachers";
-            $params[':max_teachers'] = $data['max_teachers'];
+        foreach ($allowedFields as $field => $param) {
+            if (isset($data[$field])) {
+                $fields[] = "{$field} = {$param}";
+                $params[$param] = $data[$field];
+            }
         }
 
         if (empty($fields)) {
@@ -236,14 +257,17 @@ class SubscriptionRepository extends BaseRepository
 
     public function getActiveByInstitution($institutionId)
     {
-        $sql = "SELECT i.id as institution_id, i.name as institution_name, 
-                is.*
-                FROM {$this->table} is
-                LEFT JOIN institutions i ON is.institution_id = i.id
-                WHERE is.institution_id = :institution_id 
-                AND is.subscription_status = 'active'
-                AND is.subscription_end_date >= CURDATE()
-                ORDER BY is.subscription_end_date DESC
+        $sql = "SELECT i.*,
+                CASE 
+                    WHEN i.subscription_expires_at < CURDATE() THEN 'expired'
+                    WHEN i.subscription_expires_at <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 'expiring_soon'
+                    WHEN i.status = 'active' THEN 'active'
+                    ELSE 'inactive'
+                END as subscription_status
+                FROM {$this->table} i
+                WHERE i.institution_id = :institution_id 
+                AND i.status = 'active'
+                AND i.subscription_expires_at >= CURDATE()
                 LIMIT 1";
 
         $stmt = $this->db->prepare($sql);
@@ -256,11 +280,10 @@ class SubscriptionRepository extends BaseRepository
     {
         $sql = "SELECT 
                 COUNT(*) as total_subscriptions,
-                SUM(CASE WHEN subscription_status = 'active' AND subscription_end_date >= CURDATE() THEN 1 ELSE 0 END) as active_subscriptions,
-                SUM(CASE WHEN subscription_status = 'expired' OR subscription_end_date < CURDATE() THEN 1 ELSE 0 END) as expired_subscriptions,
-                SUM(CASE WHEN subscription_status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_subscriptions,
-                SUM(subscription_amount) as total_revenue,
-                AVG(subscription_amount) as average_amount
+                SUM(CASE WHEN status = 'active' AND subscription_expires_at >= CURDATE() THEN 1 ELSE 0 END) as active_subscriptions,
+                SUM(CASE WHEN status = 'active' AND subscription_expires_at < CURDATE() THEN 1 ELSE 0 END) as expired_subscriptions,
+                SUM(CASE WHEN status = 'inactive' OR status = 'suspended' THEN 1 ELSE 0 END) as inactive_subscriptions,
+                SUM(CASE WHEN subscription_expires_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as expiring_soon
                 FROM {$this->table}
                 WHERE subscription_plan IS NOT NULL";
 
@@ -273,9 +296,10 @@ class SubscriptionRepository extends BaseRepository
     public function checkStatus($institutionId)
     {
         $sql = "SELECT 
-                subscription_status,
-                subscription_end_date,
-                DATEDIFF(subscription_end_date, CURDATE()) as days_remaining,
+                status,
+                subscription_plan,
+                subscription_expires_at,
+                DATEDIFF(subscription_expires_at, CURDATE()) as days_remaining,
                 max_students,
                 max_teachers
                 FROM {$this->table}
@@ -296,8 +320,8 @@ class SubscriptionRepository extends BaseRepository
         $daysRemaining = $result['days_remaining'];
 
         if ($daysRemaining < 0) {
-            // Update status to expired
-            $this->update($institutionId, ['status' => 'expired']);
+            // Update status to inactive/expired
+            $this->update($institutionId, ['status' => 'inactive']);
 
             return [
                 'status' => 'expired',

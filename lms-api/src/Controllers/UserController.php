@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\UserRepository;
 use App\Middleware\RoleMiddleware;
 
@@ -44,16 +45,24 @@ class UserController
         Response::paginated($users, $total, $page, $limit);
     }
 
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         // Fetch target user first
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
+
+        $targetUserId = $targetUser['user_id'];
 
         // Admins can view any user
         if ($roleMiddleware->isAdmin()) {
@@ -63,7 +72,7 @@ class UserController
 
         // Super admins can only view admin users (or their own profile)
         if (!empty($user['is_super_admin'])) {
-            if ($user['user_id'] === $id) {
+            if ($user['user_id'] === $targetUserId) {
                 Response::success($targetUser);
                 return;
             }
@@ -77,7 +86,7 @@ class UserController
         }
 
         // Regular users: can view only their own profile
-        if ($user['user_id'] != $id) {
+        if ($user['user_id'] != $targetUserId) {
             Response::forbidden('You can only view your own profile');
             return;
         }
@@ -118,6 +127,11 @@ class UserController
             return;
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin' && !empty($user['institution_id'])) {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         $userId = $this->userRepo->create($data);
 
         if ($userId) {
@@ -136,21 +150,29 @@ class UserController
         }
     }
 
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         // Users can update their own profile.
         // Admins can update any user.
         // Super admins may update admin users (and their own profile) only.
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
 
-        if ($user['user_id'] === $id) {
+        $targetUserId = $targetUser['user_id'];
+
+        if ($user['user_id'] === $targetUserId) {
             // allowed: updating own profile
         } elseif ($roleMiddleware->isAdmin()) {
             // allowed: admin can update any
@@ -168,16 +190,22 @@ class UserController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if ($this->userRepo->update($id, $data)) {
-            $updatedUser = $this->userRepo->findById($id);
+        if ($this->userRepo->update($targetUserId, $data)) {
+            $updatedUser = $this->userRepo->findByUuid($sanitizedUuid);
             Response::success($updatedUser);
         } else {
             Response::serverError('Failed to update user');
         }
     }
 
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         $isSuperAdmin = !empty($user['is_super_admin']);
@@ -189,12 +217,14 @@ class UserController
             return;
         }
 
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
+
+        $targetUserId = $targetUser['user_id'];
 
         // If requester is super_admin but not an admin, ensure the target
         // user has the 'admin' role before allowing deletion.
@@ -206,15 +236,21 @@ class UserController
             }
         }
 
-        if ($this->userRepo->delete($id)) {
+        if ($this->userRepo->delete($targetUserId)) {
             Response::success(['message' => 'User deleted successfully']);
         } else {
             Response::serverError('Failed to delete user');
         }
     }
 
-    public function assignRole(array $user, int $id): void
+    public function assignRole(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->isAdmin()) {
@@ -222,12 +258,14 @@ class UserController
             return;
         }
 
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
+
+        $targetUserId = $targetUser['user_id'];
 
         $data = json_decode(file_get_contents('php://input'), true);
 
@@ -239,7 +277,7 @@ class UserController
             return;
         }
 
-        if ($this->userRepo->assignRole($id, (int) $data['role_id'])) {
+        if ($this->userRepo->assignRole($targetUserId, (int) $data['role_id'])) {
             Response::success(['message' => 'Role assigned successfully']);
         } else {
             Response::serverError('Failed to assign role');
@@ -250,8 +288,14 @@ class UserController
      * Assign multiple roles to a user (replace existing roles)
      * Expects JSON: { roles: [<roleId>|<roleName>, ...] }
      */
-    public function assignRoles(array $user, int $id): void
+    public function assignRoles(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->isAdmin()) {
@@ -259,12 +303,14 @@ class UserController
             return;
         }
 
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
+
+        $targetUserId = $targetUser['user_id'];
 
         $data = json_decode(file_get_contents('php://input'), true);
         if (!isset($data['roles']) || !is_array($data['roles'])) {
@@ -276,17 +322,17 @@ class UserController
             $db = \App\Config\Database::getInstance()->getConnection();
             // Remove existing roles
             $stmt = $db->prepare("DELETE FROM user_roles WHERE user_id = :user_id");
-            $stmt->execute(['user_id' => $id]);
+            $stmt->execute(['user_id' => $targetUserId]);
 
             // Assign provided roles (accept numeric ids or role names)
             foreach ($data['roles'] as $r) {
                 if (is_numeric($r) || ctype_digit((string) $r)) {
-                    $this->userRepo->assignRole($id, (int) $r);
+                    $this->userRepo->assignRole($targetUserId, (int) $r);
                 } else {
                     // look up role by name
                     $role = $this->userRepo->getRoleByName(strtolower((string) $r));
                     if ($role && isset($role['role_id'])) {
-                        $this->userRepo->assignRole($id, (int) $role['role_id']);
+                        $this->userRepo->assignRole($targetUserId, (int) $role['role_id']);
                     }
                 }
             }
@@ -485,8 +531,14 @@ class UserController
         Response::success(['created' => $created, 'errors' => $errors, 'skipped_rows' => array_values(array_filter($skipped_rows))]);
     }
 
-    public function removeRole(array $user, int $id, int $roleId): void
+    public function removeRole(array $user, string $uuid, int $roleId): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->isAdmin()) {
@@ -494,34 +546,44 @@ class UserController
             return;
         }
 
-        $targetUser = $this->userRepo->findById($id);
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
             return;
         }
 
-        if ($this->userRepo->removeRole($id, $roleId)) {
+        $targetUserId = $targetUser['user_id'];
+
+        if ($this->userRepo->removeRole($targetUserId, $roleId)) {
             Response::success(['message' => 'Role removed successfully']);
         } else {
             Response::serverError('Failed to remove role');
         }
     }
 
-    public function getActivity(array $user, int $id): void
+    public function getActivity(array $user, string $uuid): void
     {
-        $roleMiddleware = new RoleMiddleware($user);
-
-        // Users can view their own activity, admins can view any
-        if (!$roleMiddleware->isAdmin() && $user['user_id'] != $id) {
-            Response::forbidden('You can only view your own activity');
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
             return;
         }
 
-        $targetUser = $this->userRepo->findById($id);
+        $roleMiddleware = new RoleMiddleware($user);
+
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
 
         if (!$targetUser) {
             Response::notFound('User not found');
+            return;
+        }
+
+        $targetUserId = $targetUser['user_id'];
+
+        // Users can view their own activity, admins can view any
+        if (!$roleMiddleware->isAdmin() && $user['user_id'] != $targetUserId) {
+            Response::forbidden('You can only view your own activity');
             return;
         }
 
@@ -533,7 +595,7 @@ class UserController
                 ORDER BY created_at DESC 
                 LIMIT 50
             ");
-            $stmt->execute(['user_id' => $id]);
+            $stmt->execute(['user_id' => $targetUserId]);
             $activity = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
             Response::success($activity);

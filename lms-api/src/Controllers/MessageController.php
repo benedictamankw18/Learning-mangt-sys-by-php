@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Repositories\MessageRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 
 class MessageController
 {
@@ -63,16 +64,24 @@ class MessageController
 
     /**
      * Get single message
-     * GET /messages/{id}
+     * GET /messages/{uuid}
      */
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
-        $message = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $message = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$message) {
             Response::notFound('Message not found');
             return;
         }
+
+        $messageId = $message['message_id'];
 
         // Authorization: user must be sender or receiver
         if ($message['sender_id'] != $user['user_id'] && $message['receiver_id'] != $user['user_id']) {
@@ -82,7 +91,7 @@ class MessageController
 
         // Mark as read if user is receiver and message is unread
         if ($message['receiver_id'] == $user['user_id'] && !$message['is_read']) {
-            $this->repo->markAsRead($id);
+            $this->repo->markAsRead($messageId);
             $message['is_read'] = 1;
             $message['read_at'] = date('Y-m-d H:i:s');
         }
@@ -126,16 +135,24 @@ class MessageController
 
     /**
      * Mark message as read
-     * PUT /messages/{id}/read
+     * PUT /messages/{uuid}/read
      */
-    public function markAsRead(array $user, int $id): void
+    public function markAsRead(array $user, string $uuid): void
     {
-        $message = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $message = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$message) {
             Response::notFound('Message not found');
             return;
         }
+
+        $messageId = $message['message_id'];
 
         // Authorization: only receiver can mark as read
         if ($message['receiver_id'] != $user['user_id']) {
@@ -143,7 +160,7 @@ class MessageController
             return;
         }
 
-        $success = $this->repo->markAsRead($id);
+        $success = $this->repo->markAsRead($messageId);
 
         if ($success) {
             Response::success(['message' => 'Message marked as read']);
@@ -154,16 +171,24 @@ class MessageController
 
     /**
      * Delete message
-     * DELETE /messages/{id}
+     * DELETE /messages/{uuid}
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
-        $message = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $message = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$message) {
             Response::notFound('Message not found');
             return;
         }
+
+        $messageId = $message['message_id'];
 
         // Authorization: user must be sender or receiver
         if ($message['sender_id'] != $user['user_id'] && $message['receiver_id'] != $user['user_id']) {
@@ -171,7 +196,7 @@ class MessageController
             return;
         }
 
-        $success = $this->repo->delete($id);
+        $success = $this->repo->delete($messageId);
 
         if ($success) {
             Response::success(['message' => 'Message deleted successfully']);

@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\InstitutionRepository;
 use App\Middleware\RoleMiddleware;
 
@@ -81,10 +82,23 @@ class InstitutionController
     }
 
     /**
-     * Get a single institution by ID
+     * Get a single institution by UUID
      */
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         // Super admin may view any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
@@ -92,17 +106,10 @@ class InstitutionController
                 return;
             }
 
-            if ($id != $user['institution_id']) {
+            if ($institution['institution_id'] != $user['institution_id']) {
                 Response::forbidden('You can only view your own institution');
                 return;
             }
-        }
-
-        $institution = $this->repo->findById($id);
-
-        if (!$institution) {
-            Response::notFound('Institution not found');
-            return;
         }
 
         Response::success($institution);
@@ -151,8 +158,21 @@ class InstitutionController
     /**
      * Update an existing institution
      */
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         // Super admin can update any institution
@@ -162,17 +182,10 @@ class InstitutionController
                 return;
             }
 
-            if ($id != $user['institution_id']) {
+            if ($institution['institution_id'] != $user['institution_id']) {
                 Response::forbidden('You can only update your own institution');
                 return;
             }
-        }
-
-        $institution = $this->repo->findById($id);
-
-        if (!$institution) {
-            Response::notFound('Institution not found');
-            return;
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -193,7 +206,7 @@ class InstitutionController
             return;
         }
 
-        $success = $this->repo->update($id, $data);
+        $success = $this->repo->update($institution['institution_id'], $data);
 
         if ($success) {
             Response::success(['message' => 'Institution updated successfully']);
@@ -205,22 +218,28 @@ class InstitutionController
     /**
      * Delete an institution (Super Admin only)
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole('super_admin')) {
             return;
         }
 
-        $institution = $this->repo->findById($id);
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
             return;
         }
 
-        $success = $this->repo->delete($id);
+        $success = $this->repo->delete($institution['institution_id']);
 
         if ($success) {
             Response::success(['message' => 'Institution deleted successfully']);
@@ -232,8 +251,21 @@ class InstitutionController
     /**
      * Get statistics for an institution (Super Admin only)
      */
-    public function getStatistics(array $user, int $id): void
+    public function getStatistics(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
         // Super admin may view statistics for any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
             $roleMiddleware = new RoleMiddleware($user);
@@ -241,20 +273,13 @@ class InstitutionController
                 return;
             }
 
-            if ($id != $user['institution_id']) {
+            if ($institution['institution_id'] != $user['institution_id']) {
                 Response::forbidden('You can only view your own institution statistics');
                 return;
             }
         }
 
-        $institution = $this->repo->findById($id);
-
-        if (!$institution) {
-            Response::notFound('Institution not found');
-            return;
-        }
-
-        $stats = $this->repo->getStatistics($id);
+        $stats = $this->repo->getStatistics($institution['institution_id']);
 
         Response::success($stats);
     }
@@ -262,8 +287,21 @@ class InstitutionController
     /**
      * Get users for an institution
      */
-    public function getUsers(array $user, int $id): void
+    public function getUsers(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
         // Super admin may view users for any institution; regular admin limited to their own
         if ($user['role'] !== 'super_admin') {
@@ -272,24 +310,17 @@ class InstitutionController
                 return;
             }
 
-            if ($id != $user['institution_id']) {
+            if ($institution['institution_id'] != $user['institution_id']) {
                 Response::forbidden('You can only view your own institution users');
                 return;
             }
         }
 
-        $institution = $this->repo->findById($id);
-
-        if (!$institution) {
-            Response::notFound('Institution not found');
-            return;
-        }
-
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
-        $users = $this->repo->getInstitutionUsers($id, $page, $limit);
-        $total = $this->repo->countInstitutionUsers($id);
+        $users = $this->repo->getInstitutionUsers($institution['institution_id'], $page, $limit);
+        $total = $this->repo->countInstitutionUsers($institution['institution_id']);
 
         Response::success([
             'data' => $users,
@@ -305,9 +336,15 @@ class InstitutionController
     /**
      * Get programs for an institution
      */
-    public function getPrograms(array $user, int $id): void
+    public function getPrograms(array $user, string $uuid): void
     {
-        $institution = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -315,12 +352,12 @@ class InstitutionController
         }
 
         // Check authorization: super_admin may access any, others only their own
-        if ($user['role'] !== 'super_admin' && $id != $user['institution_id']) {
+        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
             Response::forbidden('You do not have access to this institution');
             return;
         }
 
-        $programs = $this->repo->getInstitutionPrograms($id);
+        $programs = $this->repo->getInstitutionPrograms($institution['institution_id']);
 
         Response::success(['data' => $programs]);
     }
@@ -328,9 +365,15 @@ class InstitutionController
     /**
      * Get classes for an institution
      */
-    public function getClasses(array $user, int $id): void
+    public function getClasses(array $user, string $uuid): void
     {
-        $institution = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -338,7 +381,7 @@ class InstitutionController
         }
 
         // Check authorization: super_admin may access any, others only their own
-        if ($user['role'] !== 'super_admin' && $id != $user['institution_id']) {
+        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
             Response::forbidden('You do not have access to this institution');
             return;
         }
@@ -346,8 +389,8 @@ class InstitutionController
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
-        $classes = $this->repo->getInstitutionClasses($id, $page, $limit);
-        $total = $this->repo->countInstitutionClasses($id);
+        $classes = $this->repo->getInstitutionClasses($institution['institution_id'], $page, $limit);
+        $total = $this->repo->countInstitutionClasses($institution['institution_id']);
 
         Response::success([
             'data' => $classes,
@@ -363,15 +406,21 @@ class InstitutionController
     /**
      * Update institution status (Super Admin only)
      */
-    public function updateStatus(array $user, int $id): void
+    public function updateStatus(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole('super_admin')) {
             return;
         }
 
-        $institution = $this->repo->findById($id);
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -388,7 +437,7 @@ class InstitutionController
             return;
         }
 
-        $success = $this->repo->updateStatus($id, $data['status']);
+        $success = $this->repo->updateStatus($institution['institution_id'], $data['status']);
 
         if ($success) {
             Response::success(['message' => 'Institution status updated successfully']);
@@ -399,12 +448,18 @@ class InstitutionController
 
     /**
      * Get institution settings
-     * GET /institutions/{id}/settings
+     * GET /institutions/{uuid}/settings
      */
-    public function getSettings(array $user, int $id): void
+    public function getSettings(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         // Check if institution exists
-        $institution = $this->repo->findById($id);
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -413,7 +468,7 @@ class InstitutionController
 
         // Authorization: super_admin may view only institutions that have admin users; admin can view own institution only
         if ($user['role'] === 'super_admin') {
-            if (!$this->repo->hasAdminUsers($id)) {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
                 Response::forbidden('You do not have access to this institution\'s settings');
                 return;
             }
@@ -422,7 +477,7 @@ class InstitutionController
             return;
         }
 
-        $settings = $this->repo->getSettings($id);
+        $settings = $this->repo->getSettings($institution['institution_id']);
 
         if ($settings) {
             Response::success(['data' => $settings]);
@@ -433,12 +488,18 @@ class InstitutionController
 
     /**
      * Update institution settings
-     * PUT /institutions/{id}/settings
+     * PUT /institutions/{uuid}/settings
      */
-    public function updateSettings(array $user, int $id): void
+    public function updateSettings(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         // Check if institution exists
-        $institution = $this->repo->findById($id);
+        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -447,7 +508,7 @@ class InstitutionController
 
         // Authorization: super_admin may update only institutions that have admin users, admin can update own institution only
         if ($user['role'] === 'super_admin') {
-            if (!$this->repo->hasAdminUsers($id)) {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
                 Response::forbidden('You do not have access to update this institution\'s settings');
                 return;
             }
@@ -483,7 +544,7 @@ class InstitutionController
             return;
         }
 
-        $success = $this->repo->updateSettings($id, $data);
+        $success = $this->repo->updateSettings($institution['institution_id'], $data);
 
         if ($success) {
             Response::success(['message' => 'Institution settings updated successfully']);

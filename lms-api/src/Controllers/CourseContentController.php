@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Repositories\CourseContentRepository;
+use App\Utils\Response;
+use App\Utils\UuidHelper;
 
 class CourseContentController
 {
@@ -15,70 +17,72 @@ class CourseContentController
 
     /**
      * Get all course content
-     * GET /course-content?class_subject_id=1&type=lesson
+     * GET /course-content?course_id=1&section_id=1&teacher_id=1&type=lesson&is_active=1
      */
-    public function index($request)
+    public function index(array $user): void
     {
         try {
-            $classSubjectId = $request['query']['class_subject_id'] ?? null;
-            $type = $request['query']['type'] ?? null;
-            $page = $request['query']['page'] ?? 1;
-            $limit = $request['query']['limit'] ?? 50;
+            $courseId = $_GET['course_id'] ?? null;
+            $sectionId = $_GET['section_id'] ?? null;
+            $teacherId = $_GET['teacher_id'] ?? null;
+            $type = $_GET['type'] ?? null;
+            $isActive = $_GET['is_active'] ?? null;
+            $page = $_GET['page'] ?? 1;
+            $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
 
             $filters = [];
-            if ($classSubjectId) $filters['class_subject_id'] = $classSubjectId;
-            if ($type) $filters['type'] = $type;
+            if ($courseId)
+                $filters['course_id'] = $courseId;
+            if ($sectionId)
+                $filters['section_id'] = $sectionId;
+            if ($teacherId)
+                $filters['teacher_id'] = $teacherId;
+            if ($type)
+                $filters['type'] = $type;
+            if ($isActive !== null)
+                $filters['is_active'] = $isActive;
 
             $content = $this->courseContentRepository->getAll($filters, $limit, $offset);
             $total = $this->courseContentRepository->count($filters);
 
-            return [
-                'success' => true,
-                'data' => $content,
+            Response::success([
+                'content' => $content,
                 'pagination' => [
                     'total' => $total,
-                    'page' => (int)$page,
-                    'limit' => (int)$limit,
+                    'page' => (int) $page,
+                    'limit' => (int) $limit,
                     'pages' => ceil($total / $limit)
                 ]
-            ];
+            ]);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch course content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch course content: ' . $e->getMessage());
         }
     }
 
     /**
      * Get single course content
-     * GET /course-content/{id}
+     * GET /course-content/{uuid}
      */
-    public function show($request)
+    public function show(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $content = $this->courseContentRepository->findById($id);
-
-            if (!$content) {
-                return [
-                    'success' => false,
-                    'message' => 'Content not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            return [
-                'success' => true,
-                'data' => $content
-            ];
+            $content = $this->courseContentRepository->findByUuid($sanitizedUuid);
+
+            if (!$content) {
+                Response::notFound('Content not found');
+                return;
+            }
+
+            Response::success($content);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch content: ' . $e->getMessage());
         }
     }
 
@@ -86,244 +90,213 @@ class CourseContentController
      * Create new course content
      * POST /course-content
      */
-    public function create($request)
+    public function create(array $user): void
     {
         try {
-            $data = $request['body'];
+            $data = $_POST;
 
             // Validate required fields
-            $required = ['title', 'type', 'class_subject_id'];
+            $required = ['title', 'content_type', 'course_id', 'section_id'];
+            $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return [
-                        'success' => false,
-                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
-                    ];
+                    $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
             }
 
             // Validate content type
             $validTypes = ['lesson', 'module', 'unit', 'topic', 'video', 'document', 'quiz', 'assignment'];
-            if (!in_array($data['type'], $validTypes)) {
-                return [
-                    'success' => false,
-                    'message' => 'Invalid content type'
-                ];
+            if (!in_array($data['content_type'], $validTypes)) {
+                Response::error('Invalid content type');
+                return;
             }
 
             $contentId = $this->courseContentRepository->create($data);
 
-            return [
-                'success' => true,
-                'message' => 'Course content created successfully',
-                'data' => ['id' => $contentId]
-            ];
+            Response::success(['id' => $contentId], 'Course content created successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to create content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to create content: ' . $e->getMessage());
         }
     }
 
     /**
      * Update course content
-     * PUT /course-content/{id}
+     * PUT /course-content/{uuid}
      */
-    public function update($request)
+    public function update(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
-
-            $content = $this->courseContentRepository->findById($id);
-            if (!$content) {
-                return [
-                    'success' => false,
-                    'message' => 'Content not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
+            $data = $_POST;
+
+            $content = $this->courseContentRepository->findByUuid($sanitizedUuid);
+            if (!$content) {
+                Response::notFound('Content not found');
+                return;
+            }
+
+            $contentId = $content['course_content_id'];
+
             // Validate content type if provided
-            if (isset($data['type'])) {
+            if (isset($data['content_type'])) {
                 $validTypes = ['lesson', 'module', 'unit', 'topic', 'video', 'document', 'quiz', 'assignment'];
-                if (!in_array($data['type'], $validTypes)) {
-                    return [
-                        'success' => false,
-                        'message' => 'Invalid content type'
-                    ];
+                if (!in_array($data['content_type'], $validTypes)) {
+                    Response::error('Invalid content type');
+                    return;
                 }
             }
 
-            $this->courseContentRepository->update($id, $data);
+            $this->courseContentRepository->update($contentId, $data);
 
-            return [
-                'success' => true,
-                'message' => 'Course content updated successfully'
-            ];
+            Response::success(null, 'Course content updated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to update content: ' . $e->getMessage());
         }
     }
 
     /**
      * Delete course content
-     * DELETE /course-content/{id}
+     * DELETE /course-content/{uuid}
      */
-    public function delete($request)
+    public function delete(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-
-            $content = $this->courseContentRepository->findById($id);
-            if (!$content) {
-                return [
-                    'success' => false,
-                    'message' => 'Content not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $this->courseContentRepository->delete($id);
+            $content = $this->courseContentRepository->findByUuid($sanitizedUuid);
+            if (!$content) {
+                Response::notFound('Content not found');
+                return;
+            }
 
-            return [
-                'success' => true,
-                'message' => 'Course content deleted successfully'
-            ];
+            $contentId = $content['course_content_id'];
+
+            $this->courseContentRepository->delete($contentId);
+
+            Response::success(null, 'Course content deleted successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to delete content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to delete content: ' . $e->getMessage());
         }
     }
 
     /**
-     * Get content by class subject
-     * GET /course-content/class-subject/{classSubjectId}
+     * Get content by course
+     * GET /course-content/course/{courseId}
      */
-    public function getByClassSubject($request)
+    public function getByCourse(array $user, int $courseId): void
     {
         try {
-            $classSubjectId = $request['params']['classSubjectId'];
+            $content = $this->courseContentRepository->getByCourse($courseId);
 
-            $content = $this->courseContentRepository->getByClassSubject($classSubjectId);
-
-            return [
-                'success' => true,
-                'data' => $content
-            ];
+            Response::success($content);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch content: ' . $e->getMessage());
         }
     }
 
     /**
-     * Reorder content
+     * Get content by section
+     * GET /course-content/section/{sectionId}
+     */
+    public function getBySection(array $user, int $sectionId): void
+    {
+        try {
+            $content = $this->courseContentRepository->getBySection($sectionId);
+
+            Response::success($content);
+        } catch (\Exception $e) {
+            Response::serverError('Failed to fetch content: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reorder content - NOT IMPLEMENTED
+     * Note: ordering is managed in course_content_order table
      * PUT /course-content/reorder
      */
-    public function reorder($request)
+    public function reorder(array $user): void
     {
-        try {
-            $data = $request['body'];
-
-            // Expect array of {id, order_position}
-            if (empty($data['items']) || !is_array($data['items'])) {
-                return [
-                    'success' => false,
-                    'message' => 'Items array is required'
-                ];
-            }
-
-            $this->courseContentRepository->reorder($data['items']);
-
-            return [
-                'success' => true,
-                'message' => 'Content reordered successfully'
-            ];
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to reorder content',
-                'error' => $e->getMessage()
-            ];
-        }
+        Response::error('Reorder functionality not implemented - use course_content_order table');
     }
 
     /**
      * Duplicate content
-     * POST /course-content/{id}/duplicate
+     * POST /course-content/{uuid}/duplicate
      */
-    public function duplicate($request)
+    public function duplicate(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
-
-            $content = $this->courseContentRepository->findById($id);
-            if (!$content) {
-                return [
-                    'success' => false,
-                    'message' => 'Content not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $newId = $this->courseContentRepository->duplicate($id, $data['class_subject_id'] ?? null);
+            $data = $_POST;
 
-            return [
-                'success' => true,
-                'message' => 'Content duplicated successfully',
-                'data' => ['id' => $newId]
-            ];
+            $content = $this->courseContentRepository->findByUuid($sanitizedUuid);
+            if (!$content) {
+                Response::notFound('Content not found');
+                return;
+            }
+
+            $contentId = $content['course_content_id'];
+
+            $newId = $this->courseContentRepository->duplicate(
+                $contentId,
+                $data['course_id'] ?? null,
+                $data['section_id'] ?? null
+            );
+
+            Response::success(['id' => $newId], 'Content duplicated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to duplicate content',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to duplicate content: ' . $e->getMessage());
         }
     }
 
     /**
-     * Publish/unpublish content
-     * PUT /course-content/{id}/publish
+     * Activate/deactivate content
+     * PUT /course-content/{uuid}/activate
      */
-    public function publish($request)
+    public function activate(array $user, string $uuid): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
-            $published = $data['published'] ?? true;
-
-            $content = $this->courseContentRepository->findById($id);
-            if (!$content) {
-                return [
-                    'success' => false,
-                    'message' => 'Content not found'
-                ];
+            $sanitizedUuid = UuidHelper::sanitize($uuid);
+            if (!$sanitizedUuid) {
+                Response::badRequest('Invalid UUID format');
+                return;
             }
 
-            $this->courseContentRepository->update($id, ['published' => $published ? 1 : 0]);
+            $data = $_POST;
+            $isActive = $data['is_active'] ?? true;
 
-            return [
-                'success' => true,
-                'message' => $published ? 'Content published successfully' : 'Content unpublished successfully'
-            ];
+            $content = $this->courseContentRepository->findByUuid($sanitizedUuid);
+            if (!$content) {
+                Response::notFound('Content not found');
+                return;
+            }
+
+            $contentId = $content['course_content_id'];
+
+            $this->courseContentRepository->update($contentId, ['is_active' => $isActive ? 1 : 0]);
+
+            Response::success(null, $isActive ? 'Content activated successfully' : 'Content deactivated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update content status',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to update content status: ' . $e->getMessage());
         }
     }
 }

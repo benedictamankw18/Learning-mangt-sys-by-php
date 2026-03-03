@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class ClassRepository
@@ -181,16 +182,83 @@ class ClassRepository
     }
 
     /**
+     * Find a class by UUID with full details
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 
+                c.class_id,
+                c.institution_id,
+                c.uuid,
+                c.class_code,
+                c.class_name,
+                c.section,
+                c.max_students,
+                c.room_number,
+                c.status,
+                c.created_at,
+                c.updated_at,
+                p.program_id,
+                p.program_name,
+                p.program_code,
+                gl.grade_level_id,
+                gl.grade_level_name,
+                gl.grade_level_code,
+                gl.level_order,
+                ay.academic_year_id,
+                ay.year_name,
+                ay.start_date,
+                ay.end_date,
+                ay.is_current,
+                t.teacher_id as class_teacher_id,
+                CONCAT(tu.first_name, ' ', tu.last_name) as class_teacher_name,
+                tu.email as class_teacher_email,
+                COUNT(DISTINCT s.student_id) as student_count,
+                COUNT(DISTINCT cs.course_id) as subject_count
+            FROM classes c
+            LEFT JOIN programs p ON c.program_id = p.program_id
+            LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
+            LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
+            LEFT JOIN teachers t ON c.class_teacher_id = t.teacher_id
+            LEFT JOIN users tu ON t.user_id = tu.user_id
+            LEFT JOIN students s ON c.class_id = s.class_id
+            LEFT JOIN class_subjects cs ON c.class_id = cs.class_id
+            WHERE c.uuid = :uuid
+            GROUP BY c.class_id
+        ");
+
+        $stmt->execute(['uuid' => $uuid]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: null;
+    }
+
+    /**
      * Create a new class
      */
     public function create(array $data): ?int
     {
+        // Auto-generate UUID if not provided
+        if (!isset($data['uuid'])) {
+            $data['uuid'] = UuidHelper::generate();
+        }
+
         // Set defaults
         $data['status'] = $data['status'] ?? 'active';
         $data['max_students'] = $data['max_students'] ?? 40;
 
         $stmt = $this->db->prepare("
             INSERT INTO classes (
+                uuid,
                 institution_id,
                 program_id,
                 grade_level_id,
@@ -205,6 +273,7 @@ class ClassRepository
                 created_at,
                 updated_at
             ) VALUES (
+                :uuid,
                 :institution_id,
                 :program_id,
                 :grade_level_id,
@@ -222,6 +291,7 @@ class ClassRepository
         ");
 
         $result = $stmt->execute([
+            'uuid' => $data['uuid'],
             'institution_id' => $data['institution_id'],
             'program_id' => $data['program_id'],
             'grade_level_id' => $data['grade_level_id'],

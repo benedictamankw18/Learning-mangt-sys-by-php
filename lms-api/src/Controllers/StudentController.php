@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\StudentRepository;
 use App\Repositories\UserRepository;
 use App\Middleware\RoleMiddleware;
@@ -38,11 +39,17 @@ class StudentController
         Response::paginated($students, $total, $page, $limit);
     }
 
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $student = $this->studentRepo->findById($id);
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
 
         if (!$student) {
             Response::notFound('Student not found');
@@ -78,6 +85,11 @@ class StudentController
             return;
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         // Create user first
         $userId = $this->userRepo->create($data);
 
@@ -102,16 +114,24 @@ class StudentController
         Response::success($student, 201);
     }
 
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $student = $this->studentRepo->findById($id);
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
 
         if (!$student) {
             Response::notFound('Student not found');
             return;
         }
+
+        $studentId = $student['student_id'];
 
         // Students can update their own profile, admins can update any
         if (!$roleMiddleware->isAdmin() && $student['user_id'] != $user['user_id']) {
@@ -137,24 +157,32 @@ class StudentController
         }
 
         // Update student-specific info
-        if ($this->studentRepo->update($id, $data)) {
-            $updated = $this->studentRepo->findById($id);
+        if ($this->studentRepo->update($studentId, $data)) {
+            $updated = $this->studentRepo->findByUuid($sanitizedUuid);
             Response::success($updated);
         } else {
             Response::serverError('Failed to update student');
         }
     }
 
-    public function getEnrolledCourses(array $user, int $id): void
+    public function getEnrolledCourses(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $student = $this->studentRepo->findById($id);
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
 
         if (!$student) {
             Response::notFound('Student not found');
             return;
         }
+
+        $studentId = $student['student_id'];
 
         // Students can only view their own courses
         if ($roleMiddleware->isStudent() && $student['user_id'] != $user['user_id']) {
@@ -162,7 +190,7 @@ class StudentController
             return;
         }
 
-        $courses = $this->studentRepo->getEnrolledCourses($id);
+        $courses = $this->studentRepo->getEnrolledCourses($studentId);
         Response::success($courses);
     }
 
@@ -203,23 +231,31 @@ class StudentController
         }
     }
 
-    public function unenrollFromCourse(array $user, int $id, int $courseId): void
+    public function unenrollFromCourse(array $user, string $uuid, int $courseId): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $student = $this->studentRepo->findById($id);
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
 
         if (!$student) {
             Response::notFound('Student not found');
             return;
         }
 
+        $studentId = $student['student_id'];
+
         // Only admin can unenroll students
         if (!$roleMiddleware->requireRole('admin')) {
             return;
         }
 
-        if ($this->studentRepo->unenrollFromCourse($id, $courseId)) {
+        if ($this->studentRepo->unenrollFromCourse($studentId, $courseId)) {
             Response::success(['message' => 'Unenrolled successfully']);
         } else {
             Response::serverError('Failed to unenroll from course');
@@ -228,10 +264,16 @@ class StudentController
 
     /**
      * Delete (deactivate) a student
-     * DELETE /api/students/{id}
+     * DELETE /api/students/{uuid}
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         // Only admins can delete students
@@ -239,15 +281,17 @@ class StudentController
             return;
         }
 
-        $student = $this->studentRepo->findById($id);
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
 
         if (!$student) {
             Response::notFound('Student not found');
             return;
         }
 
+        $studentId = $student['student_id'];
+
         // Soft delete - set status to 'withdrawn'
-        if ($this->studentRepo->update($id, ['status' => 'withdrawn'])) {
+        if ($this->studentRepo->update($studentId, ['status' => 'withdrawn'])) {
             Response::success(['message' => 'Student deactivated successfully']);
         } else {
             Response::serverError('Failed to deactivate student');

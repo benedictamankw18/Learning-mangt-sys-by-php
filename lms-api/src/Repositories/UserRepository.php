@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class UserRepository
@@ -17,12 +18,26 @@ class UserRepository
     public function create(array $data): ?int
     {
         try {
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
-                INSERT INTO users (institution_id, username, email, password_hash, first_name, last_name, phone_number, address, date_of_birth)
-                VALUES (:institution_id, :username, :email, :password, :first_name, :last_name, :phone_number, :address, :dob)
+                INSERT INTO users (
+                    uuid, institution_id, username, email, password_hash, 
+                    first_name, last_name, phone_number, address, date_of_birth,
+                    is_super_admin, is_active
+                )
+                VALUES (
+                    :uuid, :institution_id, :username, :email, :password,
+                    :first_name, :last_name, :phone_number, :address, :dob,
+                    :is_super_admin, :is_active
+                )
             ");
 
             $stmt->execute([
+                'uuid' => $data['uuid'],
                 'institution_id' => $data['institution_id'] ?? null,
                 'username' => $data['username'],
                 'email' => $data['email'],
@@ -31,7 +46,9 @@ class UserRepository
                 'last_name' => $data['last_name'] ?? null,
                 'phone_number' => $data['phone_number'] ?? $data['phone'] ?? null,
                 'address' => $data['address'] ?? null,
-                'dob' => $data['date_of_birth'] ?? null
+                'dob' => $data['date_of_birth'] ?? null,
+                'is_super_admin' => $data['is_super_admin'] ?? 0,
+                'is_active' => $data['is_active'] ?? 1
             ]);
 
             return (int) $this->db->lastInsertId();
@@ -96,6 +113,52 @@ class UserRepository
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
             error_log("User Find By Username Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find user by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                    SELECT 
+                        u.*,
+                        i.institution_name AS institution_name,
+                        GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                        GROUP_CONCAT(DISTINCT p.permission_name) as permissions
+                FROM users u
+                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.role_id
+                LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
+                LEFT JOIN institutions i on i.institution_id = u.institution_id
+                LEFT JOIN permissions p ON rp.permission_id = p.permission_id
+                WHERE u.uuid = :uuid AND u.deleted_at IS NULL
+                GROUP BY u.user_id
+            ");
+
+            $stmt->execute(['uuid' => $uuid]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user) {
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
+                $user['permissions'] = $user['permissions'] ? explode(',', $user['permissions']) : [];
+                unset($user['password_hash']);
+            }
+
+            return $user ?: null;
+        } catch (\PDOException $e) {
+            error_log("User Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }

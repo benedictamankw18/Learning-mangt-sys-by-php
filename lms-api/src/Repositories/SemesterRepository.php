@@ -89,10 +89,11 @@ class SemesterRepository
     {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO semesters (academic_year_id, semester_name, start_date, end_date, is_current)
-                VALUES (:academic_year_id, :semester_name, :start_date, :end_date, :is_current)
+                INSERT INTO semesters (institution_id, academic_year_id, semester_name, start_date, end_date, is_current)
+                VALUES (:institution_id, :academic_year_id, :semester_name, :start_date, :end_date, :is_current)
             ");
             $stmt->execute([
+                'institution_id' => $data['institution_id'],
                 'academic_year_id' => $data['academic_year_id'],
                 'semester_name' => $data['semester_name'],
                 'start_date' => $data['start_date'],
@@ -109,7 +110,7 @@ class SemesterRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['academic_year_id', 'semester_name', 'start_date', 'end_date', 'is_current'];
+            $allowedFields = ['institution_id', 'academic_year_id', 'semester_name', 'start_date', 'end_date', 'is_current'];
             $updates = [];
             $params = ['id' => $id];
 

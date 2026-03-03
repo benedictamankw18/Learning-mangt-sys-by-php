@@ -54,34 +54,55 @@ class CourseMaterialRepository
         $stmt = $this->db->prepare("
             INSERT INTO course_materials (
                 course_id,
+                section_id,
                 title,
                 description,
                 material_type,
+                file_name,
                 file_path,
                 file_size,
+                external_link,
                 order_index,
-                is_active
+                is_required,
+                is_active,
+                uploaded_by,
+                status,
+                tags
             ) VALUES (
                 :course_id,
+                :section_id,
                 :title,
                 :description,
                 :material_type,
+                :file_name,
                 :file_path,
                 :file_size,
+                :external_link,
                 :order_index,
-                :is_active
+                :is_required,
+                :is_active,
+                :uploaded_by,
+                :status,
+                :tags
             )
         ");
 
         $stmt->execute([
             'course_id' => $data['course_id'],
+            'section_id' => $data['section_id'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'material_type' => $data['material_type'] ?? 'document',
+            'file_name' => $data['file_name'] ?? null,
             'file_path' => $data['file_path'] ?? null,
             'file_size' => $data['file_size'] ?? null,
+            'external_link' => $data['external_link'] ?? null,
             'order_index' => $data['order_index'] ?? 0,
-            'is_active' => $data['is_active'] ?? 1
+            'is_required' => $data['is_required'] ?? 0,
+            'is_active' => $data['is_active'] ?? 1,
+            'uploaded_by' => $data['uploaded_by'] ?? null,
+            'status' => $data['status'] ?? 'active',
+            'tags' => $data['tags'] ?? null
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -95,7 +116,7 @@ class CourseMaterialRepository
         $fields = [];
         $params = ['id' => $id];
 
-        $allowedFields = ['title', 'description', 'material_type', 'file_path', 'file_size', 'order_index', 'is_active'];
+        $allowedFields = ['section_id', 'title', 'description', 'material_type', 'file_name', 'file_path', 'file_size', 'external_link', 'order_index', 'is_required', 'is_active', 'uploaded_by', 'status', 'tags'];
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

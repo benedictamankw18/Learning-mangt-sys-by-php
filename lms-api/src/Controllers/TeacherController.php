@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\TeacherRepository;
 use App\Repositories\UserRepository;
 use App\Middleware\RoleMiddleware;
@@ -46,21 +47,29 @@ class TeacherController
         ]);
     }
 
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $teacher = $this->teacherRepo->findById($id);
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
+        $teacherId = $teacher['teacher_id'];
+
         // Teachers can only view their own profile unless they're admin
         if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
             $currentTeacher = $this->teacherRepo->findByUserId($user['user_id']);
-            if (!$currentTeacher || $currentTeacher['teacher_id'] != $id) {
+            if (!$currentTeacher || $currentTeacher['teacher_id'] != $teacherId) {
                 Response::forbidden('You can only view your own profile');
                 return;
             }
@@ -88,6 +97,11 @@ class TeacherController
             return;
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         // Check if user exists
         $userExists = $this->userRepo->findById((int) $data['user_id']);
         if (!$userExists) {
@@ -112,21 +126,29 @@ class TeacherController
         }
     }
 
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $teacher = $this->teacherRepo->findById($id);
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
+        $teacherId = $teacher['teacher_id'];
+
         // Teachers can only update their own profile unless they're admin
         if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
             $currentTeacher = $this->teacherRepo->findByUserId($user['user_id']);
-            if (!$currentTeacher || $currentTeacher['teacher_id'] != $id) {
+            if (!$currentTeacher || $currentTeacher['teacher_id'] != $teacherId) {
                 Response::forbidden('You can only update your own profile');
                 return;
             }
@@ -134,69 +156,91 @@ class TeacherController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if ($this->teacherRepo->update($id, $data)) {
-            $updatedTeacher = $this->teacherRepo->findById($id);
+        if ($this->teacherRepo->update($teacherId, $data)) {
+            $updatedTeacher = $this->teacherRepo->findByUuid($sanitizedUuid);
             Response::success($updatedTeacher);
         } else {
             Response::serverError('Failed to update teacher');
         }
     }
 
-    public function getCourses(array $user, int $id): void
+    public function getCourses(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $teacher = $this->teacherRepo->findById($id);
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
+        $teacherId = $teacher['teacher_id'];
+
         // Teachers can only view their own courses unless they're admin
         if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
             $currentTeacher = $this->teacherRepo->findByUserId($user['user_id']);
-            if (!$currentTeacher || $currentTeacher['teacher_id'] != $id) {
+            if (!$currentTeacher || $currentTeacher['teacher_id'] != $teacherId) {
                 Response::forbidden('You can only view your own courses');
                 return;
             }
         }
 
-        $courses = $this->teacherRepo->getCourses($id);
+        $courses = $this->teacherRepo->getCourses($teacherId);
         Response::success($courses);
     }
 
-    public function getSchedule(array $user, int $id): void
+    public function getSchedule(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
-        $teacher = $this->teacherRepo->findById($id);
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
+        $teacherId = $teacher['teacher_id'];
+
         // Teachers can only view their own schedule unless they're admin
         if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
             $currentTeacher = $this->teacherRepo->findByUserId($user['user_id']);
-            if (!$currentTeacher || $currentTeacher['teacher_id'] != $id) {
+            if (!$currentTeacher || $currentTeacher['teacher_id'] != $teacherId) {
                 Response::forbidden('You can only view your own schedule');
                 return;
             }
         }
 
         $date = $_GET['date'] ?? null;
-        $schedule = $this->teacherRepo->getSchedule($id, $date);
+        $schedule = $this->teacherRepo->getSchedule($teacherId, $date);
         Response::success($schedule);
     }
 
     /**
      * Delete (deactivate) a teacher
-     * DELETE /api/teachers/{id}
+     * DELETE /api/teachers/{uuid}
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         // Only admins can delete teachers
@@ -204,17 +248,19 @@ class TeacherController
             return;
         }
 
-        $teacher = $this->teacherRepo->findById($id);
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
+        $teacherId = $teacher['teacher_id'];
+
         // Soft delete - set employment_end_date
         $data = ['employment_end_date' => date('Y-m-d')];
 
-        if ($this->teacherRepo->update($id, $data)) {
+        if ($this->teacherRepo->update($teacherId, $data)) {
             Response::success(['message' => 'Teacher deactivated successfully']);
         } else {
             Response::serverError('Failed to deactivate teacher');

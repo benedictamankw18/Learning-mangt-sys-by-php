@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class StudentRepository
@@ -17,19 +18,38 @@ class StudentRepository
     public function create(int $userId, array $data): ?int
     {
         try {
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
-                INSERT INTO students (institution_id, user_id, student_id_number, enrollment_date, class_id, gender, date_of_birth)
-                VALUES (:institution_id, :user_id, :student_id_number, :enrollment_date, :class_id, :gender, :date_of_birth)
+                INSERT INTO students (
+                    uuid, institution_id, user_id, student_id_number, enrollment_date, 
+                    class_id, gender, date_of_birth, parent_name, parent_phone, 
+                    parent_email, emergency_contact, status
+                )
+                VALUES (
+                    :uuid, :institution_id, :user_id, :student_id_number, :enrollment_date,
+                    :class_id, :gender, :date_of_birth, :parent_name, :parent_phone,
+                    :parent_email, :emergency_contact, :status
+                )
             ");
 
             $stmt->execute([
+                'uuid' => $data['uuid'],
                 'institution_id' => $data['institution_id'],
                 'user_id' => $userId,
                 'student_id_number' => $data['student_id_number'],
                 'enrollment_date' => $data['enrollment_date'] ?? date('Y-m-d'),
                 'class_id' => $data['class_id'] ?? null,
                 'gender' => $data['gender'] ?? null,
-                'date_of_birth' => $data['date_of_birth'] ?? null
+                'date_of_birth' => $data['date_of_birth'] ?? null,
+                'parent_name' => $data['parent_name'] ?? null,
+                'parent_phone' => $data['parent_phone'] ?? null,
+                'parent_email' => $data['parent_email'] ?? null,
+                'emergency_contact' => $data['emergency_contact'] ?? null,
+                'status' => $data['status'] ?? 'active'
             ]);
 
             return (int) $this->db->lastInsertId();
@@ -74,6 +94,44 @@ class StudentRepository
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
             error_log("Student Find By User Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find student by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    s.*,
+                    u.username,
+                    u.email,
+                    u.first_name,
+                    u.last_name,
+                    u.phone_number,
+                    u.address,
+                    u.date_of_birth,
+                    u.is_active
+                FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.uuid = :uuid
+            ");
+
+            $stmt->execute(['uuid' => $uuid]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (\PDOException $e) {
+            error_log("Student Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -302,15 +360,25 @@ class StudentRepository
         try {
             $stmt = $this->db->prepare("
                 SELECT 
-                    c.*,
+                    cs.course_id,
+                    cs.institution_id,
+                    cs.class_id,
+                    cs.subject_id,
+                    cs.teacher_id,
+                    cs.status,
+                    s.subject_name,
+                    s.subject_code,
+                    cl.class_name,
                     ce.enrollment_date,
                     ce.status as enrollment_status,
                     ce.progress_percentage,
                     t.first_name as teacher_first_name,
                     t.last_name as teacher_last_name
                 FROM course_enrollments ce
-                INNER JOIN courses c ON ce.course_id = c.course_id
-                LEFT JOIN teachers teach ON c.teacher_id = teach.teacher_id
+                INNER JOIN class_subjects cs ON ce.course_id = cs.course_id
+                INNER JOIN subjects s ON cs.subject_id = s.subject_id
+                INNER JOIN classes cl ON cs.class_id = cl.class_id
+                LEFT JOIN teachers teach ON cs.teacher_id = teach.teacher_id
                 LEFT JOIN users t ON teach.user_id = t.user_id
                 WHERE ce.student_id = :student_id AND ce.status = 'active'
                 ORDER BY ce.enrollment_date DESC

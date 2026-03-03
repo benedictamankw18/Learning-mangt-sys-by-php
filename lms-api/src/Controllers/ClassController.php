@@ -4,8 +4,10 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\ClassRepository;
 use App\Middleware\RoleMiddleware;
+use App\Middleware\AuthorizationMiddleware;
 
 class ClassController
 {
@@ -47,11 +49,17 @@ class ClassController
     }
 
     /**
-     * Get a single class by ID
+     * Get a single class by UUID
      */
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
-        $class = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
@@ -59,8 +67,8 @@ class ClassController
         }
 
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAccess($class, 'You do not have access to this class')) {
             return;
         }
 
@@ -118,24 +126,32 @@ class ClassController
     /**
      * Update an existing class
      */
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
-        $class = $this->repo->findById($id);
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to update this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAdmin($class, 'You do not have access to update this class')) {
             return;
         }
 
@@ -160,7 +176,7 @@ class ClassController
             return;
         }
 
-        $success = $this->repo->update($id, $data);
+        $success = $this->repo->update($classId, $data);
 
         if ($success) {
             Response::success(['message' => 'Class updated successfully']);
@@ -172,28 +188,36 @@ class ClassController
     /**
      * Delete a class
      */
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
-        $class = $this->repo->findById($id);
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to delete this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAdmin($class, 'You do not have access to delete this class')) {
             return;
         }
 
-        $success = $this->repo->delete($id);
+        $success = $this->repo->delete($classId);
 
         if ($success) {
             Response::success(['message' => 'Class deleted successfully']);
@@ -205,22 +229,30 @@ class ClassController
     /**
      * Get students in a class
      */
-    public function getStudents(array $user, int $id): void
+    public function getStudents(array $user, string $uuid): void
     {
-        $class = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAccess($class, 'You do not have access to this class')) {
             return;
         }
 
-        $students = $this->repo->getClassStudents($id);
+        $students = $this->repo->getClassStudents($classId);
 
         Response::success(['data' => $students]);
     }
@@ -228,22 +260,30 @@ class ClassController
     /**
      * Get class subjects for a class
      */
-    public function getClassSubjects(array $user, int $id): void
+    public function getClassSubjects(array $user, string $uuid): void
     {
-        $class = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAccess($class, 'You do not have access to this class')) {
             return;
         }
 
-        $classSubjects = $this->repo->getClassSubjects($id);
+        $classSubjects = $this->repo->getClassSubjects($classId);
 
         Response::success(['data' => $classSubjects]);
     }
@@ -251,24 +291,32 @@ class ClassController
     /**
      * Assign homeroom teacher to class
      */
-    public function assignTeacher(array $user, int $id): void
+    public function assignTeacher(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
-        $class = $this->repo->findById($id);
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to update this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAdmin($class, 'You do not have access to update this class')) {
             return;
         }
 
@@ -282,7 +330,7 @@ class ClassController
             return;
         }
 
-        $success = $this->repo->assignTeacher($id, $data['teacher_id']);
+        $success = $this->repo->assignTeacher($classId, $data['teacher_id']);
 
         if ($success) {
             Response::success(['message' => 'Class teacher assigned successfully']);
@@ -294,22 +342,30 @@ class ClassController
     /**
      * Get class schedule/timetable
      */
-    public function getSchedule(array $user, int $id): void
+    public function getSchedule(array $user, string $uuid): void
     {
-        $class = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $class = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$class) {
             Response::notFound('Class not found');
             return;
         }
 
+        $classId = $class['class_id'];
+
         // Check authorization
-        if ($user['role'] !== 'super_admin' && $class['institution_id'] != $user['institution_id']) {
-            Response::forbidden('You do not have access to this class');
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAccess($class, 'You do not have access to this class')) {
             return;
         }
 
-        $schedule = $this->repo->getClassSchedule($id);
+        $schedule = $this->repo->getClassSchedule($classId);
 
         Response::success(['data' => $schedule]);
     }

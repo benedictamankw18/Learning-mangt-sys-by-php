@@ -19,24 +19,27 @@ class AssessmentRepository
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO assessments (
-                    course_id, title, description, assessment_type,
-                    max_score, due_date, duration_minutes, passing_score
+                    course_id, category_id, title, description, assessment_type,
+                    max_score, due_date, duration_minutes, passing_score, is_published, weight_percentage
                 )
                 VALUES (
-                    :course_id, :title, :description, :type,
-                    :max_score, :due_date, :duration, :passing_score
+                    :course_id, :category_id, :title, :description, :type,
+                    :max_score, :due_date, :duration, :passing_score, :is_published, :weight_percentage
                 )
             ");
 
             $stmt->execute([
                 'course_id' => $data['course_id'],
+                'category_id' => $data['category_id'] ?? null,
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
                 'type' => $data['assessment_type'],
                 'max_score' => $data['max_score'] ?? 100,
                 'due_date' => $data['due_date'] ?? null,
                 'duration' => $data['duration_minutes'] ?? null,
-                'passing_score' => $data['passing_score'] ?? 60
+                'passing_score' => $data['passing_score'] ?? 60,
+                'is_published' => $data['is_published'] ?? 0,
+                'weight_percentage' => $data['weight_percentage'] ?? null
             ]);
 
             return (int) $this->db->lastInsertId();

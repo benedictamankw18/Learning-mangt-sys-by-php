@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Utils\Response;
 use App\Utils\Validator;
+use App\Utils\UuidHelper;
 use App\Repositories\SubjectRepository;
 use App\Middleware\RoleMiddleware;
 
@@ -35,9 +36,15 @@ class SubjectController
         ]);
     }
 
-    public function show(array $user, int $id): void
+    public function show(array $user, string $uuid): void
     {
-        $subject = $this->repo->findById($id);
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $subject = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$subject) {
             Response::notFound('Subject not found');
@@ -71,6 +78,11 @@ class SubjectController
             return;
         }
 
+        // Add institution_id for multi-tenant support (CRITICAL)
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         $subjectId = $this->repo->create($data);
 
         if ($subjectId) {
@@ -83,20 +95,28 @@ class SubjectController
         }
     }
 
-    public function update(array $user, int $id): void
+    public function update(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole('admin')) {
             return;
         }
 
-        $subject = $this->repo->findById($id);
+        $subject = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$subject) {
             Response::notFound('Subject not found');
             return;
         }
+
+        $subjectId = $subject['subject_id'];
 
         $data = json_decode(file_get_contents('php://input'), true);
 
@@ -116,29 +136,37 @@ class SubjectController
             return;
         }
 
-        if ($this->repo->update($id, $data)) {
+        if ($this->repo->update($subjectId, $data)) {
             Response::success(['message' => 'Subject updated successfully']);
         } else {
             Response::serverError('Failed to update subject');
         }
     }
 
-    public function delete(array $user, int $id): void
+    public function delete(array $user, string $uuid): void
     {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
         $roleMiddleware = new RoleMiddleware($user);
 
         if (!$roleMiddleware->requireRole('admin')) {
             return;
         }
 
-        $subject = $this->repo->findById($id);
+        $subject = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$subject) {
             Response::notFound('Subject not found');
             return;
         }
 
-        if ($this->repo->delete($id)) {
+        $subjectId = $subject['subject_id'];
+
+        if ($this->repo->delete($subjectId)) {
             Response::success(['message' => 'Subject deleted successfully']);
         } else {
             Response::serverError('Failed to delete subject');

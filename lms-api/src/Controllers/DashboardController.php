@@ -114,13 +114,15 @@ class DashboardController
      */
     public function adminStats(array $user): void
     {
-        if (!$user['institution_id']) {
-            Response::badRequest('Institution ID required');
+        // Allow institution_id from query params (for superadmin) or from user context
+        $institutionId = isset($_GET['institution_id']) ? (int) $_GET['institution_id'] : $user['institution_id'];
+
+        if (!$institutionId) {
+            Response::badRequest('Institution ID required. Please provide institution_id as a query parameter.');
             return;
         }
 
         try {
-            $institutionId = $user['institution_id'];
 
             // Get course distribution by subject
             $courseDistribution = $this->classSubjectRepo->getCourseDistributionBySubject($institutionId);

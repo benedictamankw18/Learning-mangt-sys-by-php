@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Repositories\SubscriptionRepository;
+use App\Utils\Response;
 
 class SubscriptionController
 {
@@ -17,38 +18,35 @@ class SubscriptionController
      * Get all subscriptions
      * GET /subscriptions?institution_id=1&status=active
      */
-    public function index($request)
+    public function index(array $user): void
     {
         try {
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $status = $request['query']['status'] ?? null;
-            $page = $request['query']['page'] ?? 1;
-            $limit = $request['query']['limit'] ?? 50;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $status = $_GET['status'] ?? null;
+            $page = $_GET['page'] ?? 1;
+            $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
 
             $filters = [];
-            if ($institutionId) $filters['institution_id'] = $institutionId;
-            if ($status) $filters['status'] = $status;
+            if ($institutionId)
+                $filters['institution_id'] = $institutionId;
+            if ($status)
+                $filters['status'] = $status;
 
             $subscriptions = $this->subscriptionRepository->getAll($filters, $limit, $offset);
             $total = $this->subscriptionRepository->count($filters);
 
-            return [
-                'success' => true,
-                'data' => $subscriptions,
+            Response::success([
+                'subscriptions' => $subscriptions,
                 'pagination' => [
                     'total' => $total,
-                    'page' => (int)$page,
-                    'limit' => (int)$limit,
+                    'page' => (int) $page,
+                    'limit' => (int) $limit,
                     'pages' => ceil($total / $limit)
                 ]
-            ];
+            ]);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch subscriptions',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch subscriptions: ' . $e->getMessage());
         }
     }
 
@@ -56,29 +54,19 @@ class SubscriptionController
      * Get single subscription
      * GET /subscriptions/{id}
      */
-    public function show($request)
+    public function show(array $user, int $id): void
     {
         try {
-            $id = $request['params']['id'];
             $subscription = $this->subscriptionRepository->findById($id);
 
             if (!$subscription) {
-                return [
-                    'success' => false,
-                    'message' => 'Subscription not found'
-                ];
+                Response::notFound('Subscription not found');
+                return;
             }
 
-            return [
-                'success' => true,
-                'data' => $subscription
-            ];
+            Response::success($subscription);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch subscription: ' . $e->getMessage());
         }
     }
 
@@ -86,35 +74,30 @@ class SubscriptionController
      * Create new subscription
      * POST /subscriptions
      */
-    public function create($request)
+    public function create(array $user): void
     {
         try {
-            $data = $request['body'];
+            $data = $_POST;
 
             // Validate required fields
-            $required = ['institution_id', 'plan_name', 'amount', 'start_date', 'end_date'];
+            $required = ['institution_code', 'institution_name', 'subscription_plan', 'subscription_expires_at'];
+            $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return [
-                        'success' => false,
-                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
-                    ];
+                    $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
             }
 
             $subscriptionId = $this->subscriptionRepository->create($data);
 
-            return [
-                'success' => true,
-                'message' => 'Subscription created successfully',
-                'data' => ['id' => $subscriptionId]
-            ];
+            Response::success(['id' => $subscriptionId], 'Subscription created successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to create subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to create subscription: ' . $e->getMessage());
         }
     }
 
@@ -122,32 +105,22 @@ class SubscriptionController
      * Update subscription
      * PUT /subscriptions/{id}
      */
-    public function update($request)
+    public function update(array $user, int $id): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
+            $data = $_POST;
 
             $subscription = $this->subscriptionRepository->findById($id);
             if (!$subscription) {
-                return [
-                    'success' => false,
-                    'message' => 'Subscription not found'
-                ];
+                Response::notFound('Subscription not found');
+                return;
             }
 
             $this->subscriptionRepository->update($id, $data);
 
-            return [
-                'success' => true,
-                'message' => 'Subscription updated successfully'
-            ];
+            Response::success(null, 'Subscription updated successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to update subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to update subscription: ' . $e->getMessage());
         }
     }
 
@@ -155,31 +128,20 @@ class SubscriptionController
      * Cancel subscription
      * DELETE /subscriptions/{id}
      */
-    public function cancel($request)
+    public function cancel(array $user, int $id): void
     {
         try {
-            $id = $request['params']['id'];
-
             $subscription = $this->subscriptionRepository->findById($id);
             if (!$subscription) {
-                return [
-                    'success' => false,
-                    'message' => 'Subscription not found'
-                ];
+                Response::notFound('Subscription not found');
+                return;
             }
 
             $this->subscriptionRepository->update($id, ['status' => 'cancelled']);
 
-            return [
-                'success' => true,
-                'message' => 'Subscription cancelled successfully'
-            ];
+            Response::success(null, 'Subscription cancelled successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to cancel subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to cancel subscription: ' . $e->getMessage());
         }
     }
 
@@ -187,18 +149,15 @@ class SubscriptionController
      * Renew subscription
      * POST /subscriptions/{id}/renew
      */
-    public function renew($request)
+    public function renew(array $user, int $id): void
     {
         try {
-            $id = $request['params']['id'];
-            $data = $request['body'];
+            $data = $_POST;
 
             $subscription = $this->subscriptionRepository->findById($id);
             if (!$subscription) {
-                return [
-                    'success' => false,
-                    'message' => 'Subscription not found'
-                ];
+                Response::notFound('Subscription not found');
+                return;
             }
 
             $newEndDate = $data['end_date'] ?? date('Y-m-d', strtotime('+1 year'));
@@ -208,16 +167,9 @@ class SubscriptionController
                 'status' => 'active'
             ]);
 
-            return [
-                'success' => true,
-                'message' => 'Subscription renewed successfully'
-            ];
+            Response::success(null, 'Subscription renewed successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to renew subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to renew subscription: ' . $e->getMessage());
         }
     }
 
@@ -225,21 +177,14 @@ class SubscriptionController
      * Get subscription plans
      * GET /subscriptions/plans
      */
-    public function getPlans($request)
+    public function getPlans(): void
     {
         try {
             $plans = $this->subscriptionRepository->getPlans();
 
-            return [
-                'success' => true,
-                'data' => $plans
-            ];
+            Response::success($plans);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch subscription plans',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch subscription plans: ' . $e->getMessage());
         }
     }
 
@@ -247,30 +192,19 @@ class SubscriptionController
      * Get institution's active subscription
      * GET /subscriptions/institution/{institutionId}/active
      */
-    public function getActiveSubscription($request)
+    public function getActiveSubscription(array $user, int $institutionId): void
     {
         try {
-            $institutionId = $request['params']['institutionId'];
-
             $subscription = $this->subscriptionRepository->getActiveByInstitution($institutionId);
 
             if (!$subscription) {
-                return [
-                    'success' => false,
-                    'message' => 'No active subscription found'
-                ];
+                Response::notFound('No active subscription found');
+                return;
             }
 
-            return [
-                'success' => true,
-                'data' => $subscription
-            ];
+            Response::success($subscription);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch subscription',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch subscription: ' . $e->getMessage());
         }
     }
 
@@ -278,21 +212,14 @@ class SubscriptionController
      * Get subscription statistics
      * GET /subscriptions/stats
      */
-    public function getStatistics($request)
+    public function getStatistics(array $user): void
     {
         try {
             $stats = $this->subscriptionRepository->getStatistics();
 
-            return [
-                'success' => true,
-                'data' => $stats
-            ];
+            Response::success($stats);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch statistics',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch statistics: ' . $e->getMessage());
         }
     }
 
@@ -300,23 +227,14 @@ class SubscriptionController
      * Check subscription status
      * GET /subscriptions/check/{institutionId}
      */
-    public function checkStatus($request)
+    public function checkStatus(array $user, int $institutionId): void
     {
         try {
-            $institutionId = $request['params']['institutionId'];
-
             $status = $this->subscriptionRepository->checkStatus($institutionId);
 
-            return [
-                'success' => true,
-                'data' => $status
-            ];
+            Response::success($status);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to check subscription status',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to check subscription status: ' . $e->getMessage());
         }
     }
 }

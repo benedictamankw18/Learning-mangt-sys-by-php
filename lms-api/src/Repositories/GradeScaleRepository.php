@@ -41,10 +41,11 @@ class GradeScaleRepository
     {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO grade_scales (grade, min_score, max_score, grade_point, remark)
-                VALUES (:grade, :min_score, :max_score, :grade_point, :remark)
+                INSERT INTO grade_scales (institution_id, grade, min_score, max_score, grade_point, remark)
+                VALUES (:institution_id, :grade, :min_score, :max_score, :grade_point, :remark)
             ");
             $stmt->execute([
+                'institution_id' => $data['institution_id'] ?? null,
                 'grade' => $data['grade'],
                 'min_score' => $data['min_score'],
                 'max_score' => $data['max_score'],
@@ -61,7 +62,7 @@ class GradeScaleRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['grade', 'min_score', 'max_score', 'grade_point', 'remark'];
+            $allowedFields = ['institution_id', 'grade', 'min_score', 'max_score', 'grade_point', 'remark'];
             $updates = [];
             $params = ['id' => $id];
 

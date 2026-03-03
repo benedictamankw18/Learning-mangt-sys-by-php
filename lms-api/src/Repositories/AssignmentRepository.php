@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use PDO;
 use App\Config\Database;
+use App\Utils\UuidHelper;
 
 class AssignmentRepository
 {
@@ -56,12 +57,48 @@ class AssignmentRepository
     }
 
     /**
+     * Find assignment by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 
+                a.*,
+                c.institution_id,
+                c.teacher_id,
+                cs.section_name
+            FROM assignments a
+            INNER JOIN class_subjects c ON a.course_id = c.course_id
+            LEFT JOIN course_sections cs ON a.section_id = cs.course_sections_id
+            WHERE a.uuid = :uuid
+        ");
+
+        $stmt->execute(['uuid' => $uuid]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
      * Create a new assignment
      */
     public function create(array $data): int
     {
+        // Auto-generate UUID if not provided
+        if (!isset($data['uuid'])) {
+            $data['uuid'] = UuidHelper::generate();
+        }
+
         $stmt = $this->db->prepare("
             INSERT INTO assignments (
+                uuid,
                 course_id,
                 section_id,
                 title,
@@ -74,6 +111,7 @@ class AssignmentRepository
                 due_date,
                 status
             ) VALUES (
+                :uuid,
                 :course_id,
                 :section_id,
                 :title,
@@ -89,6 +127,7 @@ class AssignmentRepository
         ");
 
         $stmt->execute([
+            'uuid' => $data['uuid'],
             'course_id' => $data['course_id'],
             'section_id' => $data['section_id'] ?? null,
             'title' => $data['title'],

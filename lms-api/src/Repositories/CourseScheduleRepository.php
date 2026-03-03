@@ -59,13 +59,15 @@ class CourseScheduleRepository
                 day_of_week,
                 start_time,
                 end_time,
-                room
+                room,
+                is_recurring
             ) VALUES (
                 :course_id,
                 :day_of_week,
                 :start_time,
                 :end_time,
-                :room
+                :room,
+                :is_recurring
             )
         ");
 
@@ -74,7 +76,8 @@ class CourseScheduleRepository
             'day_of_week' => $data['day_of_week'],
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],
-            'room' => $data['room'] ?? null
+            'room' => $data['room'] ?? null,
+            'is_recurring' => $data['is_recurring'] ?? 1
         ]);
 
         return (int) $this->db->lastInsertId();
@@ -88,7 +91,7 @@ class CourseScheduleRepository
         $fields = [];
         $params = ['id' => $id];
 
-        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'room'];
+        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'room', 'is_recurring'];
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

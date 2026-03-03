@@ -10,11 +10,13 @@
 **Base URL:** `/events`
 
 ### List & Filter
+
 ```http
 GET /events?institution_id={id}&type={type}&start_date={date}&end_date={date}
 ```
 
 ### Calendar Views
+
 ```http
 GET /events/upcoming?days=30&institution_id={id}
 GET /events/calendar?month=3&year=2026&institution_id={id}
@@ -22,12 +24,14 @@ GET /events/academic-calendar?institution_id={id}&academic_year_id={id}
 ```
 
 ### By Type
+
 ```http
 GET /events/type/{type}
 # Types: school, academic, sports, cultural, exam, holiday, meeting, other
 ```
 
 ### CRUD Operations
+
 ```http
 GET    /events/{id}
 POST   /events
@@ -36,6 +40,7 @@ DELETE /events/{id}
 ```
 
 ### Create Event Example:
+
 ```json
 {
   "institution_id": 1,
@@ -58,12 +63,14 @@ DELETE /events/{id}
 **Base URL:** `/grade-reports`
 
 ### List & Statistics
+
 ```http
 GET /grade-reports?student_id={id}&semester_id={id}
 GET /grade-reports/stats?institution_id={id}&semester_id={id}
 ```
 
 ### Student Reports
+
 ```http
 GET /grade-reports/student/{studentId}/report-card?semester_id={id}
 GET /grade-reports/student/{studentId}/transcript
@@ -71,12 +78,14 @@ GET /grade-reports/class/{classId}?semester_id={id}
 ```
 
 ### Generate Reports
+
 ```http
 POST /grade-reports/generate
 POST /grade-reports/bulk-generate
 ```
 
 ### Report Management
+
 ```http
 GET    /grade-reports/{id}
 PUT    /grade-reports/{id}
@@ -85,6 +94,7 @@ DELETE /grade-reports/{id}
 ```
 
 ### Generate Report Example:
+
 ```json
 {
   "student_id": 123,
@@ -96,6 +106,7 @@ DELETE /grade-reports/{id}
 ```
 
 ### Report Card Response:
+
 ```json
 {
   "success": true,
@@ -134,6 +145,7 @@ DELETE /grade-reports/{id}
 **Base URL:** `/user-activity`
 
 ### List & Filter
+
 ```http
 GET /user-activity?user_id={id}&action={action}&start_date={date}
 GET /user-activity/recent?limit=50&institution_id={id}
@@ -141,6 +153,7 @@ GET /user-activity/stats?start_date={date}&end_date={date}
 ```
 
 ### Audit & Tracking
+
 ```http
 GET /user-activity/audit-trail?start_date={date}&end_date={date}
 GET /user-activity/user/{userId}?start_date={date}
@@ -149,6 +162,7 @@ GET /user-activity/entity/{entityType}/{entityId}
 ```
 
 ### Activity Management
+
 ```http
 GET    /user-activity/{id}
 POST   /user-activity
@@ -156,6 +170,7 @@ DELETE /user-activity/cleanup?older_than_days=90
 ```
 
 ### Log Activity Example:
+
 ```json
 {
   "user_id": 45,
@@ -170,6 +185,7 @@ DELETE /user-activity/cleanup?older_than_days=90
 ```
 
 ### Activity Statistics Response:
+
 ```json
 {
   "success": true,
@@ -205,12 +221,14 @@ DELETE /user-activity/cleanup?older_than_days=90
 **Base URL:** `/course-content`
 
 ### List & Filter
+
 ```http
 GET /course-content?teacher_id={id}&type={type}
 GET /course-content/class-subject/{classSubjectId}
 ```
 
 ### Content Management
+
 ```http
 GET    /course-content/{id}
 POST   /course-content
@@ -222,6 +240,7 @@ DELETE /course-content/{id}
 ```
 
 ### Create Content Example:
+
 ```json
 {
   "class_subject_id": 25,
@@ -238,6 +257,7 @@ DELETE /course-content/{id}
 ```
 
 ### Content Types:
+
 - `lesson` - Full lesson plan
 - `module` - Course module
 - `unit` - Unit in a module
@@ -248,17 +268,19 @@ DELETE /course-content/{id}
 - `assignment` - Embedded assignment
 
 ### Reorder Example:
+
 ```json
 {
   "items": [
-    {"id": 1, "order_position": 1},
-    {"id": 3, "order_position": 2},
-    {"id": 2, "order_position": 3}
+    { "id": 1, "order_position": 1 },
+    { "id": 3, "order_position": 2 },
+    { "id": 2, "order_position": 3 }
   ]
 }
 ```
 
 ### Duplicate Content Example:
+
 ```json
 {
   "target_class_subject_id": 30,
@@ -275,6 +297,7 @@ DELETE /course-content/{id}
 **Base URL:** `/subscriptions`
 
 ### List & Plans
+
 ```http
 GET /subscriptions?status={status}&institution_id={id}
 GET /subscriptions/plans (public endpoint)
@@ -282,12 +305,14 @@ GET /subscriptions/stats
 ```
 
 ### Institution Subscription
+
 ```http
 GET /subscriptions/institution/{institutionId}/active
 GET /subscriptions/check/{institutionId}
 ```
 
 ### Subscription Management
+
 ```http
 GET    /subscriptions/{id}
 POST   /subscriptions
@@ -297,6 +322,7 @@ DELETE /subscriptions/{id}
 ```
 
 ### Available Plans:
+
 ```json
 [
   {
@@ -348,6 +374,7 @@ DELETE /subscriptions/{id}
 ```
 
 ### Create Subscription Example:
+
 ```json
 {
   "institution_id": 5,
@@ -361,6 +388,7 @@ DELETE /subscriptions/{id}
 ```
 
 ### Check Status Response:
+
 ```json
 {
   "success": true,
@@ -378,6 +406,7 @@ DELETE /subscriptions/{id}
 ```
 
 ### Renew Subscription Example:
+
 ```json
 {
   "plan_name": "Premium",
@@ -395,18 +424,21 @@ DELETE /subscriptions/{id}
 **Base URL:** `/upload`
 
 ### Upload Files
+
 ```http
 POST /upload
 POST /upload/multiple
 ```
 
 ### File Management
+
 ```http
 GET    /upload/{category}/{filename}/info
 DELETE /upload/{category}/{filename}
 ```
 
 ### Single Upload Example:
+
 ```http
 POST /upload
 Content-Type: multipart/form-data
@@ -421,6 +453,7 @@ Content-Type: multipart/form-data
 ```
 
 ### Multiple Upload Example:
+
 ```http
 POST /upload/multiple
 Content-Type: multipart/form-data
@@ -435,6 +468,7 @@ Content-Type: multipart/form-data
 ```
 
 ### Upload Categories:
+
 - `assignments` - Assignment submissions
 - `materials` - Course materials
 - `profiles` - Profile pictures
@@ -445,6 +479,7 @@ Content-Type: multipart/form-data
 - `other` - Other files
 
 ### Allowed File Types:
+
 ```json
 {
   "images": ["jpg", "jpeg", "png", "gif", "webp"],
@@ -456,6 +491,7 @@ Content-Type: multipart/form-data
 ```
 
 ### Upload Response:
+
 ```json
 {
   "success": true,
@@ -472,6 +508,7 @@ Content-Type: multipart/form-data
 ```
 
 ### File Info Response:
+
 ```json
 {
   "success": true,
@@ -503,19 +540,19 @@ async function loadCalendarEvents() {
   const now = new Date();
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
-  
+
   const response = await fetch(
     `${API_BASE_URL}/events/calendar?month=${month}&year=${year}&institution_id=${institutionId}`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
   );
-  
+
   const result = await response.json();
-  
+
   if (result.success) {
     displayCalendar(result.data);
   }
@@ -530,14 +567,14 @@ async function generateReportCard(studentId, semesterId) {
     `${API_BASE_URL}/grade-reports/student/${studentId}/report-card?semester_id=${semesterId}`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
   );
-  
+
   const result = await response.json();
-  
+
   if (result.success) {
     displayReportCard(result.data);
   }
@@ -549,24 +586,24 @@ async function generateReportCard(studentId, semesterId) {
 ```javascript
 async function uploadAssignment(file, assignmentId) {
   const formData = new FormData();
-  formData.append('file', file);
-  formData.append('category', 'assignments');
-  formData.append('institution_id', institutionId);
-  formData.append('uploader_id', userId);
-  formData.append('uploader_type', 'student');
-  
+  formData.append("file", file);
+  formData.append("category", "assignments");
+  formData.append("institution_id", institutionId);
+  formData.append("uploader_id", userId);
+  formData.append("uploader_type", "student");
+
   const response = await fetch(`${API_BASE_URL}/upload`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
-    body: formData
+    body: formData,
   });
-  
+
   const result = await response.json();
-  
+
   if (result.success) {
-    console.log('File uploaded:', result.data.url);
+    console.log("File uploaded:", result.data.url);
     submitAssignment(assignmentId, result.data.stored_name);
   }
 }
@@ -577,10 +614,10 @@ async function uploadAssignment(file, assignmentId) {
 ```javascript
 async function logActivity(action, entityType, entityId, description) {
   const response = await fetch(`${API_BASE_URL}/user-activity`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       user_id: userId,
@@ -590,15 +627,15 @@ async function logActivity(action, entityType, entityId, description) {
       entity_id: entityId,
       description: description,
       ip_address: userIpAddress,
-      user_agent: navigator.userAgent
-    })
+      user_agent: navigator.userAgent,
+    }),
   });
-  
+
   return await response.json();
 }
 
 // Usage example
-await logActivity('view', 'student', 123, 'Viewed student profile');
+await logActivity("view", "student", 123, "Viewed student profile");
 ```
 
 ### Example 5: Create Lesson Plan
@@ -606,27 +643,27 @@ await logActivity('view', 'student', 123, 'Viewed student profile');
 ```javascript
 async function createLessonPlan(classSubjectId, lessonData) {
   const response = await fetch(`${API_BASE_URL}/course-content`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       class_subject_id: classSubjectId,
       teacher_id: teacherId,
-      type: 'lesson',
+      type: "lesson",
       title: lessonData.title,
       description: lessonData.description,
       content: lessonData.content,
       duration_minutes: lessonData.duration,
-      is_published: false
-    })
+      is_published: false,
+    }),
   });
-  
+
   const result = await response.json();
-  
+
   if (result.success) {
-    console.log('Lesson plan created:', result.data.id);
+    console.log("Lesson plan created:", result.data.id);
   }
 }
 ```
@@ -648,6 +685,7 @@ All endpoints return consistent error responses:
 ```
 
 ### Common HTTP Status Codes:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request / Validation Error
@@ -667,6 +705,7 @@ Authorization: Bearer {your-jwt-token}
 ```
 
 Get token from login:
+
 ```http
 POST /auth/login
 {
@@ -676,6 +715,7 @@ POST /auth/login
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -696,6 +736,7 @@ Response:
 ## Rate Limiting
 
 Current limits (can be adjusted in production):
+
 - **General endpoints:** 100 requests/minute
 - **File upload:** 20 uploads/minute
 - **Bulk operations:** 10 requests/minute
@@ -727,4 +768,3 @@ Import these endpoints into Postman:
 **Total New Endpoints:** 67  
 **Total System Endpoints:** 230+  
 **Backend Status:** ✅ 100% Complete
-

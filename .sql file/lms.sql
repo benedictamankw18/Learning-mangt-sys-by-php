@@ -1,0 +1,3024 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Mar 03, 2026 at 04:30 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET FOREIGN_KEY_CHECKS=0;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `lms`
+--
+CREATE DATABASE IF NOT EXISTS `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `lms`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `academic_years`
+--
+
+DROP TABLE IF EXISTS `academic_years`;
+CREATE TABLE IF NOT EXISTS `academic_years` (
+  `academic_year_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `year_name` varchar(20) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `is_current` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`academic_year_id`),
+  UNIQUE KEY `unique_year_institution` (`year_name`,`institution_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_is_current` (`is_current`),
+  KEY `idx_year_name` (`year_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `academic_years`
+--
+
+INSERT INTO `academic_years` (`academic_year_id`, `institution_id`, `year_name`, `start_date`, `end_date`, `is_current`, `created_at`, `updated_at`) VALUES
+(1, 1, '2024-2025', '2024-09-01', '2025-06-30', 1, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `announcements`
+--
+
+DROP TABLE IF EXISTS `announcements`;
+CREATE TABLE IF NOT EXISTS `announcements` (
+  `announcement_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `content` text DEFAULT NULL,
+  `author_id` int(11) DEFAULT NULL,
+  `target_role` varchar(50) DEFAULT NULL,
+  `is_published` tinyint(1) DEFAULT 0,
+  `published_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`announcement_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `FK_announcements_author` (`author_id`),
+  KEY `idx_target_role` (`target_role`),
+  KEY `idx_is_published` (`is_published`),
+  KEY `idx_published_at` (`published_at`),
+  KEY `idx_announcements_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assessments`
+--
+
+DROP TABLE IF EXISTS `assessments`;
+CREATE TABLE IF NOT EXISTS `assessments` (
+  `assessment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `category_id` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `assessment_type` varchar(50) NOT NULL,
+  `max_score` decimal(10,2) DEFAULT 100.00,
+  `passing_score` decimal(10,2) DEFAULT 60.00,
+  `due_date` datetime DEFAULT NULL,
+  `duration_minutes` int(11) DEFAULT NULL,
+  `is_published` tinyint(1) DEFAULT 0,
+  `weight_percentage` decimal(5,2) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`assessment_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_assessment_type` (`assessment_type`),
+  KEY `idx_due_date` (`due_date`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assessments`
+--
+
+INSERT INTO `assessments` (`assessment_id`, `course_id`, `category_id`, `title`, `description`, `assessment_type`, `max_score`, `passing_score`, `due_date`, `duration_minutes`, `is_published`, `weight_percentage`, `created_at`, `updated_at`) VALUES
+(1, 2, NULL, 'Mid-Semester Biology Test', 'Covers cell biology and genetics topics', 'exam', 100.00, 50.00, '2024-11-15 10:00:00', NULL, 1, NULL, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assessment_categories`
+--
+
+DROP TABLE IF EXISTS `assessment_categories`;
+CREATE TABLE IF NOT EXISTS `assessment_categories` (
+  `category_id` int(11) NOT NULL AUTO_INCREMENT,
+  `category_name` varchar(100) NOT NULL,
+  `weight_percentage` decimal(5,2) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`category_id`),
+  KEY `idx_category_name` (`category_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assessment_categories`
+--
+
+INSERT INTO `assessment_categories` (`category_id`, `category_name`, `weight_percentage`, `description`, `created_at`, `updated_at`) VALUES
+(1, 'Quiz', 15.00, 'Short quizzes and tests', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 'Assignment', 20.00, 'Homework and take-home assignments', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 'Midterm', 25.00, 'Mid-term examination', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(4, 'Final', 40.00, 'Final examination', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assessment_submissions`
+--
+
+DROP TABLE IF EXISTS `assessment_submissions`;
+CREATE TABLE IF NOT EXISTS `assessment_submissions` (
+  `submission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `assessment_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `submission_text` text DEFAULT NULL,
+  `file_path` varchar(500) DEFAULT NULL,
+  `score` decimal(10,2) DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'draft',
+  `submitted_at` datetime DEFAULT NULL,
+  `graded_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`submission_id`),
+  KEY `idx_assessment_id` (`assessment_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_submission_assessment_student` (`assessment_id`,`student_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Triggers `assessment_submissions`
+--
+DROP TRIGGER IF EXISTS `after_submission_graded`;
+DELIMITER $$
+CREATE TRIGGER `after_submission_graded` AFTER UPDATE ON `assessment_submissions` FOR EACH ROW BEGIN
+    DECLARE student_user_id INT;
+    DECLARE assessment_title VARCHAR(200);
+    
+    IF NEW.graded_at IS NOT NULL AND OLD.graded_at IS NULL THEN
+        SELECT user_id INTO student_user_id FROM students WHERE student_id = NEW.student_id;
+        SELECT title INTO assessment_title FROM assessments WHERE assessment_id = NEW.assessment_id;
+        
+        INSERT INTO notifications (uuid, sender_id, user_id, title, message, notification_type)
+        VALUES (
+            UUID(),
+            0,
+            student_user_id,
+            'Assessment Graded',
+            CONCAT('Your submission for "', assessment_title, '" has been graded. Score: ', NEW.score),
+            'grading'
+        );
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assignments`
+--
+
+DROP TABLE IF EXISTS `assignments`;
+CREATE TABLE IF NOT EXISTS `assignments` (
+  `assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `file_path` varchar(500) DEFAULT NULL,
+  `max_score` decimal(10,2) DEFAULT 100.00,
+  `passing_score` decimal(10,2) DEFAULT 60.00,
+  `rubric` text DEFAULT NULL,
+  `submission_type` varchar(50) DEFAULT 'both',
+  `due_date` datetime DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'draft',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`assignment_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_section_id` (`section_id`),
+  KEY `idx_due_date` (`due_date`),
+  KEY `idx_status` (`status`),
+  KEY `idx_assignments_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assignments`
+--
+
+INSERT INTO `assignments` (`assignment_id`, `uuid`, `course_id`, `section_id`, `title`, `description`, `file_path`, `max_score`, `passing_score`, `rubric`, `submission_type`, `due_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, '1c007529-16ae-11f1-9c28-10653022c2a0', 2, 2, 'Cell Diagram and Functions', 'Draw and label a plant cell diagram, explaining the function of each organelle', NULL, 50.00, 25.00, 'Criteria:\n- Accurate diagram (15 pts)\n- Correct labels (15 pts)\n- Clear explanations (15 pts)\n- Presentation (5 pts)', 'both', '2024-09-22 23:59:59', 'active', '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `assignment_submissions`
+--
+
+DROP TABLE IF EXISTS `assignment_submissions`;
+CREATE TABLE IF NOT EXISTS `assignment_submissions` (
+  `submission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `assignment_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `submission_text` text DEFAULT NULL,
+  `submission_file` varchar(500) DEFAULT NULL,
+  `score` decimal(10,2) DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
+  `graded_by` int(11) DEFAULT NULL,
+  `graded_at` datetime DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'draft',
+  `submitted_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`submission_id`),
+  KEY `FK_assignment_submissions_grader` (`graded_by`),
+  KEY `idx_assignment_id` (`assignment_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `assignment_submissions`
+--
+
+INSERT INTO `assignment_submissions` (`submission_id`, `assignment_id`, `student_id`, `course_id`, `submission_text`, `submission_file`, `score`, `feedback`, `graded_by`, `graded_at`, `status`, `submitted_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 2, 'Plant Cell Diagram:\nNucleus - Controls cell activities\nMitochondria - Energy production\nChloroplast - Photosynthesis\nCell Wall - Protection and support\nVacuole - Storage', '/uploads/submissions/kwame_cell_diagram.pdf', NULL, NULL, NULL, NULL, 'submitted', '2024-09-21 16:30:00', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `attendance`
+--
+
+DROP TABLE IF EXISTS `attendance`;
+CREATE TABLE IF NOT EXISTS `attendance` (
+  `attendance_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `attendance_date` date NOT NULL,
+  `status` varchar(20) NOT NULL,
+  `remarks` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`attendance_id`),
+  UNIQUE KEY `unique_attendance` (`student_id`,`course_id`,`attendance_date`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_attendance_date` (`attendance_date`),
+  KEY `idx_attendance_date_range` (`student_id`,`attendance_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `classes`
+--
+
+DROP TABLE IF EXISTS `classes`;
+CREATE TABLE IF NOT EXISTS `classes` (
+  `class_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `program_id` int(11) NOT NULL,
+  `grade_level_id` int(11) NOT NULL,
+  `class_code` varchar(50) NOT NULL,
+  `class_name` varchar(200) NOT NULL,
+  `section` varchar(50) NOT NULL,
+  `academic_year_id` int(11) NOT NULL,
+  `class_teacher_id` int(11) DEFAULT NULL,
+  `max_students` int(11) DEFAULT 40,
+  `room_number` varchar(50) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`class_id`),
+  UNIQUE KEY `unique_class_code_institution` (`class_code`,`institution_id`),
+  UNIQUE KEY `unique_class_composition` (`institution_id`,`program_id`,`grade_level_id`,`section`,`academic_year_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_program_id` (`program_id`),
+  KEY `idx_grade_level_id` (`grade_level_id`),
+  KEY `idx_class_code` (`class_code`),
+  KEY `idx_section` (`section`),
+  KEY `idx_academic_year_id` (`academic_year_id`),
+  KEY `idx_class_teacher_id` (`class_teacher_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_classes_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `classes`
+--
+
+INSERT INTO `classes` (`class_id`, `uuid`, `institution_id`, `program_id`, `grade_level_id`, `class_code`, `class_name`, `section`, `academic_year_id`, `class_teacher_id`, `max_students`, `room_number`, `status`, `created_at`, `updated_at`) VALUES
+(1, '1bff94bc-16ae-11f1-9c28-10653022c2a0', 1, 1, 1, '1ART1', 'SHS 1 Art 1', 'A', 1, NULL, 40, NULL, 'active', '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(2, '1bffa48e-16ae-11f1-9c28-10653022c2a0', 1, 2, 1, '1SCI2', 'SHS 1 Science 2', 'B', 1, NULL, 40, NULL, 'active', '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `class_subjects`
+--
+
+DROP TABLE IF EXISTS `class_subjects`;
+CREATE TABLE IF NOT EXISTS `class_subjects` (
+  `course_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `subject_id` int(11) NOT NULL,
+  `teacher_id` int(11) DEFAULT NULL,
+  `academic_year_id` int(11) DEFAULT NULL,
+  `semester_id` int(11) DEFAULT NULL,
+  `duration_weeks` int(11) DEFAULT 16,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`course_id`),
+  UNIQUE KEY `unique_class_subject_year` (`institution_id`,`class_id`,`subject_id`,`academic_year_id`,`semester_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_class_id` (`class_id`),
+  KEY `idx_subject_id` (`subject_id`),
+  KEY `idx_teacher_id` (`teacher_id`),
+  KEY `idx_academic_year_id` (`academic_year_id`),
+  KEY `idx_semester_id` (`semester_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_course_teacher_status` (`teacher_id`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `class_subjects`
+--
+
+INSERT INTO `class_subjects` (`course_id`, `institution_id`, `class_id`, `subject_id`, `teacher_id`, `academic_year_id`, `semester_id`, `duration_weeks`, `start_date`, `end_date`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 1, 1, 1, 1, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 1, 2, 10, 2, 1, 1, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_content`
+--
+
+DROP TABLE IF EXISTS `course_content`;
+CREATE TABLE IF NOT EXISTS `course_content` (
+  `course_content_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `content_text` text DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `content_type` varchar(50) DEFAULT 'lesson',
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`course_content_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `FK_course_content_creator` (`created_by`),
+  KEY `idx_course_content_course` (`course_id`),
+  KEY `idx_course_content_section` (`section_id`),
+  KEY `idx_course_content_active` (`is_active`),
+  KEY `idx_course_content_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_content_order`
+--
+
+DROP TABLE IF EXISTS `course_content_order`;
+CREATE TABLE IF NOT EXISTS `course_content_order` (
+  `course_content_order_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `course_section_id` int(11) NOT NULL,
+  `course_content_id` int(11) DEFAULT NULL,
+  `material_id` int(11) DEFAULT NULL,
+  `order_index` int(11) NOT NULL DEFAULT 0,
+  `item_type` varchar(20) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`course_content_order_id`),
+  KEY `FK_content_order_content` (`course_content_id`),
+  KEY `FK_content_order_material` (`material_id`),
+  KEY `idx_content_order_course` (`course_id`),
+  KEY `idx_content_order_section` (`course_section_id`),
+  KEY `idx_content_order_index` (`order_index`)
+) ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_enrollments`
+--
+
+DROP TABLE IF EXISTS `course_enrollments`;
+CREATE TABLE IF NOT EXISTS `course_enrollments` (
+  `enrollment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `enrollment_date` datetime DEFAULT current_timestamp(),
+  `completion_date` datetime DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `progress_percentage` decimal(5,2) DEFAULT 0.00,
+  `final_grade` varchar(2) DEFAULT NULL,
+  PRIMARY KEY (`enrollment_id`),
+  UNIQUE KEY `unique_enrollment` (`student_id`,`course_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_enrollment_student_status` (`student_id`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `course_enrollments`
+--
+
+INSERT INTO `course_enrollments` (`enrollment_id`, `student_id`, `course_id`, `enrollment_date`, `completion_date`, `status`, `progress_percentage`, `final_grade`) VALUES
+(1, 1, 2, '2024-09-01 00:00:00', NULL, 'active', 0.00, NULL),
+(2, 2, 1, '2024-09-01 00:00:00', NULL, 'active', 0.00, NULL);
+
+--
+-- Triggers `course_enrollments`
+--
+DROP TRIGGER IF EXISTS `after_enrollment_insert`;
+DELIMITER $$
+CREATE TRIGGER `after_enrollment_insert` AFTER INSERT ON `course_enrollments` FOR EACH ROW BEGIN
+    DECLARE student_user_id INT;
+    DECLARE class_subject_name VARCHAR(200);
+    
+    SELECT user_id INTO student_user_id FROM students WHERE student_id = NEW.student_id;
+    SELECT class_subject_name INTO class_subject_name FROM class_subjects WHERE course_id = NEW.course_id;
+    
+    INSERT INTO notifications (uuid, sender_id, user_id, title, message, notification_type)
+    VALUES (
+        UUID(),
+        0,
+        student_user_id,
+        'Course Enrollment',
+        CONCAT('You have been enrolled in ', class_subject_name),
+        'enrollment'
+    );
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_materials`
+--
+
+DROP TABLE IF EXISTS `course_materials`;
+CREATE TABLE IF NOT EXISTS `course_materials` (
+  `material_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `section_id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `material_type` varchar(50) DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_path` varchar(500) DEFAULT NULL,
+  `file_size` bigint(20) DEFAULT NULL,
+  `external_link` varchar(500) DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `is_required` tinyint(1) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `uploaded_by` int(11) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'active',
+  `tags` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`material_id`),
+  KEY `FK_materials_uploader` (`uploaded_by`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_section_id` (`section_id`),
+  KEY `idx_material_type` (`material_type`),
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `course_materials`
+--
+
+INSERT INTO `course_materials` (`material_id`, `course_id`, `section_id`, `title`, `description`, `material_type`, `file_name`, `file_path`, `file_size`, `external_link`, `order_index`, `is_required`, `is_active`, `uploaded_by`, `status`, `tags`, `created_at`, `updated_at`) VALUES
+(1, 2, 1, 'Biology Syllabus 2024-2025', 'Complete course outline for SHS 1 Biology', 'pdf', 'biology-syllabus.pdf', '/uploads/courses/bio-1sci2/syllabus.pdf', NULL, NULL, 0, 1, 1, 4, 'active', NULL, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 2, 1, 'Introduction to Living Organisms', 'Video lecture on characteristics of life', 'video', 'living-organisms.mp4', '/uploads/courses/bio-1sci2/living-organisms.mp4', NULL, NULL, 0, 1, 1, 4, 'active', NULL, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 2, 2, 'Cell Structure Guide', 'Detailed notes on cell organelles', 'pdf', 'cell-structure.pdf', '/uploads/courses/bio-1sci2/cell-structure.pdf', NULL, NULL, 0, 1, 1, 4, 'active', NULL, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_reviews`
+--
+
+DROP TABLE IF EXISTS `course_reviews`;
+CREATE TABLE IF NOT EXISTS `course_reviews` (
+  `review_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL CHECK (`rating` between 1 and 5),
+  `review_text` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`review_id`),
+  UNIQUE KEY `unique_review` (`course_id`,`student_id`),
+  KEY `FK_reviews_student` (`student_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_rating` (`rating`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_schedules`
+--
+
+DROP TABLE IF EXISTS `course_schedules`;
+CREATE TABLE IF NOT EXISTS `course_schedules` (
+  `schedule_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `day_of_week` varchar(20) NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `room` varchar(50) DEFAULT NULL,
+  `is_recurring` tinyint(1) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`schedule_id`),
+  UNIQUE KEY `unique_course_schedules` (`course_id`,`day_of_week`,`start_time`,`end_time`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_day_of_week` (`day_of_week`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_sections`
+--
+
+DROP TABLE IF EXISTS `course_sections`;
+CREATE TABLE IF NOT EXISTS `course_sections` (
+  `course_sections_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `section_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`course_sections_id`),
+  KEY `FK_course_sections_creator` (`created_by`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_order_index` (`order_index`),
+  KEY `idx_is_active` (`is_active`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `course_sections`
+--
+
+INSERT INTO `course_sections` (`course_sections_id`, `course_id`, `section_name`, `description`, `order_index`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 2, 'Week 1: Introduction to Biology', 'Basic concepts of living organisms and cells', 1, 1, 4, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 2, 'Week 2: Cell Structure', 'Understanding cell components and functions', 2, 1, 4, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 2, 'Week 3: Genetics', 'Introduction to heredity and DNA', 3, 1, 4, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `error_logs`
+--
+
+DROP TABLE IF EXISTS `error_logs`;
+CREATE TABLE IF NOT EXISTS `error_logs` (
+  `error_log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `error_message` text DEFAULT NULL,
+  `stack_trace` text DEFAULT NULL,
+  `source` varchar(200) DEFAULT NULL,
+  `severity_level` varchar(20) DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `is_resolved` tinyint(1) DEFAULT 0,
+  `resolved_by` int(11) DEFAULT NULL,
+  `resolved_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`error_log_id`),
+  KEY `FK_error_logs_user` (`user_id`),
+  KEY `FK_error_logs_resolved_by` (`resolved_by`),
+  KEY `idx_severity_level` (`severity_level`),
+  KEY `idx_is_resolved` (`is_resolved`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `events`
+--
+
+DROP TABLE IF EXISTS `events`;
+CREATE TABLE IF NOT EXISTS `events` (
+  `event_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `event_type` varchar(50) DEFAULT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `all_day` tinyint(1) DEFAULT 0,
+  `location` varchar(200) DEFAULT NULL,
+  `target_role` varchar(50) DEFAULT NULL,
+  `course_id` int(11) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `is_recurring` tinyint(1) DEFAULT 0,
+  `recurrence_pattern` varchar(100) DEFAULT NULL,
+  `is_published` tinyint(1) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`event_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `FK_events_creator` (`created_by`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_event_dates` (`start_date`,`end_date`),
+  KEY `idx_event_type` (`event_type`),
+  KEY `idx_target_role` (`target_role`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_events_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grade_levels`
+--
+
+DROP TABLE IF EXISTS `grade_levels`;
+CREATE TABLE IF NOT EXISTS `grade_levels` (
+  `grade_level_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `grade_level_code` varchar(20) NOT NULL,
+  `grade_level_name` varchar(50) NOT NULL,
+  `level_order` int(11) NOT NULL,
+  `description` text DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`grade_level_id`),
+  UNIQUE KEY `unique_grade_code_institution` (`grade_level_code`,`institution_id`),
+  UNIQUE KEY `unique_grade_order_institution` (`institution_id`,`level_order`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_grade_level_code` (`grade_level_code`),
+  KEY `idx_level_order` (`level_order`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `grade_levels`
+--
+
+INSERT INTO `grade_levels` (`grade_level_id`, `institution_id`, `grade_level_code`, `grade_level_name`, `level_order`, `description`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'SHS1', 'SHS 1', 1, 'Senior High School Year 1', 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 1, 'SHS2', 'SHS 2', 2, 'Senior High School Year 2', 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 1, 'SHS3', 'SHS 3', 3, 'Senior High School Year 3', 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grade_reports`
+--
+
+DROP TABLE IF EXISTS `grade_reports`;
+CREATE TABLE IF NOT EXISTS `grade_reports` (
+  `report_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `academic_year_id` int(11) NOT NULL,
+  `semester_id` int(11) DEFAULT NULL,
+  `report_type` varchar(50) DEFAULT 'semester',
+  `gpa` decimal(4,2) DEFAULT NULL,
+  `cgpa` decimal(4,2) DEFAULT NULL,
+  `total_credits` int(11) DEFAULT NULL,
+  `credits_earned` int(11) DEFAULT NULL,
+  `class_rank` int(11) DEFAULT NULL,
+  `total_students` int(11) DEFAULT NULL,
+  `attendance_percentage` decimal(5,2) DEFAULT NULL,
+  `teacher_comment` text DEFAULT NULL,
+  `principal_comment` text DEFAULT NULL,
+  `conduct_grade` varchar(10) DEFAULT NULL,
+  `effort_grade` varchar(10) DEFAULT NULL,
+  `report_card_url` varchar(500) DEFAULT NULL,
+  `generated_at` datetime DEFAULT NULL,
+  `generated_by` int(11) DEFAULT NULL,
+  `is_published` tinyint(1) DEFAULT 0,
+  `published_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`report_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `unique_student_semester_report` (`student_id`,`academic_year_id`,`semester_id`,`report_type`),
+  KEY `FK_grade_reports_generator` (`generated_by`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_academic_year` (`academic_year_id`),
+  KEY `idx_semester` (`semester_id`),
+  KEY `idx_report_type` (`report_type`),
+  KEY `idx_grade_reports_uuid` (`uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grade_report_details`
+--
+
+DROP TABLE IF EXISTS `grade_report_details`;
+CREATE TABLE IF NOT EXISTS `grade_report_details` (
+  `report_detail_id` int(11) NOT NULL AUTO_INCREMENT,
+  `report_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `subject_name` varchar(100) DEFAULT NULL,
+  `teacher_name` varchar(200) DEFAULT NULL,
+  `credits` int(11) DEFAULT NULL,
+  `total_score` decimal(10,2) DEFAULT NULL,
+  `percentage` decimal(5,2) DEFAULT NULL,
+  `letter_grade` varchar(5) DEFAULT NULL,
+  `grade_point` decimal(4,2) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `position_in_class` int(11) DEFAULT NULL,
+  `class_average` decimal(5,2) DEFAULT NULL,
+  `highest_score` decimal(10,2) DEFAULT NULL,
+  `lowest_score` decimal(10,2) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`report_detail_id`),
+  KEY `idx_report_id` (`report_id`),
+  KEY `idx_course_id` (`course_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `grade_scales`
+--
+
+DROP TABLE IF EXISTS `grade_scales`;
+CREATE TABLE IF NOT EXISTS `grade_scales` (
+  `grade_scale_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) DEFAULT NULL,
+  `grade` varchar(5) NOT NULL,
+  `min_score` decimal(5,2) NOT NULL,
+  `max_score` decimal(5,2) NOT NULL,
+  `grade_point` decimal(3,2) DEFAULT NULL,
+  `remark` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`grade_scale_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_grade` (`grade`),
+  KEY `idx_score_range` (`min_score`,`max_score`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `grade_scales`
+--
+
+INSERT INTO `grade_scales` (`grade_scale_id`, `institution_id`, `grade`, `min_score`, `max_score`, `grade_point`, `remark`, `created_at`) VALUES
+(1, 1, 'A1', 80.00, 100.00, 4.00, 'Excellent', '2026-03-01 18:17:08'),
+(2, 1, 'B2', 70.00, 79.99, 3.50, 'Very Good', '2026-03-01 18:17:08'),
+(3, 1, 'B3', 65.00, 69.99, 3.00, 'Good', '2026-03-01 18:17:08'),
+(4, 1, 'C4', 60.00, 64.99, 2.50, 'Credit', '2026-03-01 18:17:08'),
+(5, 1, 'C5', 55.00, 59.99, 2.00, 'Credit', '2026-03-01 18:17:08'),
+(6, 1, 'C6', 50.00, 54.99, 1.50, 'Credit', '2026-03-01 18:17:08'),
+(7, 1, 'D7', 45.00, 49.99, 1.00, 'Pass', '2026-03-01 18:17:08'),
+(8, 1, 'E8', 40.00, 44.99, 0.50, 'Pass', '2026-03-01 18:17:08'),
+(9, 1, 'F9', 0.00, 39.99, 0.00, 'Fail', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `institutions`
+--
+
+DROP TABLE IF EXISTS `institutions`;
+CREATE TABLE IF NOT EXISTS `institutions` (
+  `institution_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_code` varchar(20) NOT NULL,
+  `institution_name` varchar(200) NOT NULL,
+  `institution_type` varchar(50) DEFAULT 'shs',
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `state` varchar(100) DEFAULT NULL,
+  `country` varchar(100) DEFAULT 'Ghana',
+  `postal_code` varchar(20) DEFAULT NULL,
+  `website` varchar(200) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `subscription_plan` varchar(50) DEFAULT NULL,
+  `subscription_expires_at` date DEFAULT NULL,
+  `max_students` int(11) DEFAULT 500,
+  `max_teachers` int(11) DEFAULT 50,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`institution_id`),
+  UNIQUE KEY `institution_code` (`institution_code`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_institution_code` (`institution_code`),
+  KEY `idx_status` (`status`),
+  KEY `idx_institutions_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `institutions`
+--
+
+INSERT INTO `institutions` (`institution_id`, `uuid`, `institution_code`, `institution_name`, `institution_type`, `email`, `phone`, `address`, `city`, `state`, `country`, `postal_code`, `website`, `status`, `subscription_plan`, `subscription_expires_at`, `max_students`, `max_teachers`, `created_at`, `updated_at`) VALUES
+(1, '1bfd4c37-16ae-11f1-9c28-10653022c2a0', 'ACCRA-SHS-001', 'Accra Senior High School', 'shs', 'admin@accrashs.edu.gh', '+233 30 222 1234', 'P.O. Box 123, Accra', 'Accra', 'Greater Accra', 'Ghana', 'GA-123-4567', 'https://www.accrashs.edu.gh', 'active', 'premium', '2026-12-31', 1500, 100, '2026-02-19 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `institution_settings`
+--
+
+DROP TABLE IF EXISTS `institution_settings`;
+CREATE TABLE IF NOT EXISTS `institution_settings` (
+  `setting_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `school_name` varchar(200) DEFAULT NULL,
+  `motto` varchar(300) DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `vision` text DEFAULT NULL,
+  `mission` text DEFAULT NULL,
+  `logo_url` varchar(500) DEFAULT NULL,
+  `banner_url` varchar(500) DEFAULT NULL,
+  `theme_primary_color` varchar(20) DEFAULT '#1976d2',
+  `theme_secondary_color` varchar(20) DEFAULT '#dc004e',
+  `timezone` varchar(50) DEFAULT 'Africa/Accra',
+  `academic_year_start_month` int(11) DEFAULT 9,
+  `academic_year_end_month` int(11) DEFAULT 6,
+  `grading_system` varchar(20) DEFAULT 'percentage',
+  `locale` varchar(10) DEFAULT 'en_US',
+  `currency` varchar(10) DEFAULT 'GHS',
+  `date_format` varchar(20) DEFAULT 'Y-m-d',
+  `time_format` varchar(20) DEFAULT 'H:i:s',
+  `allow_parent_registration` tinyint(1) DEFAULT 1,
+  `allow_student_self_enrollment` tinyint(1) DEFAULT 0,
+  `require_email_verification` tinyint(1) DEFAULT 1,
+  `custom_css` text DEFAULT NULL,
+  `custom_footer` text DEFAULT NULL,
+  `social_facebook` varchar(200) DEFAULT NULL,
+  `social_twitter` varchar(200) DEFAULT NULL,
+  `social_instagram` varchar(200) DEFAULT NULL,
+  `social_linkedin` varchar(200) DEFAULT NULL,
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`setting_id`),
+  UNIQUE KEY `unique_institution` (`institution_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `institution_settings`
+--
+
+INSERT INTO `institution_settings` (`setting_id`, `institution_id`, `school_name`, `motto`, `description`, `vision`, `mission`, `logo_url`, `banner_url`, `theme_primary_color`, `theme_secondary_color`, `timezone`, `academic_year_start_month`, `academic_year_end_month`, `grading_system`, `locale`, `currency`, `date_format`, `time_format`, `allow_parent_registration`, `allow_student_self_enrollment`, `require_email_verification`, `custom_css`, `custom_footer`, `social_facebook`, `social_twitter`, `social_instagram`, `social_linkedin`, `updated_at`) VALUES
+(1, 1, 'Accra Senior High School', 'Excellence Through Knowledge', 'A leading Senior High School in Accra, Ghana, committed to academic excellence and holistic development.', 'To be the premier institution for secondary education in Ghana, producing well-rounded graduates.', 'To provide quality education that empowers students to excel academically and contribute positively to society.', '/uploads/institutions/accra-shs/logo.png', NULL, '#006B3F', '#FCD116', 'Africa/Accra', 9, 6, 'ghana_waec', 'en_GH', 'GHS', 'Y-m-d', 'H:i:s', 1, 0, 1, NULL, NULL, NULL, NULL, NULL, NULL, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `login_activity`
+--
+
+DROP TABLE IF EXISTS `login_activity`;
+CREATE TABLE IF NOT EXISTS `login_activity` (
+  `login_activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `login_time` datetime DEFAULT current_timestamp(),
+  `logout_time` datetime DEFAULT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `is_successful` tinyint(1) DEFAULT 1,
+  `failure_reason` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`login_activity_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_login_time` (`login_time`),
+  KEY `idx_is_successful` (`is_successful`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `login_activity`
+--
+
+INSERT INTO `login_activity` (`login_activity_id`, `user_id`, `login_time`, `logout_time`, `ip_address`, `user_agent`, `is_successful`, `failure_reason`) VALUES
+(1, 1, '2026-03-01 19:48:53', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(2, 1, '2026-03-01 20:49:51', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(3, 1, '2026-03-01 21:20:21', NULL, '::1', 'Mozilla/5.0 (Linux; Android 11; VOG-L29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.35 Mobile Safari/537.36', 1, NULL),
+(4, 1, '2026-03-01 21:51:56', '2026-03-01 20:52:50', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(5, 1, '2026-03-01 22:56:41', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(6, 1, '2026-03-01 23:57:33', '2026-03-01 23:08:59', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(7, 2, '2026-03-02 00:09:27', '2026-03-01 23:10:13', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(8, 2, '2026-03-02 00:10:21', '2026-03-02 00:00:55', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(9, 2, '2026-03-02 01:01:14', '2026-03-02 00:58:15', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(10, 2, '2026-03-02 01:59:51', '2026-03-02 01:24:56', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(11, 2, '2026-03-02 02:26:38', '2026-03-02 01:58:43', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(12, 3, '2026-03-02 02:58:49', '2026-03-02 02:01:16', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(13, 2, '2026-03-02 03:01:25', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(14, 2, '2026-03-02 04:06:54', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(15, 2, '2026-03-02 10:42:12', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(16, 2, '2026-03-02 12:24:36', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(17, 2, '2026-03-02 15:28:38', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(18, 3, '2026-03-02 15:58:00', '2026-03-02 15:08:20', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(19, 2, '2026-03-02 16:08:55', '2026-03-02 15:34:04', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(20, 2, '2026-03-02 20:23:57', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 1, NULL),
+(21, 1, '2026-03-03 01:45:12', NULL, '::1', 'PostmanRuntime/7.51.1', 1, NULL),
+(22, 2, '2026-03-03 02:02:39', NULL, '::1', 'PostmanRuntime/7.51.1', 1, NULL),
+(23, 2, '2026-03-03 02:42:32', NULL, '::1', 'PostmanRuntime/7.51.1', 1, NULL),
+(24, 1, '2026-03-03 02:57:15', NULL, '::1', 'PostmanRuntime/7.51.1', 1, NULL),
+(25, 1, '2026-03-03 03:04:54', NULL, '::1', 'PostmanRuntime/7.51.1', 1, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages`
+--
+
+DROP TABLE IF EXISTS `messages`;
+CREATE TABLE IF NOT EXISTS `messages` (
+  `message_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `receiver_id` int(11) NOT NULL,
+  `course_id` int(11) DEFAULT NULL,
+  `subject` varchar(200) DEFAULT NULL,
+  `message_text` text NOT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `parent_message_id` int(11) DEFAULT NULL,
+  `sent_at` datetime DEFAULT current_timestamp(),
+  `read_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`message_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `FK_messages_parent` (`parent_message_id`),
+  KEY `idx_messages_sender` (`sender_id`),
+  KEY `idx_messages_receiver` (`receiver_id`),
+  KEY `idx_messages_course` (`course_id`),
+  KEY `idx_messages_read` (`is_read`),
+  KEY `idx_messages_sent_at` (`sent_at`),
+  KEY `idx_messages_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`message_id`, `uuid`, `sender_id`, `receiver_id`, `course_id`, `subject`, `message_text`, `is_read`, `parent_message_id`, `sent_at`, `read_at`) VALUES
+(1, '1c00d83c-16ae-11f1-9c28-10653022c2a0', 1, 2, 1, 'Assignment Question', 'Hello, I have a question about the assignment...', 0, NULL, '2026-03-03 02:46:53', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+DROP TABLE IF EXISTS `notifications`;
+CREATE TABLE IF NOT EXISTS `notifications` (
+  `notification_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `target_role` varchar(50) DEFAULT NULL,
+  `course_id` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `message` text DEFAULT NULL,
+  `notification_type` varchar(50) DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `link` varchar(500) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `read_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`notification_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_sender_id` (`sender_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_target_role` (`target_role`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_is_read` (`is_read`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_notifications_uuid` (`uuid`)
+) ;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`notification_id`, `uuid`, `sender_id`, `user_id`, `target_role`, `course_id`, `title`, `message`, `notification_type`, `is_read`, `link`, `created_at`, `read_at`) VALUES
+(1, '1c012f6b-16ae-11f1-9c28-10653022c2a0', 0, 5, NULL, NULL, 'Course Enrollment', NULL, 'enrollment', 0, NULL, '2026-03-01 18:17:08', NULL),
+(2, '1c013ba4-16ae-11f1-9c28-10653022c2a0', 0, 6, NULL, NULL, 'Course Enrollment', NULL, 'enrollment', 0, NULL, '2026-03-01 18:17:08', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `parents`
+--
+
+DROP TABLE IF EXISTS `parents`;
+CREATE TABLE IF NOT EXISTS `parents` (
+  `parent_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `first_name` varchar(100) NOT NULL,
+  `last_name` varchar(100) NOT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `occupation` varchar(100) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`parent_id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_phone` (`phone_number`),
+  KEY `idx_email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `parents`
+--
+
+INSERT INTO `parents` (`parent_id`, `institution_id`, `user_id`, `first_name`, `last_name`, `phone_number`, `email`, `occupation`, `address`, `created_at`, `updated_at`) VALUES
+(1, 1, 7, '', '', '+233 24 555 5555', 'yaw.osei@parent.accrashs.edu.gh', 'Engineer', 'Accra, Ghana', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `parent_students`
+--
+
+DROP TABLE IF EXISTS `parent_students`;
+CREATE TABLE IF NOT EXISTS `parent_students` (
+  `parent_student_id` int(11) NOT NULL AUTO_INCREMENT,
+  `parent_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `relationship_type` varchar(50) DEFAULT 'Parent',
+  `is_primary_contact` tinyint(1) DEFAULT 0,
+  `can_pickup` tinyint(1) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`parent_student_id`),
+  UNIQUE KEY `unique_parent_student` (`parent_id`,`student_id`),
+  KEY `idx_parent_id` (`parent_id`),
+  KEY `idx_student_id` (`student_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `parent_students`
+--
+
+INSERT INTO `parent_students` (`parent_student_id`, `parent_id`, `student_id`, `relationship_type`, `is_primary_contact`, `can_pickup`, `created_at`) VALUES
+(1, 1, 1, 'Father', 1, 1, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_reset_tokens`
+--
+
+DROP TABLE IF EXISTS `password_reset_tokens`;
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+  `token_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `token` varchar(100) NOT NULL,
+  `expiry_date` datetime NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `used_at` datetime DEFAULT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  PRIMARY KEY (`token_id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `idx_token` (`token`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_expiry_date` (`expiry_date`),
+  KEY `idx_is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `permissions`
+--
+
+DROP TABLE IF EXISTS `permissions`;
+CREATE TABLE IF NOT EXISTS `permissions` (
+  `permission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `permission_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`permission_id`),
+  UNIQUE KEY `permission_name` (`permission_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `permissions`
+--
+
+INSERT INTO `permissions` (`permission_id`, `permission_name`, `description`, `created_at`) VALUES
+(1, 'manage_institutions', 'Create, update, delete institutions (Super Admin only)', '2026-03-01 18:17:08'),
+(2, 'manage_subscriptions', 'Manage institution subscriptions (Super Admin only)', '2026-03-01 18:17:08'),
+(3, 'view_all_institutions', 'View all institutions on platform (Super Admin only)', '2026-03-01 18:17:08'),
+(4, 'manage_users', 'Create, update, delete users', '2026-03-01 18:17:08'),
+(5, 'manage_courses', 'Create, update, delete class subjects', '2026-03-01 18:17:08'),
+(6, 'manage_assessments', 'Create, update, grade assessments', '2026-03-01 18:17:08'),
+(7, 'view_reports', 'View system reports and analytics', '2026-03-01 18:17:08'),
+(8, 'manage_attendance', 'Mark and manage attendance', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `programs`
+--
+
+DROP TABLE IF EXISTS `programs`;
+CREATE TABLE IF NOT EXISTS `programs` (
+  `program_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `program_code` varchar(20) NOT NULL,
+  `program_name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `duration_years` int(11) DEFAULT 3,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`program_id`),
+  UNIQUE KEY `unique_program_code_institution` (`program_code`,`institution_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_program_code` (`program_code`),
+  KEY `idx_status` (`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `programs`
+--
+
+INSERT INTO `programs` (`program_id`, `institution_id`, `program_code`, `program_name`, `description`, `duration_years`, `status`, `created_at`, `updated_at`) VALUES
+(1, 1, 'GART', 'General Arts', 'General Arts programme focuses on humanities, languages, and social sciences', 3, 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 1, 'GSCI', 'General Science', 'General Science programme focuses on pure sciences and mathematics', 3, 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 1, 'BUS', 'Business', 'Business programme focuses on commerce, accounting, and economics', 3, 'active', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `quizzes`
+--
+
+DROP TABLE IF EXISTS `quizzes`;
+CREATE TABLE IF NOT EXISTS `quizzes` (
+  `quiz_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `duration_minutes` int(11) NOT NULL,
+  `max_attempts` int(11) DEFAULT 1,
+  `status` varchar(20) DEFAULT 'draft',
+  `quiz_type` varchar(20) DEFAULT 'graded',
+  `is_activated` tinyint(1) DEFAULT 0,
+  `show_results` varchar(20) DEFAULT 'after_end',
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`quiz_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_section_id` (`section_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_is_activated` (`is_activated`),
+  KEY `idx_start_date` (`start_date`),
+  KEY `idx_end_date` (`end_date`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `quizzes`
+--
+
+INSERT INTO `quizzes` (`quiz_id`, `course_id`, `section_id`, `title`, `description`, `duration_minutes`, `max_attempts`, `status`, `quiz_type`, `is_activated`, `show_results`, `start_date`, `end_date`, `created_at`, `updated_at`) VALUES
+(1, 2, 2, 'Cell Biology Quiz', 'Test your knowledge on cell structure and functions', 45, 2, 'active', 'graded', 1, 'after_end', '2024-09-23 08:00:00', '2024-09-30 23:59:59', '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `quiz_questions`
+--
+
+DROP TABLE IF EXISTS `quiz_questions`;
+CREATE TABLE IF NOT EXISTS `quiz_questions` (
+  `question_id` int(11) NOT NULL AUTO_INCREMENT,
+  `quiz_id` int(11) NOT NULL,
+  `question_text` text NOT NULL,
+  `question_type` varchar(50) NOT NULL,
+  `points` int(11) DEFAULT 1,
+  `difficulty` varchar(20) DEFAULT NULL,
+  `explanation` text DEFAULT NULL,
+  `correct_answer` varchar(500) DEFAULT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`question_id`),
+  KEY `idx_quiz_id` (`quiz_id`),
+  KEY `idx_question_type` (`question_type`),
+  KEY `idx_order_index` (`order_index`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `quiz_questions`
+--
+
+INSERT INTO `quiz_questions` (`question_id`, `quiz_id`, `question_text`, `question_type`, `points`, `difficulty`, `explanation`, `correct_answer`, `order_index`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Which organelle is known as the \"powerhouse of the cell\"?', 'multiple_choice', 5, 'easy', 'Mitochondria generate ATP through cellular respiration.', NULL, 1, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 1, 'Plant cells have cell walls while animal cells do not.', 'true_false', 3, 'easy', 'Plant cells have rigid cell walls made of cellulose, which animal cells lack.', 'True', 2, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(3, 1, 'What is the function of the cell membrane?', 'multiple_choice', 5, 'medium', 'The cell membrane controls what enters and exits the cell, acting as a selective barrier.', NULL, 3, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `quiz_question_options`
+--
+
+DROP TABLE IF EXISTS `quiz_question_options`;
+CREATE TABLE IF NOT EXISTS `quiz_question_options` (
+  `option_id` int(11) NOT NULL AUTO_INCREMENT,
+  `question_id` int(11) NOT NULL,
+  `option_label` varchar(5) NOT NULL,
+  `option_text` varchar(500) NOT NULL,
+  `is_correct` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`option_id`),
+  KEY `idx_question_id` (`question_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `quiz_question_options`
+--
+
+INSERT INTO `quiz_question_options` (`option_id`, `question_id`, `option_label`, `option_text`, `is_correct`, `created_at`) VALUES
+(1, 1, 'A', 'Nucleus', 0, '2026-03-01 18:17:08'),
+(2, 1, 'B', 'Mitochondria', 1, '2026-03-01 18:17:08'),
+(3, 1, 'C', 'Ribosome', 0, '2026-03-01 18:17:08'),
+(4, 1, 'D', 'Chloroplast', 0, '2026-03-01 18:17:08'),
+(5, 2, 'T', 'True', 1, '2026-03-01 18:17:08'),
+(6, 2, 'F', 'False', 0, '2026-03-01 18:17:08'),
+(7, 3, 'A', 'Protein synthesis', 0, '2026-03-01 18:17:08'),
+(8, 3, 'B', 'Controls what enters and exits the cell', 1, '2026-03-01 18:17:08'),
+(9, 3, 'C', 'Energy production', 0, '2026-03-01 18:17:08'),
+(10, 3, 'D', 'Photosynthesis', 0, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `quiz_submissions`
+--
+
+DROP TABLE IF EXISTS `quiz_submissions`;
+CREATE TABLE IF NOT EXISTS `quiz_submissions` (
+  `submission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `quiz_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `attempt` int(11) DEFAULT 1,
+  `score` decimal(10,2) DEFAULT NULL,
+  `max_score` decimal(10,2) DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'in_progress',
+  `duration_minutes` int(11) DEFAULT NULL,
+  `submitted_at` datetime DEFAULT NULL,
+  `graded_at` datetime DEFAULT NULL,
+  `graded_by` int(11) DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`submission_id`),
+  KEY `FK_quiz_submissions_grader` (`graded_by`),
+  KEY `idx_quiz_id` (`quiz_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_attempt` (`attempt`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `quiz_submissions`
+--
+
+INSERT INTO `quiz_submissions` (`submission_id`, `quiz_id`, `student_id`, `attempt`, `score`, `max_score`, `status`, `duration_minutes`, `submitted_at`, `graded_at`, `graded_by`, `comments`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 1, 13.00, 13.00, 'completed', 35, '2024-09-24 10:30:00', NULL, NULL, NULL, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `quiz_submission_answers`
+--
+
+DROP TABLE IF EXISTS `quiz_submission_answers`;
+CREATE TABLE IF NOT EXISTS `quiz_submission_answers` (
+  `submission_answer_id` int(11) NOT NULL AUTO_INCREMENT,
+  `submission_id` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `answer` text DEFAULT NULL,
+  `is_correct` tinyint(1) DEFAULT NULL,
+  `points_earned` decimal(10,2) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`submission_answer_id`),
+  KEY `idx_submission_id` (`submission_id`),
+  KEY `idx_question_id` (`question_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `quiz_submission_answers`
+--
+
+INSERT INTO `quiz_submission_answers` (`submission_answer_id`, `submission_id`, `question_id`, `answer`, `is_correct`, `points_earned`, `created_at`) VALUES
+(1, 1, 1, 'B', 1, 5.00, '2026-03-01 18:17:08'),
+(2, 1, 2, 'True', 1, 3.00, '2026-03-01 18:17:08'),
+(3, 1, 3, 'B', 1, 5.00, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `results`
+--
+
+DROP TABLE IF EXISTS `results`;
+CREATE TABLE IF NOT EXISTS `results` (
+  `result_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `subject_id` int(11) DEFAULT NULL,
+  `semester_id` int(11) DEFAULT NULL,
+  `class_score` decimal(5,2) DEFAULT NULL,
+  `exam_score` decimal(5,2) DEFAULT NULL,
+  `total_score` decimal(5,2) DEFAULT NULL,
+  `grade` varchar(2) DEFAULT NULL,
+  `grade_point` decimal(3,2) DEFAULT NULL,
+  `remark` varchar(50) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`result_id`),
+  UNIQUE KEY `unique_student_course_semester` (`student_id`,`course_id`,`semester_id`),
+  KEY `idx_student_id` (`student_id`),
+  KEY `idx_course_id` (`course_id`),
+  KEY `idx_subject_id` (`subject_id`),
+  KEY `idx_semester_id` (`semester_id`),
+  KEY `idx_grade` (`grade`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `roles`
+--
+
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE IF NOT EXISTS `roles` (
+  `role_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_name` varchar(50) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`role_id`),
+  UNIQUE KEY `role_name` (`role_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `roles`
+--
+
+INSERT INTO `roles` (`role_id`, `role_name`, `description`, `created_at`, `updated_at`) VALUES
+(1, 'super_admin', 'Platform Super Administrator - Manages all institutions', '2026-03-01 18:17:07', '2026-03-01 18:17:07'),
+(2, 'admin', 'Institution Administrator - Manages single institution', '2026-03-01 18:17:07', '2026-03-01 18:17:07'),
+(3, 'teacher', 'Teacher/Instructor', '2026-03-01 18:17:07', '2026-03-01 18:17:07'),
+(4, 'student', 'Student', '2026-03-01 18:17:07', '2026-03-01 18:17:07'),
+(5, 'parent', 'Parent/Guardian', '2026-03-01 18:17:07', '2026-03-01 18:17:07');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `role_permissions`
+--
+
+DROP TABLE IF EXISTS `role_permissions`;
+CREATE TABLE IF NOT EXISTS `role_permissions` (
+  `role_permission_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_id` int(11) NOT NULL,
+  `permission_id` int(11) NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`role_permission_id`),
+  UNIQUE KEY `unique_role_permission` (`role_id`,`permission_id`),
+  KEY `FK_role_permissions_permission` (`permission_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `role_permissions`
+--
+
+INSERT INTO `role_permissions` (`role_permission_id`, `role_id`, `permission_id`, `created_at`) VALUES
+(1, 1, 6, '2026-03-01 18:17:08'),
+(2, 1, 8, '2026-03-01 18:17:08'),
+(3, 1, 5, '2026-03-01 18:17:08'),
+(4, 1, 1, '2026-03-01 18:17:08'),
+(5, 1, 2, '2026-03-01 18:17:08'),
+(6, 1, 4, '2026-03-01 18:17:08'),
+(7, 1, 3, '2026-03-01 18:17:08'),
+(8, 1, 7, '2026-03-01 18:17:08'),
+(16, 2, 6, '2026-03-01 18:17:08'),
+(17, 2, 8, '2026-03-01 18:17:08'),
+(18, 2, 5, '2026-03-01 18:17:08'),
+(19, 2, 4, '2026-03-01 18:17:08'),
+(20, 2, 7, '2026-03-01 18:17:08'),
+(23, 3, 6, '2026-03-01 18:17:08'),
+(24, 3, 8, '2026-03-01 18:17:08'),
+(25, 3, 5, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `schema_migrations`
+--
+
+DROP TABLE IF EXISTS `schema_migrations`;
+CREATE TABLE IF NOT EXISTS `schema_migrations` (
+  `version` varchar(50) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `applied_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `applied_by` varchar(100) DEFAULT 'admin',
+  `execution_time_ms` int(11) DEFAULT NULL,
+  `success` tinyint(1) DEFAULT 1,
+  `notes` text DEFAULT NULL,
+  PRIMARY KEY (`version`),
+  KEY `idx_applied_at` (`applied_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `schema_migrations`
+--
+
+INSERT INTO `schema_migrations` (`version`, `description`, `applied_at`, `applied_by`, `execution_time_ms`, `success`, `notes`) VALUES
+('000', 'Initial database schema', '2026-03-03 03:14:23', 'system', NULL, 1, 'Base schema from lms (1).sql');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `semesters`
+--
+
+DROP TABLE IF EXISTS `semesters`;
+CREATE TABLE IF NOT EXISTS `semesters` (
+  `semester_id` int(11) NOT NULL AUTO_INCREMENT,
+  `institution_id` int(11) NOT NULL,
+  `academic_year_id` int(11) NOT NULL,
+  `semester_name` varchar(20) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `is_current` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`semester_id`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_academic_year_id` (`academic_year_id`),
+  KEY `idx_is_current` (`is_current`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `semesters`
+--
+
+INSERT INTO `semesters` (`semester_id`, `institution_id`, `academic_year_id`, `semester_name`, `start_date`, `end_date`, `is_current`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 'First Semester', '2024-09-01', '2024-12-20', 1, '2026-03-01 18:17:08', '2026-03-01 18:17:08'),
+(2, 1, 1, 'Second Semester', '2025-01-06', '2025-04-15', 0, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `students`
+--
+
+DROP TABLE IF EXISTS `students`;
+CREATE TABLE IF NOT EXISTS `students` (
+  `student_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `class_id` int(11) DEFAULT NULL,
+  `student_id_number` varchar(50) NOT NULL,
+  `enrollment_date` date DEFAULT NULL,
+  `gender` varchar(10) DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `parent_name` varchar(200) DEFAULT NULL,
+  `parent_phone` varchar(20) DEFAULT NULL,
+  `parent_email` varchar(100) DEFAULT NULL,
+  `emergency_contact` varchar(20) DEFAULT NULL,
+  `status` varchar(20) DEFAULT 'active',
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`student_id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  UNIQUE KEY `unique_student_id_institution` (`student_id_number`,`institution_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_class_id` (`class_id`),
+  KEY `idx_student_id_number` (`student_id_number`),
+  KEY `idx_students_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`student_id`, `uuid`, `institution_id`, `user_id`, `class_id`, `student_id_number`, `enrollment_date`, `gender`, `date_of_birth`, `parent_name`, `parent_phone`, `parent_email`, `emergency_contact`, `status`, `created_at`, `updated_at`) VALUES
+(1, '1bfedc8a-16ae-11f1-9c28-10653022c2a0', 1, 5, 2, 'STU-2024-00001', '2024-09-01', 'Male', '2009-03-15', NULL, NULL, NULL, NULL, 'active', '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(2, '1bfee9bf-16ae-11f1-9c28-10653022c2a0', 1, 6, 1, 'STU-2024-00002', '2024-09-01', 'Female', '2009-07-22', NULL, NULL, NULL, NULL, 'active', '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subjects`
+--
+
+DROP TABLE IF EXISTS `subjects`;
+CREATE TABLE IF NOT EXISTS `subjects` (
+  `subject_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `subject_code` varchar(20) NOT NULL,
+  `subject_name` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `credits` int(11) DEFAULT 3,
+  `is_core` tinyint(1) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`subject_id`),
+  UNIQUE KEY `unique_subject_code_institution` (`subject_code`,`institution_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_subject_code` (`subject_code`),
+  KEY `idx_is_core` (`is_core`),
+  KEY `idx_subjects_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `subjects`
+--
+
+INSERT INTO `subjects` (`subject_id`, `uuid`, `institution_id`, `subject_code`, `subject_name`, `description`, `credits`, `is_core`, `created_at`, `updated_at`) VALUES
+(1, '1bffed84-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-ENG', 'Core English', 'English Language - Core Subject', 4, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(2, '1c000e31-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-MATH', 'Core Mathematics', 'Mathematics - Core Subject', 4, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(3, '1c000fc4-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SCI', 'Integrated Science', 'Science - Core Subject', 3, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(4, '1c00139e-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SOC', 'Social Studies', 'Social Studies - Core Subject', 2, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(5, '1c0014b9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-LIT', 'Literature in English', 'Elective Literature', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(6, '1c00157a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-HIST', 'History', 'Elective History', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(7, '1c001674-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-GEOG', 'Geography', 'Elective Geography', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(8, '1c001780-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CRS', 'Christian Religious Studies', 'Elective CRS', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(9, '1c00184a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ECON', 'Economics', 'Elective Economics', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(10, '1c0018f5-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BIO', 'Elective Biology', 'Biology - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(11, '1c0019c9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CHEM', 'Elective Chemistry', 'Chemistry - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(12, '1c001aac-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-PHYS', 'Elective Physics', 'Physics - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(13, '1c001b63-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-EMATH', 'Elective Mathematics', 'Advanced Mathematics', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(14, '1c001c18-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ACC', 'Financial Accounting', 'Elective Accounting', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(15, '1c001cd4-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BUS', 'Business Management', 'Elective Business', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(16, '1c001d8c-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ICT', 'Information Technology', 'ICT Elective', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
+--
+
+DROP TABLE IF EXISTS `system_settings`;
+CREATE TABLE IF NOT EXISTS `system_settings` (
+  `settings_id` int(11) NOT NULL AUTO_INCREMENT,
+  `settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`settings`)),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`settings_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`settings_id`, `settings`, `updated_at`) VALUES
+(1, '{\"updated_at\":\"2026-03-01 19:06:44\",\"site_name\":\"GHANA LMS\",\"site_url\":\"https:\\/\\/ghanashslms.edu.gh\",\"timezone\":\"UTC\",\"smtp_host\":\"smtp.ghanashslms.com\",\"smtp_port\":587,\"from_address\":\"ghanashslms@gsl.edu.gh\",\"allow_registration\":1,\"require_verification\":1,\"ga_id\":\"\",\"integrations_note\":\"\"}', '2026-03-01 19:09:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `teachers`
+--
+
+DROP TABLE IF EXISTS `teachers`;
+CREATE TABLE IF NOT EXISTS `teachers` (
+  `teacher_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `employee_id` varchar(50) NOT NULL,
+  `department` varchar(100) DEFAULT NULL,
+  `specialization` varchar(100) DEFAULT NULL,
+  `hire_date` date DEFAULT NULL,
+  `employment_end_date` date DEFAULT NULL,
+  `qualification` varchar(200) DEFAULT NULL,
+  `years_of_experience` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`teacher_id`),
+  UNIQUE KEY `user_id` (`user_id`),
+  UNIQUE KEY `unique_employee_id_institution` (`employee_id`,`institution_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_employee_id` (`employee_id`),
+  KEY `idx_department` (`department`),
+  KEY `idx_employment_end_date` (`employment_end_date`),
+  KEY `idx_teachers_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `teachers`
+--
+
+INSERT INTO `teachers` (`teacher_id`, `uuid`, `institution_id`, `user_id`, `employee_id`, `department`, `specialization`, `hire_date`, `employment_end_date`, `qualification`, `years_of_experience`, `created_at`, `updated_at`) VALUES
+(1, '1bff3910-16ae-11f1-9c28-10653022c2a0', 1, 3, 'EMP-2024-00001', 'Languages', 'English Language', '2020-09-01', NULL, NULL, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(2, '1bff4d12-16ae-11f1-9c28-10653022c2a0', 1, 4, 'EMP-2024-00002', 'Sciences', 'Biology', '2021-09-01', NULL, NULL, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `teacher_subjects`
+--
+
+DROP TABLE IF EXISTS `teacher_subjects`;
+CREATE TABLE IF NOT EXISTS `teacher_subjects` (
+  `teacher_subject_id` int(11) NOT NULL AUTO_INCREMENT,
+  `teacher_id` int(11) NOT NULL,
+  `subject_id` int(11) NOT NULL,
+  `assigned_date` date DEFAULT curdate(),
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`teacher_subject_id`),
+  KEY `idx_teacher_id` (`teacher_id`),
+  KEY `idx_subject_id` (`subject_id`),
+  KEY `idx_teacher_subject` (`teacher_id`,`subject_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE IF NOT EXISTS `users` (
+  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) DEFAULT NULL,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `first_name` varchar(100) DEFAULT NULL,
+  `last_name` varchar(100) DEFAULT NULL,
+  `phone_number` varchar(20) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `is_super_admin` tinyint(1) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  UNIQUE KEY `uuid_2` (`uuid`),
+  UNIQUE KEY `uuid_3` (`uuid`),
+  UNIQUE KEY `unique_username_institution` (`username`,`institution_id`),
+  UNIQUE KEY `unique_email_institution` (`email`,`institution_id`),
+  KEY `idx_institution` (`institution_id`),
+  KEY `idx_username` (`username`),
+  KEY `idx_email` (`email`),
+  KEY `idx_is_super_admin` (`is_super_admin`),
+  KEY `idx_is_active` (`is_active`),
+  KEY `idx_user_active` (`is_active`,`created_at`),
+  KEY `idx_users_uuid` (`uuid`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`user_id`, `uuid`, `institution_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`, `phone_number`, `address`, `date_of_birth`, `is_super_admin`, `is_active`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, '1bfe8992-16ae-11f1-9c28-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, 1, 1, '2026-01-01 18:17:08', '2026-03-03 03:07:27', NULL),
+(2, '1bfe97d8-16ae-11f1-9c28-10653022c2a0', 1, 'admin', 'admin@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Administrator', '+233 24 000 0000', NULL, NULL, 0, 1, '2026-02-01 18:17:08', '2026-03-03 03:07:27', NULL),
+(3, '1bfe9b76-16ae-11f1-9c28-10653022c2a0', 1, 'kofi.mensah', 'kofi.mensah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Mensah', '+233 24 111 1111', NULL, NULL, 0, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27', NULL),
+(4, '1bfe9caf-16ae-11f1-9c28-10653022c2a0', 1, 'ama.asante', 'ama.asante@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Asante', '+233 24 222 2222', NULL, NULL, 0, 1, '2026-03-03 18:17:08', '2026-03-03 03:07:27', NULL),
+(5, '1bfe9d88-16ae-11f1-9c28-10653022c2a0', 1, 'kwame.osei', 'kwame.osei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Osei', '+233 24 333 3333', NULL, '2009-03-15', 0, 1, '2026-02-10 18:17:08', '2026-03-03 03:07:27', NULL),
+(6, '1bfe9e53-16ae-11f1-9c28-10653022c2a0', 1, 'abena.adjei', 'abena.adjei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Adjei', '+233 24 444 4444', NULL, '2009-07-22', 0, 1, '2026-01-14 18:17:08', '2026-03-03 03:07:27', NULL),
+(7, '1bfe9f10-16ae-11f1-9c28-10653022c2a0', 1, 'yaw.osei', 'yaw.osei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Osei', '+233 24 555 5555', NULL, NULL, 0, 1, '2026-01-10 18:17:08', '2026-03-03 03:07:27', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_activity`
+--
+
+DROP TABLE IF EXISTS `user_activity`;
+CREATE TABLE IF NOT EXISTS `user_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `activity_type` varchar(50) NOT NULL,
+  `activity_details` text DEFAULT NULL,
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_activity_type` (`activity_type`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=696 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_activity`
+--
+
+INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activity_details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(1, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 18:48:53'),
+(2, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:48:55'),
+(3, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:48:56'),
+(4, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:20'),
+(5, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:29'),
+(6, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:29'),
+(7, 1, 'api_access', '{\"endpoint\":\"\\/permissions\\/6\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 18:49:42'),
+(8, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:42'),
+(9, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:42'),
+(10, 1, 'api_access', '{\"endpoint\":\"\\/permissions\\/6\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 18:49:49'),
+(11, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:49'),
+(12, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:49:49'),
+(13, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:51:16'),
+(14, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:51:17'),
+(15, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:51:17'),
+(16, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:54:29'),
+(17, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:54:31'),
+(18, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:54:31'),
+(19, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 18:59:29'),
+(20, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:17'),
+(21, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:23'),
+(22, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:24'),
+(23, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:24'),
+(24, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:36'),
+(25, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:00:37'),
+(26, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:01:09'),
+(27, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:01:11'),
+(28, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:01:16'),
+(29, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:01:18'),
+(30, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:02:27'),
+(31, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:02:28'),
+(32, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:02:28'),
+(33, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 19:04:10'),
+(34, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:04:10'),
+(35, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:04:55'),
+(36, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:04:56'),
+(37, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:04:56'),
+(38, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 19:06:28'),
+(39, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:06:28'),
+(40, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 19:06:37'),
+(41, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:06:37'),
+(42, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 19:06:44'),
+(43, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:06:44'),
+(44, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-01 19:07:15'),
+(45, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:07:16'),
+(46, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:09:28'),
+(47, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:09:29'),
+(48, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:09:29'),
+(49, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:06'),
+(50, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:10'),
+(51, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:10'),
+(52, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:11'),
+(53, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:11'),
+(54, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:12'),
+(55, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:31'),
+(56, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:32'),
+(57, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:47'),
+(58, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:48'),
+(59, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:48'),
+(60, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:52'),
+(61, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:58'),
+(62, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:10:59'),
+(63, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:11:00'),
+(64, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:11:00'),
+(65, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:11:00'),
+(66, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:15:47'),
+(67, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:20:47'),
+(68, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:24:53'),
+(69, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:24:54'),
+(70, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:24:55'),
+(71, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:24:57'),
+(72, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:25:01'),
+(73, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:25:59'),
+(74, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:26:11'),
+(75, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:26:11'),
+(76, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:29:53'),
+(77, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:32:45'),
+(78, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:32:47'),
+(79, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:32:47'),
+(80, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:32'),
+(81, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:40'),
+(82, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:43'),
+(83, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:43'),
+(84, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:43'),
+(85, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:44'),
+(86, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:48'),
+(87, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:51'),
+(88, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:53'),
+(89, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:54'),
+(90, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:56'),
+(91, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:33:59'),
+(92, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:01'),
+(93, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:01'),
+(94, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=25\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:22'),
+(95, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:25'),
+(96, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:28'),
+(97, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:34:28'),
+(98, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:05'),
+(99, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:05'),
+(100, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:05'),
+(101, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:05'),
+(102, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:07'),
+(103, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=s&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:48'),
+(104, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=st&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:51'),
+(105, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=stw&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:53'),
+(106, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=st&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:35:55'),
+(107, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:02'),
+(108, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=be&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:05'),
+(109, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=b&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:06'),
+(110, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:07'),
+(111, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=pa&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:09'),
+(112, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:11'),
+(113, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:38'),
+(114, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:40'),
+(115, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:46'),
+(116, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:36:46'),
+(117, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:37:45'),
+(118, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:04'),
+(119, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:07'),
+(120, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:07'),
+(121, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:09'),
+(122, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:09'),
+(123, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:38:09'),
+(124, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:15'),
+(125, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:16'),
+(126, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:17'),
+(127, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:18'),
+(128, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:18'),
+(129, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:39:18'),
+(130, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:14'),
+(131, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:15'),
+(132, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:15'),
+(133, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:18'),
+(134, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:18'),
+(135, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:40:18'),
+(136, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:07'),
+(137, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:10'),
+(138, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:10'),
+(139, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:10'),
+(140, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:14'),
+(141, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:17'),
+(142, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:41:17'),
+(143, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:44:19'),
+(144, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:44:19'),
+(145, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:44:47'),
+(146, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:44:47'),
+(147, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:45:14'),
+(148, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:31'),
+(149, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:32'),
+(150, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:32'),
+(151, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:36'),
+(152, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:36'),
+(153, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:36'),
+(154, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:40'),
+(155, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:42'),
+(156, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:42'),
+(157, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:46'),
+(158, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:46'),
+(159, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:46'),
+(160, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:57'),
+(161, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:57'),
+(162, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:46:58'),
+(163, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:01'),
+(164, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:01'),
+(165, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:01'),
+(166, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:05'),
+(167, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:05'),
+(168, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:09'),
+(169, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:09'),
+(170, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:13'),
+(171, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:47:13'),
+(172, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:19'),
+(173, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:19'),
+(174, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:20'),
+(175, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:22'),
+(176, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:22'),
+(177, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:25'),
+(178, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:26'),
+(179, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:40'),
+(180, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:40'),
+(181, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:40'),
+(182, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:42'),
+(183, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:48:42'),
+(184, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 19:49:52'),
+(185, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:49:53'),
+(186, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:49:53'),
+(187, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:49:57'),
+(188, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:00'),
+(189, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:03'),
+(190, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:05'),
+(191, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:59'),
+(192, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:59'),
+(193, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:50:59'),
+(194, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/5\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:02'),
+(195, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:11'),
+(196, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:51'),
+(197, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:51'),
+(198, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:51'),
+(199, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:58'),
+(200, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:51:58'),
+(201, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:56:51'),
+(202, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:28'),
+(203, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:34'),
+(204, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:35'),
+(205, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:35'),
+(206, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:54'),
+(207, 1, 'api_access', '{\"endpoint\":\"\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:54'),
+(208, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/permissions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:54'),
+(209, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:56'),
+(210, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:58'),
+(211, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 19:59:58'),
+(212, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:00:58'),
+(213, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:01:00'),
+(214, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:01:02'),
+(215, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:01:08'),
+(216, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:01:08'),
+(217, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:03:35'),
+(218, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:03:36'),
+(219, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:03:37'),
+(220, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:03:39'),
+(221, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:03:39'),
+(222, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:04:50'),
+(223, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:04:51'),
+(224, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:04:52'),
+(225, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:04:56'),
+(226, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:04:56'),
+(227, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:05:28'),
+(228, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:05:32'),
+(229, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:05:33'),
+(230, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:05:34'),
+(231, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/2\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:05:35'),
+(232, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:08:59'),
+(233, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:00'),
+(234, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:00'),
+(235, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:00'),
+(236, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:06'),
+(237, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:10'),
+(238, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:10'),
+(239, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:11'),
+(240, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:11'),
+(241, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:09:18'),
+(242, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:10:28'),
+(243, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:10:35'),
+(244, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:10:35'),
+(245, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:10:35'),
+(246, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:10:35'),
+(247, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:29'),
+(248, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:44'),
+(249, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:44'),
+(250, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:44'),
+(251, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:45'),
+(252, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:46'),
+(253, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:15:46'),
+(254, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:01'),
+(255, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:01'),
+(256, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:01'),
+(257, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:01'),
+(258, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:02'),
+(259, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:16:02'),
+(260, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 20:20:21'),
+(261, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:20:23'),
+(262, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:20:24'),
+(263, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:20:35'),
+(264, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:21:01'),
+(265, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:25:23'),
+(266, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:01'),
+(267, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:35'),
+(268, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:35'),
+(269, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:40'),
+(270, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:41'),
+(271, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:41'),
+(272, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:26:41'),
+(273, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:22'),
+(274, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:23'),
+(275, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:26'),
+(276, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:27'),
+(277, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:27'),
+(278, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:28'),
+(279, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:32'),
+(280, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:33'),
+(281, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:41'),
+(282, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:41'),
+(283, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:47'),
+(284, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:47'),
+(285, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:49'),
+(286, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:27:50'),
+(287, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:28:37'),
+(288, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:28:42'),
+(289, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:28:42'),
+(290, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:28:42'),
+(291, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:28:42'),
+(292, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:29:35'),
+(293, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:29:59'),
+(294, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:29:59'),
+(295, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:29:59'),
+(296, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10&institution=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:29:59'),
+(297, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:31:01'),
+(298, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:19'),
+(299, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:20'),
+(300, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:20'),
+(301, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:21'),
+(302, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:21'),
+(303, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:21'),
+(304, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:50'),
+(305, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:55'),
+(306, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:56'),
+(307, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:56'),
+(308, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:56'),
+(309, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:56'),
+(310, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:32:57'),
+(311, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:33:37'),
+(312, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:33:42'),
+(313, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:33:43'),
+(314, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:33:43'),
+(315, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:33:43'),
+(316, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:34:08'),
+(317, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:37:51'),
+(318, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:37:51'),
+(319, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:37:53'),
+(320, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:37:53'),
+(321, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:38:18'),
+(322, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:38:18'),
+(323, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:38:19'),
+(324, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:41:52'),
+(325, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:41:54'),
+(326, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:41:54'),
+(327, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:42:49'),
+(328, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:46:52'),
+(329, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:47:50'),
+(330, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 20:51:56'),
+(331, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:51:58'),
+(332, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:51:59'),
+(333, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:03'),
+(334, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:06'),
+(335, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:06'),
+(336, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:06'),
+(337, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:06'),
+(338, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:13'),
+(339, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:46'),
+(340, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:50'),
+(341, 1, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-01 20:52:50'),
+(342, 1, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 20:52:50'),
+(343, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:57'),
+(344, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:59'),
+(345, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:52:59'),
+(346, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:00'),
+(347, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:00'),
+(348, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:13'),
+(349, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:18'),
+(350, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:20'),
+(351, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:20'),
+(352, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:20'),
+(353, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:20'),
+(354, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:23'),
+(355, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:25'),
+(356, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:32'),
+(357, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:44'),
+(358, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:44'),
+(359, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:44'),
+(360, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:44'),
+(361, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:48'),
+(362, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:53:58'),
+(363, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:54:47'),
+(364, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:56:58'),
+(365, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:58:55'),
+(366, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:58:59'),
+(367, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:58:59'),
+(368, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:58:59'),
+(369, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:58:59'),
+(370, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:59:00'),
+(371, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:59:02'),
+(372, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 20:59:10'),
+(373, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:00:27'),
+(374, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:00:31'),
+(375, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:00:39'),
+(376, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:00:40'),
+(377, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:06:36'),
+(378, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:06:48'),
+(379, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:06:53'),
+(380, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:11:48'),
+(381, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:16:48'),
+(382, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:19:01'),
+(383, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:19:04'),
+(384, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:24:01'),
+(385, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:26:05'),
+(386, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:26:06'),
+(387, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:28:48'),
+(388, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:28:50');
+INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activity_details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(389, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:33:49'),
+(390, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:38:49'),
+(391, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:39:26'),
+(392, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:39:28'),
+(393, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:39:38'),
+(394, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:39:41'),
+(395, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:44:39'),
+(396, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:49:38'),
+(397, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:50:50'),
+(398, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:50:53'),
+(399, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 21:56:41'),
+(400, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:56:44'),
+(401, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:56:45'),
+(402, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:04'),
+(403, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:10'),
+(404, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:10'),
+(405, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:10'),
+(406, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:11'),
+(407, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:12'),
+(408, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:16'),
+(409, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\\/4\\/users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:22'),
+(410, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 21:58:26'),
+(411, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:01:44'),
+(412, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:06:44'),
+(413, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:07:31'),
+(414, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:07:33'),
+(415, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:08:24'),
+(416, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:08:25'),
+(417, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:13:25'),
+(418, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:17:52'),
+(419, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:17:54'),
+(420, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:39'),
+(421, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:41'),
+(422, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:46'),
+(423, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:48'),
+(424, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:48'),
+(425, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:48'),
+(426, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:48'),
+(427, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:18:50'),
+(428, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:24:56'),
+(429, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:25:03'),
+(430, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:25:04'),
+(431, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:30:03'),
+(432, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:30:14'),
+(433, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:30:15'),
+(434, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:32:45'),
+(435, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:32:46'),
+(436, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:33:42'),
+(437, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:33:44'),
+(438, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:34:59'),
+(439, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:35:01'),
+(440, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:35:31'),
+(441, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:37:02'),
+(442, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:37:23'),
+(443, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:37:25'),
+(444, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:41:21'),
+(445, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:41:29'),
+(446, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:41:30'),
+(447, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:45:19'),
+(448, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:46:30'),
+(449, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:50:52'),
+(450, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:50:55'),
+(451, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:52:43'),
+(452, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:55:22'),
+(453, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:55:23'),
+(454, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:55:31'),
+(455, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:55:33'),
+(456, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 22:57:33'),
+(457, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:57:36'),
+(458, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:57:37'),
+(459, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:57:43'),
+(460, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:57:53'),
+(461, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:57:55'),
+(462, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:02'),
+(463, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:04'),
+(464, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:14'),
+(465, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:14'),
+(466, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:15'),
+(467, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:58:15'),
+(468, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:37'),
+(469, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:38'),
+(470, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:44'),
+(471, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:44'),
+(472, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:44'),
+(473, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 22:59:45'),
+(474, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:00:03'),
+(475, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:00:38'),
+(476, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:40'),
+(477, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:41'),
+(478, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:45'),
+(479, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:50'),
+(480, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:50'),
+(481, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:50'),
+(482, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:50'),
+(483, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:01:59'),
+(484, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:14'),
+(485, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:17'),
+(486, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:19'),
+(487, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:23'),
+(488, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:41'),
+(489, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:02:44'),
+(490, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:14'),
+(491, 1, 'api_access', '{\"endpoint\":\"\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:15'),
+(492, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:45'),
+(493, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:48'),
+(494, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:49'),
+(495, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:49'),
+(496, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:49'),
+(497, 1, 'api_access', '{\"endpoint\":\"\\/system\\/settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:04:54'),
+(498, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:03'),
+(499, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:06'),
+(500, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:07'),
+(501, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:08'),
+(502, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:08'),
+(503, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:08'),
+(504, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles?q=&page=1&per_page=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:08'),
+(505, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:05:14'),
+(506, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:07:17'),
+(507, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:07:18'),
+(508, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:07:18'),
+(509, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:07:18'),
+(510, 1, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-01 23:08:59'),
+(511, 1, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 23:08:59'),
+(512, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 23:09:27'),
+(513, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:09:31'),
+(514, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-01 23:10:13'),
+(515, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 23:10:13'),
+(516, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-01 23:10:21'),
+(517, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:10:25'),
+(518, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:15:24'),
+(519, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:20:25'),
+(520, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:29:48'),
+(521, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:29:54'),
+(522, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:30:20'),
+(523, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:32:15'),
+(524, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-01 23:37:13'),
+(525, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:00:54'),
+(526, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 00:00:55'),
+(527, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 00:00:55'),
+(528, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 00:01:14'),
+(529, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:01:17'),
+(530, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:02:47'),
+(531, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:03:42'),
+(532, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:04:01'),
+(533, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:04:24'),
+(534, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:06:58'),
+(535, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:09:09'),
+(536, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:14:07'),
+(537, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:19:07'),
+(538, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:19:10'),
+(539, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:19:34'),
+(540, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:24:21'),
+(541, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:26:17'),
+(542, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:26:18'),
+(543, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:29:14'),
+(544, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:33:13'),
+(545, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:38:13'),
+(546, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:43:13'),
+(547, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:48:13'),
+(548, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:53:18'),
+(549, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 00:58:14'),
+(550, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 00:58:15'),
+(551, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 00:58:15'),
+(552, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 00:59:51'),
+(553, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:00:03'),
+(554, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:04:56'),
+(555, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:09:56'),
+(556, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:17:37'),
+(557, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:20:01'),
+(558, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:24:56'),
+(559, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 01:24:56'),
+(560, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 01:24:56'),
+(561, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 01:26:38'),
+(562, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:26:40'),
+(563, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:27:16'),
+(564, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:32:16'),
+(565, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:36:36'),
+(566, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:41:14'),
+(567, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:43:03'),
+(568, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:44:48'),
+(569, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:49:47'),
+(570, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:50:20'),
+(571, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:55:20'),
+(572, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 01:58:42'),
+(573, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 01:58:43'),
+(574, 3, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 01:58:49'),
+(575, 3, 'api_access', '{\"endpoint\":\"\\/dashboard\\/teacher\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 01:58:51'),
+(576, 3, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 02:01:16'),
+(577, 3, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 02:01:16'),
+(578, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 02:01:25'),
+(579, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:01:28'),
+(580, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:11:03'),
+(581, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:11:08'),
+(582, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:11:20'),
+(583, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:16:20'),
+(584, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:32:57'),
+(585, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:33:01'),
+(586, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:33:09'),
+(587, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:33:13'),
+(588, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:46:35'),
+(589, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:46:43'),
+(590, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:47:17'),
+(591, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:52:19'),
+(592, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 02:55:45'),
+(593, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:00:12'),
+(594, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 03:06:54'),
+(595, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:06:58'),
+(596, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:07:53'),
+(597, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:07:59'),
+(598, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:12:59'),
+(599, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:18:10'),
+(600, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 03:18:42'),
+(601, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 09:42:12'),
+(602, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:42:15'),
+(603, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:43:05'),
+(604, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:48:03'),
+(605, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:51:02'),
+(606, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:53:20'),
+(607, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 09:57:05'),
+(608, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:00:22'),
+(609, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:02:57'),
+(610, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:07:27'),
+(611, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:09:10'),
+(612, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:09:28'),
+(613, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:13:01'),
+(614, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:13:15'),
+(615, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:17:35'),
+(616, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:22:40'),
+(617, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:23:28'),
+(618, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:24:36'),
+(619, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:24:45'),
+(620, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 10:29:44'),
+(621, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 11:24:36'),
+(622, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:24:39'),
+(623, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:25:27'),
+(624, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:28:07'),
+(625, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:28:41'),
+(626, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:32:01'),
+(627, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 11:37:00'),
+(628, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 14:28:38'),
+(629, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:28:40'),
+(630, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:29:56'),
+(631, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:34:31'),
+(632, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:39:34'),
+(633, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:44:32'),
+(634, 3, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 14:58:00'),
+(635, 3, 'api_access', '{\"endpoint\":\"\\/dashboard\\/teacher\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 14:58:03'),
+(636, 3, 'api_access', '{\"endpoint\":\"\\/dashboard\\/teacher\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:03:04'),
+(637, 3, 'api_access', '{\"endpoint\":\"\\/dashboard\\/teacher\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:08:03'),
+(638, 3, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 15:08:20'),
+(639, 3, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 15:08:20'),
+(640, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 15:08:55'),
+(641, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:09:28'),
+(642, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:14:05'),
+(643, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:19:05'),
+(644, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:24:05'),
+(645, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 15:29:05'),
+(646, 2, 'api_access', '{\"endpoint\":\"\\/auth\\/logout\",\"method\":\"POST\"}', '::1', NULL, '2026-03-02 15:34:04'),
+(647, 2, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 15:34:04'),
+(648, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-02 19:23:57'),
+(649, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 19:24:03'),
+(650, 2, 'api_access', '{\"endpoint\":\"\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-02 19:29:01'),
+(651, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-03 00:45:12'),
+(652, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 00:46:41'),
+(653, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 00:54:49'),
+(654, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:00:22'),
+(655, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:01:10'),
+(656, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-03 01:02:39'),
+(657, 2, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:02:49'),
+(658, 2, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:04:46'),
+(659, 2, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:05:31'),
+(660, 2, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:31:08'),
+(661, 2, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:32:23'),
+(662, 2, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-03 01:42:32'),
+(663, 2, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:42:55'),
+(664, 2, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:43:18'),
+(665, 2, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:44:04'),
+(666, 2, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 01:44:22'),
+(667, 2, 'api_access', '{\"endpoint\":\"\\/api\\/user-activity?user_id=1&action=view&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:52:02'),
+(668, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-03 01:57:15'),
+(669, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 01:57:28'),
+(670, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-03 02:04:54'),
+(671, 1, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:05:15'),
+(672, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:05:25'),
+(673, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 02:06:20'),
+(674, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\\/assignments\\/69a6421d0d995_1772503581.docx\\/info\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:07:51'),
+(675, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:12:24'),
+(676, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?page=1&limit=50&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:14:03'),
+(677, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:18:53'),
+(678, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:22:47'),
+(679, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:23:09'),
+(680, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:23:55'),
+(681, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:26:15'),
+(682, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:28:15'),
+(683, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:31:47'),
+(684, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:34:08'),
+(685, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:36:13'),
+(686, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\\/multiple\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 02:41:35'),
+(687, 1, 'api_access', '{\"endpoint\":\"\\/api\\/upload\\/materials\\/69a64a5f79f8e_1772505695_0.png\\/info\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:44:31'),
+(688, 1, 'api_access', '{\"endpoint\":\"\\/api\\/subscriptions?status=active&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:44:51'),
+(689, 1, 'api_access', '{\"endpoint\":\"\\/api\\/course-content?teacher_id=1&type=lesson&page=1&limit=50\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:45:29'),
+(690, 1, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/1\\/quizzes\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:46:08'),
+(691, 1, 'api_access', '{\"endpoint\":\"\\/api\\/messages\\/inbox?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:46:25'),
+(692, 1, 'api_access', '{\"endpoint\":\"\\/api\\/messages\",\"method\":\"POST\"}', '::1', NULL, '2026-03-03 02:46:53'),
+(693, 1, 'api_access', '{\"endpoint\":\"\\/api\\/messages\\/inbox?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:47:36'),
+(694, 1, 'api_access', '{\"endpoint\":\"\\/api\\/messages\\/sent?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:47:52'),
+(695, 1, 'api_access', '{\"endpoint\":\"\\/api\\/messages\\/unread-count\",\"method\":\"GET\"}', '::1', NULL, '2026-03-03 02:48:07');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_roles`
+--
+
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE IF NOT EXISTS `user_roles` (
+  `user_role_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `assigned_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`user_role_id`),
+  UNIQUE KEY `unique_user_role` (`user_id`,`role_id`),
+  KEY `FK_user_roles_role` (`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_roles`
+--
+
+INSERT INTO `user_roles` (`user_role_id`, `user_id`, `role_id`, `assigned_at`) VALUES
+(1, 1, 1, '2026-03-01 18:17:08'),
+(2, 2, 2, '2026-03-01 18:17:08'),
+(3, 3, 3, '2026-03-01 18:17:08'),
+(4, 4, 3, '2026-03-01 18:17:08'),
+(5, 5, 4, '2026-03-01 18:17:08'),
+(6, 6, 4, '2026-03-01 18:17:08'),
+(7, 7, 5, '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `vw_classes`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `vw_classes`;
+CREATE TABLE IF NOT EXISTS `vw_classes` (
+`class_id` int(11)
+,`class_code` varchar(50)
+,`class_name` varchar(200)
+,`program_id` int(11)
+,`program_code` varchar(20)
+,`program_name` varchar(100)
+,`grade_level_id` int(11)
+,`grade_level_code` varchar(20)
+,`grade_level_name` varchar(50)
+,`level_order` int(11)
+,`section` varchar(50)
+,`room_number` varchar(50)
+,`max_students` int(11)
+,`status` varchar(20)
+,`institution_id` int(11)
+,`institution_name` varchar(200)
+,`academic_year_id` int(11)
+,`year_name` varchar(20)
+,`class_teacher_id` int(11)
+,`class_teacher_first_name` varchar(100)
+,`class_teacher_last_name` varchar(100)
+,`class_teacher_email` varchar(100)
+,`total_students` bigint(21)
+,`active_students` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `vw_student_courses`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `vw_student_courses`;
+CREATE TABLE IF NOT EXISTS `vw_student_courses` (
+`student_id` int(11)
+,`student_id_number` varchar(50)
+,`class_id` int(11)
+,`class_code` varchar(50)
+,`class_name` varchar(200)
+,`program_id` int(11)
+,`program_code` varchar(20)
+,`class_program` varchar(100)
+,`grade_level_id` int(11)
+,`grade_level_code` varchar(20)
+,`class_grade_level` varchar(50)
+,`class_section` varchar(50)
+,`first_name` varchar(100)
+,`last_name` varchar(100)
+,`email` varchar(100)
+,`course_id` int(11)
+,`subject_id` int(11)
+,`subject_name` varchar(200)
+,`subject_code` varchar(20)
+,`is_core` tinyint(1)
+,`enrollment_date` datetime
+,`enrollment_status` varchar(20)
+,`progress_percentage` decimal(5,2)
+,`final_grade` varchar(2)
+,`teacher_id` int(11)
+,`teacher_first_name` varchar(100)
+,`teacher_last_name` varchar(100)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `vw_teacher_courses`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `vw_teacher_courses`;
+CREATE TABLE IF NOT EXISTS `vw_teacher_courses` (
+`teacher_id` int(11)
+,`employee_id` varchar(50)
+,`first_name` varchar(100)
+,`last_name` varchar(100)
+,`email` varchar(100)
+,`course_id` int(11)
+,`class_id` int(11)
+,`class_code` varchar(50)
+,`class_name` varchar(200)
+,`program_id` int(11)
+,`program_code` varchar(20)
+,`class_program` varchar(100)
+,`grade_level_id` int(11)
+,`grade_level_code` varchar(20)
+,`class_grade_level` varchar(50)
+,`class_section` varchar(50)
+,`subject_id` int(11)
+,`subject_name` varchar(200)
+,`subject_code` varchar(20)
+,`is_core` tinyint(1)
+,`status` varchar(20)
+,`start_date` date
+,`end_date` date
+,`enrolled_students` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `vw_user_roles`
+-- (See below for the actual view)
+--
+DROP VIEW IF EXISTS `vw_user_roles`;
+CREATE TABLE IF NOT EXISTS `vw_user_roles` (
+`user_id` int(11)
+,`username` varchar(50)
+,`email` varchar(100)
+,`first_name` varchar(100)
+,`last_name` varchar(100)
+,`is_active` tinyint(1)
+,`roles` mediumtext
+,`permissions` mediumtext
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `vw_classes`
+--
+DROP TABLE IF EXISTS `vw_classes`;
+
+DROP VIEW IF EXISTS `vw_classes`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_classes`  AS SELECT `cls`.`class_id` AS `class_id`, `cls`.`class_code` AS `class_code`, `cls`.`class_name` AS `class_name`, `p`.`program_id` AS `program_id`, `p`.`program_code` AS `program_code`, `p`.`program_name` AS `program_name`, `gl`.`grade_level_id` AS `grade_level_id`, `gl`.`grade_level_code` AS `grade_level_code`, `gl`.`grade_level_name` AS `grade_level_name`, `gl`.`level_order` AS `level_order`, `cls`.`section` AS `section`, `cls`.`room_number` AS `room_number`, `cls`.`max_students` AS `max_students`, `cls`.`status` AS `status`, `i`.`institution_id` AS `institution_id`, `i`.`institution_name` AS `institution_name`, `ay`.`academic_year_id` AS `academic_year_id`, `ay`.`year_name` AS `year_name`, `t`.`teacher_id` AS `class_teacher_id`, `u`.`first_name` AS `class_teacher_first_name`, `u`.`last_name` AS `class_teacher_last_name`, `u`.`email` AS `class_teacher_email`, count(distinct `s`.`student_id`) AS `total_students`, count(distinct case when `s`.`status` = 'active' then `s`.`student_id` end) AS `active_students` FROM (((((((`classes` `cls` join `institutions` `i` on(`cls`.`institution_id` = `i`.`institution_id`)) join `programs` `p` on(`cls`.`program_id` = `p`.`program_id`)) join `grade_levels` `gl` on(`cls`.`grade_level_id` = `gl`.`grade_level_id`)) join `academic_years` `ay` on(`cls`.`academic_year_id` = `ay`.`academic_year_id`)) left join `teachers` `t` on(`cls`.`class_teacher_id` = `t`.`teacher_id`)) left join `users` `u` on(`t`.`user_id` = `u`.`user_id`)) left join `students` `s` on(`cls`.`class_id` = `s`.`class_id`)) GROUP BY `cls`.`class_id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `vw_student_courses`
+--
+DROP TABLE IF EXISTS `vw_student_courses`;
+
+DROP VIEW IF EXISTS `vw_student_courses`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_student_courses`  AS SELECT `s`.`student_id` AS `student_id`, `s`.`student_id_number` AS `student_id_number`, `cls`.`class_id` AS `class_id`, `cls`.`class_code` AS `class_code`, `cls`.`class_name` AS `class_name`, `p`.`program_id` AS `program_id`, `p`.`program_code` AS `program_code`, `p`.`program_name` AS `class_program`, `gl`.`grade_level_id` AS `grade_level_id`, `gl`.`grade_level_code` AS `grade_level_code`, `gl`.`grade_level_name` AS `class_grade_level`, `cls`.`section` AS `class_section`, `u`.`first_name` AS `first_name`, `u`.`last_name` AS `last_name`, `u`.`email` AS `email`, `c`.`course_id` AS `course_id`, `sub`.`subject_id` AS `subject_id`, `sub`.`subject_name` AS `subject_name`, `sub`.`subject_code` AS `subject_code`, `sub`.`is_core` AS `is_core`, `ce`.`enrollment_date` AS `enrollment_date`, `ce`.`status` AS `enrollment_status`, `ce`.`progress_percentage` AS `progress_percentage`, `ce`.`final_grade` AS `final_grade`, `t`.`teacher_id` AS `teacher_id`, `ut`.`first_name` AS `teacher_first_name`, `ut`.`last_name` AS `teacher_last_name` FROM (((((((((`students` `s` join `users` `u` on(`s`.`user_id` = `u`.`user_id`)) left join `classes` `cls` on(`s`.`class_id` = `cls`.`class_id`)) left join `programs` `p` on(`cls`.`program_id` = `p`.`program_id`)) left join `grade_levels` `gl` on(`cls`.`grade_level_id` = `gl`.`grade_level_id`)) join `course_enrollments` `ce` on(`s`.`student_id` = `ce`.`student_id`)) join `class_subjects` `c` on(`ce`.`course_id` = `c`.`course_id`)) left join `subjects` `sub` on(`c`.`subject_id` = `sub`.`subject_id`)) left join `teachers` `t` on(`c`.`teacher_id` = `t`.`teacher_id`)) left join `users` `ut` on(`t`.`user_id` = `ut`.`user_id`)) WHERE `u`.`deleted_at` is null AND `ce`.`status` = 'active' ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `vw_teacher_courses`
+--
+DROP TABLE IF EXISTS `vw_teacher_courses`;
+
+DROP VIEW IF EXISTS `vw_teacher_courses`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_teacher_courses`  AS SELECT `t`.`teacher_id` AS `teacher_id`, `t`.`employee_id` AS `employee_id`, `u`.`first_name` AS `first_name`, `u`.`last_name` AS `last_name`, `u`.`email` AS `email`, `c`.`course_id` AS `course_id`, `cls`.`class_id` AS `class_id`, `cls`.`class_code` AS `class_code`, `cls`.`class_name` AS `class_name`, `p`.`program_id` AS `program_id`, `p`.`program_code` AS `program_code`, `p`.`program_name` AS `class_program`, `gl`.`grade_level_id` AS `grade_level_id`, `gl`.`grade_level_code` AS `grade_level_code`, `gl`.`grade_level_name` AS `class_grade_level`, `cls`.`section` AS `class_section`, `sub`.`subject_id` AS `subject_id`, `sub`.`subject_name` AS `subject_name`, `sub`.`subject_code` AS `subject_code`, `sub`.`is_core` AS `is_core`, `c`.`status` AS `status`, `c`.`start_date` AS `start_date`, `c`.`end_date` AS `end_date`, count(distinct `ce`.`student_id`) AS `enrolled_students` FROM (((((((`teachers` `t` join `users` `u` on(`t`.`user_id` = `u`.`user_id`)) join `class_subjects` `c` on(`t`.`teacher_id` = `c`.`teacher_id`)) left join `classes` `cls` on(`c`.`class_id` = `cls`.`class_id`)) left join `programs` `p` on(`cls`.`program_id` = `p`.`program_id`)) left join `grade_levels` `gl` on(`cls`.`grade_level_id` = `gl`.`grade_level_id`)) left join `subjects` `sub` on(`c`.`subject_id` = `sub`.`subject_id`)) left join `course_enrollments` `ce` on(`c`.`course_id` = `ce`.`course_id` and `ce`.`status` = 'active')) WHERE `u`.`deleted_at` is null GROUP BY `t`.`teacher_id`, `c`.`course_id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `vw_user_roles`
+--
+DROP TABLE IF EXISTS `vw_user_roles`;
+
+DROP VIEW IF EXISTS `vw_user_roles`;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vw_user_roles`  AS SELECT `u`.`user_id` AS `user_id`, `u`.`username` AS `username`, `u`.`email` AS `email`, `u`.`first_name` AS `first_name`, `u`.`last_name` AS `last_name`, `u`.`is_active` AS `is_active`, group_concat(`r`.`role_name` order by `r`.`role_name` ASC separator ',') AS `roles`, group_concat(`p`.`permission_name` order by `p`.`permission_name` ASC separator ',') AS `permissions` FROM ((((`users` `u` left join `user_roles` `ur` on(`u`.`user_id` = `ur`.`user_id`)) left join `roles` `r` on(`ur`.`role_id` = `r`.`role_id`)) left join `role_permissions` `rp` on(`r`.`role_id` = `rp`.`role_id`)) left join `permissions` `p` on(`rp`.`permission_id` = `p`.`permission_id`)) WHERE `u`.`deleted_at` is null GROUP BY `u`.`user_id` ;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `academic_years`
+--
+ALTER TABLE `academic_years`
+  ADD CONSTRAINT `FK_academic_years_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `announcements`
+--
+ALTER TABLE `announcements`
+  ADD CONSTRAINT `FK_announcements_author` FOREIGN KEY (`author_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `assessments`
+--
+ALTER TABLE `assessments`
+  ADD CONSTRAINT `FK_assessments_category` FOREIGN KEY (`category_id`) REFERENCES `assessment_categories` (`category_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_assessments_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `assessment_submissions`
+--
+ALTER TABLE `assessment_submissions`
+  ADD CONSTRAINT `FK_submissions_assessment` FOREIGN KEY (`assessment_id`) REFERENCES `assessments` (`assessment_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_submissions_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `assignments`
+--
+ALTER TABLE `assignments`
+  ADD CONSTRAINT `FK_assignments_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_assignments_section` FOREIGN KEY (`section_id`) REFERENCES `course_sections` (`course_sections_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `assignment_submissions`
+--
+ALTER TABLE `assignment_submissions`
+  ADD CONSTRAINT `FK_assignment_submissions_assignment` FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`assignment_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_assignment_submissions_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_assignment_submissions_grader` FOREIGN KEY (`graded_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_assignment_submissions_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD CONSTRAINT `FK_attendance_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_attendance_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `classes`
+--
+ALTER TABLE `classes`
+  ADD CONSTRAINT `FK_classes_academic_year` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_classes_grade_level` FOREIGN KEY (`grade_level_id`) REFERENCES `grade_levels` (`grade_level_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_classes_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_classes_program` FOREIGN KEY (`program_id`) REFERENCES `programs` (`program_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_classes_teacher` FOREIGN KEY (`class_teacher_id`) REFERENCES `teachers` (`teacher_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `class_subjects`
+--
+ALTER TABLE `class_subjects`
+  ADD CONSTRAINT `FK_class_subjects_academic_year` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_class_subjects_class` FOREIGN KEY (`class_id`) REFERENCES `classes` (`class_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_class_subjects_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_class_subjects_semester` FOREIGN KEY (`semester_id`) REFERENCES `semesters` (`semester_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_class_subjects_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_class_subjects_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `course_content`
+--
+ALTER TABLE `course_content`
+  ADD CONSTRAINT `FK_course_content_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_course_content_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_course_content_section` FOREIGN KEY (`section_id`) REFERENCES `course_sections` (`course_sections_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `course_content_order`
+--
+ALTER TABLE `course_content_order`
+  ADD CONSTRAINT `FK_content_order_content` FOREIGN KEY (`course_content_id`) REFERENCES `course_content` (`course_content_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_content_order_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_content_order_material` FOREIGN KEY (`material_id`) REFERENCES `course_materials` (`material_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_content_order_section` FOREIGN KEY (`course_section_id`) REFERENCES `course_sections` (`course_sections_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `course_enrollments`
+--
+ALTER TABLE `course_enrollments`
+  ADD CONSTRAINT `FK_enrollments_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_enrollments_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `course_materials`
+--
+ALTER TABLE `course_materials`
+  ADD CONSTRAINT `FK_materials_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_materials_section` FOREIGN KEY (`section_id`) REFERENCES `course_sections` (`course_sections_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_materials_uploader` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `course_reviews`
+--
+ALTER TABLE `course_reviews`
+  ADD CONSTRAINT `FK_reviews_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_reviews_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `course_schedules`
+--
+ALTER TABLE `course_schedules`
+  ADD CONSTRAINT `FK_schedules_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `course_sections`
+--
+ALTER TABLE `course_sections`
+  ADD CONSTRAINT `FK_course_sections_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_course_sections_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `error_logs`
+--
+ALTER TABLE `error_logs`
+  ADD CONSTRAINT `FK_error_logs_resolved_by` FOREIGN KEY (`resolved_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_error_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `events`
+--
+ALTER TABLE `events`
+  ADD CONSTRAINT `FK_events_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_events_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_events_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `grade_levels`
+--
+ALTER TABLE `grade_levels`
+  ADD CONSTRAINT `FK_grade_levels_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `grade_reports`
+--
+ALTER TABLE `grade_reports`
+  ADD CONSTRAINT `FK_grade_reports_generator` FOREIGN KEY (`generated_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_grade_reports_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_grade_reports_semester` FOREIGN KEY (`semester_id`) REFERENCES `semesters` (`semester_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_grade_reports_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_grade_reports_year` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `grade_report_details`
+--
+ALTER TABLE `grade_report_details`
+  ADD CONSTRAINT `FK_report_details_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_report_details_report` FOREIGN KEY (`report_id`) REFERENCES `grade_reports` (`report_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `grade_scales`
+--
+ALTER TABLE `grade_scales`
+  ADD CONSTRAINT `FK_grade_scales_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `institution_settings`
+--
+ALTER TABLE `institution_settings`
+  ADD CONSTRAINT `FK_institution_settings` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `login_activity`
+--
+ALTER TABLE `login_activity`
+  ADD CONSTRAINT `FK_login_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `FK_messages_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_messages_parent` FOREIGN KEY (`parent_message_id`) REFERENCES `messages` (`message_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_messages_receiver` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_messages_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `FK_notifications_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_notifications_sender` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `parents`
+--
+ALTER TABLE `parents`
+  ADD CONSTRAINT `FK_parents_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_parents_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `parent_students`
+--
+ALTER TABLE `parent_students`
+  ADD CONSTRAINT `FK_parent_students_parent` FOREIGN KEY (`parent_id`) REFERENCES `parents` (`parent_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_parent_students_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `password_reset_tokens`
+--
+ALTER TABLE `password_reset_tokens`
+  ADD CONSTRAINT `FK_password_reset_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `programs`
+--
+ALTER TABLE `programs`
+  ADD CONSTRAINT `FK_programs_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `quizzes`
+--
+ALTER TABLE `quizzes`
+  ADD CONSTRAINT `FK_quizzes_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_quizzes_section` FOREIGN KEY (`section_id`) REFERENCES `course_sections` (`course_sections_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `quiz_questions`
+--
+ALTER TABLE `quiz_questions`
+  ADD CONSTRAINT `FK_quiz_questions_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`quiz_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `quiz_question_options`
+--
+ALTER TABLE `quiz_question_options`
+  ADD CONSTRAINT `FK_quiz_options_question` FOREIGN KEY (`question_id`) REFERENCES `quiz_questions` (`question_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `quiz_submissions`
+--
+ALTER TABLE `quiz_submissions`
+  ADD CONSTRAINT `FK_quiz_submissions_grader` FOREIGN KEY (`graded_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_quiz_submissions_quiz` FOREIGN KEY (`quiz_id`) REFERENCES `quizzes` (`quiz_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_quiz_submissions_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `quiz_submission_answers`
+--
+ALTER TABLE `quiz_submission_answers`
+  ADD CONSTRAINT `FK_quiz_answers_question` FOREIGN KEY (`question_id`) REFERENCES `quiz_questions` (`question_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_quiz_answers_submission` FOREIGN KEY (`submission_id`) REFERENCES `quiz_submissions` (`submission_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `results`
+--
+ALTER TABLE `results`
+  ADD CONSTRAINT `FK_results_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_results_semester` FOREIGN KEY (`semester_id`) REFERENCES `semesters` (`semester_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_results_student` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_results_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `role_permissions`
+--
+ALTER TABLE `role_permissions`
+  ADD CONSTRAINT `FK_role_permissions_permission` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`permission_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_role_permissions_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `semesters`
+--
+ALTER TABLE `semesters`
+  ADD CONSTRAINT `FK_semesters_academic_year` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_semesters_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `students`
+--
+ALTER TABLE `students`
+  ADD CONSTRAINT `FK_students_class` FOREIGN KEY (`class_id`) REFERENCES `classes` (`class_id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `FK_students_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_students_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `subjects`
+--
+ALTER TABLE `subjects`
+  ADD CONSTRAINT `FK_subjects_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `teachers`
+--
+ALTER TABLE `teachers`
+  ADD CONSTRAINT `FK_teachers_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_teachers_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `teacher_subjects`
+--
+ALTER TABLE `teacher_subjects`
+  ADD CONSTRAINT `FK_teacher_subjects_subject` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`subject_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_teacher_subjects_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`teacher_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `users`
+--
+ALTER TABLE `users`
+  ADD CONSTRAINT `FK_users_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_activity`
+--
+ALTER TABLE `user_activity`
+  ADD CONSTRAINT `FK_user_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `user_roles`
+--
+ALTER TABLE `user_roles`
+  ADD CONSTRAINT `FK_user_roles_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_user_roles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+SET FOREIGN_KEY_CHECKS=1;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

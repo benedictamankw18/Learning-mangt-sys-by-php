@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Repositories\UserActivityRepository;
+use App\Utils\Response;
 
 class UserActivityController
 {
@@ -17,44 +18,44 @@ class UserActivityController
      * Get all user activities
      * GET /user-activity?user_id=1&action=login&start_date=2024-01-01&end_date=2024-12-31
      */
-    public function index($request)
+    public function index(array $user): void
     {
         try {
-            $userId = $request['query']['user_id'] ?? null;
-            $action = $request['query']['action'] ?? null;
-            $startDate = $request['query']['start_date'] ?? null;
-            $endDate = $request['query']['end_date'] ?? null;
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $page = $request['query']['page'] ?? 1;
-            $limit = $request['query']['limit'] ?? 50;
+            $userId = $_GET['user_id'] ?? null;
+            $action = $_GET['action'] ?? null;
+            $startDate = $_GET['start_date'] ?? null;
+            $endDate = $_GET['end_date'] ?? null;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $page = $_GET['page'] ?? 1;
+            $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
 
             $filters = [];
-            if ($userId) $filters['user_id'] = $userId;
-            if ($action) $filters['action'] = $action;
-            if ($startDate) $filters['start_date'] = $startDate;
-            if ($endDate) $filters['end_date'] = $endDate;
-            if ($institutionId) $filters['institution_id'] = $institutionId;
+            if ($userId)
+                $filters['user_id'] = $userId;
+            if ($action)
+                $filters['action'] = $action;
+            if ($startDate)
+                $filters['start_date'] = $startDate;
+            if ($endDate)
+                $filters['end_date'] = $endDate;
+            if ($institutionId)
+                $filters['institution_id'] = $institutionId;
 
             $activities = $this->userActivityRepository->getAll($filters, $limit, $offset);
             $total = $this->userActivityRepository->count($filters);
 
-            return [
-                'success' => true,
-                'data' => $activities,
+            Response::success([
+                'activities' => $activities,
                 'pagination' => [
                     'total' => $total,
-                    'page' => (int)$page,
-                    'limit' => (int)$limit,
+                    'page' => (int) $page,
+                    'limit' => (int) $limit,
                     'pages' => ceil($total / $limit)
                 ]
-            ];
+            ]);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch user activities',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch user activities: ' . $e->getMessage());
         }
     }
 
@@ -62,29 +63,19 @@ class UserActivityController
      * Get single activity
      * GET /user-activity/{id}
      */
-    public function show($request)
+    public function show(array $user, int $id): void
     {
         try {
-            $id = $request['params']['id'];
             $activity = $this->userActivityRepository->findById($id);
 
             if (!$activity) {
-                return [
-                    'success' => false,
-                    'message' => 'Activity not found'
-                ];
+                Response::notFound('Activity not found');
+                return;
             }
 
-            return [
-                'success' => true,
-                'data' => $activity
-            ];
+            Response::success($activity);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch activity',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch activity: ' . $e->getMessage());
         }
     }
 
@@ -92,35 +83,30 @@ class UserActivityController
      * Log user activity
      * POST /user-activity
      */
-    public function log($request)
+    public function log(array $user): void
     {
         try {
-            $data = $request['body'];
+            $data = $_POST;
 
             // Validate required fields
             $required = ['user_id', 'action', 'entity_type'];
+            $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
-                    return [
-                        'success' => false,
-                        'message' => ucfirst(str_replace('_', ' ', $field)) . ' is required'
-                    ];
+                    $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (!empty($errors)) {
+                Response::validationError($errors);
+                return;
             }
 
             $activityId = $this->userActivityRepository->create($data);
 
-            return [
-                'success' => true,
-                'message' => 'Activity logged successfully',
-                'data' => ['id' => $activityId]
-            ];
+            Response::success(['id' => $activityId], 'Activity logged successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to log activity',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to log activity: ' . $e->getMessage());
         }
     }
 
@@ -128,25 +114,17 @@ class UserActivityController
      * Get user's activity history
      * GET /user-activity/user/{userId}?limit=100
      */
-    public function getUserHistory($request)
+    public function getUserHistory(array $user, int $userId): void
     {
         try {
-            $userId = $request['params']['userId'];
-            $limit = $request['query']['limit'] ?? 100;
-            $offset = $request['query']['offset'] ?? 0;
+            $limit = $_GET['limit'] ?? 100;
+            $offset = $_GET['offset'] ?? 0;
 
             $activities = $this->userActivityRepository->getUserHistory($userId, $limit, $offset);
 
-            return [
-                'success' => true,
-                'data' => $activities
-            ];
+            Response::success($activities);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch user history',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch user history: ' . $e->getMessage());
         }
     }
 
@@ -154,24 +132,17 @@ class UserActivityController
      * Get recent activities
      * GET /user-activity/recent?institution_id=1&limit=50
      */
-    public function getRecent($request)
+    public function getRecent(array $user): void
     {
         try {
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $limit = $request['query']['limit'] ?? 50;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $limit = $_GET['limit'] ?? 50;
 
             $activities = $this->userActivityRepository->getRecent($institutionId, $limit);
 
-            return [
-                'success' => true,
-                'data' => $activities
-            ];
+            Response::success($activities);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch recent activities',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch recent activities: ' . $e->getMessage());
         }
     }
 
@@ -179,25 +150,17 @@ class UserActivityController
      * Get activities by action
      * GET /user-activity/action/{action}?institution_id=1
      */
-    public function getByAction($request)
+    public function getByAction(array $user, string $action): void
     {
         try {
-            $action = $request['params']['action'];
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $limit = $request['query']['limit'] ?? 100;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $limit = $_GET['limit'] ?? 100;
 
             $activities = $this->userActivityRepository->getByAction($action, $institutionId, $limit);
 
-            return [
-                'success' => true,
-                'data' => $activities
-            ];
+            Response::success($activities);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch activities',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch activities: ' . $e->getMessage());
         }
     }
 
@@ -205,25 +168,18 @@ class UserActivityController
      * Get activity statistics
      * GET /user-activity/stats?institution_id=1&start_date=2024-01-01&end_date=2024-12-31
      */
-    public function getStatistics($request)
+    public function getStatistics(array $user): void
     {
         try {
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $startDate = $request['query']['start_date'] ?? null;
-            $endDate = $request['query']['end_date'] ?? null;
+            $institutionId = $_GET['institution_id'] ?? null;
+            $startDate = $_GET['start_date'] ?? null;
+            $endDate = $_GET['end_date'] ?? null;
 
             $stats = $this->userActivityRepository->getStatistics($institutionId, $startDate, $endDate);
 
-            return [
-                'success' => true,
-                'data' => $stats
-            ];
+            Response::success($stats);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch statistics',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch statistics: ' . $e->getMessage());
         }
     }
 
@@ -231,25 +187,16 @@ class UserActivityController
      * Get activities by entity
      * GET /user-activity/entity/{entityType}/{entityId}
      */
-    public function getByEntity($request)
+    public function getByEntity(array $user, string $entityType, int $entityId): void
     {
         try {
-            $entityType = $request['params']['entityType'];
-            $entityId = $request['params']['entityId'];
-            $limit = $request['query']['limit'] ?? 50;
+            $limit = $_GET['limit'] ?? 50;
 
             $activities = $this->userActivityRepository->getByEntity($entityType, $entityId, $limit);
 
-            return [
-                'success' => true,
-                'data' => $activities
-            ];
+            Response::success($activities);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch entity activities',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch entity activities: ' . $e->getMessage());
         }
     }
 
@@ -257,24 +204,16 @@ class UserActivityController
      * Delete old activities (cleanup)
      * DELETE /user-activity/cleanup?days=90
      */
-    public function cleanup($request)
+    public function cleanup(array $user): void
     {
         try {
-            $days = $request['query']['days'] ?? 90;
+            $days = $_GET['days'] ?? 90;
 
             $deleted = $this->userActivityRepository->deleteOlderThan($days);
 
-            return [
-                'success' => true,
-                'message' => "Deleted {$deleted} old activities",
-                'data' => ['deleted_count' => $deleted]
-            ];
+            Response::success(['deleted_count' => $deleted], "Deleted {$deleted} old activities");
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to cleanup activities',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to cleanup activities: ' . $e->getMessage());
         }
     }
 
@@ -282,26 +221,19 @@ class UserActivityController
      * Get audit trail for specific date range
      * GET /user-activity/audit-trail?start_date=2024-01-01&end_date=2024-01-31&institution_id=1
      */
-    public function getAuditTrail($request)
+    public function getAuditTrail(array $user): void
     {
         try {
-            $startDate = $request['query']['start_date'] ?? date('Y-m-01');
-            $endDate = $request['query']['end_date'] ?? date('Y-m-t');
-            $institutionId = $request['query']['institution_id'] ?? null;
-            $action = $request['query']['action'] ?? null;
+            $startDate = $_GET['start_date'] ?? date('Y-m-01');
+            $endDate = $_GET['end_date'] ?? date('Y-m-t');
+            $institutionId = $_GET['institution_id'] ?? null;
+            $action = $_GET['action'] ?? null;
 
             $auditTrail = $this->userActivityRepository->getAuditTrail($startDate, $endDate, $institutionId, $action);
 
-            return [
-                'success' => true,
-                'data' => $auditTrail
-            ];
+            Response::success($auditTrail);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to fetch audit trail',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to fetch audit trail: ' . $e->getMessage());
         }
     }
 }

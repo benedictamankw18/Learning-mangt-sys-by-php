@@ -18,35 +18,29 @@ class CourseRepository
     {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO courses (
-                    course_code, course_name, description, program, grade_level, section,
-                    subject_id, teacher_id, academic_year_id, semester_id,
-                    credits, duration_weeks, start_date, end_date, max_students, status
+                INSERT INTO class_subjects (
+                    institution_id, class_id, subject_id, teacher_id,
+                    academic_year_id, semester_id, duration_weeks,
+                    start_date, end_date, status
                 )
                 VALUES (
-                    :course_code, :course_name, :description, :program, :grade_level, :section,
-                    :subject_id, :teacher_id, :academic_year_id, :semester_id,
-                    :credits, :duration_weeks, :start_date, :end_date, :max_students, :status
+                    :institution_id, :class_id, :subject_id, :teacher_id,
+                    :academic_year_id, :semester_id, :duration_weeks,
+                    :start_date, :end_date, :status
                 )
             ");
 
             $stmt->execute([
-                'course_code' => $data['course_code'],
-                'course_name' => $data['course_name'],
-                'description' => $data['description'] ?? null,
-                'program' => $data['program'] ?? null,
-                'grade_level' => $data['grade_level'] ?? null,
-                'section' => $data['section'] ?? null,
-                'subject_id' => $data['subject_id'] ?? null,
+                'institution_id' => $data['institution_id'],
+                'class_id' => $data['class_id'],
+                'subject_id' => $data['subject_id'],
                 'teacher_id' => $data['teacher_id'] ?? null,
                 'academic_year_id' => $data['academic_year_id'] ?? null,
                 'semester_id' => $data['semester_id'] ?? null,
-                'credits' => $data['credits'] ?? 3,
                 'duration_weeks' => $data['duration_weeks'] ?? 16,
                 'start_date' => $data['start_date'] ?? null,
                 'end_date' => $data['end_date'] ?? null,
-                'max_students' => $data['max_students'] ?? 40,
-                'status' => $data['status'] ?? 'draft'
+                'status' => $data['status'] ?? 'active'
             ]);
 
             return (int) $this->db->lastInsertId();
@@ -61,7 +55,10 @@ class CourseRepository
         try {
             $stmt = $this->db->prepare("
                 SELECT 
-                    c.*,
+                    cs.*,
+                    c.class_name,
+                    c.grade_level_id,
+                    gl.level_name as grade_level,
                     sub.subject_name,
                     sub.subject_code,
                     sub.is_core,
@@ -72,16 +69,18 @@ class CourseRepository
                     u.last_name as teacher_last_name,
                     COUNT(DISTINCT ce.student_id) as enrolled_students,
                     AVG(cr.rating) as average_rating
-                FROM courses c
-                LEFT JOIN subjects sub ON c.subject_id = sub.subject_id
-                LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
-                LEFT JOIN semesters sem ON c.semester_id = sem.semester_id
-                LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+                FROM class_subjects cs
+                LEFT JOIN classes c ON cs.class_id = c.class_id
+                LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
+                LEFT JOIN subjects sub ON cs.subject_id = sub.subject_id
+                LEFT JOIN academic_years ay ON cs.academic_year_id = ay.academic_year_id
+                LEFT JOIN semesters sem ON cs.semester_id = sem.semester_id
+                LEFT JOIN teachers t ON cs.teacher_id = t.teacher_id
                 LEFT JOIN users u ON t.user_id = u.user_id
-                LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id AND ce.status = 'active'
-                LEFT JOIN course_reviews cr ON c.course_id = cr.course_id
-                WHERE c.course_id = :id
-                GROUP BY c.course_id
+                LEFT JOIN course_enrollments ce ON cs.course_id = ce.course_id AND ce.status = 'active'
+                LEFT JOIN course_reviews cr ON cs.course_id = cr.course_id
+                WHERE cs.course_id = :id
+                GROUP BY cs.course_id
             ");
 
             $stmt->execute(['id' => $id]);
@@ -95,11 +94,24 @@ class CourseRepository
     public function update(int $id, array $data): bool
     {
         try {
+            $allowedFields = [
+                'institution_id',
+                'class_id',
+                'subject_id',
+                'teacher_id',
+                'academic_year_id',
+                'semester_id',
+                'duration_weeks',
+                'start_date',
+                'end_date',
+                'status'
+            ];
+
             $fields = [];
             $params = ['id' => $id];
 
             foreach ($data as $key => $value) {
-                if ($key !== 'course_id') {
+                if (in_array($key, $allowedFields)) {
                     $fields[] = "{$key} = :{$key}";
                     $params[$key] = $value;
                 }
@@ -109,7 +121,7 @@ class CourseRepository
                 return false;
             }
 
-            $sql = "UPDATE courses SET " . implode(', ', $fields) . " WHERE course_id = :id";
+            $sql = "UPDATE class_subjects SET " . implode(', ', $fields) . " WHERE course_id = :id";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
 
@@ -122,7 +134,7 @@ class CourseRepository
     public function delete(int $id): bool
     {
         try {
-            $stmt = $this->db->prepare("UPDATE courses SET status = 'archived' WHERE course_id = :id");
+            $stmt = $this->db->prepare("UPDATE class_subjects SET status = 'archived' WHERE course_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
             error_log("Course Delete Error: " . $e->getMessage());
@@ -137,7 +149,10 @@ class CourseRepository
 
             $sql = "
                 SELECT 
-                    c.*,
+                    cs.*,
+                    c.class_name,
+                    c.grade_level_id,
+                    gl.level_name as grade_level,
                     sub.subject_name,
                     sub.subject_code,
                     ay.year_name,
@@ -145,29 +160,31 @@ class CourseRepository
                     u.first_name as teacher_first_name,
                     u.last_name as teacher_last_name,
                     COUNT(DISTINCT ce.student_id) as enrolled_students
-                FROM courses c
-                LEFT JOIN subjects sub ON c.subject_id = sub.subject_id
-                LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
-                LEFT JOIN semesters sem ON c.semester_id = sem.semester_id
-                LEFT JOIN teachers t ON c.teacher_id = t.teacher_id
+                FROM class_subjects cs
+                LEFT JOIN classes c ON cs.class_id = c.class_id
+                LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
+                LEFT JOIN subjects sub ON cs.subject_id = sub.subject_id
+                LEFT JOIN academic_years ay ON cs.academic_year_id = ay.academic_year_id
+                LEFT JOIN semesters sem ON cs.semester_id = sem.semester_id
+                LEFT JOIN teachers t ON cs.teacher_id = t.teacher_id
                 LEFT JOIN users u ON t.user_id = u.user_id
-                LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id AND ce.status = 'active'
+                LEFT JOIN course_enrollments ce ON cs.course_id = ce.course_id AND ce.status = 'active'
                 WHERE 1=1
             ";
 
             $params = [];
 
             if ($teacherId) {
-                $sql .= " AND c.teacher_id = :teacher_id";
+                $sql .= " AND cs.teacher_id = :teacher_id";
                 $params['teacher_id'] = $teacherId;
             }
 
             if ($status) {
-                $sql .= " AND c.status = :status";
+                $sql .= " AND cs.status = :status";
                 $params['status'] = $status;
             }
 
-            $sql .= " GROUP BY c.course_id ORDER BY c.created_at DESC LIMIT :limit OFFSET :offset";
+            $sql .= " GROUP BY cs.course_id ORDER BY cs.created_at DESC LIMIT :limit OFFSET :offset";
 
             $stmt = $this->db->prepare($sql);
 
@@ -189,7 +206,7 @@ class CourseRepository
     public function count(?int $teacherId = null, ?string $status = null): int
     {
         try {
-            $sql = "SELECT COUNT(*) FROM courses WHERE 1=1";
+            $sql = "SELECT COUNT(*) FROM class_subjects WHERE 1=1";
             $params = [];
 
             if ($teacherId) {

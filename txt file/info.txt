@@ -1,0 +1,26 @@
+1. Create UUID Helper (5 minutes)
+Utility class for UUID generation and validation
+Methods to convert between UUIDs and integer IDs
+2. Update Repositories (20 minutes)
+Add findByUuid() methods to all repositories
+Add createWithUuid() methods
+Update existing queries to include UUID in SELECT
+3. Update Controllers (30 minutes)
+Change method signatures: show(array $user, int $id) → show(array $user, string $uuid)
+Look up by UUID instead of ID
+Return UUIDs in responses instead of IDs
+4. Add Authorization Middleware (15 minutes) - CRITICAL
+Verify user has permission to access resources
+Prevent accessing other institutions' data
+Role-based access control
+5. Update Routes (Optional)
+Change patterns from {id} to {uuid} for clarity
+6. Test All Endpoints (20 minutes)
+Which would you like to tackle first?
+
+A. Start with creating the UUID helper utility class
+B. Jump straight to updating one repository as an example (e.g., CourseContentRepository)
+C. Start with authorization middleware (most important for security)
+D. See a complete example of all changes needed for one endpoint
+
+Let me know and I'll help implement it!

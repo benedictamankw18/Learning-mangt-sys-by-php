@@ -7,29 +7,45 @@ use PDO;
 class CourseContentRepository extends BaseRepository
 {
     protected $table = 'course_content';
+    protected $primaryKey = 'course_content_id';
 
-    public function getAll($filters = [], $limit = 50, $offset = 0)
+    public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT cc.*, 
                 CONCAT(u.first_name, ' ', u.last_name) as created_by_name
                 FROM {$this->table} cc
-                LEFT JOIN users u ON cc.created_by = u.id
+                LEFT JOIN users u ON cc.created_by = u.user_id
                 WHERE 1=1";
         $params = [];
 
-        if (!empty($filters['class_subject_id'])) {
-            $sql .= " AND cc.class_subject_id = :class_subject_id";
-            $params[':class_subject_id'] = $filters['class_subject_id'];
+        if (!empty($filters['course_id'])) {
+            $sql .= " AND cc.course_id = :course_id";
+            $params[':course_id'] = $filters['course_id'];
+        }
+
+        if (!empty($filters['section_id'])) {
+            $sql .= " AND cc.section_id = :section_id";
+            $params[':section_id'] = $filters['section_id'];
+        }
+
+        if (!empty($filters['teacher_id'])) {
+            $sql .= " AND cc.created_by = :teacher_id";
+            $params[':teacher_id'] = $filters['teacher_id'];
         }
 
         if (!empty($filters['type'])) {
-            $sql .= " AND cc.type = :type";
+            $sql .= " AND cc.content_type = :type";
             $params[':type'] = $filters['type'];
         }
 
-        $sql .= " ORDER BY cc.order_position ASC, cc.created_at DESC LIMIT :limit OFFSET :offset";
-        $params[':limit'] = (int)$limit;
-        $params[':offset'] = (int)$offset;
+        if (isset($filters['is_active'])) {
+            $sql .= " AND cc.is_active = :is_active";
+            $params[':is_active'] = $filters['is_active'];
+        }
+
+        $sql .= " ORDER BY cc.created_at DESC LIMIT :limit OFFSET :offset";
+        $params[':limit'] = (int) $limit;
+        $params[':offset'] = (int) $offset;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -44,19 +60,34 @@ class CourseContentRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function count($filters = [])
+    public function count(array $filters = []): int
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE 1=1";
         $params = [];
 
-        if (!empty($filters['class_subject_id'])) {
-            $sql .= " AND class_subject_id = :class_subject_id";
-            $params[':class_subject_id'] = $filters['class_subject_id'];
+        if (!empty($filters['course_id'])) {
+            $sql .= " AND course_id = :course_id";
+            $params[':course_id'] = $filters['course_id'];
+        }
+
+        if (!empty($filters['section_id'])) {
+            $sql .= " AND section_id = :section_id";
+            $params[':section_id'] = $filters['section_id'];
+        }
+
+        if (!empty($filters['teacher_id'])) {
+            $sql .= " AND created_by = :teacher_id";
+            $params[':teacher_id'] = $filters['teacher_id'];
         }
 
         if (!empty($filters['type'])) {
-            $sql .= " AND type = :type";
+            $sql .= " AND content_type = :type";
             $params[':type'] = $filters['type'];
+        }
+
+        if (isset($filters['is_active'])) {
+            $sql .= " AND is_active = :is_active";
+            $params[':is_active'] = $filters['is_active'];
         }
 
         $stmt = $this->db->prepare($sql);
@@ -66,39 +97,69 @@ class CourseContentRepository extends BaseRepository
         return $result['total'];
     }
 
-    public function getByClassSubject($classSubjectId)
+    // Override to use correct primary key
+    public function findById(int $id): ?array
+    {
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE course_content_id = :id LIMIT 1");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
+     * Find course content by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!\App\Utils\UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare("SELECT * FROM {$this->table} WHERE uuid = :uuid LIMIT 1");
+        $stmt->bindValue(':uuid', $uuid);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    public function getByCourse($courseId)
     {
         $sql = "SELECT cc.*, 
                 CONCAT(u.first_name, ' ', u.last_name) as created_by_name
                 FROM {$this->table} cc
-                LEFT JOIN users u ON cc.created_by = u.id
-                WHERE cc.class_subject_id = :class_subject_id
-                ORDER BY cc.order_position ASC, cc.created_at ASC";
+                LEFT JOIN users u ON cc.created_by = u.user_id
+                WHERE cc.course_id = :course_id
+                ORDER BY cc.created_at ASC";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute([':class_subject_id' => $classSubjectId]);
+        $stmt->execute([':course_id' => $courseId]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function reorder($items)
+    public function getBySection($sectionId)
     {
-        foreach ($items as $item) {
-            $sql = "UPDATE {$this->table} 
-                   SET order_position = :order_position 
-                   WHERE id = :id";
+        $sql = "SELECT cc.*, 
+                CONCAT(u.first_name, ' ', u.last_name) as created_by_name
+                FROM {$this->table} cc
+                LEFT JOIN users u ON cc.created_by = u.user_id
+                WHERE cc.section_id = :section_id
+                ORDER BY cc.created_at ASC";
 
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute([
-                ':order_position' => $item['order_position'],
-                ':id' => $item['id']
-            ]);
-        }
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':section_id' => $sectionId]);
 
-        return true;
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function duplicate($id, $classSubjectId = null)
+    public function duplicate($id, $courseId = null, $sectionId = null)
     {
         $original = $this->findById($id);
         if (!$original) {
@@ -107,18 +168,45 @@ class CourseContentRepository extends BaseRepository
 
         $newData = [
             'title' => $original['title'] . ' (Copy)',
+            'course_id' => $courseId ?? $original['course_id'],
+            'section_id' => $sectionId ?? $original['section_id'],
+            'content_text' => $original['content_text'],
             'description' => $original['description'],
-            'content' => $original['content'],
-            'type' => $original['type'],
-            'class_subject_id' => $classSubjectId ?? $original['class_subject_id'],
-            'order_position' => $original['order_position'],
-            'duration' => $original['duration'],
-            'file_path' => $original['file_path'],
-            'video_url' => $original['video_url'],
-            'published' => 0,
+            'content_type' => $original['content_type'],
+            'is_active' => 0, // Set to inactive by default
             'created_by' => $original['created_by']
         ];
 
         return $this->create($newData);
+    }
+
+    // Override to use correct primary key
+    public function update(int $id, array $data): bool
+    {
+        $fields = [];
+        foreach (array_keys($data) as $field) {
+            $fields[] = "{$field} = :{$field}";
+        }
+
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE course_content_id = :id";
+
+        $stmt = $this->db->prepare($sql);
+
+        foreach ($data as $key => $value) {
+            $stmt->bindValue(":{$key}", $value);
+        }
+
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    // Override to use correct primary key
+    public function delete(int $id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE course_content_id = :id");
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+
+        return $stmt->execute();
     }
 }

@@ -65,8 +65,8 @@ class ParentController
         if (isset($data['email'])) {
             $validator->email('email')->maxLength('email', 100);
         }
-        if (isset($data['phone'])) {
-            $validator->maxLength('phone', 20);
+        if (isset($data['phone_number'])) {
+            $validator->maxLength('phone_number', 20);
         }
         if (isset($data['user_id'])) {
             $validator->numeric('user_id');
@@ -75,6 +75,11 @@ class ParentController
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
         }
 
         $parentId = $this->repo->create($data);

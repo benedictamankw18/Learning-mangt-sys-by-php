@@ -68,14 +68,15 @@ class ParentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO parents (user_id, first_name, last_name, phone, email, occupation, address)
-                VALUES (:user_id, :first_name, :last_name, :phone, :email, :occupation, :address)
+                INSERT INTO parents (institution_id, user_id, first_name, last_name, phone_number, email, occupation, address)
+                VALUES (:institution_id, :user_id, :first_name, :last_name, :phone_number, :email, :occupation, :address)
             ");
             $stmt->execute([
+                'institution_id' => $data['institution_id'],
                 'user_id' => $data['user_id'] ?? null,
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],
-                'phone' => $data['phone'] ?? null,
+                'phone_number' => $data['phone_number'] ?? null,
                 'email' => $data['email'] ?? null,
                 'occupation' => $data['occupation'] ?? null,
                 'address' => $data['address'] ?? null
@@ -90,7 +91,7 @@ class ParentRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['user_id', 'first_name', 'last_name', 'phone', 'email', 'occupation', 'address'];
+            $allowedFields = ['institution_id', 'user_id', 'first_name', 'last_name', 'phone_number', 'email', 'occupation', 'address'];
             $updates = [];
             $params = ['id' => $id];
 
@@ -147,12 +148,14 @@ class ParentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT s.*, u.first_name, u.last_name, u.email, ps.relationship, ps.is_primary
+                SELECT s.*, u.first_name, u.last_name, u.email, 
+                       ps.relationship_type as relationship, 
+                       ps.is_primary_contact as is_primary
                 FROM parent_students ps
                 INNER JOIN students s ON ps.student_id = s.student_id
                 INNER JOIN users u ON s.user_id = u.user_id
                 WHERE ps.parent_id = :parent_id
-                ORDER BY ps.is_primary DESC, u.last_name, u.first_name
+                ORDER BY ps.is_primary_contact DESC, u.last_name, u.first_name
             ");
             $stmt->execute(['parent_id' => $parentId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);

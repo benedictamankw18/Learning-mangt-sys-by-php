@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use PDO;
 use App\Config\Database;
+use App\Utils\UuidHelper;
 
 class AnnouncementRepository
 {
@@ -106,12 +107,46 @@ class AnnouncementRepository
     }
 
     /**
+     * Find announcement by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 
+                a.*,
+                u.first_name as author_first_name,
+                u.last_name as author_last_name
+            FROM announcements a
+            LEFT JOIN users u ON a.author_id = u.user_id
+            WHERE a.uuid = :uuid
+        ");
+
+        $stmt->execute(['uuid' => $uuid]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
      * Create a new announcement
      */
     public function create(array $data): int
     {
+        // Auto-generate UUID if not provided
+        if (!isset($data['uuid'])) {
+            $data['uuid'] = UuidHelper::generate();
+        }
+
         $stmt = $this->db->prepare("
             INSERT INTO announcements (
+                uuid,
                 title,
                 content,
                 author_id,
@@ -120,6 +155,7 @@ class AnnouncementRepository
                 published_at,
                 expires_at
             ) VALUES (
+                :uuid,
                 :title,
                 :content,
                 :author_id,
@@ -131,6 +167,7 @@ class AnnouncementRepository
         ");
 
         $stmt->execute([
+            'uuid' => $data['uuid'],
             'title' => $data['title'],
             'content' => $data['content'] ?? null,
             'author_id' => $data['author_id'],

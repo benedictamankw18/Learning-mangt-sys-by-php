@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Utils\Response;
+
 class FileUploadController
 {
     private $uploadPath = __DIR__ . '/../../uploads/';
@@ -26,28 +28,24 @@ class FileUploadController
      * Upload single file
      * POST /upload
      */
-    public function upload($request)
+    public function upload(array $user): void
     {
         try {
             if (!isset($_FILES['file'])) {
-                return [
-                    'success' => false,
-                    'message' => 'No file uploaded'
-                ];
+                Response::error('No file uploaded', 400);
+                return;
             }
 
             $file = $_FILES['file'];
-            $category = $request['body']['category'] ?? 'general';
-            $institutionId = $request['body']['institution_id'] ?? null;
-            $userId = $request['body']['user_id'] ?? null;
+            $category = $_POST['category'] ?? 'general';
+            $institutionId = $_POST['institution_id'] ?? null;
+            $userId = $user['user_id'] ?? null;
 
             // Validate file
             $validation = $this->validateFile($file);
             if (!$validation['valid']) {
-                return [
-                    'success' => false,
-                    'message' => $validation['message']
-                ];
+                Response::error($validation['message'], 400);
+                return;
             }
 
             // Generate unique filename
@@ -64,13 +62,11 @@ class FileUploadController
 
             // Move uploaded file
             if (!move_uploaded_file($file['tmp_name'], $filePath)) {
-                return [
-                    'success' => false,
-                    'message' => 'Failed to save file'
-                ];
+                Response::error('Failed to save file', 500);
+                return;
             }
 
-            // Save file metadata to database (optional)
+            // File metadata
             $fileData = [
                 'original_name' => $file['name'],
                 'filename' => $filename,
@@ -84,17 +80,9 @@ class FileUploadController
                 'url' => '/uploads/' . $category . '/' . $filename
             ];
 
-            return [
-                'success' => true,
-                'message' => 'File uploaded successfully',
-                'data' => $fileData
-            ];
+            Response::success($fileData, 'File uploaded successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to upload file',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to upload file: ' . $e->getMessage());
         }
     }
 
@@ -102,20 +90,18 @@ class FileUploadController
      * Upload multiple files
      * POST /upload/multiple
      */
-    public function uploadMultiple($request)
+    public function uploadMultiple(array $user): void
     {
         try {
             if (!isset($_FILES['files'])) {
-                return [
-                    'success' => false,
-                    'message' => 'No files uploaded'
-                ];
+                Response::error('No files uploaded', 400);
+                return;
             }
 
             $files = $_FILES['files'];
-            $category = $request['body']['category'] ?? 'general';
-            $institutionId = $request['body']['institution_id'] ?? null;
-            $userId = $request['body']['user_id'] ?? null;
+            $category = $_POST['category'] ?? 'general';
+            $institutionId = $_POST['institution_id'] ?? null;
+            $userId = $user['user_id'] ?? null;
 
             $uploadedFiles = [];
             $errors = [];
@@ -172,20 +158,12 @@ class FileUploadController
                 }
             }
 
-            return [
-                'success' => true,
-                'message' => count($uploadedFiles) . ' file(s) uploaded successfully',
-                'data' => [
-                    'uploaded' => $uploadedFiles,
-                    'errors' => $errors
-                ]
-            ];
+            Response::success([
+                'uploaded' => $uploadedFiles,
+                'errors' => $errors
+            ], count($uploadedFiles) . ' file(s) uploaded successfully');
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to upload files',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to upload files: ' . $e->getMessage());
         }
     }
 
@@ -193,38 +171,23 @@ class FileUploadController
      * Delete file
      * DELETE /upload/{category}/{filename}
      */
-    public function delete($request)
+    public function delete(array $user, string $category, string $filename): void
     {
         try {
-            $category = $request['params']['category'];
-            $filename = $request['params']['filename'];
-
             $filePath = $this->uploadPath . $category . '/' . $filename;
 
             if (!file_exists($filePath)) {
-                return [
-                    'success' => false,
-                    'message' => 'File not found'
-                ];
+                Response::notFound('File not found');
+                return;
             }
 
             if (unlink($filePath)) {
-                return [
-                    'success' => true,
-                    'message' => 'File deleted successfully'
-                ];
+                Response::success(null, 'File deleted successfully');
             } else {
-                return [
-                    'success' => false,
-                    'message' => 'Failed to delete file'
-                ];
+                Response::error('Failed to delete file', 500);
             }
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to delete file',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to delete file: ' . $e->getMessage());
         }
     }
 
@@ -292,19 +255,14 @@ class FileUploadController
      * Get file info
      * GET /upload/{category}/{filename}/info
      */
-    public function getFileInfo($request)
+    public function getFileInfo(array $user, string $category, string $filename): void
     {
         try {
-            $category = $request['params']['category'];
-            $filename = $request['params']['filename'];
-
             $filePath = $this->uploadPath . $category . '/' . $filename;
 
             if (!file_exists($filePath)) {
-                return [
-                    'success' => false,
-                    'message' => 'File not found'
-                ];
+                Response::notFound('File not found');
+                return;
             }
 
             $info = [
@@ -319,16 +277,9 @@ class FileUploadController
                 'modified_at' => date('Y-m-d H:i:s', filemtime($filePath))
             ];
 
-            return [
-                'success' => true,
-                'data' => $info
-            ];
+            Response::success($info);
         } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Failed to get file info',
-                'error' => $e->getMessage()
-            ];
+            Response::serverError('Failed to get file info: ' . $e->getMessage());
         }
     }
 }

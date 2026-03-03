@@ -59,6 +59,11 @@ class GradeScaleController
             return;
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         $scaleId = $this->repo->create($data);
 
         if ($scaleId) {

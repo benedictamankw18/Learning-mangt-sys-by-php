@@ -7,21 +7,22 @@ use PDO;
 class GradeReportRepository extends BaseRepository
 {
     protected $table = 'grade_reports';
+    protected $primaryKey = 'report_id';
 
-    public function getAll($filters = [], $limit = 50, $offset = 0)
+    public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT gr.*, 
                 s.student_id as student_number,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name,
-                c.name as class_name,
-                sem.name as semester_name,
+                c.class_name as class_name,
+                sem.semester_name as semester_name,
                 ay.year_name as academic_year
                 FROM {$this->table} gr
-                LEFT JOIN students s ON gr.student_id = s.id
-                LEFT JOIN users u ON s.user_id = u.id
-                LEFT JOIN classes c ON s.class_id = c.id
-                LEFT JOIN semesters sem ON gr.semester_id = sem.id
-                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.id
+                LEFT JOIN students s ON gr.student_id = s.student_id
+                LEFT JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
+                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
                 WHERE 1=1";
         $params = [];
 
@@ -41,8 +42,8 @@ class GradeReportRepository extends BaseRepository
         }
 
         $sql .= " ORDER BY gr.created_at DESC LIMIT :limit OFFSET :offset";
-        $params[':limit'] = (int)$limit;
-        $params[':offset'] = (int)$offset;
+        $params[':limit'] = (int) $limit;
+        $params[':offset'] = (int) $offset;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -57,7 +58,7 @@ class GradeReportRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function count($filters = [])
+    public function count(array $filters = []): int
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE 1=1";
         $params = [];
@@ -87,15 +88,15 @@ class GradeReportRepository extends BaseRepository
     public function getReportDetails($reportId)
     {
         $sql = "SELECT grd.*, 
-                sub.name as subject_name,
-                sub.code as subject_code,
+                sub.subject_name as subject_name,
+                sub.subject_code as subject_code,
                 gs.grade as grade_letter,
                 gs.remark as grade_remark
                 FROM grade_report_details grd
-                LEFT JOIN subjects sub ON grd.subject_id = sub.id
-                LEFT JOIN grade_scales gs ON grd.grade_scale_id = gs.id
+                LEFT JOIN subjects sub ON grd.subject_id = sub.subject_id
+                LEFT JOIN grade_scales gs ON grd.grade_scale_id = gs.grade_scale_id
                 WHERE grd.grade_report_id = :report_id
-                ORDER BY sub.name ASC";
+                ORDER BY sub.subject_name ASC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':report_id' => $reportId]);
@@ -114,12 +115,12 @@ class GradeReportRepository extends BaseRepository
 
         if ($existing) {
             // Update existing report
-            $reportId = $existing['id'];
+            $reportId = $existing['report_id'];
             $this->regenerateReportDetails($reportId, $studentId, $semesterId);
-            
+
             // Recalculate totals
             $this->recalculateTotals($reportId);
-            
+
             return $reportId;
         }
 
@@ -128,13 +129,12 @@ class GradeReportRepository extends BaseRepository
             'student_id' => $studentId,
             'semester_id' => $semesterId,
             'academic_year_id' => $academicYearId,
-            'total_score' => 0,
-            'average_score' => 0,
             'gpa' => 0,
-            'position' => null,
-            'remarks' => $remarks,
+            'cgpa' => 0,
+            'class_rank' => null,
+            'teacher_comment' => $remarks,
             'generated_by' => $generatedBy,
-            'published' => 0
+            'is_published' => 0
         ]);
 
         // Generate report details from results
@@ -149,16 +149,18 @@ class GradeReportRepository extends BaseRepository
     private function generateReportDetails($reportId, $studentId, $semesterId)
     {
         // Get all results for this student in this semester
-        $sql = "SELECT r.*, 
+        $sql = "SELECT 
+                cs.course_id,
                 cs.subject_id,
-                r.score,
-                r.grade_scale_id
+                AVG(r.score) as avg_score,
+                AVG(r.percentage) as avg_percentage,
+                SUM(r.score) as total_score
                 FROM results r
-                JOIN assessments a ON r.assessment_id = a.id
-                JOIN class_subjects cs ON a.class_subject_id = cs.id
+                JOIN assessments a ON r.assessment_id = a.assessment_id
+                JOIN class_subjects cs ON a.class_subject_id = cs.course_id
                 WHERE r.student_id = :student_id
                 AND a.semester_id = :semester_id
-                GROUP BY cs.subject_id";
+                GROUP BY cs.course_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -170,33 +172,16 @@ class GradeReportRepository extends BaseRepository
 
         // Insert details
         foreach ($results as $result) {
-            // Calculate average for this subject
-            $avgSql = "SELECT AVG(r.score) as avg_score, MAX(r.grade_scale_id) as grade_scale_id
-                      FROM results r
-                      JOIN assessments a ON r.assessment_id = a.id
-                      JOIN class_subjects cs ON a.class_subject_id = cs.id
-                      WHERE r.student_id = :student_id
-                      AND a.semester_id = :semester_id
-                      AND cs.subject_id = :subject_id";
-
-            $avgStmt = $this->db->prepare($avgSql);
-            $avgStmt->execute([
-                ':student_id' => $studentId,
-                ':semester_id' => $semesterId,
-                ':subject_id' => $result['subject_id']
-            ]);
-            $avgResult = $avgStmt->fetch(PDO::FETCH_ASSOC);
-
             $detailSql = "INSERT INTO grade_report_details 
-                         (grade_report_id, subject_id, score, grade_scale_id, remarks, created_at)
-                         VALUES (:report_id, :subject_id, :score, :grade_scale_id, NULL, NOW())";
+                         (report_id, course_id, total_score, percentage, created_at)
+                         VALUES (:report_id, :course_id, :total_score, :percentage, NOW())";
 
             $detailStmt = $this->db->prepare($detailSql);
             $detailStmt->execute([
                 ':report_id' => $reportId,
-                ':subject_id' => $result['subject_id'],
-                ':score' => round($avgResult['avg_score'], 2),
-                ':grade_scale_id' => $avgResult['grade_scale_id']
+                ':course_id' => $result['course_id'],
+                ':total_score' => round($result['total_score'], 2),
+                ':percentage' => round($result['avg_percentage'], 2)
             ]);
         }
     }
@@ -204,7 +189,7 @@ class GradeReportRepository extends BaseRepository
     private function regenerateReportDetails($reportId, $studentId, $semesterId)
     {
         // Delete existing details
-        $deleteSql = "DELETE FROM grade_report_details WHERE grade_report_id = :report_id";
+        $deleteSql = "DELETE FROM grade_report_details WHERE report_id = :report_id";
         $deleteStmt = $this->db->prepare($deleteSql);
         $deleteStmt->execute([':report_id' => $reportId]);
 
@@ -214,32 +199,29 @@ class GradeReportRepository extends BaseRepository
 
     private function recalculateTotals($reportId)
     {
-        // Get all details for this report
+        // Get all details for this report  
         $sql = "SELECT 
                 COUNT(*) as subject_count,
-                SUM(score) as total_score,
-                AVG(score) as average_score
+                SUM(total_score) as sum_total_score,
+                AVG(total_score) as avg_total_score,
+                AVG(percentage) as avg_percentage
                 FROM grade_report_details
-                WHERE grade_report_id = :report_id";
+                WHERE report_id = :report_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':report_id' => $reportId]);
         $totals = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Calculate GPA (assuming 4.0 scale, can be adjusted)
-        $gpa = $totals['average_score'] ? round($totals['average_score'] / 25, 2) : 0;
+        // Calculate GPA (assuming 4.0 scale based on percentage)
+        $gpa = $totals['avg_percentage'] ? round(($totals['avg_percentage'] / 100) * 4, 2) : 0;
 
         // Update report
         $updateSql = "UPDATE {$this->table} 
-                     SET total_score = :total_score,
-                         average_score = :average_score,
-                         gpa = :gpa
-                     WHERE id = :report_id";
+                     SET gpa = :gpa
+                     WHERE report_id = :report_id";
 
         $updateStmt = $this->db->prepare($updateSql);
         $updateStmt->execute([
-            ':total_score' => round($totals['total_score'], 2),
-            ':average_score' => round($totals['average_score'], 2),
             ':gpa' => $gpa,
             ':report_id' => $reportId
         ]);
@@ -253,22 +235,22 @@ class GradeReportRepository extends BaseRepository
                 u.email,
                 s.date_of_birth,
                 s.gender,
-                c.name as class_name,
-                p.name as program_name,
-                gl.name as grade_level_name,
-                sem.name as semester_name,
+                c.class_name as class_name,
+                p.program_name as program_name,
+                gl.grade_level_name as grade_level_name,
+                sem.semester_name as semester_name,
                 ay.year_name as academic_year,
-                i.name as institution_name,
+                i.institution_name as institution_name,
                 i.logo as institution_logo
                 FROM {$this->table} gr
-                LEFT JOIN students s ON gr.student_id = s.id
-                LEFT JOIN users u ON s.user_id = u.id
-                LEFT JOIN classes c ON s.class_id = c.id
-                LEFT JOIN programs p ON s.program_id = p.id
-                LEFT JOIN grade_levels gl ON s.grade_level_id = gl.id
-                LEFT JOIN semesters sem ON gr.semester_id = sem.id
-                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.id
-                LEFT JOIN institutions i ON s.institution_id = i.id
+                LEFT JOIN students s ON gr.student_id = s.student_id
+                LEFT JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN programs p ON s.program_id = p.program_id
+                LEFT JOIN grade_levels gl ON s.grade_level_id = gl.grade_level_id
+                LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
+                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
+                LEFT JOIN institutions i ON s.institution_id = i.institution_id
                 WHERE gr.student_id = :student_id";
         $params = [':student_id' => $studentId];
 
@@ -299,11 +281,11 @@ class GradeReportRepository extends BaseRepository
     public function getTranscript($studentId, $academicYearId = null)
     {
         $sql = "SELECT gr.*, 
-                sem.name as semester_name,
+                sem.semester_name as semester_name,
                 ay.year_name as academic_year
                 FROM {$this->table} gr
-                LEFT JOIN semesters sem ON gr.semester_id = sem.id
-                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.id
+                LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
+                LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
                 WHERE gr.student_id = :student_id";
         $params = [':student_id' => $studentId];
 
@@ -312,7 +294,7 @@ class GradeReportRepository extends BaseRepository
             $params[':academic_year_id'] = $academicYearId;
         }
 
-        $sql .= " ORDER BY ay.id, sem.id";
+        $sql .= " ORDER BY ay.academic_year_id, sem.semester_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -320,23 +302,23 @@ class GradeReportRepository extends BaseRepository
 
         // Get details for each report
         foreach ($reports as &$report) {
-            $report['details'] = $this->getReportDetails($report['id']);
+            $report['details'] = $this->getReportDetails($report['report_id']);
         }
 
         // Get student info
         $studentSql = "SELECT s.*, 
                       CONCAT(u.first_name, ' ', u.last_name) as student_name,
-                      c.name as class_name,
-                      p.name as program_name,
-                      gl.name as grade_level_name,
-                      i.name as institution_name
+                      c.class_name as class_name,
+                      p.program_name as program_name,
+                      gl.grade_level_name as grade_level_name,
+                      i.institution_name as institution_name
                       FROM students s
-                      LEFT JOIN users u ON s.user_id = u.id
-                      LEFT JOIN classes c ON s.class_id = c.id
-                      LEFT JOIN programs p ON s.program_id = p.id
-                      LEFT JOIN grade_levels gl ON s.grade_level_id = gl.id
-                      LEFT JOIN institutions i ON s.institution_id = i.id
-                      WHERE s.id = :student_id";
+                      LEFT JOIN users u ON s.user_id = u.user_id
+                      LEFT JOIN classes c ON s.class_id = c.class_id
+                      LEFT JOIN programs p ON s.program_id = p.program_id
+                      LEFT JOIN grade_levels gl ON s.grade_level_id = gl.grade_level_id
+                      LEFT JOIN institutions i ON s.institution_id = i.institution_id
+                      WHERE s.student_id = :student_id";
 
         $studentStmt = $this->db->prepare($studentSql);
         $studentStmt->execute([':student_id' => $studentId]);
@@ -354,8 +336,8 @@ class GradeReportRepository extends BaseRepository
                 s.student_id as student_number,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name
                 FROM {$this->table} gr
-                JOIN students s ON gr.student_id = s.id
-                JOIN users u ON s.user_id = u.id
+                JOIN students s ON gr.student_id = s.student_id
+                JOIN users u ON s.user_id = u.user_id
                 WHERE s.class_id = :class_id";
         $params = [':class_id' => $classId];
 
@@ -369,7 +351,7 @@ class GradeReportRepository extends BaseRepository
             $params[':academic_year_id'] = $academicYearId;
         }
 
-        $sql .= " ORDER BY gr.average_score DESC";
+        $sql .= " ORDER BY gr.gpa DESC, gr.cgpa DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -380,14 +362,14 @@ class GradeReportRepository extends BaseRepository
     public function bulkGenerateForClass($classId, $semesterId, $academicYearId, $generatedBy = null)
     {
         // Get all students in the class
-        $sql = "SELECT id FROM students WHERE class_id = :class_id AND status = 'active'";
+        $sql = "SELECT student_id FROM students WHERE class_id = :class_id AND status = 'active'";
         $stmt = $this->db->prepare($sql);
         $stmt->execute([':class_id' => $classId]);
         $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $count = 0;
         foreach ($students as $student) {
-            $this->generateReport($student['id'], $semesterId, $academicYearId, null, $generatedBy);
+            $this->generateReport($student['student_id'], $semesterId, $academicYearId, null, $generatedBy);
             $count++;
         }
 
@@ -399,13 +381,13 @@ class GradeReportRepository extends BaseRepository
 
     private function calculatePositions($classId, $semesterId, $academicYearId)
     {
-        $sql = "SELECT gr.id 
+        $sql = "SELECT gr.report_id 
                 FROM {$this->table} gr
-                JOIN students s ON gr.student_id = s.id
+                JOIN students s ON gr.student_id = s.student_id
                 WHERE s.class_id = :class_id
                 AND gr.semester_id = :semester_id
                 AND gr.academic_year_id = :academic_year_id
-                ORDER BY gr.average_score DESC, gr.total_score DESC";
+                ORDER BY gr.gpa DESC, gr.cgpa DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -418,11 +400,11 @@ class GradeReportRepository extends BaseRepository
         // Assign positions
         $position = 1;
         foreach ($reports as $report) {
-            $updateSql = "UPDATE {$this->table} SET position = :position WHERE id = :id";
+            $updateSql = "UPDATE {$this->table} SET position = :position WHERE report_id = :report_id";
             $updateStmt = $this->db->prepare($updateSql);
             $updateStmt->execute([
                 ':position' => $position,
-                ':id' => $report['id']
+                ':report_id' => $report['report_id']
             ]);
             $position++;
         }
@@ -431,12 +413,13 @@ class GradeReportRepository extends BaseRepository
     public function getStatistics($institutionId = null, $semesterId = null, $academicYearId = null)
     {
         $sql = "SELECT 
-                COUNT(DISTINCT gr.id) as total_reports,
+                COUNT(DISTINCT gr.report_id) as total_reports,
                 COUNT(DISTINCT gr.student_id) as total_students,
-                AVG(gr.average_score) as overall_average,
-                MAX(gr.average_score) as highest_average,
-                MIN(gr.average_score) as lowest_average,
-                AVG(gr.gpa) as average_gpa
+                AVG(gr.gpa) as average_gpa,
+                MAX(gr.gpa) as highest_gpa,
+                MIN(gr.gpa) as lowest_gpa,
+                AVG(gr.cgpa) as average_cgpa,
+                AVG(gr.attendance_percentage) as average_attendance
                 FROM {$this->table} gr";
 
         $joins = [];
@@ -444,7 +427,7 @@ class GradeReportRepository extends BaseRepository
         $params = [];
 
         if ($institutionId) {
-            $joins[] = "JOIN students s ON gr.student_id = s.id";
+            $joins[] = "JOIN students s ON gr.student_id = s.student_id";
             $conditions[] = "s.institution_id = :institution_id";
             $params[':institution_id'] = $institutionId;
         }

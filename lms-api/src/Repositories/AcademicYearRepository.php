@@ -61,10 +61,11 @@ class AcademicYearRepository
     {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO academic_years (year_name, start_date, end_date, is_current)
-                VALUES (:year_name, :start_date, :end_date, :is_current)
+                INSERT INTO academic_years (institution_id, year_name, start_date, end_date, is_current)
+                VALUES (:institution_id, :year_name, :start_date, :end_date, :is_current)
             ");
             $stmt->execute([
+                'institution_id' => $data['institution_id'],
                 'year_name' => $data['year_name'],
                 'start_date' => $data['start_date'],
                 'end_date' => $data['end_date'],
@@ -80,7 +81,7 @@ class AcademicYearRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['year_name', 'start_date', 'end_date', 'is_current'];
+            $allowedFields = ['institution_id', 'year_name', 'start_date', 'end_date', 'is_current'];
             $updates = [];
             $params = ['id' => $id];
 

@@ -70,6 +70,11 @@ class SemesterController
             return;
         }
 
+        // Add institution_id for multi-tenant support
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
         $semesterId = $this->repo->create($data);
 
         if ($semesterId) {

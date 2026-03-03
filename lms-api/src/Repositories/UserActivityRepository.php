@@ -7,17 +7,50 @@ use PDO;
 class UserActivityRepository extends BaseRepository
 {
     protected $table = 'user_activity';
+    protected $primaryKey = 'activity_id';
 
-    public function getAll($filters = [], $limit = 50, $offset = 0)
+    /**
+     * Override create to match user_activity schema (no UUID field)
+     */
+    public function create(array $data): int
+    {
+        $stmt = $this->db->prepare("
+            INSERT INTO {$this->table} (
+                user_id,
+                activity_type,
+                activity_details,
+                ip_address,
+                user_agent
+            ) VALUES (
+                :user_id,
+                :activity_type,
+                :activity_details,
+                :ip_address,
+                :user_agent
+            )
+        ");
+
+        $stmt->execute([
+            'user_id' => $data['user_id'],
+            'activity_type' => $data['activity_type'],
+            'activity_details' => $data['activity_details'] ?? null,
+            'ip_address' => $data['ip_address'] ?? null,
+            'user_agent' => $data['user_agent'] ?? null
+        ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT ua.*, 
                 CONCAT(u.first_name, ' ', u.last_name) as user_name,
                 u.email,
-                r.name as role_name
+                r.role_name
                 FROM {$this->table} ua
-                LEFT JOIN users u ON ua.user_id = u.id
-                LEFT JOIN user_roles ur ON u.id = ur.user_id
-                LEFT JOIN roles r ON ur.role_id = r.id
+                LEFT JOIN users u ON ua.user_id = u.user_id
+                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.role_id
                 WHERE 1=1";
         $params = [];
 
@@ -47,8 +80,8 @@ class UserActivityRepository extends BaseRepository
         }
 
         $sql .= " ORDER BY ua.created_at DESC LIMIT :limit OFFSET :offset";
-        $params[':limit'] = (int)$limit;
-        $params[':offset'] = (int)$offset;
+        $params[':limit'] = (int) $limit;
+        $params[':offset'] = (int) $offset;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -63,7 +96,7 @@ class UserActivityRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function count($filters = [])
+    public function count(array $filters = []): int
     {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE 1=1";
         $params = [];
@@ -109,8 +142,8 @@ class UserActivityRepository extends BaseRepository
 
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int) $offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -122,7 +155,7 @@ class UserActivityRepository extends BaseRepository
                 CONCAT(u.first_name, ' ', u.last_name) as user_name,
                 u.email
                 FROM {$this->table} ua
-                LEFT JOIN users u ON ua.user_id = u.id
+                LEFT JOIN users u ON ua.user_id = u.user_id
                 WHERE 1=1";
         $params = [];
 
@@ -132,7 +165,7 @@ class UserActivityRepository extends BaseRepository
         }
 
         $sql .= " ORDER BY ua.created_at DESC LIMIT :limit";
-        $params[':limit'] = (int)$limit;
+        $params[':limit'] = (int) $limit;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -153,7 +186,7 @@ class UserActivityRepository extends BaseRepository
                 CONCAT(u.first_name, ' ', u.last_name) as user_name,
                 u.email
                 FROM {$this->table} ua
-                LEFT JOIN users u ON ua.user_id = u.id
+                LEFT JOIN users u ON ua.user_id = u.user_id
                 WHERE ua.action = :action";
         $params = [':action' => $action];
 
@@ -163,7 +196,7 @@ class UserActivityRepository extends BaseRepository
         }
 
         $sql .= " ORDER BY ua.created_at DESC LIMIT :limit";
-        $params[':limit'] = (int)$limit;
+        $params[':limit'] = (int) $limit;
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $value) {
@@ -180,32 +213,38 @@ class UserActivityRepository extends BaseRepository
 
     public function getStatistics($institutionId = null, $startDate = null, $endDate = null)
     {
+        // Get stats by action
         $sql = "SELECT 
-                COUNT(*) as total_activities,
-                COUNT(DISTINCT user_id) as unique_users,
-                COUNT(DISTINCT DATE(created_at)) as active_days,
-                action,
+                ua.activity_type,
                 COUNT(*) as action_count
-                FROM {$this->table}
-                WHERE 1=1";
+                FROM {$this->table} ua";
+
+        $joins = [];
+        $conditions = ["1=1"];
         $params = [];
 
         if ($institutionId) {
-            $sql .= " AND institution_id = :institution_id";
+            $joins[] = "JOIN users u ON ua.user_id = u.user_id";
+            $conditions[] = "u.institution_id = :institution_id";
             $params[':institution_id'] = $institutionId;
         }
 
         if ($startDate) {
-            $sql .= " AND created_at >= :start_date";
+            $conditions[] = "ua.created_at >= :start_date";
             $params[':start_date'] = $startDate;
         }
 
         if ($endDate) {
-            $sql .= " AND created_at <= :end_date";
+            $conditions[] = "ua.created_at <= :end_date";
             $params[':end_date'] = $endDate . ' 23:59:59';
         }
 
-        $sql .= " GROUP BY action ORDER BY action_count DESC";
+        if (!empty($joins)) {
+            $sql .= " " . implode(" ", array_unique($joins));
+        }
+
+        $sql .= " WHERE " . implode(" AND ", $conditions);
+        $sql .= " GROUP BY ua.activity_type ORDER BY action_count DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -215,25 +254,35 @@ class UserActivityRepository extends BaseRepository
         // Get overall stats
         $overallSql = "SELECT 
                       COUNT(*) as total_activities,
-                      COUNT(DISTINCT user_id) as unique_users
-                      FROM {$this->table}
-                      WHERE 1=1";
+                      COUNT(DISTINCT ua.user_id) as unique_users,
+                      COUNT(DISTINCT DATE(ua.created_at)) as active_days
+                      FROM {$this->table} ua";
+
+        $overallJoins = [];
+        $overallConditions = ["1=1"];
         $overallParams = [];
 
         if ($institutionId) {
-            $overallSql .= " AND institution_id = :institution_id";
+            $overallJoins[] = "JOIN users u ON ua.user_id = u.user_id";
+            $overallConditions[] = "u.institution_id = :institution_id";
             $overallParams[':institution_id'] = $institutionId;
         }
 
         if ($startDate) {
-            $overallSql .= " AND created_at >= :start_date";
+            $overallConditions[] = "ua.created_at >= :start_date";
             $overallParams[':start_date'] = $startDate;
         }
 
         if ($endDate) {
-            $overallSql .= " AND created_at <= :end_date";
+            $overallConditions[] = "ua.created_at <= :end_date";
             $overallParams[':end_date'] = $endDate . ' 23:59:59';
         }
+
+        if (!empty($overallJoins)) {
+            $overallSql .= " " . implode(" ", array_unique($overallJoins));
+        }
+
+        $overallSql .= " WHERE " . implode(" AND ", $overallConditions);
 
         $overallStmt = $this->db->prepare($overallSql);
         $overallStmt->execute($overallParams);
@@ -251,7 +300,7 @@ class UserActivityRepository extends BaseRepository
                 CONCAT(u.first_name, ' ', u.last_name) as user_name,
                 u.email
                 FROM {$this->table} ua
-                LEFT JOIN users u ON ua.user_id = u.id
+                LEFT JOIN users u ON ua.user_id = u.user_id
                 WHERE ua.entity_type = :entity_type 
                 AND ua.entity_id = :entity_id
                 ORDER BY ua.created_at DESC 
@@ -260,7 +309,7 @@ class UserActivityRepository extends BaseRepository
         $stmt = $this->db->prepare($sql);
         $stmt->bindValue(':entity_type', $entityType);
         $stmt->bindValue(':entity_id', $entityId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -272,7 +321,7 @@ class UserActivityRepository extends BaseRepository
                 WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->bindValue(':days', (int)$days, PDO::PARAM_INT);
+        $stmt->bindValue(':days', (int) $days, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->rowCount();
@@ -283,11 +332,11 @@ class UserActivityRepository extends BaseRepository
         $sql = "SELECT ua.*, 
                 CONCAT(u.first_name, ' ', u.last_name) as user_name,
                 u.email,
-                r.name as role_name
+                r.role_name
                 FROM {$this->table} ua
-                LEFT JOIN users u ON ua.user_id = u.id
-                LEFT JOIN user_roles ur ON u.id = ur.user_id
-                LEFT JOIN roles r ON ur.role_id = r.id
+                LEFT JOIN users u ON ua.user_id = u.user_id
+                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.role_id
                 WHERE ua.created_at >= :start_date 
                 AND ua.created_at <= :end_date";
         $params = [

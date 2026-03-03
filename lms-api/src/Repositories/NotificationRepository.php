@@ -2,15 +2,17 @@
 
 namespace App\Repositories;
 
+use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class NotificationRepository
 {
     private PDO $db;
 
-    public function __construct(PDO $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = Database::getInstance()->getConnection();
     }
 
     /**
@@ -25,13 +27,11 @@ class NotificationRepository
                 title,
                 message,
                 notification_type,
-                priority_level,
                 is_read,
                 created_at,
-                expires_at
+                read_at
             FROM notifications
             WHERE user_id = :user_id
-                AND (expires_at IS NULL OR expires_at > NOW())
             ORDER BY is_read ASC, created_at DESC
             LIMIT :limit OFFSET :offset
         ");
@@ -53,7 +53,6 @@ class NotificationRepository
             SELECT COUNT(*) as total
             FROM notifications
             WHERE user_id = :user_id
-                AND (expires_at IS NULL OR expires_at > NOW())
         ");
 
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -73,7 +72,6 @@ class NotificationRepository
             FROM notifications
             WHERE user_id = :user_id
                 AND is_read = 0
-                AND (expires_at IS NULL OR expires_at > NOW())
         ");
 
         $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -95,10 +93,9 @@ class NotificationRepository
                 title,
                 message,
                 notification_type,
-                priority_level,
                 is_read,
                 created_at,
-                expires_at
+                read_at
             FROM notifications
             WHERE notification_id = :id
         ");
@@ -111,35 +108,84 @@ class NotificationRepository
     }
 
     /**
+     * Find notification by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        $stmt = $this->db->prepare("
+            SELECT 
+                notification_id,
+                user_id,
+                uuid,
+                title,
+                message,
+                notification_type,
+                is_read,
+                created_at,
+                read_at
+            FROM notifications
+            WHERE uuid = :uuid
+        ");
+
+        $stmt->bindValue(':uuid', $uuid);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
      * Create a new notification
      */
     public function create(array $data): int
     {
+        // Auto-generate UUID if not provided
+        if (!isset($data['uuid'])) {
+            $data['uuid'] = UuidHelper::generate();
+        }
+
         $stmt = $this->db->prepare("
             INSERT INTO notifications (
+                uuid,
+                sender_id,
                 user_id,
+                target_role,
+                course_id,
                 title,
                 message,
                 notification_type,
-                priority_level,
-                expires_at
+                link
             ) VALUES (
+                :uuid,
+                :sender_id,
                 :user_id,
+                :target_role,
+                :course_id,
                 :title,
                 :message,
                 :notification_type,
-                :priority_level,
-                :expires_at
+                :link
             )
         ");
 
         $stmt->execute([
-            ':user_id' => $data['user_id'],
+            ':uuid' => $data['uuid'],
+            ':sender_id' => $data['sender_id'],
+            ':user_id' => $data['user_id'] ?? null,
+            ':target_role' => $data['target_role'] ?? null,
+            ':course_id' => $data['course_id'] ?? null,
             ':title' => $data['title'],
             ':message' => $data['message'],
             ':notification_type' => $data['notification_type'] ?? null,
-            ':priority_level' => $data['priority_level'] ?? 'Normal',
-            ':expires_at' => $data['expires_at'] ?? null
+            ':link' => $data['link'] ?? null
         ]);
 
         return (int) $this->db->lastInsertId();

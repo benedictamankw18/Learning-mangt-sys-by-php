@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class MessageRepository
@@ -118,22 +119,69 @@ class MessageRepository
     }
 
     /**
+     * Find message by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    m.*,
+                    CONCAT(sender.first_name, ' ', sender.last_name) as sender_name,
+                    sender.email as sender_email,
+                    CONCAT(receiver.first_name, ' ', receiver.last_name) as receiver_name,
+                    receiver.email as receiver_email,
+                    cs.course_id,
+                    s.subject_name,
+                    c.class_name
+                FROM messages m
+                INNER JOIN users sender ON m.sender_id = sender.user_id
+                INNER JOIN users receiver ON m.receiver_id = receiver.user_id
+                LEFT JOIN class_subjects cs ON m.course_id = cs.course_id
+                LEFT JOIN subjects s ON cs.subject_id = s.subject_id
+                LEFT JOIN classes c ON cs.class_id = c.class_id
+                WHERE m.uuid = :uuid
+            ");
+            $stmt->execute(['uuid' => $uuid]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (\PDOException $e) {
+            error_log("Find Message By UUID Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Send a new message
      */
     public function send(array $data): int
     {
         try {
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
                 INSERT INTO messages (
-                    sender_id, receiver_id, course_id, subject, 
+                    uuid, sender_id, receiver_id, course_id, subject, 
                     message_text, parent_message_id
                 )
                 VALUES (
-                    :sender_id, :receiver_id, :course_id, :subject,
+                    :uuid, :sender_id, :receiver_id, :course_id, :subject,
                     :message_text, :parent_message_id
                 )
             ");
             $stmt->execute([
+                'uuid' => $data['uuid'],
                 'sender_id' => $data['sender_id'],
                 'receiver_id' => $data['receiver_id'],
                 'course_id' => $data['course_id'] ?? null,

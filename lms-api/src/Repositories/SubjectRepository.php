@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 
 class SubjectRepository
 {
@@ -57,14 +58,45 @@ class SubjectRepository
         }
     }
 
+    /**
+     * Find subject by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM subjects WHERE uuid = :uuid");
+            $stmt->execute(['uuid' => $uuid]);
+            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (\PDOException $e) {
+            error_log("Find Subject By UUID Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
     public function create(array $data): ?int
     {
         try {
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
-                INSERT INTO subjects (subject_code, subject_name, description, credits, is_core)
-                VALUES (:subject_code, :subject_name, :description, :credits, :is_core)
+                INSERT INTO subjects (uuid, institution_id, subject_code, subject_name, description, credits, is_core)
+                VALUES (:uuid, :institution_id, :subject_code, :subject_name, :description, :credits, :is_core)
             ");
             $stmt->execute([
+                'uuid' => $data['uuid'],
+                'institution_id' => $data['institution_id'],
                 'subject_code' => $data['subject_code'],
                 'subject_name' => $data['subject_name'],
                 'description' => $data['description'] ?? null,
@@ -81,7 +113,7 @@ class SubjectRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['subject_code', 'subject_name', 'description', 'credits', 'is_core'];
+            $allowedFields = ['institution_id', 'subject_code', 'subject_name', 'description', 'credits', 'is_core'];
             $updates = [];
             $params = ['id' => $id];
 

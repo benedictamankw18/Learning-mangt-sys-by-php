@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Config\Database;
+use App\Utils\UuidHelper;
 use PDO;
 
 class TeacherRepository
@@ -17,18 +18,35 @@ class TeacherRepository
     public function create(int $userId, array $data): ?int
     {
         try {
+            // Auto-generate UUID if not provided
+            if (!isset($data['uuid'])) {
+                $data['uuid'] = UuidHelper::generate();
+            }
+
             $stmt = $this->db->prepare("
-                INSERT INTO teachers (institution_id, user_id, employee_id, department, specialization, hire_date)
-                VALUES (:institution_id, :user_id, :employee_id, :department, :specialization, :hire_date)
+                INSERT INTO teachers (
+                    uuid, institution_id, user_id, employee_id, department, 
+                    specialization, hire_date, employment_end_date, qualification, 
+                    years_of_experience
+                )
+                VALUES (
+                    :uuid, :institution_id, :user_id, :employee_id, :department,
+                    :specialization, :hire_date, :employment_end_date, :qualification,
+                    :years_of_experience
+                )
             ");
 
             $stmt->execute([
+                'uuid' => $data['uuid'],
                 'institution_id' => $data['institution_id'],
                 'user_id' => $userId,
                 'employee_id' => $data['employee_id'],
                 'department' => $data['department'] ?? null,
                 'specialization' => $data['specialization'] ?? null,
-                'hire_date' => $data['hire_date'] ?? date('Y-m-d')
+                'hire_date' => $data['hire_date'] ?? date('Y-m-d'),
+                'employment_end_date' => $data['employment_end_date'] ?? null,
+                'qualification' => $data['qualification'] ?? null,
+                'years_of_experience' => $data['years_of_experience'] ?? null
             ]);
 
             return (int) $this->db->lastInsertId();
@@ -72,6 +90,43 @@ class TeacherRepository
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
             error_log("Teacher Find By User Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Find teacher by UUID
+     * 
+     * @param string $uuid
+     * @return array|null
+     */
+    public function findByUuid(string $uuid): ?array
+    {
+        // Validate UUID format
+        if (!UuidHelper::isValid($uuid)) {
+            return null;
+        }
+
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    t.*,
+                    u.username,
+                    u.email,
+                    u.first_name,
+                    u.last_name,
+                    u.phone_number,
+                    u.address,
+                    u.is_active
+                FROM teachers t
+                INNER JOIN users u ON t.user_id = u.user_id
+                WHERE t.uuid = :uuid
+            ");
+
+            $stmt->execute(['uuid' => $uuid]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (\PDOException $e) {
+            error_log("Teacher Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -192,13 +247,27 @@ class TeacherRepository
         try {
             $stmt = $this->db->prepare("
                 SELECT 
-                    c.*,
+                    cs.course_id,
+                    cs.institution_id,
+                    cs.class_id,
+                    cs.subject_id,
+                    cs.teacher_id,
+                    cs.academic_year_id,
+                    cs.semester_id,
+                    cs.status,
+                    cs.start_date,
+                    cs.end_date,
+                    s.subject_name,
+                    s.subject_code,
+                    c.class_name,
                     COUNT(DISTINCT ce.student_id) as enrolled_students
-                FROM courses c
-                LEFT JOIN course_enrollments ce ON c.course_id = ce.course_id AND ce.status = 'active'
-                WHERE c.teacher_id = :teacher_id
-                GROUP BY c.course_id
-                ORDER BY c.created_at DESC
+                FROM class_subjects cs
+                INNER JOIN subjects s ON cs.subject_id = s.subject_id
+                INNER JOIN classes c ON cs.class_id = c.class_id
+                LEFT JOIN course_enrollments ce ON cs.course_id = ce.course_id AND ce.status = 'active'
+                WHERE cs.teacher_id = :teacher_id
+                GROUP BY cs.course_id
+                ORDER BY cs.created_at DESC
             ");
 
             $stmt->execute(['teacher_id' => $teacherId]);
