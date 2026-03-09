@@ -173,18 +173,57 @@ class AuthService {
      */
     async login(credentials, remember = false) {
         try {
+            logger.auth('Login attempt started', { username: credentials.login, remember });
+            
             const response = await AuthAPI.login(credentials);
+
+            logger.auth('Login API Response received', response);
+            logger.debug('AUTH', 'Response data structure', response.data);
+            logger.info('AUTH', 'Access Token: ' + (response.data?.access_token ? 'Present' : 'MISSING'));
+            logger.info('AUTH', 'Refresh Token: ' + (response.data?.refresh_token ? 'Present' : 'MISSING'));
+            logger.debug('AUTH', 'User data received', response.data?.user);
+            logger.info('AUTH', 'Remember Me: ' + remember);
 
             if (response.success && response.data) {
                 // Save tokens
+                const tokenStorage = remember ? 'localStorage' : 'sessionStorage';
+                logger.storage(`Saving access token to ${tokenStorage}`);
                 this.saveToken(response.data.access_token, remember);
                 
                 if (response.data.refresh_token) {
+                    logger.storage('Saving refresh token to localStorage');
                     this.saveRefreshToken(response.data.refresh_token);
+                } else {
+                    logger.warning('AUTH', 'No refresh token provided by API');
                 }
 
                 // Save user data
+                const userStorage = remember ? 'localStorage' : 'sessionStorage';
+                logger.storage(`Saving user data to ${userStorage}`, response.data.user);
                 this.saveUser(response.data.user, remember);
+
+                // Verify storage
+                const accessTokenSaved = remember ? 
+                    localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) !== null : 
+                    sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) !== null;
+                const refreshTokenSaved = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) !== null;
+                const userDataSaved = remember ? 
+                    localStorage.getItem(STORAGE_KEYS.USER_DATA) !== null :
+                    sessionStorage.getItem(STORAGE_KEYS.USER_DATA) !== null;
+                
+                logger.success('AUTH', 'Access Token saved: ' + accessTokenSaved);
+                logger.success('AUTH', 'Refresh Token saved: ' + refreshTokenSaved);
+                logger.success('AUTH', 'User Data saved: ' + userDataSaved);
+
+                if (!accessTokenSaved || !userDataSaved) {
+                    logger.error('AUTH', 'CRITICAL: Some data failed to save to storage!', {
+                        accessTokenSaved,
+                        refreshTokenSaved,
+                        userDataSaved
+                    });
+                }
+
+                logger.success('AUTH', 'Login successful', { username: response.data.user.username, role: response.data.user.role });
 
                 return {
                     success: true,
@@ -192,9 +231,20 @@ class AuthService {
                     message: response.message || 'Login successful',
                 };
             } else {
+                logger.error('AUTH', 'Login failed - Invalid response', { response });
                 throw new Error(response.message || 'Login failed');
             }
         } catch (error) {
+            // Better error messages for debugging
+            logger.error('AUTH', 'Login error caught', { error: error.message, stack: error.stack });
+            
+            if (error.message === 'Failed to fetch') {
+                const errorMsg = 'Cannot connect to server. Please ensure the API server is running on http://localhost:8000';
+                logger.error('AUTH', errorMsg);
+                throw new Error(errorMsg);
+            }
+            
+            logger.error('AUTH', 'Login failed with error: ' + error.message);
             throw new Error(error.message || 'Login failed');
         }
     }
@@ -235,8 +285,8 @@ class AuthService {
                 stopTokenRefresh();
             }
             
-            // Redirect to login page
-            window.location.href = '/auth/login.html';
+            // Redirect to login page using relative path
+            this.redirectToLogin();
         }
     }
 
@@ -265,20 +315,25 @@ class AuthService {
      */
     getDashboardURL(role = null) {
         const userRole = role || this.getUserRole();
+        localStorage.setItem("role", role);
+        // Get base path - detect if we're in a subdirectory
+        const currentPath = window.location.pathname;
+        const isInAuthFolder = currentPath.includes('/auth/');
+        const basePrefix = isInAuthFolder ? '../' : '';
 
         switch (userRole) {
             case USER_ROLES.SUPER_ADMIN:
-                return '/superadmin/dashboard.html';
+                return basePrefix + 'superadmin/dashboard.html';
             case USER_ROLES.ADMIN:
-                return '/admin/dashboard.html';
+                return basePrefix + 'admin/dashboard.html';
             case USER_ROLES.TEACHER:
-                return '/teacher/dashboard.html';
+                return basePrefix + 'teacher/dashboard.html';
             case USER_ROLES.STUDENT:
-                return '/student/dashboard.html';
+                return basePrefix + 'student/dashboard.html';
             case USER_ROLES.PARENT:
-                return '/parent/dashboard.html';
+                return basePrefix + 'parent/dashboard.html';
             default:
-                return '/auth/login.html';
+                return basePrefix + 'auth/login.html';
         }
     }
 
@@ -294,7 +349,21 @@ class AuthService {
      * Redirect to login page
      */
     redirectToLogin() {
-        window.location.href = '/auth/login.html';
+        // Detect current folder and calculate correct relative path
+        const currentPath = window.location.pathname;
+        const isInRoleFolder = currentPath.match(/\/(admin|teacher|student|parent|superadmin)\//);
+        const isInAuthFolder = currentPath.includes('/auth/');
+        
+        let loginPath;
+        if (isInRoleFolder) {
+            loginPath = '../auth/login.html';  // From role folder
+        } else if (isInAuthFolder) {
+            loginPath = 'login.html';  // Already in auth folder
+        } else {
+            loginPath = 'auth/login.html';  // At root
+        }
+        
+        window.location.href = loginPath;
     }
 
     /**
@@ -435,4 +504,40 @@ function stopTokenRefresh() {
 // Start token refresh if user is authenticated
 if (Auth.isAuthenticated()) {
     startTokenRefresh();
+}
+
+/* ============================================
+   Idle Session Timeout
+   Auto-logout after 30 minutes of inactivity
+============================================ */
+
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+let sessionTimeoutId = null;
+
+function resetSessionTimeout() {
+    if (!Auth.isAuthenticated()) return;
+    if (sessionTimeoutId) clearTimeout(sessionTimeoutId);
+    sessionTimeoutId = setTimeout(async () => {
+        stopSessionTimeout();
+        try { sessionStorage.setItem('lms_session_expired', '1'); } catch (e) {}
+        await Auth.logout();
+    }, SESSION_TIMEOUT_MS);
+}
+
+function startSessionTimeout() {
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    events.forEach(evt => window.addEventListener(evt, resetSessionTimeout, { passive: true }));
+    resetSessionTimeout();
+}
+
+function stopSessionTimeout() {
+    if (sessionTimeoutId) {
+        clearTimeout(sessionTimeoutId);
+        sessionTimeoutId = null;
+    }
+}
+
+// Auto-start on authenticated pages (not login/auth pages)
+if (Auth.isAuthenticated() && !window.location.pathname.includes('/auth/')) {
+    startSessionTimeout();
 }

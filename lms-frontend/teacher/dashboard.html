@@ -6,8 +6,10 @@
     <title>Teacher Dashboard - LMS</title>
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="../assets/css/animations.css">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.ico">
     <link rel="stylesheet" href="teacher.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="dashboard-page teacher-theme">
     <!-- Sidebar -->
@@ -54,7 +56,6 @@
             <a href="#" class="nav-item" data-page="messages">
                 <i class="fas fa-envelope"></i>
                 <span>Messages</span>
-                <span class="badge badge-danger">5</span>
             </a>
             <a href="#" class="nav-item" data-page="resources">
                 <i class="fas fa-folder"></i>
@@ -91,31 +92,16 @@
                 <div class="dropdown">
                     <button class="btn-icon" id="notificationBtn">
                         <i class="fas fa-bell"></i>
-                        <span class="badge badge-danger">3</span>
+                        <span class="badge badge-danger" id="notificationCount" style="display:none">0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right">
                         <div class="dropdown-header">Notifications</div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-file-alt text-primary"></i>
-                            <div>
-                                <strong>New submission</strong>
-                                <small>Math Assignment 5</small>
+                        <div id="notificationList">
+                            <div class="dropdown-item" style="color:#6b7280;font-size:.85rem;pointer-events:none;">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <div><span>No new notifications</span></div>
                             </div>
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-comment text-success"></i>
-                            <div>
-                                <strong>New message</strong>
-                                <small>From parent John Doe</small>
-                            </div>
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-calendar text-warning"></i>
-                            <div>
-                                <strong>Class starting soon</strong>
-                                <small>Physics 101 in 30 min</small>
-                            </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
@@ -155,7 +141,7 @@
                 <div class="welcome-banner fade-in">
                     <div class="welcome-content">
                         <h2>Welcome back, <span id="teacherName">Teacher</span>!</h2>
-                        <p>You have <strong id="pendingSubmissions">0</strong> pending submissions to grade.</p>
+                        <p>You have <strong id="pendingSubmissions">0</strong> pending submissions to grade and <strong id="todaysClassesBanner">0</strong> class(es) today.</p>
                     </div>
                     <div class="welcome-illustration">
                         <i class="fas fa-chalkboard-teacher"></i>
@@ -203,6 +189,45 @@
                             <p>Pending Grades</p>
                         </div>
                     </div>
+
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#3090cf,#1a6fa8)">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="attendanceRate">0%</h3>
+                            <p>Attendance Rate</p>
+                            <div class="stat-change neutral" id="attendanceChange">
+                                <i class="fas fa-minus"></i> <span>Today</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#9333ea,#6b21a8)">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="upcomingAssessments">0</h3>
+                            <p>Upcoming Assessments</p>
+                            <div class="stat-change neutral" id="upcomingAssessmentsChange">
+                                <i class="fas fa-clock"></i> <span>Next 7 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-3">
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#059669,#047857)">
+                            <i class="fas fa-chalkboard"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="todaysClasses">0</h3>
+                            <p>Today's Classes</p>
+                            <div class="stat-change neutral" id="todaysClassesChange">
+                                <i class="fas fa-calendar-day"></i> <span>Scheduled today</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Main Content Grid -->
@@ -214,31 +239,9 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="schedule-list" id="todaySchedule">
-                                <div class="schedule-item">
-                                    <div class="schedule-time">
-                                        <span class="time">08:00 AM</span>
-                                        <span class="duration">1h 30m</span>
-                                    </div>
-                                    <div class="schedule-content">
-                                        <h4>Mathematics 101</h4>
-                                        <p><i class="fas fa-map-marker-alt"></i> Room 204</p>
-                                        <div class="schedule-progress">
-                                            <div class="progress-bar" style="width: 60%"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="schedule-item">
-                                    <div class="schedule-time">
-                                        <span class="time">10:00 AM</span>
-                                        <span class="duration">1h</span>
-                                    </div>
-                                    <div class="schedule-content">
-                                        <h4>Physics Lab</h4>
-                                        <p><i class="fas fa-map-marker-alt"></i> Lab 3</p>
-                                        <div class="schedule-progress">
-                                            <div class="progress-bar bg-success" style="width: 30%"></div>
-                                        </div>
-                                    </div>
+                                <div style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-calendar-day" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>
+                                    <p>Loading schedule...</p>
                                 </div>
                             </div>
                         </div>
@@ -252,27 +255,9 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="submissions-list" id="recentSubmissions">
-                                <div class="submission-item">
-                                    <div class="submission-avatar">
-                                        <span>JS</span>
-                                    </div>
-                                    <div class="submission-details">
-                                        <strong>John Smith</strong>
-                                        <p>Assignment: Algebra Chapter 5</p>
-                                        <small>2 minutes ago</small>
-                                    </div>
-                                    <button class="btn btn-sm btn-primary">Grade</button>
-                                </div>
-                                <div class="submission-item">
-                                    <div class="submission-avatar">
-                                        <span>EJ</span>
-                                    </div>
-                                    <div class="submission-details">
-                                        <strong>Emily Johnson</strong>
-                                        <p>Assignment: Physics Lab Report</p>
-                                        <small>15 minutes ago</small>
-                                    </div>
-                                    <button class="btn btn-sm btn-primary">Grade</button>
+                                <div class="empty-state" style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-inbox" style="font-size:2rem;margin-bottom:.5rem;"></i>
+                                    <p>No pending submissions</p>
                                 </div>
                             </div>
                         </div>
@@ -283,45 +268,59 @@
                 <div class="card mt-2 fade-in-up">
                     <div class="card-header">
                         <h3><i class="fas fa-book-open"></i> My Courses</h3>
-                        <a href="#" class="btn btn-sm btn-primary">
-                            <i class="fas fa-plus"></i> Add Course
-                        </a>
                     </div>
                     <div class="card-body">
                         <div class="courses-grid" id="coursesGrid">
-                            <div class="course-card">
-                                <div class="course-header bg-primary">
-                                    <i class="fas fa-calculator"></i>
-                                </div>
-                                <div class="course-body">
-                                    <h4>Mathematics 101</h4>
-                                    <p>Algebra and Calculus</p>
-                                    <div class="course-stats">
-                                        <span><i class="fas fa-users"></i> 45 students</span>
-                                        <span><i class="fas fa-tasks"></i> 8 assignments</span>
-                                    </div>
-                                </div>
-                                <div class="course-footer">
-                                    <button class="btn btn-sm btn-outline">View Course</button>
-                                </div>
-                            </div>
+                            <div style="color:var(--text-secondary);padding:.5rem 0">Loading courses...</div>
+                        </div>
+                    </div>
+                </div>
 
-                            <div class="course-card">
-                                <div class="course-header bg-success">
-                                    <i class="fas fa-atom"></i>
-                                </div>
-                                <div class="course-body">
-                                    <h4>Physics 101</h4>
-                                    <p>Mechanics and Thermodynamics</p>
-                                    <div class="course-stats">
-                                        <span><i class="fas fa-users"></i> 38 students</span>
-                                        <span><i class="fas fa-tasks"></i> 6 assignments</span>
-                                    </div>
-                                </div>
-                                <div class="course-footer">
-                                    <button class="btn btn-sm btn-outline">View Course</button>
-                                </div>
-                            </div>
+                
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Class Performance Chart -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-bar"></i> Class Performance</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="classPerformanceChart"></canvas>
+                        </div>
+                    </div>
+
+
+                    <!-- Attendance Trends Chart -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Attendance Trends</h3>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="attendanceTrendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-2 fade-in-up">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+                            <button class="btn btn-primary" id="quickTakeAttendance">
+                                <i class="fas fa-user-check"></i> Take Attendance
+                            </button>
+                            <button class="btn btn-warning" id="quickGradeAssignment">
+                                <i class="fas fa-clipboard-check"></i> Grade Assignment
+                            </button>
+                            <button class="btn btn-success" id="quickCreateAssignment">
+                                <i class="fas fa-plus-circle"></i> Create Assignment
+                            </button>
+                            <button class="btn btn-outline" id="quickViewSchedule">
+                                <i class="fas fa-calendar-week"></i> View Schedule
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -373,9 +372,11 @@
 <div id="toastContainer" class="toast-container"></div>
 
 
+    <script src="../assets/js/env.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/components.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="teacher.js"></script>
     <script>

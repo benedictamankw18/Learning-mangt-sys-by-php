@@ -209,6 +209,36 @@ class AnnouncementRepository
     /**
      * Delete an announcement
      */
+    /**
+     * Get recent published announcements visible to students (target_role = 'student', 'all', or NULL).
+     */
+    public function getRecentForStudent(int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    a.title,
+                    a.content,
+                    a.priority,
+                    a.published_at,
+                    CONCAT(u.first_name, ' ', u.last_name) AS author_name
+                FROM announcements a
+                LEFT JOIN users u ON a.author_id = u.user_id
+                WHERE a.is_published = 1
+                  AND (a.target_role = 'student' OR a.target_role = 'all' OR a.target_role IS NULL)
+                  AND (a.expires_at IS NULL OR a.expires_at > NOW())
+                ORDER BY a.published_at DESC, a.created_at DESC
+                LIMIT :lim
+            ");
+            $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Student Announcements Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM announcements WHERE announcement_id = :id");

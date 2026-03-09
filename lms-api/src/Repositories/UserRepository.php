@@ -369,6 +369,31 @@ class UserRepository
         }
     }
 
+    /**
+     * Count inactive (pending activation) users for an institution.
+     * These are accounts with is_active = 0 that have not been soft-deleted.
+     *
+     * @param int $institutionId
+     * @return int
+     */
+    public function countInactiveByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*)
+                FROM users
+                WHERE institution_id = :institution_id
+                  AND is_active      = 0
+                  AND deleted_at     IS NULL
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Inactive Users Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     public function countByRole(string $roleName): int
     {
         try {
@@ -465,46 +490,50 @@ class UserRepository
     }
 
     /**
-     * Get monthly user counts for the current year
-     * 
-     * @return array Array of cumulative counts indexed by month (1-12)
+     * Get monthly new-user counts for the last 12 months (rolling window).
+     * Returns a 12-element array: index 0 = oldest month, index 11 = current month.
+     * Spans two calendar years when needed (e.g. Apr 2025 – Mar 2026).
+     *
+     * @return array<int, int>
      */
     public function getMonthlyCountsThisYear(): array
     {
         try {
             $stmt = $this->db->query("
                 SELECT 
-                    MONTH(created_at) as month,
-                    COUNT(*) as count
+                    YEAR(created_at)  AS year,
+                    MONTH(created_at) AS month,
+                    COUNT(*)          AS count
                 FROM users
-                WHERE YEAR(created_at) = YEAR(CURRENT_DATE())
+                WHERE created_at >= DATE_FORMAT(
+                          DATE_SUB(CURRENT_DATE(), INTERVAL 11 MONTH), '%Y-%m-01'
+                      )
                 AND deleted_at IS NULL
-                GROUP BY MONTH(created_at)
-                ORDER BY month
+                GROUP BY YEAR(created_at), MONTH(created_at)
+                ORDER BY year, month
             ");
 
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Initialize all months with 0
-            $monthlyCounts = array_fill(1, 12, 0);
-
-            // Fill in actual counts
+            // Build a year-month keyed map
+            $map = [];
             foreach ($results as $row) {
-                $monthlyCounts[(int) $row['month']] = (int) $row['count'];
+                $key = $row['year'] . '-' . str_pad($row['month'], 2, '0', STR_PAD_LEFT);
+                $map[$key] = (int) $row['count'];
             }
 
-            // Calculate cumulative totals
-            $cumulative = [];
-            $total = 0;
-            for ($i = 1; $i <= 12; $i++) {
-                $total += $monthlyCounts[$i];
-                $cumulative[$i] = $total;
+            // Produce an ordered 12-element array matching the frontend labels
+            $counts = [];
+            $now = new \DateTime();
+            for ($i = 11; $i >= 0; $i--) {
+                $d = (clone $now)->modify("-{$i} months");
+                $counts[] = $map[$d->format('Y-m')] ?? 0;
             }
 
-            return $cumulative;
+            return $counts; // index 0 = 11 months ago, index 11 = current month
         } catch (\PDOException $e) {
             error_log("Get Monthly Users Error: " . $e->getMessage());
-            return array_fill(1, 12, 0);
+            return array_fill(0, 12, 0);
         }
     }
     public function getRoleByName(string $roleName): ?array

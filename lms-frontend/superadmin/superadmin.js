@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
  */
 async function initializeDashboard() {
     try {
-                const response = await DashboardAPI.getSuperAdminStats();
         // Load dashboard statistics
         await loadDashboardStats();
         
@@ -39,10 +38,11 @@ async function initializeDashboard() {
         
         // Load user info
         displayUserInfo();
+
+        // Load recent activities from superadmin-activity API
+        await loadRecentActivities();
         
         // Notifications are handled by global `assets/js/main.js`
-        
-        updateCharts(response.data);
     } catch (error) {
         console.error('Failed to initialize dashboard:', error);
         showToast('Failed to load dashboard data', 'error');
@@ -63,14 +63,24 @@ async function loadDashboardStats() {
             updateStatCard('totalInstitutions', stats.total_institutions || 0);
             updateStatCard('totalAdmins', stats.total_admins || 0);
             updateStatCard('totalUsers', stats.total_users || 0);
+            updateStatCard('activeSubscriptions', stats.active_subscriptions || 0);
 
             // Update growth percentages
             updateStatChange('institutionsChange', stats.institutions_growth || 0);
             updateStatChange('adminsChange', stats.admins_growth || 0);
             updateStatChange('usersChange', stats.users_growth || 0);
+            updateStatChange('subscriptionsChange', stats.subscriptions_growth || 0);
 
             // Update charts with real data
             updateCharts(stats);
+
+            // Update per-role stat cards
+            updateRoleStats(stats.users_by_role);
+
+            // Update system health bars from API
+            updateSystemHealth(stats.system_health);
+
+            // Recent activities are loaded separately via SuperadminActivityAPI
         }
 
     } catch (error) {
@@ -141,6 +151,26 @@ function formatNumber(num) {
 }
 
 /**
+ * Generate labels for the last 12 months, current month last.
+ * Months from a prior year are shown as e.g. "Apr '25".
+ */
+function getLast12MonthLabels() {
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const labels = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        labels.push(
+            d.getFullYear() !== currentYear
+                ? `${names[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`
+                : names[d.getMonth()]
+        );
+    }
+    return labels;
+}
+
+/**
  * Initialize charts
  */
 let systemGrowthChart = null;
@@ -172,23 +202,11 @@ function updateCharts(stats) {
     if (systemGrowthChart && stats.monthly_growth) {
         const growthData = stats.monthly_growth;
         
-        // Update labels from database or generate them
-        if (growthData.labels && Array.isArray(growthData.labels)) {
+        // Update labels: prefer API-supplied labels, otherwise generate dynamic 12-month labels
+        if (growthData.labels && Array.isArray(growthData.labels) && growthData.labels.length) {
             systemGrowthChart.data.labels = growthData.labels;
         } else {
-            // Generate month labels ending at current month
-            const dataLength = growthData.institutions?.length || growthData.users?.length || 12;
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const currentMonth = new Date().getMonth(); // 0-indexed (0=Jan, 11=Dec)
-            const labels = [];
-            
-            // Generate labels from (currentMonth - dataLength + 1) to currentMonth
-            for (let i = dataLength - 1; i >= 0; i--) {
-                const monthIndex = (currentMonth - i + 12) % 12;
-                labels.push(months[monthIndex]);
-            }
-            
-            systemGrowthChart.data.labels = labels;
+            systemGrowthChart.data.labels = getLast12MonthLabels();
         }
         
         console.log('Updating system growth chart with data:', growthData);
@@ -209,7 +227,7 @@ function initializeSystemGrowthChart() {
     systemGrowthChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: [],
+            labels: getLast12MonthLabels(),
             datasets: [
                 {
                     label: 'Institutions',
@@ -289,6 +307,128 @@ function initializeUsersByRoleChart() {
             }
         }
     });
+}
+
+/**
+ * Update per-role stat cards from users_by_role data
+ */
+function updateRoleStats(roleData) {
+    if (!roleData) return;
+    updateStatCard('roleStudents', roleData.students || 0);
+    updateStatCard('roleTeachers', roleData.teachers || 0);
+    updateStatCard('roleParents', roleData.parents || 0);
+    updateStatCard('roleAdmins', roleData.admins || 0);
+}
+
+/**
+ * Update system health bars from API data
+ */
+function updateSystemHealth(health) {
+    if (!health) return;
+
+    const items = [
+        { key: 'database', id: 'healthDb' },
+        { key: 'memory',   id: 'healthMemory' },
+        { key: 'cpu',      id: 'healthCpu' },
+        { key: 'storage',  id: 'healthStorage' },
+    ];
+
+    items.forEach(({ key, id }) => {
+        const data = health[key];
+        if (!data) return;
+
+        const usage  = Math.min(100, Math.max(0, parseFloat(data.usage ?? data.percent ?? 0)));
+        const status = data.status || (usage >= 90 ? 'critical' : usage >= 75 ? 'warning' : 'healthy');
+
+        const progress = document.getElementById(`${id}Progress`);
+        const value    = document.getElementById(`${id}Value`);
+        const badge    = document.getElementById(`${id}Status`);
+
+        if (progress) progress.style.width = `${usage}%`;
+        if (value)    value.textContent = `${Math.round(usage)}%`;
+        if (badge) {
+            if (status === 'critical') {
+                badge.className = 'badge badge-danger';
+                badge.textContent = 'Critical';
+            } else if (status === 'warning') {
+                badge.className = 'badge badge-warning';
+                badge.textContent = 'Monitor';
+            } else {
+                badge.className = 'badge badge-success';
+                badge.textContent = 'Healthy';
+            }
+        }
+    });
+}
+
+/**
+ * Load recent activities from the superadmin-activity endpoint
+ */
+async function loadRecentActivities(limit = 10) {
+    try {
+        const response = await SuperadminActivityAPI.getRecent({ limit });
+        const activities = response?.data ?? [];
+        renderRecentActivities(activities);
+    } catch (error) {
+        console.error('Failed to load recent activities:', error);
+        renderRecentActivities([]);
+    }
+}
+
+/**
+ * Activity type → icon & colour map
+ */
+const ACTIVITY_ICONS = {
+    institution_registered: { icon: 'fa-building',      color: 'bg-gradient-green'  },
+    institution_created:    { icon: 'fa-building',      color: 'bg-gradient-green'  },
+    admin_created:          { icon: 'fa-user-plus',     color: 'bg-gradient-blue'   },
+    user_created:           { icon: 'fa-user-plus',     color: 'bg-gradient-blue'   },
+    backup:                 { icon: 'fa-database',      color: 'bg-gradient-orange' },
+    update:                 { icon: 'fa-sync-alt',      color: 'bg-gradient-purple' },
+    security:               { icon: 'fa-shield-alt',    color: 'bg-gradient-red'    },
+    login:                  { icon: 'fa-sign-in-alt',   color: 'bg-gradient-indigo' },
+    default:                { icon: 'fa-info-circle',   color: 'bg-gradient-blue'   },
+};
+
+/**
+ * Render recent activities list from API data
+ */
+function renderRecentActivities(activities) {
+    const list = document.getElementById('activityList');
+    if (!list) return;
+
+    if (!activities || activities.length === 0) {
+        list.innerHTML = '<p style="text-align:center;padding:1rem;color:var(--text-secondary);">No recent activities</p>';
+        return;
+    }
+
+    // Sanitise a string for safe HTML display
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
+    list.innerHTML = activities.map(activity => {
+        // Normalise field names — SuperadminActivityAPI uses activity_type / performer_name
+        const type = activity.activity_type || activity.type || 'default';
+        const cfg  = ACTIVITY_ICONS[type] || ACTIVITY_ICONS.default;
+        const raw  = activity.created_at || activity.time || null;
+        const time = raw ? DateUtils.getRelativeTime(raw) : '';
+        const performer = activity.performer_name || activity.meta || activity.user || '';
+        const meta = [esc(performer), time].filter(Boolean).join(' — ');
+        return `
+            <div class="activity-item">
+                <div class="activity-icon ${cfg.color}">
+                    <i class="fas ${cfg.icon}"></i>
+                </div>
+                <div class="activity-details">
+                    <p class="activity-title">${esc(activity.description || activity.title || '')}</p>
+                    <p class="activity-meta">${meta}</p>
+                </div>
+            </div>`;
+    }).join('');
 }
 
 /**
@@ -395,7 +535,7 @@ function setupEventListeners() {
     refreshButtons.forEach(btn => {
         btn.addEventListener('click', async () => {
             btn.classList.add('rotate');
-            await loadDashboardStats();
+            await Promise.all([loadDashboardStats(), loadRecentActivities()]);
             setTimeout(() => {
                 btn.classList.remove('rotate');
             }, 500);
@@ -451,7 +591,7 @@ async function handleLogout() {
  */
 setInterval(async () => {
     try {
-        await loadDashboardStats();
+        await Promise.all([loadDashboardStats(), loadRecentActivities()]);
         console.log('Dashboard data refreshed');
     } catch (error) {
         console.error('Auto-refresh failed:', error);

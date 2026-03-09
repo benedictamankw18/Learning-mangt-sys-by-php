@@ -99,6 +99,15 @@ class APIService {
                 throw new Error('Request timeout. Please try again.');
             }
 
+            // A TypeError with a failed fetch typically means a network error or
+            // a CORS rejection (the browser blocks the request before a response arrives).
+            if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) {
+                const corsHint = APP_ENV === 'development'
+                    ? ' Make sure the API server is running and CORS is configured for this origin.'
+                    : '';
+                throw new Error('Unable to reach the server. Check your connection.' + corsHint);
+            }
+
             throw error;
         }
     }
@@ -322,7 +331,7 @@ const AttendanceAPI = {
  */
 const DashboardAPI = {
     getSuperAdminStats: () => API.get(API_ENDPOINTS.SUPER_ADMIN_STATS),
-    getAdminStats: () => API.get(API_ENDPOINTS.ADMIN_STATS),
+    getAdminStats: (params) => API.get(API_ENDPOINTS.ADMIN_STATS, params),
     getTeacherStats: () => API.get(API_ENDPOINTS.TEACHER_STATS),
     getStudentStats: () => API.get(API_ENDPOINTS.STUDENT_STATS),
     getParentStats: () => API.get(API_ENDPOINTS.PARENT_STATS),
@@ -345,6 +354,36 @@ const NotificationAPI = {
     getById: (id) => API.get(API_ENDPOINTS.NOTIFICATION_BY_ID(id)),
     markAsRead: (id) => API.put(API_ENDPOINTS.NOTIFICATION_MARK_READ(id)),
     markAllAsRead: () => API.put(API_ENDPOINTS.NOTIFICATION_MARK_ALL_READ),
+};
+
+/**
+ * Superadmin Activity APIs
+ */
+const SuperadminActivityAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY, params),
+    getById: (id) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_BY_ID(id)),
+    getRecent: (params) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_RECENT, params),
+    getStats: () => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_STATS),
+    getByType: (type, params) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_BY_TYPE(type), params),
+    getBySeverity: (severity, params) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_BY_SEVERITY(severity), params),
+    getByPerformer: (userId, params) => API.get(API_ENDPOINTS.SUPERADMIN_ACTIVITY_BY_PERFORMER(userId), params),
+    log: (data) => API.post(API_ENDPOINTS.SUPERADMIN_ACTIVITY, data),
+    cleanup: (params) => API.delete(API_ENDPOINTS.SUPERADMIN_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
+};
+
+/**
+ * Admin Activity APIs
+ */
+const AdminActivityAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY, params),
+    getById: (id) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_BY_ID(id)),
+    getRecent: (params) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_RECENT, params),
+    getStats: () => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_STATS),
+    getByType: (type, params) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_BY_TYPE(type), params),
+    getBySeverity: (severity, params) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_BY_SEVERITY(severity), params),
+    getByPerformer: (userId, params) => API.get(API_ENDPOINTS.ADMIN_ACTIVITY_BY_PERFORMER(userId), params),
+    log: (data) => API.post(API_ENDPOINTS.ADMIN_ACTIVITY, data),
+    cleanup: (params) => API.delete(API_ENDPOINTS.ADMIN_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
 };
 
 /**

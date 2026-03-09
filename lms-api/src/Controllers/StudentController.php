@@ -29,14 +29,72 @@ class StudentController
             return;
         }
 
-        $page = (int) ($_GET['page'] ?? 1);
+        $page  = (int) ($_GET['page']  ?? 1);
         $limit = (int) ($_GET['limit'] ?? 20);
-        $gradeLevel = $_GET['grade_level'] ?? null;
 
-        $students = $this->studentRepo->getAll($page, $limit, $gradeLevel);
-        $total = $this->studentRepo->count($gradeLevel);
+        // Multi-tenant: restrict to the user's institution unless super_admin
+        if ($user['role'] === 'super_admin') {
+            $institutionId = isset($_GET['institution_id']) ? (int) $_GET['institution_id'] : null;
+        } else {
+            $institutionId = (int) $user['institution_id'];
+        }
+
+        $classId   = isset($_GET['class_id'])   ? (int) $_GET['class_id']   : null;
+        $programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : null;
+        $status    = $_GET['status'] ?? null;
+        $search    = $_GET['search'] ?? null;
+
+        $students = $this->studentRepo->getAll($page, $limit, $institutionId, $classId, $programId, $status, $search);
+        $total    = $this->studentRepo->count($institutionId, $classId, $programId, $status, $search);
 
         Response::paginated($students, $total, $page, $limit);
+    }
+
+    /**
+     * Toggle student active/inactive status
+     * PUT /api/students/{uuid}/status
+     */
+    public function toggleStatus(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole('admin')) {
+            return;
+        }
+
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
+        if (!$student) {
+            Response::notFound('Student not found');
+            return;
+        }
+
+        // Multi-tenant check
+        if ($user['role'] !== 'super_admin' && (int) $student['institution_id'] !== (int) $user['institution_id']) {
+            Response::forbidden('Access denied');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $newStatus = $data['status'] ?? (($student['status'] === 'active') ? 'inactive' : 'active');
+
+        if (!in_array($newStatus, ['active', 'inactive', 'withdrawn'], true)) {
+            Response::badRequest('Invalid status value');
+            return;
+        }
+
+        $isActive = ($newStatus === 'active') ? 1 : 0;
+        $this->userRepo->update($student['user_id'], ['is_active' => $isActive]);
+
+        if ($this->studentRepo->update($student['student_id'], ['status' => $newStatus])) {
+            Response::success(['message' => 'Status updated', 'status' => $newStatus]);
+        } else {
+            Response::serverError('Failed to update status');
+        }
     }
 
     public function show(array $user, string $uuid): void

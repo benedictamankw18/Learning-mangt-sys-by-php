@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Ghana SHS LMS REST API",
-    "description": "Ghana Senior High School Learning Management System REST API Collection\n\nLast Updated: March 3, 2026\nTotal Endpoints: 230+\n\n🔒 UUID SECURITY UPDATE (March 3, 2026):\nAPI now uses UUIDs instead of integer IDs for enhanced security.\n- UUIDs prevent ID enumeration attacks\n- UUID variables: student_uuid, teacher_uuid, user_uuid, institution_uuid, class_uuid, subject_uuid, assignment_uuid, message_uuid, notification_uuid, announcement_uuid, event_uuid, grade_report_uuid, course_content_uuid\n- Integer ID variables (unchanged): course_id, assessment_id, parent_id, role_id, etc.\n- Setup scripts automatically retrieve UUIDs and populate collection variables\n\nIMPORTANT SETUP STEPS:\n1. Import database_lms_api.sql to create the database schema\n2. Run setup.sql to create sample data (Accra SHS)\n3. Use the 'Setup & Configuration' folder to retrieve UUIDs\n4. Update collection variables with the retrieved UUIDs (done automatically by setup scripts)\n5. Login to get access token (saved automatically)\n\nDEFAULT CREDENTIALS (from setup.sql):\n- Super Admin: superadmin / password\n- Admin: admin / password\n- Teacher: kofi.mensah / password\n- Teacher: ama.asante / password\n- Student: kwame.osei / password\n- Student: abena.adjei / password\n\nNEW API SECTIONS (March 2026):\n- Events & Calendar (9 endpoints)\n- Grade Reports & Transcripts (11 endpoints)\n- User Activity & Audit Trail (10 endpoints)\n- Course Content & Lesson Plans (9 endpoints)\n- Subscriptions & Billing (10 endpoints)\n- File Upload (4 endpoints)",
+    "description": "Ghana Senior High School Learning Management System REST API Collection\n\nLast Updated: March 8, 2026\nTotal Endpoints: 240+\n\n🔒 UUID SECURITY UPDATE (March 3, 2026):\nAPI now uses UUIDs instead of integer IDs for enhanced security.\n- UUIDs prevent ID enumeration attacks\n- UUID variables: student_uuid, teacher_uuid, user_uuid, institution_uuid, class_uuid, subject_uuid, assignment_uuid, message_uuid, notification_uuid, announcement_uuid, event_uuid, grade_report_uuid, course_content_uuid\n- Integer ID variables (unchanged): course_id, assessment_id, parent_id, role_id, etc.\n- Setup scripts automatically retrieve UUIDs and populate collection variables\n\nIMPORTANT SETUP STEPS:\n1. Import database_lms_api.sql to create the database schema\n2. Run setup.sql to create sample data (Accra SHS)\n3. Use the 'Setup & Configuration' folder to retrieve UUIDs\n4. Update collection variables with the retrieved UUIDs (done automatically by setup scripts)\n5. Login to get access token (saved automatically)\n\nDEFAULT CREDENTIALS (from setup.sql):\n- Super Admin: superadmin / password\n- Admin: admin / password\n- Teacher: kofi.mensah / password\n- Teacher: ama.asante / password\n- Student: kwame.osei / password\n- Student: abena.adjei / password\n\nNEW API SECTIONS (March 2026):\n- Events & Calendar (9 endpoints)\n- Grade Reports & Transcripts (11 endpoints)\n- User Activity & Audit Trail (10 endpoints)\n- Course Content & Lesson Plans (9 endpoints)\n- Subscriptions & Billing (10 endpoints)\n- File Upload (4 endpoints)\n- Superadmin Activity & Audit Trail (10 endpoints)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -157,6 +157,16 @@
     },
     {
       "key": "subscription_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "superadmin_activity_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "admin_activity_id",
       "value": "1",
       "type": "string"
     }
@@ -5979,6 +5989,390 @@
               "raw": "{{base_url}}/upload/assignments/1_student_1_1234567890_assignment.pdf",
               "host": ["{{base_url}}"],
               "path": ["upload", "assignments", "1_student_1_1234567890_assignment.pdf"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Activity & Audit Trail",
+      "description": "Institution-level activity log for admins only. Tracks student_enrolled, teacher_added, class_created, login, update, delete and other institution-wide events with info/warning/critical severity.",
+      "item": [
+        {
+          "name": "Get All Activities (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"},
+                {"key": "severity", "value": "", "disabled": true},
+                {"key": "activity_type", "value": "", "disabled": true},
+                {"key": "performed_by", "value": "", "disabled": true},
+                {"key": "start_date", "value": "", "disabled": true},
+                {"key": "end_date", "value": "", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Log New Activity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.activity_id) {",
+                  "    pm.collectionVariables.set('admin_activity_id', jsonData.data.activity_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_type\": \"student_enrolled\",\n  \"description\": \"Enrolled student Kwame Osei into Form 1A\",\n  \"entity_type\": \"student\",\n  \"entity_id\": 1,\n  \"meta\": \"Kwame Osei\",\n  \"severity\": \"info\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/admin-activity",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity"]
+            }
+          }
+        },
+        {
+          "name": "Get Activity by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/{{admin_activity_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "{{admin_activity_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Activities (Dashboard Feed)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/recent?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "recent"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activity Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/stats",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/type/student_enrolled?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "type", "student_enrolled"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Severity - Warning",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/severity/warning?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "severity", "warning"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Severity - Critical",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/severity/critical",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "severity", "critical"]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Performer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/performer/1?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "performer", "1"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cleanup Old Activities (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin-activity/cleanup?days=90",
+              "host": ["{{base_url}}"],
+              "path": ["admin-activity", "cleanup"],
+              "query": [
+                {"key": "days", "value": "90"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Superadmin Activity & Audit Trail",
+      "description": "Platform-level activity log for super admins only. Tracks institution_created, admin_created, backup, security, login, and other system-wide events with info/warning/critical severity.",
+      "item": [
+        {
+          "name": "Get All Activities (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"},
+                {"key": "severity", "value": "", "disabled": true},
+                {"key": "activity_type", "value": "", "disabled": true},
+                {"key": "performed_by", "value": "", "disabled": true},
+                {"key": "start_date", "value": "", "disabled": true},
+                {"key": "end_date", "value": "", "disabled": true}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Log New Activity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.activity_id) {",
+                  "    pm.collectionVariables.set('superadmin_activity_id', jsonData.data.activity_id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"activity_type\": \"institution_created\",\n  \"description\": \"Created new institution: Kumasi SHS\",\n  \"entity_type\": \"institution\",\n  \"entity_id\": 1,\n  \"meta\": \"Kumasi SHS\",\n  \"severity\": \"info\"\n}",
+              "options": {"raw": {"language": "json"}}
+            },
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity"]
+            }
+          }
+        },
+        {
+          "name": "Get Activity by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/{{superadmin_activity_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "{{superadmin_activity_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Activities (Dashboard Feed)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/recent?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "recent"],
+              "query": [
+                {"key": "limit", "value": "10"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activity Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/stats",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/type/institution_created?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "type", "institution_created"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Severity - Warning",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/severity/warning?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "severity", "warning"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Severity - Critical",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/severity/critical",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "severity", "critical"]
+            }
+          }
+        },
+        {
+          "name": "Get Activities by Performer",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/performer/1?page=1&limit=25",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "performer", "1"],
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "25"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cleanup Old Activities (Super Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/superadmin-activity/cleanup?days=90",
+              "host": ["{{base_url}}"],
+              "path": ["superadmin-activity", "cleanup"],
+              "query": [
+                {"key": "days", "value": "90"}
+              ]
             }
           }
         }

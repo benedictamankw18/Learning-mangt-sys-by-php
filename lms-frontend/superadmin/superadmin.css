@@ -76,12 +76,12 @@
 
 .nav-item:hover {
     background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent);
-    color: var(--superadmin-primary);
+    color:  #aaaaaa;
 }
 
 .nav-item.active {
     background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent);
-    color: var(--superadmin-primary);
+    color: #585858;
     font-weight: 600;
 }
 

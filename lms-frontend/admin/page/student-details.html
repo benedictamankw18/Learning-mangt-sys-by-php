@@ -1,0 +1,360 @@
+<!-- ===================================================
+     Student Details Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/student-details.js
+==================================================== -->
+<style>
+/* ── Student Details Page ──────────────────────────── */
+.sd-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+}
+.sd-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: .9rem;
+    cursor: pointer;
+    padding: .4rem .75rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    transition: background .2s;
+    flex-shrink: 0;
+    margin-top: .25rem;
+}
+.sd-back-btn:hover { background: var(--primary-light); }
+.sd-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.sd-info { flex: 1; min-width: 0; }
+.sd-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: .2rem;
+}
+.sd-meta {
+    font-size: .82rem;
+    color: var(--gray-500);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.4rem;
+    margin-bottom: .5rem;
+}
+.sd-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+.sd-badge {
+    font-size: .72rem;
+    padding: .2rem .6rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.sd-badge.active   { background: #d1fae5; color: #065f46; }
+.sd-badge.inactive { background: #fee2e2; color: #991b1b; }
+.sd-badge.withdrawn{ background: #f3f4f6; color: #374151; }
+.sd-header-actions { display: flex; gap: .5rem; flex-shrink: 0; margin-top: .25rem; }
+.sd-header-actions .btn { font-size: .82rem; padding: .4rem .85rem; }
+
+/* ── Tabs ──────────────────────────────────────────── */
+.sd-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--white);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    box-shadow: var(--shadow-sm);
+    overflow-x: auto;
+    border-bottom: 2px solid var(--gray-200);
+}
+.sd-tab-btn {
+    padding: .85rem 1.25rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    white-space: nowrap;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+}
+.sd-tab-btn:hover  { color: var(--primary); }
+.sd-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.sd-tab-panel {
+    display: none;
+    background: var(--white);
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+}
+.sd-tab-panel.active { display: block; }
+
+/* ── Section cards inside tabs ─────────────────────── */
+.sd-section { margin-bottom: 1.5rem; }
+.sd-section-title {
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+.sd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.sd-field label {
+    font-size: .75rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    display: block;
+    margin-bottom: .25rem;
+}
+.sd-field span {
+    font-size: .9rem;
+    color: var(--gray-900);
+    font-weight: 500;
+}
+
+/* ── Academic history table ────────────────────────── */
+.sd-table-wrap { overflow-x: auto; }
+.sd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .84rem;
+}
+.sd-table th {
+    text-align: left;
+    padding: .65rem .75rem;
+    background: var(--gray-50);
+    font-weight: 600;
+    color: var(--gray-600);
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.sd-table td {
+    padding: .65rem .75rem;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+}
+.sd-table tbody tr:last-child td { border-bottom: none; }
+.sd-table tbody tr:hover td { background: var(--gray-50); }
+
+/* ── Attendance summary ────────────────────────────── */
+.sd-attendance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.sd-att-card {
+    text-align: center;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--gray-200);
+}
+.sd-att-number { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
+.sd-att-label  { font-size: .75rem; color: var(--gray-500); margin-top: .2rem; }
+
+/* ── Skeleton loader ───────────────────────────────── */
+.sd-skeleton {
+    background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+    background-size: 200% 100%;
+    animation: sd-shimmer 1.4s infinite;
+    border-radius: 4px;
+    display: inline-block;
+}
+@keyframes sd-shimmer { to { background-position: -200% 0; } }
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 640px) {
+    .sd-header { flex-direction: column; }
+    .sd-header-actions { width: 100%; }
+    .sd-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<!-- Back nav + student header -->
+<div class="sd-header" id="sdHeader">
+    <button class="sd-back-btn" id="sdBackBtn"><i class="fas fa-arrow-left"></i> Back to Students</button>
+    <div class="sd-avatar-lg" id="sdAvatar">?</div>
+    <div class="sd-info">
+        <div class="sd-name" id="sdName"><span class="sd-skeleton" style="width:180px;height:1.2rem">&nbsp;</span></div>
+        <div class="sd-meta">
+            <span><i class="fas fa-envelope fa-fw"></i> <span id="sdEmail">—</span></span>
+            <span><i class="fas fa-id-badge fa-fw"></i> <span id="sdStudentId">—</span></span>
+            <span><i class="fas fa-users fa-fw"></i> <span id="sdClass">—</span></span>
+            <span><i class="fas fa-graduation-cap fa-fw"></i> <span id="sdProgram">—</span></span>
+        </div>
+        <div class="sd-badges">
+            <span class="sd-badge" id="sdStatusBadge">—</span>
+        </div>
+    </div>
+    <div class="sd-header-actions">
+        <button class="btn btn-secondary btn-sm" id="sdEditBtn"><i class="fas fa-edit"></i> Edit</button>
+        <button class="btn btn-danger btn-sm" id="sdToggleStatusBtn"><i class="fas fa-user-slash"></i> Deactivate</button>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="sd-tabs" id="sdTabs">
+    <button class="sd-tab-btn active" data-tab="personal"><i class="fas fa-user fa-fw"></i> Personal Info</button>
+    <button class="sd-tab-btn" data-tab="academic"><i class="fas fa-book fa-fw"></i> Academic</button>
+    <button class="sd-tab-btn" data-tab="attendance"><i class="fas fa-calendar-check fa-fw"></i> Attendance</button>
+    <button class="sd-tab-btn" data-tab="grades"><i class="fas fa-chart-bar fa-fw"></i> Grades</button>
+    <button class="sd-tab-btn" data-tab="parent"><i class="fas fa-people-arrows fa-fw"></i> Parent/Guardian</button>
+</div>
+
+<!-- ── Personal Info Tab ──────────────────────────────────── -->
+<div class="sd-tab-panel active" id="sdTab-personal">
+    <div class="sd-section">
+        <div class="sd-section-title">Basic Information</div>
+        <div class="sd-grid">
+            <div class="sd-field"><label>First Name</label><span id="sdFirstName">—</span></div>
+            <div class="sd-field"><label>Last Name</label><span id="sdLastName">—</span></div>
+            <div class="sd-field"><label>Username</label><span id="sdUsername">—</span></div>
+            <div class="sd-field"><label>Gender</label><span id="sdGender">—</span></div>
+            <div class="sd-field"><label>Date of Birth</label><span id="sdDob">—</span></div>
+            <div class="sd-field"><label>Phone</label><span id="sdPhone">—</span></div>
+        </div>
+    </div>
+    <div class="sd-section">
+        <div class="sd-section-title">Enrollment</div>
+        <div class="sd-grid">
+            <div class="sd-field"><label>Student ID</label><span id="sdSID">—</span></div>
+            <div class="sd-field"><label>Enrolled</label><span id="sdEnrolled">—</span></div>
+            <div class="sd-field"><label>Class</label><span id="sdClassName">—</span></div>
+            <div class="sd-field"><label>Program</label><span id="sdProgramName">—</span></div>
+            <div class="sd-field"><label>Status</label><span id="sdStatusText">—</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Academic Tab ─────────────────────────────────────────── -->
+<div class="sd-tab-panel" id="sdTab-academic">
+    <div class="sd-section">
+        <div class="sd-section-title">Course Enrollments</div>
+        <div class="sd-table-wrap">
+            <table class="sd-table">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Teacher</th>
+                        <th>Semester</th>
+                        <th>Status</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody id="sdCoursesBody">
+                    <tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:2rem">
+                        <i class="fas fa-book-open" style="font-size:1.5rem;margin-bottom:.5rem;display:block"></i>
+                        No course enrollments yet
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── Attendance Tab ────────────────────────────────────────── -->
+<div class="sd-tab-panel" id="sdTab-attendance">
+    <div class="sd-section">
+        <div class="sd-section-title">Attendance Summary</div>
+        <div class="sd-attendance-grid">
+            <div class="sd-att-card">
+                <div class="sd-att-number" id="sdAttTotal">—</div>
+                <div class="sd-att-label">Total Days</div>
+            </div>
+            <div class="sd-att-card" style="border-color:#d1fae5">
+                <div class="sd-att-number" style="color:#059669" id="sdAttPresent">—</div>
+                <div class="sd-att-label">Present</div>
+            </div>
+            <div class="sd-att-card" style="border-color:#fee2e2">
+                <div class="sd-att-number" style="color:#dc2626" id="sdAttAbsent">—</div>
+                <div class="sd-att-label">Absent</div>
+            </div>
+            <div class="sd-att-card" style="border-color:#fef3c7">
+                <div class="sd-att-number" style="color:#d97706" id="sdAttLate">—</div>
+                <div class="sd-att-label">Late</div>
+            </div>
+            <div class="sd-att-card">
+                <div class="sd-att-number" id="sdAttRate">—</div>
+                <div class="sd-att-label">Attendance Rate</div>
+            </div>
+        </div>
+        <p style="font-size:.82rem;color:var(--gray-400);text-align:center">
+            <i class="fas fa-info-circle"></i> Detailed attendance tracking will be available once attendance modules are set up.
+        </p>
+    </div>
+</div>
+
+<!-- ── Grades Tab ────────────────────────────────────────────── -->
+<div class="sd-tab-panel" id="sdTab-grades">
+    <div class="sd-section">
+        <div class="sd-section-title">Assessment Results</div>
+        <div class="sd-table-wrap">
+            <table class="sd-table">
+                <thead>
+                    <tr>
+                        <th>Assessment</th>
+                        <th>Course</th>
+                        <th>Type</th>
+                        <th>Score</th>
+                        <th>Max</th>
+                        <th>Grade</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="sdGradesBody">
+                    <tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">
+                        <i class="fas fa-chart-bar" style="font-size:1.5rem;margin-bottom:.5rem;display:block"></i>
+                        No assessment results yet
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── Parent/Guardian Tab ───────────────────────────────────── -->
+<div class="sd-tab-panel" id="sdTab-parent">
+    <div class="sd-section">
+        <div class="sd-section-title">Parent / Guardian Information</div>
+        <div class="sd-grid">
+            <div class="sd-field"><label>Name</label><span id="sdParentName">—</span></div>
+            <div class="sd-field"><label>Phone</label><span id="sdParentPhone">—</span></div>
+            <div class="sd-field"><label>Email</label><span id="sdParentEmail">—</span></div>
+        </div>
+    </div>
+    <div class="sd-section">
+        <div class="sd-section-title">Emergency Contact</div>
+        <div class="sd-grid">
+            <div class="sd-field sd-col-full"><label>Contact</label><span id="sdEmergency">—</span></div>
+        </div>
+    </div>
+</div>

@@ -93,8 +93,36 @@ class SubscriptionRepository extends BaseRepository
         return $result['total'];
     }
 
-    public function findById(int $id): ?array
+    /**
+     * Count institutions that gained an active subscription this calendar month
+     */
+    public function countActiveThisMonth(): int
     {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table}
+                WHERE status = 'active'
+                  AND subscription_expires_at >= CURDATE()
+                  AND created_at >= DATE_FORMAT(CURDATE(), '%Y-%m-01')";
+        $stmt = $this->db->query($sql);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Count institutions that had an active subscription created last calendar month
+     */
+    public function countActiveLastMonth(): int
+    {
+        $sql = "SELECT COUNT(*) as total FROM {$this->table}
+                WHERE status = 'active'
+                  AND subscription_expires_at >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
+                  AND created_at >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 MONTH), '%Y-%m-01')
+                  AND created_at  < DATE_FORMAT(CURDATE(), '%Y-%m-01')";
+        $stmt = $this->db->query($sql);
+        return (int) $stmt->fetchColumn();
+    }
+    
+
+    public function findById(int $id): ?array
+{
         $sql = "SELECT i.*,
                 CASE 
                     WHEN i.subscription_expires_at < CURDATE() THEN 'expired'
@@ -110,6 +138,7 @@ class SubscriptionRepository extends BaseRepository
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    
 
     public function create(array $data): int
     {

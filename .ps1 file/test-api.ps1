@@ -139,7 +139,13 @@ function Invoke-ApiRequest {
         $errorMessage = $_.Exception.Message
         
         # Categorize failures
-        if ($statusCode -in @(401, 403)) {
+        if ($ExpectFailure) {
+            # Request was supposed to fail — count as passed
+            $script:PassedTests++
+            $status = "EXPECTED_FAIL"
+            if ($Verbose) { Write-Success "$Method $Endpoint - $statusCode (expected failure)" }
+        }
+        elseif ($statusCode -in @(401, 403)) {
             # Unauthorized/Forbidden - might be expected
             $script:SkippedTests++
             $status = "SKIP_AUTH"
@@ -575,6 +581,147 @@ function Test-SubscriptionEndpoints {
     Invoke-ApiRequest -Method GET -Endpoint "/subscriptions/stats" -Token $Token
 }
 
+# Test Admin Activity Endpoints
+function Test-AdminActivityEndpoints {
+    param([string]$Token)
+    
+    Write-Section "Testing Admin Activity & Audit Trail Endpoints"
+
+    # Re-authenticate as admin to guarantee role = 'admin'
+    $adminToken = $null
+    try {
+        $adminAuth = Invoke-RestMethod -Uri "$BaseUrl/auth/login" -Method POST `
+            -Body (@{login='admin'; password='password'} | ConvertTo-Json) `
+            -ContentType 'application/json'
+        $adminToken = $adminAuth.data.access_token
+        Write-Info "Re-authenticated as admin for admin-activity tests"
+    } catch {
+        Write-Warning "Could not authenticate as admin - using current token (may get 403)"
+        $adminToken = $Token
+    }
+
+    # --- READ endpoints ---
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity?page=1&limit=25" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/recent?limit=10" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/stats" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/type/student_enrolled" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/severity/info" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/severity/warning" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/severity/critical" -Token $adminToken
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/performer/1" -Token $adminToken
+
+    # --- CREATE (log) ---
+    $created = $null
+    if (-not $QuickTest) {
+        Write-Info "Testing POST /admin-activity ..."
+        $created = Invoke-ApiRequest -Method POST -Endpoint "/admin-activity" -Token $adminToken -Body @{
+            activity_type = "update"
+            description   = "Test admin action triggered by automated test suite"
+            entity_type   = "system"
+            meta          = "test-suite"
+            severity      = "info"
+        }
+
+        if ($created -and $created.data -and $created.data.activity_id) {
+            $actId = $created.data.activity_id
+            Write-Success "Created admin activity ID: $actId"
+
+            # GET by ID
+            Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/$actId" -Token $adminToken
+        } else {
+            Write-Warning "POST /admin-activity returned no activity_id — skipping GET-by-ID"
+        }
+    }
+
+    # --- Validation: bad severity ---
+    Write-Info "Testing invalid severity (expect 400)..."
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity/severity/invalid" -Token $adminToken -ExpectFailure
+
+    # --- Auth: non-admin (superadmin) should get 403 ---
+    $superToken = $null
+    try {
+        $superAuth = Invoke-RestMethod -Uri "$BaseUrl/auth/login" -Method POST `
+            -Body (@{login='superadmin'; password='password'} | ConvertTo-Json) `
+            -ContentType 'application/json'
+        $superToken = $superAuth.data.access_token
+    } catch { $superToken = $Token }
+    Write-Info "Testing non-admin access (expect 403)..."
+    Invoke-ApiRequest -Method GET -Endpoint "/admin-activity" -Token $superToken -ExpectFailure
+
+    # --- Cleanup (only in full mode) ---
+    if (-not $QuickTest) {
+        Write-Info "Testing cleanup endpoint (dry run with days=9999 to avoid deleting test data)..."
+        Invoke-ApiRequest -Method DELETE -Endpoint "/admin-activity/cleanup?days=9999" -Token $adminToken
+    }
+}
+
+# Test Superadmin Activity Endpoints
+function Test-SuperadminActivityEndpoints {
+    param([string]$Token)
+    
+    Write-Section "Testing Superadmin Activity & Audit Trail Endpoints"
+
+    # Re-authenticate as superadmin to guarantee is_super_admin = 1
+    $superToken = $null
+    try {
+        $superAuth = Invoke-RestMethod -Uri "$BaseUrl/auth/login" -Method POST `
+            -Body (@{login='superadmin'; password='password'} | ConvertTo-Json) `
+            -ContentType 'application/json'
+        $superToken = $superAuth.data.access_token
+        Write-Info "Re-authenticated as superadmin for superadmin-activity tests"
+    } catch {
+        Write-Warning "Could not authenticate as superadmin - using current token (may get 403)"
+        $superToken = $Token
+    }
+
+    # --- READ endpoints ---
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity?page=1&limit=25" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/recent?limit=10" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/stats" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/type/institution_created" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/severity/info" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/severity/warning" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/severity/critical" -Token $superToken
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/performer/1" -Token $superToken
+
+    # --- CREATE (log) ---
+    $created = $null
+    if (-not $QuickTest) {
+        Write-Info "Testing POST /superadmin-activity ..."
+        $created = Invoke-ApiRequest -Method POST -Endpoint "/superadmin-activity" -Token $superToken -Body @{
+            activity_type = "security"
+            description   = "Test security scan triggered by automated test suite"
+            entity_type   = "system"
+            meta          = "test-suite"
+            severity      = "warning"
+        }
+
+        if ($created -and $created.data -and $created.data.activity_id) {
+            $actId = $created.data.activity_id
+            Write-Success "Created superadmin activity ID: $actId"
+
+            # GET by ID
+            Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/$actId" -Token $superToken
+        } else {
+            Write-Warning "POST /superadmin-activity returned no activity_id — skipping GET-by-ID"
+        }
+    }
+
+    # --- Validation: bad severity ---
+    Write-Info "Testing invalid severity (expect 400)..."
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity/severity/invalid" -Token $superToken -ExpectFailure
+
+    # --- Auth: non-superadmin should get 403 ---
+    Write-Info "Testing non-superadmin access (expect 403)..."
+    Invoke-ApiRequest -Method GET -Endpoint "/superadmin-activity" -Token $Token -ExpectFailure
+
+    # --- Cleanup (only in full mode) ---
+    if (-not $QuickTest) {
+        Write-Info "Testing cleanup endpoint (dry run with days=9999 to avoid deleting test data)..."
+        Invoke-ApiRequest -Method DELETE -Endpoint "/superadmin-activity/cleanup?days=9999" -Token $superToken
+    }
+}
+
 # Test CRUD operations for a resource
 function Test-CrudOperations {
     param(
@@ -667,7 +814,7 @@ function Show-Summary {
     
     # Export results to JSON
     $timestamp = Get-Date -Format 'yyyy-MM-dd-HHmmss'
-    $resultFile = "test-results-$timestamp.json"
+    $resultFile = "Results\test-results-$timestamp.json"
     
     $exportData = @{
         Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
@@ -705,7 +852,7 @@ function Main {
     Write-Host "" ""
     Write-Host "=" * 80 -ForegroundColor Cyan
     Write-Host "                    LMS API Comprehensive Test Suite" -ForegroundColor Cyan
-    Write-Host "                         Testing 200+ Endpoints" -ForegroundColor Cyan
+    Write-Host "                         Testing 240+ Endpoints" -ForegroundColor Cyan
     Write-Host ""  
     Write-Host "  Base URL:  $BaseUrl" -ForegroundColor Cyan
     Write-Host "  Category:  $Category" -ForegroundColor Cyan
@@ -731,9 +878,9 @@ function Main {
         # Authenticate
         Write-Section "Authenticating"
         $script:AuthToken = Get-AuthToken -User @{
-            login = "peter.owusu"
+            login = "kofi.mensah"
             password = "password"
-            role = "parent"
+            role = "teacher"
         }
         
         if (-not $script:AuthToken) {
@@ -776,6 +923,8 @@ function Main {
             "user-activity" = { Test-UserActivityEndpoints $script:AuthToken }
             "course-content" = { Test-CourseContentEndpoints $script:AuthToken }
             "subscriptions" = { Test-SubscriptionEndpoints $script:AuthToken }
+            "superadmin-activity" = { Test-SuperadminActivityEndpoints $script:AuthToken }
+            "admin-activity" = { Test-AdminActivityEndpoints $script:AuthToken }
         }
         
         if ($Category -eq "all") {

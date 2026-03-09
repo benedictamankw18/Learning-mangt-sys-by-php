@@ -2,9 +2,6 @@
    Admin Dashboard Logic
 ============================================ */
 
-// Require authentication and admin role
-Auth.requireAuth([USER_ROLES.ADMIN]);
-
 // Global charts
 let enrollmentChart = null;
 let courseDistributionChart = null;
@@ -13,6 +10,11 @@ let courseDistributionChart = null;
  * Initialize dashboard
  */
 document.addEventListener('DOMContentLoaded', () => {
+    // Require authentication and admin role
+    if (!Auth.requireAuth([USER_ROLES.ADMIN])) {
+        return; // Will redirect to login if not authenticated
+    }
+
     initDashboard();
     setupEventListeners();
     loadDashboardData();
@@ -168,15 +170,28 @@ async function handleLogout(e) {
  * Load dashboard data from API
  */
 async function loadDashboardData() {
+    const statsGrid = document.querySelector('.stats-grid');
+    if (statsGrid) statsGrid.classList.add('stats-loading');
     try {
-        const response = await DashboardAPI.getAdminStats();
+        const user = Auth.getUser();
+        const params = user?.institution_id ? { institution_id: user.institution_id } : {};
+        const [statsResponse, activitiesResponse] = await Promise.all([
+            DashboardAPI.getAdminStats(params),
+            AdminActivityAPI.getRecent({ limit: 10 }),
+        ]);
 
-        if (response && response.data) {
-            updateStatistics(response.data);
-            updateCharts(response.data);
+        if (statsResponse && statsResponse.data) {
+            updateStatistics(statsResponse.data);
+            updateStatChanges(statsResponse.data);
+            updateCharts(statsResponse.data);
         }
+
+        renderRecentActivities(activitiesResponse?.data || []);
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        showToast('Failed to load dashboard data. Please refresh.', 'error');
+    } finally {
+        if (statsGrid) statsGrid.classList.remove('stats-loading');
     }
 }
 
@@ -184,29 +199,87 @@ async function loadDashboardData() {
  * Update statistics cards
  */
 function updateStatistics(data) {
-    const totalUsers = document.getElementById('totalUsers');
-    const totalCourses = document.getElementById('totalCourses');
-    const totalStudents = document.getElementById('totalStudents');
-    const totalTeachers = document.getElementById('totalTeachers');
+    const fields = {
+        totalStudents: data.total_students,
+        totalTeachers: data.total_teachers,
+        totalClasses:  data.total_classes,
+        totalCourses:  data.total_courses,
+        attendanceRate: data.attendance_rate ?? null,
+        upcomingExams:  data.upcoming_exams,
+        pendingTasks:   data.pending_tasks,
+    };
 
-    if (totalUsers && data.total_users) {
-        animateNumber(totalUsers, data.total_users);
+    for (const [id, value] of Object.entries(fields)) {
+        const el = document.getElementById(id);
+        if (!el || value == null) continue;
+        if (id === 'attendanceRate') {
+            animateNumber(el, value, 1000, '%');
+        } else {
+            animateNumber(el, value);
+        }
     }
-    if (totalCourses && data.total_courses) {
-        animateNumber(totalCourses, data.total_courses);
+}
+
+/**
+ * Update stat-change indicators with growth percentages
+ */
+function updateStatChanges(data) {
+    updateStatChange('studentsChange', data.students_growth);
+    updateStatChange('teachersChange', data.teachers_growth);
+    updateStatChange('classesChange', data.classes_growth);
+    updateAttendanceChange('attendanceChange', data.attendance_rate_today, data.attendance_rate);
+}
+
+/**
+ * Show today's attendance rate inside the attendance stat-change badge.
+ * Displays "today X%" vs the weekly rate shown in the main card.
+ */
+function updateAttendanceChange(elementId, todayRate, weeklyRate) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    const today = parseFloat(todayRate) || 0;
+    const week  = parseFloat(weeklyRate) || 0;
+    const icon  = element.querySelector('i');
+    const span  = element.querySelector('span');
+    if (span) span.textContent = `Today ${today.toFixed(1)}%`;
+    if (today >= 75) {
+        element.className = 'stat-change positive';
+        if (icon) icon.className = 'fas fa-arrow-up';
+    } else if (today >= 50) {
+        element.className = 'stat-change neutral';
+        if (icon) icon.className = 'fas fa-minus';
+    } else {
+        element.className = 'stat-change negative';
+        if (icon) icon.className = 'fas fa-arrow-down';
     }
-    if (totalStudents && data.total_students) {
-        animateNumber(totalStudents, data.total_students);
-    }
-    if (totalTeachers && data.total_teachers) {
-        animateNumber(totalTeachers, data.total_teachers);
+}
+
+function updateStatChange(elementId, percentage) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    const value = parseFloat(percentage) || 0;
+    const icon = element.querySelector('i');
+    const span = element.querySelector('span');
+    const absVal = Math.abs(value).toFixed(1) + '% this month';
+    if (value > 0) {
+        element.className = 'stat-change positive';
+        if (icon) icon.className = 'fas fa-arrow-up';
+        if (span) span.textContent = absVal;
+    } else if (value < 0) {
+        element.className = 'stat-change negative';
+        if (icon) icon.className = 'fas fa-arrow-down';
+        if (span) span.textContent = absVal;
+    } else {
+        element.className = 'stat-change neutral';
+        if (icon) icon.className = 'fas fa-minus';
+        if (span) span.textContent = 'No change this month';
     }
 }
 
 /**
  * Animate number counting up
  */
-function animateNumber(element, target, duration = 1000) {
+function animateNumber(element, target, duration = 1000, suffix = '') {
     const start = 0;
     const increment = target / (duration / 16); // 60 FPS
     let current = start;
@@ -214,12 +287,80 @@ function animateNumber(element, target, duration = 1000) {
     const timer = setInterval(() => {
         current += increment;
         if (current >= target) {
-            element.textContent = target.toLocaleString();
+            element.textContent = target.toLocaleString() + suffix;
             clearInterval(timer);
         } else {
-            element.textContent = Math.floor(current).toLocaleString();
+            element.textContent = Math.floor(current).toLocaleString() + suffix;
         }
     }, 16);
+}
+
+/**
+ * Render recent activities list
+ */
+function renderRecentActivities(activities) {
+    const list = document.getElementById('activityList');
+    if (!list) return;
+
+    if (!activities || activities.length === 0) {
+        list.innerHTML = '<div class="activity-item"><div class="activity-details"><p style="color:var(--text-secondary);padding:0.5rem 0">No recent activity</p></div></div>';
+        return;
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
+    const iconMap = {
+        login: 'fa-sign-in-alt',
+        logout: 'fa-sign-out-alt',
+        create: 'fa-plus-circle',
+        update: 'fa-edit',
+        delete: 'fa-trash',
+        enroll: 'fa-user-plus',
+        default: 'fa-info-circle',
+    };
+
+    list.innerHTML = activities.map(a => {
+        const type = (a.activity_type || a.type || '').toLowerCase();
+        const icon = iconMap[type] || iconMap.default;
+        const title = esc(a.description || a.title || 'Activity');
+        const meta = esc(a.performed_by || a.user || '');
+        const time = esc(a.created_at || a.time || '');
+        return `
+        <div class="activity-item">
+            <div class="activity-icon bg-primary">
+                <i class="fas ${icon}"></i>
+            </div>
+            <div class="activity-details">
+                <p>${title}</p>
+                <small>${meta ? meta + ' &bull; ' : ''}${time}</small>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/**
+ * Generate labels for the last 12 months, with the current month last.
+ * Months from a prior year are shown as e.g. "Apr '25".
+ */
+function getLast12MonthLabels() {
+    const names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const labels = [];
+    for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        labels.push(
+            d.getFullYear() !== currentYear
+                ? `${names[d.getMonth()]} '${String(d.getFullYear()).slice(-2)}`
+                : names[d.getMonth()]
+        );
+    }
+    return labels;
 }
 
 /**
@@ -232,10 +373,10 @@ function initCharts() {
         enrollmentChart = new Chart(enrollmentCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels: getLast12MonthLabels(),
                 datasets: [{
                     label: 'Enrollments',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    data: [],
                     borderColor: '#006a3f',
                     backgroundColor: 'rgba(0, 106, 63, 0.1)',
                     tension: 0.4,
@@ -296,6 +437,7 @@ function initCharts() {
 function updateCharts(data) {
     // Update enrollment chart
     if (enrollmentChart && data.enrollment_trend) {
+        enrollmentChart.data.labels = getLast12MonthLabels();
         enrollmentChart.data.datasets[0].data = data.enrollment_trend;
         enrollmentChart.update();
     }

@@ -129,6 +129,40 @@ class ClassRepository
         return (int) $result['total'];
     }
 
+    public function countByInstitutionThisMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM classes
+                WHERE institution_id = :institution_id
+                AND YEAR(created_at) = YEAR(CURRENT_DATE())
+                AND MONTH(created_at) = MONTH(CURRENT_DATE())
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Classes This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByInstitutionLastMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM classes
+                WHERE institution_id = :institution_id
+                AND YEAR(created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Classes Last Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     /**
      * Find a class by ID with full details
      */

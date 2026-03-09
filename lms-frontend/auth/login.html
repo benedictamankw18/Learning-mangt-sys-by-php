@@ -4,8 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS - Login</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ghana-red': '#d82434',
+                        'ghana-gold': '#d4af37',
+                        'ghana-green': '#006a3f',
+                        'lms-primary': '#3090cf',
+                        'lms-secondary': '#008c54',
+                    }
+                }
+            }
+        }
+    </script>
+    
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="icon" type="image/x-icon" href="../assets/img/fav.ico">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.ico">
     <link rel="stylesheet" href="../assets/css/animations.css">
     <link rel="stylesheet" href="../assets/css/login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -119,9 +137,24 @@
     </div>
 </div>
 
+    <script src="../assets/js/env.js"></script>
     <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/logger.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="../assets/js/login.js"></script>
+    
+    <!-- Debug Log Viewer Link (Dev Only) -->
+    <script>
+        // Add log viewer link in development
+        if (window.location.hostname === '' || window.location.hostname === 'localhost') {
+            const link = document.createElement('a');
+            link.href = '../logs/viewer.html';
+            link.className = 'position-absolute bottom-0 end-0 m-3 btn btn-sm btn-outline-secondary debug-log-link';
+            link.innerHTML = '<i class="fas fa-file-alt"></i> View Logs';
+            link.title = 'Open Debug Log Viewer';
+            document.body.appendChild(link);
+        }
+    </script>
 </body>
 </html>

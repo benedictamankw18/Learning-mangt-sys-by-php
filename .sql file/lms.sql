@@ -21,8 +21,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `lms`
 --
-CREATE DATABASE IF NOT EXISTS `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `lms`;
+-- CREATE DATABASE IF NOT EXISTS `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE `lms`;
 
 -- --------------------------------------------------------
 
@@ -53,6 +53,41 @@ CREATE TABLE IF NOT EXISTS `academic_years` (
 
 INSERT INTO `academic_years` (`academic_year_id`, `institution_id`, `year_name`, `start_date`, `end_date`, `is_current`, `created_at`, `updated_at`) VALUES
 (1, 1, '2024-2025', '2024-09-01', '2025-06-30', 1, '2026-03-01 18:17:08', '2026-03-01 18:17:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin_activity`
+--
+
+DROP TABLE IF EXISTS `admin_activity`;
+CREATE TABLE IF NOT EXISTS `admin_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL COMMENT 'Institution the admin belongs to',
+  `performed_by` int(11) NOT NULL COMMENT 'user_id of the admin who performed the action',
+  `activity_type` varchar(50) NOT NULL COMMENT 'e.g. student_enrolled, teacher_added, class_created, login, update, delete',
+  `description` varchar(500) NOT NULL COMMENT 'Human-readable summary shown in the dashboard activity list',
+  `entity_type` varchar(50) DEFAULT NULL COMMENT 'Type of resource affected: student, teacher, class, course, user, etc.',
+  `entity_id` int(11) DEFAULT NULL COMMENT 'Primary key of the affected entity (optional)',
+  `meta` varchar(255) DEFAULT NULL COMMENT 'Extra context shown in the activity list subtitle (e.g. student name, class name)',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `severity` enum('info','warning','critical') NOT NULL DEFAULT 'info',
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_institution_id` (`institution_id`),
+  KEY `idx_performed_by` (`performed_by`),
+  KEY `idx_activity_type` (`activity_type`),
+  KEY `idx_entity` (`entity_type`,`entity_id`),
+  KEY `idx_severity` (`severity`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by institution admins';
+
+--
+-- Dumping data for table `admin_activity`
+--
 
 -- --------------------------------------------------------
 
@@ -1603,6 +1638,7 @@ CREATE TABLE IF NOT EXISTS `subjects` (
   `description` text DEFAULT NULL,
   `credits` int(11) DEFAULT 3,
   `is_core` tinyint(1) DEFAULT 0,
+  `image` varchar(500) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`subject_id`),
@@ -1620,23 +1656,23 @@ CREATE TABLE IF NOT EXISTS `subjects` (
 -- Dumping data for table `subjects`
 --
 
-INSERT INTO `subjects` (`subject_id`, `uuid`, `institution_id`, `subject_code`, `subject_name`, `description`, `credits`, `is_core`, `created_at`, `updated_at`) VALUES
-(1, '1bffed84-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-ENG', 'Core English', 'English Language - Core Subject', 4, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(2, '1c000e31-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-MATH', 'Core Mathematics', 'Mathematics - Core Subject', 4, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(3, '1c000fc4-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SCI', 'Integrated Science', 'Science - Core Subject', 3, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(4, '1c00139e-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SOC', 'Social Studies', 'Social Studies - Core Subject', 2, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(5, '1c0014b9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-LIT', 'Literature in English', 'Elective Literature', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(6, '1c00157a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-HIST', 'History', 'Elective History', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(7, '1c001674-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-GEOG', 'Geography', 'Elective Geography', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(8, '1c001780-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CRS', 'Christian Religious Studies', 'Elective CRS', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(9, '1c00184a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ECON', 'Economics', 'Elective Economics', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(10, '1c0018f5-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BIO', 'Elective Biology', 'Biology - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(11, '1c0019c9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CHEM', 'Elective Chemistry', 'Chemistry - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(12, '1c001aac-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-PHYS', 'Elective Physics', 'Physics - Science Elective', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(13, '1c001b63-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-EMATH', 'Elective Mathematics', 'Advanced Mathematics', 4, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(14, '1c001c18-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ACC', 'Financial Accounting', 'Elective Accounting', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(15, '1c001cd4-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BUS', 'Business Management', 'Elective Business', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
-(16, '1c001d8c-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ICT', 'Information Technology', 'ICT Elective', 3, 0, '2026-03-01 18:17:08', '2026-03-03 03:07:27');
+INSERT INTO `subjects` (`subject_id`, `uuid`, `institution_id`, `subject_code`, `subject_name`, `description`, `credits`, `is_core`, `image`, `created_at`, `updated_at`) VALUES
+(1, '1bffed84-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-ENG', 'Core English', 'English Language - Core Subject', 4, 1, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(2, '1c000e31-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-MATH', 'Core Mathematics', 'Mathematics - Core Subject', 4, 1, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(3, '1c000fc4-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SCI', 'Integrated Science', 'Science - Core Subject', 3, 1, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(4, '1c00139e-16ae-11f1-9c28-10653022c2a0', 1, 'CORE-SOC', 'Social Studies', 'Social Studies - Core Subject', 2, 1, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(5, '1c0014b9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-LIT', 'Literature in English', 'Elective Literature', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(6, '1c00157a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-HIST', 'History', 'Elective History', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(7, '1c001674-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-GEOG', 'Geography', 'Elective Geography', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(8, '1c001780-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CRS', 'Christian Religious Studies', 'Elective CRS', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(9, '1c00184a-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ECON', 'Economics', 'Elective Economics', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(10, '1c0018f5-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BIO', 'Elective Biology', 'Biology - Science Elective', 4, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(11, '1c0019c9-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-CHEM', 'Elective Chemistry', 'Chemistry - Science Elective', 4, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(12, '1c001aac-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-PHYS', 'Elective Physics', 'Physics - Science Elective', 4, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(13, '1c001b63-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-EMATH', 'Elective Mathematics', 'Advanced Mathematics', 4, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(14, '1c001c18-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ACC', 'Financial Accounting', 'Elective Accounting', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(15, '1c001cd4-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-BUS', 'Business Management', 'Elective Business', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27'),
+(16, '1c001d8c-16ae-11f1-9c28-10653022c2a0', 1, 'ELEC-ICT', 'Information Technology', 'ICT Elective', 3, 0, NULL, '2026-03-01 18:17:08', '2026-03-03 03:07:27');
 
 -- --------------------------------------------------------
 
@@ -1741,6 +1777,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `date_of_birth` date DEFAULT NULL,
   `is_super_admin` tinyint(1) DEFAULT 0,
   `is_active` tinyint(1) DEFAULT 1,
+  `profile_image` varchar(500) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` datetime DEFAULT NULL,
@@ -1763,12 +1800,12 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `uuid`, `institution_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`, `phone_number`, `address`, `date_of_birth`, `is_super_admin`, `is_active`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '1bfe8992-16ae-11f1-9c28-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, 1, 1, '2026-01-01 18:17:08', '2026-03-03 03:07:27', NULL),
-(2, '1bfe97d8-16ae-11f1-9c28-10653022c2a0', 1, 'admin', 'admin@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Administrator', '+233 24 000 0000', NULL, NULL, 0, 1, '2026-02-01 18:17:08', '2026-03-03 03:07:27', NULL),
-(3, '1bfe9b76-16ae-11f1-9c28-10653022c2a0', 1, 'kofi.mensah', 'kofi.mensah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Mensah', '+233 24 111 1111', NULL, NULL, 0, 1, '2026-03-01 18:17:08', '2026-03-03 03:07:27', NULL),
-(4, '1bfe9caf-16ae-11f1-9c28-10653022c2a0', 1, 'ama.asante', 'ama.asante@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Asante', '+233 24 222 2222', NULL, NULL, 0, 1, '2026-03-03 18:17:08', '2026-03-03 03:07:27', NULL),
-(5, '1bfe9d88-16ae-11f1-9c28-10653022c2a0', 1, 'kwame.osei', 'kwame.osei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Osei', '+233 24 333 3333', NULL, '2009-03-15', 0, 1, '2026-02-10 18:17:08', '2026-03-03 03:07:27', NULL),
+INSERT INTO `users` (`user_id`, `uuid`, `institution_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`, `phone_number`, `address`, `date_of_birth`, `is_super_admin`, `is_active`, `profile_image`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, '1bfe8992-16ae-11f1-9c28-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, 1, 1, NULL, '2026-01-01 18:17:08', '2026-03-03 03:07:27', NULL),
+(2, '1bfe97d8-16ae-11f1-9c28-10653022c2a0', 1, 'admin', 'admin@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Administrator', '+233 24 000 0000', NULL, NULL, 0, 1, NULL, '2026-02-01 18:17:08', '2026-03-03 03:07:27', NULL),
+(3, '1bfe9b76-16ae-11f1-9c28-10653022c2a0', 1, 'kofi.mensah', 'kofi.mensah@accrashs.edu.gh', '$2y$1０$9２IXUNpkj０rOQ５byMi.Ye４oKoEa３Ro９llC/.og/at２.uheWG/igi', 'Kofi', 'Mensah', '+233 ２4 １１１ １１１１', NULL, NULL, ０, １, NULL, '２０２６-０３-０１ １８:１７:０８', '２０２６-０３-０３ ０３:０７:２７', NULL),
+(4, '１bfe９caf-１６ae-１１f１-９c２８-１０６５３０２２c２a０', １, 'ama.asante', 'ama.asante@accrashs.edu.gh', '$２y$１０$９２IXUNpkj０rOQ５byMi.Ye４oKoEa３Ro９llC/.og/at２.uheWG/igi', 'Ama', 'Asante', '+２３３ ２４ ２２２ ２２２２', NULL, NULL, ０, １, NULL, '２０２６-０３-０３ １８:１７:０８', '２０２６-０３-０３ ０３:０７:２７', NULL),
+(５, '１bfe９d８８-１６ae-１１f１-９c２８-１０６５３₀₂₂c₂a₀', １, 'kwame.osei', 'kwame.osei@student.accrashs.edu.gh', '$２y$₁₀$９₂IXUNpkj₀rOQ₅byMi.Ye₄oKoEa₃Ro₉llC/.og/at₂.uheWG/igi’, ‘Kwame’, ‘Osei’, ‘+₂₃₃ ₍₂₄ ₍₃₃₃ ₍₃₃₃’, NULL,’₂₀₀₉₋₀₃₋₁₅’,₀,’₁’,NULL,’₂₀₂₆₋₀₂₋₁₀ ₍₁₈:₁₇:₀₈’,’₂₀₂₆₋₀₃₋₀³ ₍₀³:₀⁷:²⁷’,NULL),
 (6, '1bfe9e53-16ae-11f1-9c28-10653022c2a0', 1, 'abena.adjei', 'abena.adjei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Adjei', '+233 24 444 4444', NULL, '2009-07-22', 0, 1, '2026-01-14 18:17:08', '2026-03-03 03:07:27', NULL),
 (7, '1bfe9f10-16ae-11f1-9c28-10653022c2a0', 1, 'yaw.osei', 'yaw.osei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Osei', '+233 24 555 5555', NULL, NULL, 0, 1, '2026-01-10 18:17:08', '2026-03-03 03:07:27', NULL);
 
@@ -2498,6 +2535,40 @@ INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activit
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `superadmin_activity`
+--
+
+DROP TABLE IF EXISTS `superadmin_activity`;
+CREATE TABLE IF NOT EXISTS `superadmin_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `performed_by` int(11) NOT NULL COMMENT 'user_id of the super admin who performed the action',
+  `activity_type` varchar(50) NOT NULL COMMENT 'e.g. institution_created, admin_created, user_created, backup, update, security, login',
+  `description` varchar(500) NOT NULL COMMENT 'Human-readable summary shown in the dashboard activity list',
+  `entity_type` varchar(50) DEFAULT NULL COMMENT 'Type of resource affected: institution, user, role, system, etc.',
+  `entity_id` int(11) DEFAULT NULL COMMENT 'Primary key of the affected entity (optional)',
+  `meta` varchar(255) DEFAULT NULL COMMENT 'Extra context shown in the activity list subtitle (e.g. institution name, username)',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `severity` enum('info','warning','critical') NOT NULL DEFAULT 'info',
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_performed_by` (`performed_by`),
+  KEY `idx_activity_type` (`activity_type`),
+  KEY `idx_entity` (`entity_type`,`entity_id`),
+  KEY `idx_severity` (`severity`),
+  KEY `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by super admins';
+
+--
+-- Dumping data for table `superadmin_activity`
+--
+
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `user_roles`
 --
 
@@ -2697,6 +2768,19 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `academic_years`
   ADD CONSTRAINT `FK_academic_years_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `superadmin_activity`
+--
+ALTER TABLE `superadmin_activity`
+  ADD CONSTRAINT `FK_superadmin_activity_user` FOREIGN KEY (`performed_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `admin_activity`
+--
+ALTER TABLE `admin_activity`
+  ADD CONSTRAINT `FK_admin_activity_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `FK_admin_activity_user` FOREIGN KEY (`performed_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `announcements`

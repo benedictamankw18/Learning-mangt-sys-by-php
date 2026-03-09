@@ -6,7 +6,6 @@
     <title>Super Admin Dashboard - LMS</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../assets/img/fav.ico">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -174,12 +173,68 @@
                     </div>
 
                     <div class="stat-card fade-in" style="animation-delay: 0.4s">
+                        <div class="stat-icon bg-gradient-blue">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="activeSubscriptions">0</h3>
+                            <p class="stat-label">Active Subscriptions</p>
+                            <span class="stat-change" id="subscriptionsChange">
+                                <i class="fas fa-minus"></i> <span>0%</span> this month
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in" style="animation-delay: 0.5s">
                         <div class="stat-icon bg-gradient-green">
                             <i class="fas fa-heartbeat"></i>
                         </div>
                         <div class="stat-info">
                             <h3 class="stat-value">99.8%</h3>
                             <p class="stat-label">System Uptime</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users by Role Cards -->
+                <div class="section-subheader" style="margin: 1.25rem 0 0.5rem;">
+                    <h4 style="font-size:0.95rem;font-weight:600;color:var(--text-secondary);"><i class="fas fa-users"></i>&nbsp; Users by Role</h4>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card fade-in" style="animation-delay: 0.15s">
+                        <div class="stat-icon bg-gradient-green">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="roleStudents">0</h3>
+                            <p class="stat-label">Students</p>
+                        </div>
+                    </div>
+                    <div class="stat-card fade-in" style="animation-delay: 0.2s">
+                        <div class="stat-icon bg-gradient-blue">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="roleTeachers">0</h3>
+                            <p class="stat-label">Teachers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card fade-in" style="animation-delay: 0.25s">
+                        <div class="stat-icon bg-gradient-orange">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="roleParents">0</h3>
+                            <p class="stat-label">Parents</p>
+                        </div>
+                    </div>
+                    <div class="stat-card fade-in" style="animation-delay: 0.3s">
+                        <div class="stat-icon bg-gradient-red">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 class="stat-value" id="roleAdmins">0</h3>
+                            <p class="stat-label">Admins</p>
                         </div>
                     </div>
                 </div>
@@ -224,11 +279,11 @@
                                 </div>
                                 <div class="health-status">
                                     <div class="health-bar">
-                                        <div class="health-progress" style="width: 85%"></div>
+                                        <div class="health-progress" id="healthDbProgress" style="width: 85%"></div>
                                     </div>
-                                    <span class="health-value">85%</span>
+                                    <span class="health-value" id="healthDbValue">85%</span>
                                 </div>
-                                <span class="badge badge-success">Healthy</span>
+                                <span class="badge badge-success" id="healthDbStatus">Healthy</span>
                             </div>
 
                             <div class="health-item">
@@ -237,11 +292,11 @@
                                 </div>
                                 <div class="health-status">
                                     <div class="health-bar">
-                                        <div class="health-progress" style="width: 62%"></div>
+                                        <div class="health-progress" id="healthMemoryProgress" style="width: 62%"></div>
                                     </div>
-                                    <span class="health-value">62%</span>
+                                    <span class="health-value" id="healthMemoryValue">62%</span>
                                 </div>
-                                <span class="badge badge-success">Healthy</span>
+                                <span class="badge badge-success" id="healthMemoryStatus">Healthy</span>
                             </div>
 
                             <div class="health-item">
@@ -250,11 +305,11 @@
                                 </div>
                                 <div class="health-status">
                                     <div class="health-bar">
-                                        <div class="health-progress" style="width: 45%"></div>
+                                        <div class="health-progress" id="healthCpuProgress" style="width: 45%"></div>
                                     </div>
-                                    <span class="health-value">45%</span>
+                                    <span class="health-value" id="healthCpuValue">45%</span>
                                 </div>
-                                <span class="badge badge-success">Healthy</span>
+                                <span class="badge badge-success" id="healthCpuStatus">Healthy</span>
                             </div>
 
                             <div class="health-item">
@@ -263,11 +318,11 @@
                                 </div>
                                 <div class="health-status">
                                     <div class="health-bar">
-                                        <div class="health-progress" style="width: 73%"></div>
+                                        <div class="health-progress" id="healthStorageProgress" style="width: 73%"></div>
                                     </div>
-                                    <span class="health-value">73%</span>
+                                    <span class="health-value" id="healthStorageValue">73%</span>
                                 </div>
-                                <span class="badge badge-warning">Monitor</span>
+                                <span class="badge badge-warning" id="healthStorageStatus">Monitor</span>
                             </div>
                         </div>
                     </div>
@@ -282,56 +337,8 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="activity-list">
-                            <div class="activity-item">
-                                <div class="activity-icon bg-gradient-green">
-                                    <i class="fas fa-building"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p class="activity-title">New institution registered</p>
-                                    <p class="activity-meta">Springfield Academy - 2 hours ago</p>
-                                </div>
-                            </div>
-
-                            <div class="activity-item">
-                                <div class="activity-icon bg-gradient-blue">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p class="activity-title">New admin account created</p>
-                                    <p class="activity-meta">John Smith - 5 hours ago</p>
-                                </div>
-                            </div>
-
-                            <div class="activity-item">
-                                <div class="activity-icon bg-gradient-orange">
-                                    <i class="fas fa-database"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p class="activity-title">Database backup completed</p>
-                                    <p class="activity-meta">Auto backup - 8 hours ago</p>
-                                </div>
-                            </div>
-
-                            <div class="activity-item">
-                                <div class="activity-icon bg-gradient-purple">
-                                    <i class="fas fa-sync-alt"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p class="activity-title">System update completed</p>
-                                    <p class="activity-meta">Version 2.5.1 - 1 day ago</p>
-                                </div>
-                            </div>
-
-                            <div class="activity-item">
-                                <div class="activity-icon bg-gradient-red">
-                                    <i class="fas fa-shield-alt"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p class="activity-title">Security scan completed</p>
-                                    <p class="activity-meta">No threats detected - 2 days ago</p>
-                                </div>
-                            </div>
+                        <div id="activityList" class="activity-list">
+                            <div style="text-align:center;padding:1rem;color:var(--text-secondary);"><i class="fas fa-spinner fa-spin"></i> Loading activities...</div>
                         </div>
                     </div>
                 </div>
@@ -398,6 +405,9 @@
 
     <!-- Scripts -->
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/utils.js"></script>
+    <script src="../assets/js/components.js"></script>
+    <script src="../assets/js/env.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>

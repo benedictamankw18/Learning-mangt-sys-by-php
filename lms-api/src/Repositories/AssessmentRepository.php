@@ -280,4 +280,82 @@ class AssessmentRepository
             return false;
         }
     }
+
+    /**
+     * Count published assessments of type 'exam' due within the next N days,
+     * scoped to an institution via the class_subjects join.
+     *
+     * @param int $institutionId
+     * @param int $days  Look-ahead window (default 7 days)
+     * @return int
+     */
+    public function countUpcomingByInstitution(int $institutionId, int $days = 7): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assessments a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE cs.institution_id = :institution_id
+                  AND a.assessment_type  = 'exam'
+                  AND a.is_published     = 1
+                  AND a.due_date        >= CURRENT_DATE()
+                  AND a.due_date        <  DATE_ADD(CURRENT_DATE(), INTERVAL :days DAY)
+            ");
+            $stmt->execute(['institution_id' => $institutionId, 'days' => $days]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Upcoming Exams Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Count published assessments due within the next N days for a teacher's courses.
+     */
+    public function countUpcomingByTeacher(int $teacherId, int $days = 7): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assessments a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE cs.teacher_id   = :teacher_id
+                  AND a.is_published  = 1
+                  AND a.due_date     >= CURRENT_DATE()
+                  AND a.due_date     <  DATE_ADD(CURRENT_DATE(), INTERVAL :days DAY)
+            ");
+            $stmt->execute(['teacher_id' => $teacherId, 'days' => $days]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Teacher Upcoming Assessments Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Count published assessments due within the next N days for a student's enrolled courses.
+     */
+    public function countUpcomingByStudent(int $studentId, int $days = 7): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assessments a
+                INNER JOIN course_enrollments ce ON a.course_id = ce.course_id
+                WHERE ce.student_id = :student_id
+                  AND ce.status     = 'active'
+                  AND a.is_published = 1
+                  AND a.due_date    >= CURRENT_DATE()
+                  AND a.due_date    <  DATE_ADD(CURRENT_DATE(), INTERVAL :days DAY)
+            ");
+            $stmt->bindValue(':student_id', $studentId, \PDO::PARAM_INT);
+            $stmt->bindValue(':days', $days, \PDO::PARAM_INT);
+            $stmt->execute();
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Student Upcoming Assessments Error: " . $e->getMessage());
+            return 0;
+        }
+    }
 }

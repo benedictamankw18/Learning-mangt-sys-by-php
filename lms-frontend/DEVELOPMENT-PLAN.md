@@ -1,0 +1,1457 @@
+# Ghana SHS LMS - Frontend Development Plan (5 Stages)
+
+**Project:** Ghana Senior High School Learning Management System - Frontend  
+**Version:** 1.0  
+**Created:** March 4, 2026  
+**Total Pages to Build:** 70 pages  
+**Timeline:** 12-14 weeks  
+**Approach:** 5-Stage Progressive Development
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Development Philosophy](#development-philosophy)
+- [Stage 1: Foundation & Authentication](#stage-1-foundation--authentication-2-weeks)
+- [Stage 2: Core Management](#stage-2-core-management-3-weeks)
+- [Stage 3: Academic Operations](#stage-3-academic-operations-3-weeks)
+- [Stage 4: Assessment & Reporting](#stage-4-assessment--reporting-3-weeks)
+- [Stage 5: Communication & Polish](#stage-5-communication--polish-2-3-weeks)
+- [Success Metrics](#success-metrics)
+- [Risk Management](#risk-management)
+
+---
+
+## 🎯 Overview
+
+This document outlines the 5-stage approach to building the Ghana SHS LMS frontend from the current state (25 incomplete pages) to a fully functional system (95 complete pages).
+
+### Current Status
+
+- **Existing Pages:** 25 (70% incomplete/need enhancement)
+- **Pages to Create:** 70
+- **Total Target:** 95 fully functional pages
+
+### Development Stages
+
+| Stage | Focus Area             | Duration  | Pages | Deliverable                       |
+| ----- | ---------------------- | --------- | ----- | --------------------------------- |
+| **1** | Foundation & Auth      | 2 weeks   | 10    | Working login & dashboards        |
+| **2** | Core Management        | 3 weeks   | 20    | Student/Teacher/Class management  |
+| **3** | Academic Operations    | 3 weeks   | 20    | Attendance, Schedule, Materials   |
+| **4** | Assessment & Reporting | 3 weeks   | 15    | Assignments, Grades, Reports      |
+| **5** | Communication & Polish | 2-3 weeks | 30    | Messages, Analytics, Final polish |
+
+---
+
+## 💡 Development Philosophy
+
+### Progressive Enhancement
+
+Each stage builds upon the previous, ensuring:
+
+- ✅ Working software at end of each stage
+- ✅ Testable deliverables
+- ✅ Incremental value delivery
+- ✅ Early feedback opportunities
+
+### Quality Gates
+
+Every stage must pass:
+
+- ✅ All API integrations working
+- ✅ No console errors
+- ✅ Responsive design verified
+- ✅ Role-based access enforced
+- ✅ User acceptance testing passed
+
+### Technology Stack
+
+- **Frontend:** HTML5, CSS3, JavaScript (ES6+)
+- **UI Framework:** Tailwind CSS 3.x (via CDN for development)
+- **JavaScript Libraries:** Chart.js, DataTables
+- **API Communication:** Fetch API
+- **Export:** jsPDF, XLSX
+- **Icons:** Font Awesome 6.4.0
+- **Backend API:** REST API (http://127.0.0.1:8000/api)
+
+---
+
+## 🚀 STAGE 1: Foundation & Authentication (2 weeks)
+
+### Objective
+
+Build a solid foundation with working authentication and basic dashboards for all roles.
+
+### Deliverables
+
+- ✅ Secure authentication system
+- ✅ Role-based login and redirect
+- ✅ Functional dashboards with live data
+- ✅ Common components (sidebar, header, footer)
+
+---
+
+### Week 1: Authentication & Infrastructure
+
+#### 📝 Tasks
+
+**Day 1-2: Core Configuration**
+
+- [x] **Configure API Integration**
+  - Update `assets/js/config.js` with production-ready settings
+  - Set up environment variables for dev/staging/production
+  - Configure CORS handling
+- [x] **Build Authentication Module**
+  - Complete `assets/js/auth.js`
+    - Login/logout functions
+    - Token management (storage, refresh)
+    - Session timeout handling
+    - Role-based redirects
+- [x] **Enhance API Client**
+  - Complete `assets/js/api.js`
+    - HTTP methods (GET, POST, PUT, DELETE)
+    - Error handling and retry logic
+    - Request/response interceptors
+    - Loading state management
+
+**Day 3-4: Authentication Pages**
+
+- [x] **Fix Login Page** (`login.html`)
+  - Form validation (client-side)
+  - API integration for login endpoint
+  - Error message display
+  - Remember me functionality
+  - Loading spinner on submit
+- [x] **Enhance Forgot Password** (`forgot-password.html`)
+  - Email validation
+  - API integration
+  - Success/error feedback
+- [x] **Complete Reset Password** (`reset-password.html`)
+  - Token validation
+  - Password strength indicator
+  - Confirm password matching
+  - API integration
+
+**Day 5: Common Components**
+
+- [x] **Create Reusable Components**
+  - Navigation sidebar template
+  - Header with user menu
+  - Breadcrumb component
+  - Loading spinner
+  - Toast notifications (success/error/warning)
+  - Modal dialog template
+  - Data table template
+- [x] **Build Utility Functions** (`assets/js/utils.js`)
+  - Date formatting
+  - Number formatting
+  - Form validation helpers
+  - Ghana WAEC grade converter (A1-F9)
+  - Export to PDF/Excel helpers
+
+---
+
+### Week 2: Dashboards for All Roles
+
+#### 📝 Tasks
+
+**Day 1: Super Admin Dashboard**
+
+- [x] **Complete** `superadmin/dashboard.html`
+  - [x] Total institutions widget
+  - [x] Total users by role widget
+  - [x] Active subscriptions widget
+  - [x] System health indicators
+  - [x] Recent activities list
+  - [x] Quick action buttons
+  - [x] Charts: User growth, Institution growth
+
+**Day 2: Admin Dashboard**
+
+- [x] **Complete** `admin/dashboard.html`
+  - [x] Total students widget (with growth % badge)
+  - [x] Total teachers widget (with growth % badge)
+  - [x] Total classes widget (with growth % badge)
+  - [x] Attendance rate (today/week) — `AttendanceRepository::getDailyRateByInstitution()` + `getWeeklyRateByInstitution()`, wired to `DashboardController::adminStats()`
+  - [x] Upcoming exams widget — `AssessmentRepository::countUpcomingByInstitution()` (published exams due within 7 days)
+  - [x] Pending tasks widget — `UserRepository::countInactiveByInstitution()` (accounts awaiting activation)
+  - [x] Recent activities (stacked list via `AdminActivityAPI`)
+  - [x] Charts: Enrollment trend (rolling 12-month), Student distribution by program
+
+**Day 3: Teacher Dashboard**
+
+- [x] **Complete** `teacher/dashboard.html`
+  - [x] Today's classes widget — `AttendanceRepository::countTodayScheduleByTeacher()` via `course_schedules`
+  - [x] Pending assignments to grade — `AssignmentRepository::countPendingGradesByTeacher()` (status='submitted')
+  - [x] Attendance summary — `AttendanceRepository::getDailyRateByTeacher()` + `getWeeklyRateByTeacher()`
+  - [x] Upcoming assessments — `AssessmentRepository::countUpcomingByTeacher()` (next 7 days)
+  - [x] Recent student submissions — `AssignmentRepository::getRecentSubmissionsByTeacher()` (5 most recent ungraded)
+  - [x] Quick actions (take attendance, grade assignment, create assignment, view schedule)
+  - [x] Charts: Class performance (bar, avg score per course), Attendance trends (rolling 12-month line)
+
+**Day 4: Student Dashboard**
+
+- [x] **Complete** `student/dashboard.html`
+  - Today's classes widget
+  - Pending assignments widget
+  - Recent grades widget
+  - Upcoming assessments
+  - Attendance percentage widget
+  - Recent announcements
+  - Charts: Grade trends by subject
+
+**Day 5: Parent Dashboard**
+
+- [x] **Complete** `parent/dashboard.html`
+  - Children selector (if multiple)
+  - Selected child's overview
+  - Recent grades widget
+  - Attendance summary
+  - Upcoming events for child
+  - Pending fee status (if applicable)
+  - Charts: Child's performance trends
+
+---
+
+### ✅ Stage 1 Acceptance Criteria
+
+**Functional Requirements:**
+
+- [x] Users can log in with correct credentials
+- [x] Invalid login shows appropriate error
+- [x] Users are redirected to correct dashboard based on role
+- [x] All dashboards load with live data from API
+- [x] Widgets display accurate real-time statistics
+- [x] Charts render correctly with proper data
+- [x] Logout works and clears session
+- [x] Session timeout redirects to login
+
+**Technical Requirements:**
+
+- [x] No console errors on any page
+- [x] All API calls use proper authentication
+- [x] Token is stored securely
+- [x] Loading indicators show during API calls
+- [x] Error messages display user-friendly text
+- [x] Responsive design works on mobile/tablet/desktop
+
+**Testing:**
+
+- [x] Test with all 5 user roles
+- [x] Test with invalid credentials
+- [x] Test session timeout
+- [x] Test logout from all dashboards
+- [x] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+
+---
+
+## 🏫 STAGE 2: Core Management (3 weeks)
+
+### Objective
+
+Build the foundational data management pages for students, teachers, classes, and programs.
+
+### Deliverables
+
+- ✅ Complete CRUD for students, teachers, classes
+- ✅ Bulk import/export functionality
+- ✅ User profile management
+- ✅ Role and permission management
+
+---
+
+### Week 3: Student & Teacher Management
+
+#### 📝 Tasks
+
+**Day 1-2: Student Management**
+
+- [x] **Enhance** `admin/students.html`
+  - Student list with DataTables (search, filter, sort, pagination)
+  - Filter by class, program, grade level, status
+  - Add student button → modal form
+  - Edit student → modal form
+  - View student details → dedicated page
+  - Bulk import from CSV
+  - Export to Excel/PDF
+  - Activate/deactivate students
+- [x] **Create** `admin/student-details.html`
+  - Personal information tab
+  - Academic history tab
+  - Attendance record tab
+  - Grade history tab
+  - Parent/guardian information
+  - Enrollment history
+  - Edit button
+
+**Day 3-4: Teacher Management**
+
+- [ ] **Enhance** `admin/teachers.html`
+  - Teacher list with DataTables
+  - Filter by department, subject, status
+  - Add teacher → modal form
+  - Edit teacher → modal form
+  - View teacher details → dedicated page
+  - Assign subjects to teacher
+  - View teacher schedule
+  - Export teacher list
+- [ ] **Create** `admin/teacher-details.html`
+  - Personal information tab
+  - Assigned subjects tab
+  - Assigned classes tab
+  - Schedule/timetable tab
+  - Performance metrics (optional)
+  - Edit button
+
+**Day 5: Profile Pages**
+
+- [ ] **Enhance** `admin/myprofile.html`
+  - View/edit personal information
+  - Change password
+  - Upload profile photo
+  - Notification preferences
+  - Session management
+- [ ] **Enhance** `teacher/myprofile.html`
+  - Similar to admin profile
+  - Professional details (qualifications, subjects)
+- [ ] **Enhance** `student/myprofile.html`
+  - Personal information
+  - Emergency contacts
+  - Parent/guardian details
+- [ ] **Enhance** `parent/myprofile.html`
+  - Personal information
+  - Linked children
+  - Contact preferences
+
+---
+
+### Week 4: Class & Program Management
+
+#### 📝 Tasks
+
+**Day 1-2: Classes**
+
+- [ ] **Enhance** `admin/classes.html`
+  - Class list with filtering
+  - Create class → modal form
+  - Edit class
+  - View class roster
+  - Assign class teacher
+  - Class capacity management
+  - Student enrollment to class
+- [ ] **Create** `admin/class-details.html`
+  - Class information
+  - Student roster (with photos)
+  - Assigned subjects
+  - Class teacher
+  - Class schedule
+  - Performance statistics
+
+**Day 2-3: Programs & Subjects**
+
+- [ ] **Enhance** `admin/programs.html`
+  - Programs list (General Science, Arts, Business, etc.)
+  - Create/edit programs
+  - Program subjects (core and elective)
+  - Active/inactive status
+- [ ] **Enhance** `admin/subjects.html`
+  - Subject list with DataTables
+  - Create/edit subjects
+  - Subject codes (Ghana syllabus)
+  - Assign subjects to classes
+  - Assign teachers to subjects
+  - Core vs elective marking
+
+**Day 4: Teacher Pages**
+
+- [ ] **Create** `teacher/my-classes.html`
+  - List of classes teaching
+  - Class roster for each class
+  - Student count per class
+  - Class schedule link
+  - Quick actions (take attendance, grade submission)
+- [ ] **Create** `teacher/my-subjects.html`
+  - List of subjects teaching
+  - Subject information (syllabus, curriculum)
+  - Classes assigned per subject
+  - Learning objectives
+  - Subject schedule
+
+**Day 5: Student Pages**
+
+- [ ] **Create** `student/my-classes.html`
+  - List of enrolled classes/subjects
+  - Class details (teacher, schedule)
+  - Classmates list
+  - Subject progress indicator
+- [ ] **Create** `student/my-subjects.html`
+  - Subject list with details
+  - Teacher information
+  - Subject schedule
+  - Current grade in subject
+  - Performance trend
+
+---
+
+### Week 5: Users, Roles & Parent Management
+
+#### 📝 Tasks
+
+**Day 1-2: User Management**
+
+- [ ] **Enhance** `admin/users.html`
+  - User list with role filter
+  - Create user → modal form
+  - Edit user
+  - Assign roles
+  - Activate/deactivate users
+  - Reset password
+  - View user activity
+- [ ] **Enhance** `admin/roles.html`
+  - Role list
+  - Create/edit roles
+  - Permission assignment
+  - Users with role count
+  - Default permissions per role
+- [ ] **Enhance** `superadmin/users.html`
+  - Platform-wide user list
+  - Filter by institution
+  - Super admin management
+  - Bulk operations
+
+**Day 3: Parent Management**
+
+- [ ] **Create** `parent/my-children.html`
+  - List of linked children/wards
+  - Child selector/switcher
+  - Child profile overview
+  - Current class and program
+  - Academic standing
+  - Quick links (grades, attendance)
+- [ ] **Create** `admin/parents.html` (if not exists)
+  - Parent list
+  - Add parent
+  - Link parent to students
+  - Parent contact information
+  - Communication preferences
+
+**Day 4-5: Institution Management (Super Admin)**
+
+- [ ] **Enhance** `superadmin/institutions.html`
+  - Institution list with search/filter
+  - Add institution → comprehensive form
+  - Edit institution details
+  - View institution dashboard
+  - Activate/deactivate institution
+  - Subscription management link
+  - Admin assignment
+- [ ] **Create** `superadmin/institution-details.html`
+  - Institution profile
+  - Statistics (students, teachers, classes)
+  - Active subscription
+  - Payment history
+  - Admin users
+  - Activity log
+
+---
+
+### ✅ Stage 2 Acceptance Criteria
+
+**Functional Requirements:**
+
+- [ ] Can create, read, update, delete students
+- [ ] Can create, read, update, delete teachers
+- [ ] Can create and manage classes
+- [ ] Can assign teachers to classes/subjects
+- [ ] Can enroll students in classes
+- [ ] Bulk import works for students (CSV)
+- [ ] Export to Excel/PDF works
+- [ ] Parents can view linked children
+- [ ] User roles and permissions enforced
+
+**Technical Requirements:**
+
+- [ ] All forms validate input
+- [ ] DataTables work with pagination, search, sort
+- [ ] Modal forms open and close properly
+- [ ] File uploads work (CSV, profile photos)
+- [ ] Success/error messages show appropriately
+- [ ] No data loss on page refresh
+
+**Testing:**
+
+- [ ] CRUD operations for all entities
+- [ ] Role-based access (teacher can't access admin pages)
+- [ ] Data integrity (cascading deletes, relationships)
+- [ ] Bulk operations (import/export)
+
+---
+
+## 📚 STAGE 3: Academic Operations (3 weeks)
+
+### Objective
+
+Implement attendance tracking, timetables, and course materials management.
+
+### Deliverables
+
+- ✅ Attendance marking and monitoring
+- ✅ Timetable/schedule viewing and management
+- ✅ Course materials upload and download
+- ✅ School calendar and events
+
+---
+
+### Week 6: Attendance System
+
+#### 📝 Tasks
+
+**Day 1-2: Admin Attendance**
+
+- [ ] **Create** `admin/attendance.html`
+  - Daily attendance overview dashboard
+  - Attendance by class widget
+  - Attendance by date selector
+  - Absent students list
+  - Late arrivals list
+  - Attendance statistics (today, week, month)
+  - Attendance trends chart
+  - Export attendance reports
+  - Filter by class, date range
+  - Parent notification for absences (auto/manual)
+
+**Day 2-3: Teacher Attendance**
+
+- [ ] **Create** `teacher/attendance.html`
+  - Select class and subject
+  - Date selector (defaults to today)
+  - Student list with attendance marking
+  - Status options: Present, Absent, Late, Excused
+  - Bulk mark (all present/absent)
+  - Submit attendance
+  - View past attendance (read-only)
+  - Attendance statistics per class
+  - Export class attendance
+
+**Day 4: Student Attendance**
+
+- [ ] **Create** `student/attendance.html`
+  - Overall attendance percentage
+  - Attendance calendar view
+  - Attendance by subject
+  - Present/Absent/Late breakdown
+  - Attendance trends chart
+  - Absence reasons (if recorded)
+  - Monthly attendance summary
+
+**Day 5: Parent Attendance**
+
+- [ ] **Create** `parent/attendance.html`
+  - Child selector (if multiple)
+  - Child's overall attendance
+  - Attendance calendar
+  - Absence alerts/notifications
+  - Attendance by subject
+  - Attendance trends
+  - Compare with class average
+  - Download attendance report
+
+---
+
+### Week 7: Timetable & Schedule
+
+#### 📝 Tasks
+
+**Day 1-2: Admin Timetable**
+
+- [ ] **Create** `admin/timetable.html`
+  - Timetable management dashboard
+  - Create timetable for semester
+  - Class-based view
+  - Teacher-based view
+  - Period configuration (time slots)
+  - Assign subjects to periods
+  - Assign teachers to periods
+  - Room/venue allocation
+  - Conflict detection (teacher double-booking)
+  - Publish/unpublish timetable
+  - Export timetable to PDF
+  - Print-friendly view
+
+**Day 2-3: Teacher Timetable**
+
+- [ ] **Create** `teacher/timetable.html`
+  - Teacher's personal timetable
+  - Weekly view (Mon-Fri)
+  - Daily view
+  - Semester view
+  - Filter by week
+  - Show assigned classes and rooms
+  - Color-coded by subject
+  - Today's classes highlighted
+  - Export personal timetable
+  - Print view
+
+**Day 3-4: Student Timetable**
+
+- [ ] **Create** `student/timetable.html`
+  - Student's class timetable
+  - Weekly view
+  - Daily view
+  - Period details (subject, teacher, room)
+  - Current period highlighted (if in session)
+  - Next class indicator
+  - Export timetable to PDF
+  - Print view
+  - Sync to calendar (optional)
+
+**Day 4-5: Parent & Calendar**
+
+- [ ] **Create** `parent/timetable.html`
+  - Child selector
+  - Child's timetable view
+  - Weekly schedule
+  - Daily schedule
+  - Export and print
+- [ ] **Create** `common/calendar.html`
+  - School calendar with academic events
+  - Semester dates
+  - Exam periods
+  - Holidays and breaks
+  - School events (sports day, speech day)
+  - Month/week view
+  - Filter by event type
+  - Add personal events (role-based)
+  - Export calendar
+
+---
+
+### Week 8: Course Materials & Content
+
+#### 📝 Tasks
+
+**Day 1-2: Teacher Materials**
+
+- [ ] **Create** `teacher/course-materials.html`
+  - Materials list by subject
+  - Upload materials (PDF, Word, PowerPoint, etc.)
+  - Organize by topic/unit/week
+  - Edit material details (title, description)
+  - Share with classes
+  - Set access permissions (view/download)
+  - Track student downloads
+  - Delete materials
+  - File size validation
+  - Allowed file types check
+- [ ] **Create** `teacher/lesson-plans.html`
+  - Lesson plan list
+  - Create lesson plan
+  - Weekly lesson plans
+  - Learning objectives
+  - Activities and resources
+  - Assessment methods
+  - Notes section
+  - Link to course materials
+  - Export lesson plans
+
+**Day 3-4: Student Materials**
+
+- [ ] **Create** `student/course-materials.html`
+  - Materials by subject
+  - Filter by topic/week
+  - Search materials
+  - Preview materials (if supported)
+  - Download materials
+  - Recently uploaded materials
+  - Download history
+  - Bookmarks/favorites
+
+**Day 5: Admin & Parent**
+
+- [ ] **Create** `admin/course-materials.html` (optional)
+  - Overview of all materials
+  - Materials by class/subject
+  - Storage usage statistics
+  - Approve/moderate materials
+- [ ] **Update** `parent/performance.html` foundation
+  - Prepare performance tracking structure
+  - Link to materials child has accessed
+
+---
+
+### ✅ Stage 3 Acceptance Criteria
+
+**Functional Requirements:**
+
+- [ ] Teachers can mark attendance for their classes
+- [ ] Students can view their attendance records
+- [ ] Parents can monitor child's attendance
+- [ ] Admins can generate attendance reports
+- [ ] Timetables display correctly for all roles
+- [ ] Teachers can upload course materials
+- [ ] Students can download course materials
+- [ ] School calendar shows all events
+
+**Technical Requirements:**
+
+- [ ] File uploads work with size/type validation
+- [ ] Timetable conflicts are detected
+- [ ] Attendance data saves correctly
+- [ ] Calendar integrates with academic year/semester
+- [ ] PDF export works for timetables
+- [ ] Download tracking works for materials
+
+**Testing:**
+
+- [ ] Mark attendance for multiple classes
+- [ ] Upload various file types
+- [ ] View timetable on mobile devices
+- [ ] Export attendance reports
+- [ ] Calendar events display correctly
+
+---
+
+## 📝 STAGE 4: Assessment & Reporting (3 weeks)
+
+### Objective
+
+Build the complete assessment, grading, and reporting system with Ghana WAEC compliance.
+
+### Deliverables
+
+- ✅ Assignment creation and submission
+- ✅ Quiz creation and taking
+- ✅ Assessment management
+- ✅ Grade entry and calculation (WAEC scale)
+- ✅ Report card generation
+
+---
+
+### Week 9: Assignments & Assessments
+
+#### 📝 Tasks
+
+**Day 1-2: Teacher Assignments**
+
+- [ ] **Enhance** `teacher/assignments.html`
+  - Assignment list (all classes/subjects)
+  - Create assignment form:
+    - Title and description
+    - Select class and subject
+    - Due date and time
+    - Upload instructions/attachments
+    - Total points/marks
+    - Submission type (file upload, text, both)
+  - Edit assignment
+  - View submissions list
+  - Download all submissions (ZIP)
+  - Grade submissions interface
+  - Provide feedback
+  - Publish grades
+  - Assignment analytics (submission rate)
+
+**Day 2-3: Student Assignments**
+
+- [ ] **Create** `student/assignments.html`
+  - Assignment list by status:
+    - Pending (not submitted)
+    - Submitted (awaiting grade)
+    - Graded (with feedback)
+  - Filter by subject
+  - View assignment details
+  - Upload submission
+  - Submit assignment
+  - View grade and feedback
+  - Late submission indicator
+  - Download assignment instructions
+
+**Day 3-4: Assessment Management**
+
+- [ ] **Create** `admin/assessments.html`
+  - Assessment categories management
+    - Class Test (CA)
+    - Mid-term Exam
+    - End-of-term Exam
+    - Project/Assignment
+    - Classwork
+  - Weight/percentage per category
+  - Assessment schedule
+  - Upcoming assessments by class
+  - Assessment calendar
+- [ ] **Create** `teacher/assessments.html`
+  - Create assessment:
+    - Select class and subject
+    - Assessment type/category
+    - Date and time
+    - Duration
+    - Total marks
+    - Instructions
+  - Schedule assessments
+  - Record marks/grades
+  - Submit grades to admin
+  - Assessment results analytics
+
+**Day 4-5: Student & Parent Assessment Views**
+
+- [ ] **Create** `student/assessments.html`
+  - Upcoming assessments
+  - Assessment schedule
+  - Past assessments with results
+  - Assessment preparation materials
+- [ ] **Create** `student/exams.html`
+  - Exam timetable
+  - Exam venues
+  - Exam instructions
+  - Past exam results
+  - WASSCE preparation section
+- [ ] **Update** `parent/assignments.html`
+  - Child's pending assignments
+  - Submitted assignments
+  - Graded assignments with scores
+  - Assignment completion rate
+
+---
+
+### Week 10: Quizzes & Online Assessments
+
+#### 📝 Tasks
+
+**Day 1-2: Teacher Quiz Creation**
+
+- [ ] **Create** `teacher/quizzes.html`
+  - Quiz list
+  - Create quiz form:
+    - Quiz title and description
+    - Select class and subject
+    - Time limit
+    - Total points
+    - Pass mark
+    - Available from/to dates
+    - Shuffle questions
+    - Show results immediately
+  - Question bank:
+    - Multiple choice questions
+    - True/False questions
+    - Short answer (text)
+    - Essay questions
+  - Add questions:
+    - Question text
+    - Question image (optional)
+    - Options (A, B, C, D)
+    - Correct answer
+    - Points per question
+    - Explanation (optional)
+  - Edit/delete questions
+  - Preview quiz
+  - Publish quiz
+  - View results and analytics
+  - Export quiz results
+
+**Day 3-4: Student Quiz Taking**
+
+- [ ] **Create** `student/quizzes.html`
+  - Available quizzes list
+  - Quiz details (title, duration, points)
+  - Start quiz button
+  - Take quiz interface:
+    - Question navigation
+    - Timer countdown
+    - Answer selection
+    - Save draft
+    - Submit quiz
+    - Warning before time expires
+  - View results (if allowed)
+  - Review answers (if allowed)
+  - Quiz history
+  - Score statistics
+
+**Day 5: Admin & Parent Views**
+
+- [ ] **Create** `admin/quizzes.html`
+  - All quizzes overview
+  - Quiz statistics by class
+  - Average scores
+  - Completion rates
+- [ ] **Update** `parent/performance.html`
+  - Add quiz results section
+  - Quiz scores by subject
+  - Completion status
+
+---
+
+### Week 11: Grades & Report Cards
+
+#### 📝 Tasks
+
+**Day 1-2: Grade Entry & Management**
+
+- [ ] **Enhance** `teacher/grades.html`
+  - Select class and subject
+  - Select assessment category
+  - Student list with grade entry
+  - Ghana WAEC grade scale (A1-F9) selector
+  - Enter marks (auto-convert to grade)
+  - Bulk grade entry
+  - Save as draft
+  - Submit grades
+  - Grade statistics (average, highest, lowest)
+  - Grade distribution chart
+  - Export grades to Excel
+- [ ] **Create** `admin/grades.html`
+  - Grade overview by class
+  - Grade scales management (A1-F9)
+  - Grade boundaries configuration
+  - Approve teacher-submitted grades
+  - Grade analytics
+  - Class performance comparison
+  - Subject performance comparison
+
+**Day 3-4: Grade Reports**
+
+- [ ] **Create** `teacher/reports.html`
+  - Class performance reports
+  - Subject analysis
+  - Student progress reports
+  - Generate report cards
+  - Export to PDF
+  - Print-friendly view
+  - Semester summary reports
+- [ ] **Create** `admin/reports.html`
+  - School-wide reports
+  - Academic performance by class
+  - Academic performance by program
+  - Semester reports
+  - Annual reports
+  - WASSCE preparation reports
+  - Student progress tracking
+  - Teacher performance (optional)
+  - Attendance reports
+  - Enrollment reports
+  - Custom report builder
+  - Schedule automated reports
+  - Export all reports (PDF/Excel)
+
+**Day 5: Student & Parent Grade Views**
+
+- [ ] **Enhance** `student/grades.html`
+  - Current grades by subject
+  - Grade breakdown:
+    - Continuous Assessment (CA) - 40%
+    - End-of-term Exam - 60%
+  - Semester grades
+  - Grade trends chart
+  - GPA calculation (if applicable)
+  - Class ranking (if enabled)
+  - Download report card
+  - Print report card
+- [ ] **Complete** `parent/performance.html`
+  - Child's academic performance
+  - Grades by subject (WAEC scale)
+  - Grade trends over time
+  - Progress tracking
+  - Comparison with class average
+  - Strengths and weaknesses
+  - Teacher comments
+  - Download report card
+  - Historical reports
+
+---
+
+### ✅ Stage 4 Acceptance Criteria
+
+**Functional Requirements:**
+
+- [ ] Teachers can create and manage assignments
+- [ ] Students can submit assignments
+- [ ] Teachers can grade assignments
+- [ ] Teachers can create quizzes with multiple question types
+- [ ] Students can take quizzes
+- [ ] Quizzes auto-grade multiple choice questions
+- [ ] Teachers can enter grades using WAEC scale
+- [ ] Report cards generate with correct Ghana format
+- [ ] Parents can view child's grades and reports
+
+**Technical Requirements:**
+
+- [ ] File uploads work for assignments
+- [ ] Quiz timer functions correctly
+- [ ] Grades calculate correctly (CA 40% + Exam 60%)
+- [ ] WAEC grade conversion (marks to A1-F9) works
+- [ ] PDF report cards generate with proper formatting
+- [ ] Excel export works for grade sheets
+
+**Ghana WAEC Compliance:**
+
+- [ ] Grading scale A1-F9 implemented
+- [ ] Grade boundaries configurable (75-100=A1, 70-74=B2, etc.)
+- [ ] Report cards show subject-wise grades
+- [ ] Continuous assessment (CA) vs exam split
+- [ ] Class position/ranking (optional)
+
+**Testing:**
+
+- [ ] Create and submit assignments
+- [ ] Take a timed quiz
+- [ ] Enter grades for a full class
+- [ ] Generate and download report card
+- [ ] Verify grade calculations
+
+---
+
+## 💬 STAGE 5: Communication & Polish (2-3 weeks)
+
+### Objective
+
+Complete messaging, announcements, analytics, and final polish for production readiness.
+
+### Deliverables
+
+- ✅ Internal messaging system
+- ✅ Announcements and notifications
+- ✅ Events management
+- ✅ Analytics dashboards
+- ✅ Help and support
+- ✅ Super admin advanced features
+- ✅ Production-ready polish
+
+---
+
+### Week 12: Communication Systems
+
+#### 📝 Tasks
+
+**Day 1-2: Messaging System (All Roles)**
+
+- [ ] **Create** `admin/messages.html`
+  - Inbox (received messages)
+  - Sent messages
+  - Compose message:
+    - Recipient selector (individual/group)
+    - Subject and body
+    - Attach files
+    - Send button
+  - Reply to message
+  - Forward message
+  - Delete message
+  - Search messages
+  - Mark as read/unread
+  - Message thread view
+  - Bulk messaging (to classes, departments)
+- [ ] **Create** `teacher/messages.html`
+  - Similar to admin messages
+  - Send to students (individual/class)
+  - Send to parents
+  - Send to admin
+  - Read receipts
+- [ ] **Create** `student/messages.html`
+  - Inbox
+  - Send to teachers
+  - Send to classmates (if enabled)
+  - Reply to messages
+- [ ] **Create** `parent/messages.html`
+  - Inbox
+  - Send to teachers
+  - Send to admin
+  - Messages about linked children
+
+**Day 3-4: Announcements & Events**
+
+- [ ] **Create** `admin/announcements.html`
+  - Announcement list
+  - Create announcement:
+    - Title and content
+    - Target audience (all, students, teachers, parents, class)
+    - Priority (normal, urgent)
+    - Publish date
+    - Expiry date
+    - Attach files
+  - Edit announcement
+  - Delete announcement
+  - Publish/unpublish
+  - View analytics (read count)
+- [ ] **Create** `admin/events.html`
+  - Event list
+  - Create event:
+    - Event name
+    - Description
+    - Event type (exam, sports, holiday, etc.)
+    - Date and time
+    - Venue
+    - Target audience
+    - Reminders
+  - Edit/delete events
+  - Calendar view
+  - Export events
+- [ ] **Create** `teacher/announcements.html`
+  - Post class announcements
+  - View school announcements
+  - Target specific classes
+- [ ] **Create** Role-specific announcement views:
+  - `student/announcements.html`
+  - `parent/announcements.html`
+  - `parent/events.html`
+
+**Day 5: Notifications Enhancement**
+
+- [ ] **Enhance** `notifications.html`
+  - Notification center
+  - Unread notifications badge
+  - Notification types:
+    - New assignment
+    - Grade posted
+    - Message received
+    - Announcement
+    - Event reminder
+    - Attendance alert
+  - Mark as read
+  - Mark all as read
+  - Delete notification
+  - Filter by type
+  - Real-time updates (polling or WebSocket)
+
+---
+
+### Week 13: Analytics & Advanced Features
+
+#### 📝 Tasks
+
+**Day 1-2: Analytics & Performance**
+
+- [ ] **Create** `teacher/analytics.html`
+  - Class performance analytics
+  - Subject performance trends
+  - Student progress charts
+  - Assessment analytics
+  - Attendance trends
+  - Assignment submission rates
+  - Grade distribution
+  - Weak areas identification
+  - Visual charts (Chart.js)
+- [ ] **Create** `admin/analytics.html`
+  - School-wide analytics
+  - Enrollment trends
+  - Academic performance by program
+  - Attendance statistics
+  - Teacher performance metrics
+  - Class comparisons
+  - Year-over-year comparisons
+  - Export analytics reports
+
+**Day 2-3: Super Admin Advanced Features**
+
+- [ ] **Create** `superadmin/subscriptions.html`
+  - Subscription plans list
+  - Create/edit plans
+  - Active subscriptions
+  - Expired subscriptions
+  - Assign subscription to institution
+  - Subscription renewal
+  - Payment tracking
+  - Invoice generation
+  - Usage quotas and limits
+- [ ] **Create** `superadmin/reports.html`
+  - Platform-wide reports
+  - Institution performance
+  - User growth analytics
+  - Revenue reports
+  - Subscription analytics
+  - System usage reports
+  - Export reports
+- [ ] **Create** `superadmin/activity-logs.html`
+  - User login activity (all institutions)
+  - System activity logs
+  - Security events
+  - Filter by institution, user, date, action
+  - Export logs
+- [ ] **Create** `superadmin/api-management.html` 🔒
+  - API keys management
+  - Create/revoke API keys
+  - Third-party integrations
+  - Webhook configurations
+  - API usage monitoring
+  - Rate limiting settings
+- [ ] **Create** `superadmin/platform-announcements.html` 🔒
+  - Platform-wide announcements
+  - Send to all institutions
+  - Broadcast messages
+  - System notifications
+
+**Day 4: Admin Settings & Logs**
+
+- [ ] **Create** `admin/settings.html`
+  - Institution information
+  - School logo upload
+  - Academic year settings
+  - Semester dates
+  - Notification preferences
+  - SMS/Email gateway config
+  - Integration settings
+  - Backup settings
+- [ ] **Create** `admin/system-logs.html`
+  - Login activity (institution users)
+  - User activity logs
+  - System errors
+  - Audit trail
+  - Export logs
+
+**Day 5: Exams Management**
+
+- [ ] **Create** `admin/exams.html`
+  - Exam schedule
+  - Create exam timetable
+  - Invigilation assignments
+  - Exam halls allocation
+  - WASSCE mock exams
+  - Internal assessments
+  - Exam results aggregation
+
+---
+
+### Week 14: Final Polish & Production Prep
+
+#### 📝 Tasks
+
+**Day 1: Help & Support**
+
+- [ ] **Create** `common/help.html`
+  - User guides by role
+  - FAQs
+  - Video tutorials
+  - Feature documentation
+  - Contact support
+  - Troubleshooting
+- [ ] **Create** `common/support.html`
+  - Submit support ticket
+  - Ticket list
+  - Ticket status tracking
+  - Knowledge base search
+
+**Day 2-3: Responsive Design & Browser Testing**
+
+- [ ] **Mobile Optimization**
+  - Test all pages on mobile devices
+  - Fix layout issues
+  - Ensure tables are mobile-friendly
+  - Optimize navigation for small screens
+  - Test touch interactions
+- [ ] **Cross-Browser Testing**
+  - Test on Chrome
+  - Test on Firefox
+  - Test on Safari
+  - Test on Edge
+  - Fix compatibility issues
+- [ ] **Performance Optimization**
+  - Minimize CSS/JS files
+  - Optimize images
+  - Enable caching
+  - Lazy load images
+  - Reduce API calls
+  - Add loading skeletons
+
+**Day 4-5: Security & Final Checklist**
+
+- [ ] **Security Hardening**
+  - CSRF protection on all forms
+  - XSS prevention (sanitize inputs)
+  - SQL injection prevention (backend)
+  - Rate limiting on login
+  - Session timeout enforcement
+  - Secure token storage
+  - Role-based access enforcement
+  - Audit trail for sensitive actions
+- [ ] **Final Testing**
+  - Test all user journeys
+  - Test error scenarios
+  - Test edge cases
+  - Verify all API integrations
+  - Check all export functions
+  - Verify print layouts
+  - Test file uploads/downloads
+- [ ] **Documentation**
+  - Update README
+  - Document API endpoints used
+  - Create user manuals
+  - Create admin guide
+  - Document deployment process
+- [ ] **Production Prep**
+  - Environment configuration
+  - Update API URLs for production
+  - Enable production mode
+  - Disable debug logging
+  - Configure error reporting
+  - Setup monitoring
+  - Prepare backup strategy
+
+---
+
+### ✅ Stage 5 Acceptance Criteria
+
+**Functional Requirements:**
+
+- [ ] Users can send and receive messages
+- [ ] Announcements reach target audiences
+- [ ] Events display on calendar
+- [ ] Notifications work in real-time
+- [ ] Analytics charts display data correctly
+- [ ] Super admin can manage subscriptions
+- [ ] Help documentation is accessible
+- [ ] Support ticket system works
+
+**Technical Requirements:**
+
+- [ ] All pages are responsive (mobile, tablet, desktop)
+- [ ] No console errors across all browsers
+- [ ] Page load times under 3 seconds
+- [ ] All exports work (PDF, Excel)
+- [ ] File uploads handle errors gracefully
+- [ ] Security measures implemented
+
+**Production Readiness:**
+
+- [ ] All features tested end-to-end
+- [ ] Performance optimized
+- [ ] Security hardened
+- [ ] Documentation complete
+- [ ] Deployment guide ready
+- [ ] Backup strategy in place
+
+---
+
+## 📊 Success Metrics
+
+### Quantitative Metrics
+
+**Development Progress:**
+
+- [ ] 95 pages completed (100%)
+- [ ] All API endpoints integrated
+- [ ] Zero critical bugs
+- [ ] Less than 5 minor bugs
+
+**Performance:**
+
+- [ ] Page load time < 3 seconds
+- [ ] API response time < 1 second
+- [ ] 99% uptime
+- [ ] Mobile responsiveness score > 85%
+
+**Quality:**
+
+- [ ] Cross-browser compatibility (4 browsers)
+- [ ] Responsive design (3 breakpoints)
+- [ ] Accessibility score > 80% (WCAG 2.1)
+- [ ] Code coverage > 70% (if testing)
+
+### Qualitative Metrics
+
+**User Experience:**
+
+- Intuitive navigation
+- Clear error messages
+- Consistent design language
+- Fast and responsive
+
+**Functionality:**
+
+- All CRUD operations work
+- Role-based access enforced
+- Ghana WAEC compliance
+- Export features functional
+
+---
+
+## ⚠️ Risk Management
+
+### High-Priority Risks
+
+| Risk                      | Impact   | Mitigation                                  |
+| ------------------------- | -------- | ------------------------------------------- |
+| **API changes**           | High     | Maintain API documentation, version control |
+| **Browser compatibility** | Medium   | Early cross-browser testing                 |
+| **Data loss**             | High     | Implement auto-save, confirm before delete  |
+| **Security breach**       | Critical | Regular security audits, input validation   |
+| **Performance issues**    | Medium   | Optimize queries, lazy loading, caching     |
+
+### Contingency Plans
+
+**If Behind Schedule:**
+
+- Prioritize P1 features
+- Defer P3-P4 features to post-launch
+- Increase team resources
+- Extend timeline by 1 week
+
+**If Technical Blockers:**
+
+- Document blockers immediately
+- Seek alternative solutions
+- Escalate to stakeholders
+- Adjust scope if necessary
+
+**If Quality Issues:**
+
+- Extend testing phase
+- Fix critical bugs first
+- Plan post-launch patches
+- Gather user feedback early
+
+---
+
+## 📋 Final Checklist
+
+Before marking each stage complete:
+
+### Stage Completion Criteria
+
+- [ ] All pages in stage are created
+- [ ] All API integrations work
+- [ ] No console errors
+- [ ] Responsive design verified
+- [ ] Cross-browser tested
+- [ ] User acceptance testing passed
+- [ ] Documentation updated
+- [ ] Code reviewed (if team)
+- [ ] Deployed to staging
+- [ ] Stakeholder approval
+
+### Production Deployment Checklist
+
+- [ ] All 5 stages completed
+- [ ] Final testing passed
+- [ ] Security audit completed
+- [ ] Performance benchmarks met
+- [ ] Backup strategy tested
+- [ ] Rollback plan ready
+- [ ] Monitoring configured
+- [ ] Error logging enabled
+- [ ] SSL certificate installed
+- [ ] DNS configured
+- [ ] User training completed
+- [ ] Support documentation ready
+- [ ] Launch announcement prepared
+
+---
+
+## 🎯 Next Steps
+
+1. **Review this plan** with stakeholders
+2. **Set up development environment**
+3. **Begin Stage 1, Week 1, Day 1**
+4. **Track progress** daily
+5. **Hold weekly reviews**
+6. **Adjust timeline** as needed
+
+---
+
+**Good luck with the development!** 🚀
+
+---
+
+**Document Version:** 1.0  
+**Created:** March 4, 2026  
+**Total Duration:** 12-14 weeks  
+**Total Pages:** 95 (25 existing + 70 new)  
+**Stages:** 5 progressive stages  
+**Approach:** Incremental delivery with quality gates

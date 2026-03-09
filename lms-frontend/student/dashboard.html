@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - LMS</title>
     <link rel="stylesheet" href="../assets/css/main.css">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.ico">
     <link rel="stylesheet" href="../assets/css/animations.css">
     <link rel="stylesheet" href="student.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="dashboard-page student-theme">
     <!-- Sidebar -->
@@ -81,24 +83,16 @@
                 <div class="dropdown">
                     <button class="btn-icon" id="notificationBtn">
                         <i class="fas fa-bell"></i>
-                        <span class="badge badge-danger">2</span>
+                        <span class="badge badge-danger" id="notificationCount" style="display:none">0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right">
                         <div class="dropdown-header">Notifications</div>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-clipboard-list text-warning"></i>
-                            <div>
-                                <strong>Assignment due soon</strong>
-                                <small>Math Chapter 5 - Due in 2 days</small>
+                        <div id="notificationList">
+                            <div class="dropdown-item" style="color:#6b7280;font-size:.85rem;pointer-events:none;">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <div><span>No new notifications</span></div>
                             </div>
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-check-circle text-success"></i>
-                            <div>
-                                <strong>Grade posted</strong>
-                                <small>Physics Lab Report - A</small>
-                            </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
 
@@ -138,7 +132,7 @@
                 <div class="welcome-banner fade-in">
                     <div class="welcome-content">
                         <h2>Hello, <span id="studentName">Student</span>!</h2>
-                        <p>Ready to learn something new today?</p>
+                        <p>You have <strong id="pendingBanner">0</strong> pending assignment(s) and <strong id="todaysBanner">0</strong> class(es) today.</p>
                     </div>
                     <div class="welcome-illustration">
                         <i class="fas fa-graduation-cap"></i>
@@ -169,16 +163,6 @@
 
                     <div class="stat-card fade-in stagger-3">
                         <div class="stat-icon bg-success">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="averageGrade">0.0</h3>
-                            <p>Average Grade</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card fade-in stagger-4">
-                        <div class="stat-icon bg-info">
                             <i class="fas fa-percentage"></i>
                         </div>
                         <div class="stat-details">
@@ -186,47 +170,46 @@
                             <p>Attendance Rate</p>
                         </div>
                     </div>
+
+                    <div class="stat-card fade-in stagger-4">
+                        <div class="stat-icon" style="background:linear-gradient(135deg,#9333ea,#6b21a8)">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="upcomingAssessments">0</h3>
+                            <p>Upcoming Assessments</p>
+                            <div class="stat-change neutral" id="upcomingChange">
+                                <i class="fas fa-clock"></i> <span>Next 7 days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon" style="background:linear-gradient(135deg,#059669,#047857)">
+                            <i class="fas fa-chalkboard"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="todaysClasses">0</h3>
+                            <p>Today's Classes</p>
+                            <div class="stat-change neutral" id="todaysClassesChange">
+                                <i class="fas fa-calendar-day"></i> <span>Scheduled today</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Main Grid -->
+                <!-- Main Grid: Today's Schedule + Recent Grades -->
                 <div class="grid grid-cols-2 mt-2">
-                    <!-- Upcoming Assignments -->
+                    <!-- Today's Schedule -->
                     <div class="card fade-in-up">
                         <div class="card-header">
-                            <h3><i class="fas fa-clipboard-list"></i> Upcoming Assignments</h3>
-                            <a href="#" class="btn btn-sm btn-outline">View All</a>
+                            <h3><i class="fas fa-calendar-day"></i> Today's Schedule</h3>
                         </div>
                         <div class="card-body p-0">
-                            <div class="assignments-list" id="upcomingAssignments">
-                                <div class="assignment-item">
-                                    <div class="assignment-icon bg-danger">
-                                        <i class="fas fa-exclamation"></i>
-                                    </div>
-                                    <div class="assignment-details">
-                                        <h4>Math Chapter 5 Quiz</h4>
-                                        <p>Mathematics 101</p>
-                                        <div class="assignment-meta">
-                                            <span class="due-date urgent">
-                                                <i class="fas fa-clock"></i> Due in 2 days
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-sm btn-primary">Start</button>
-                                </div>
-                                <div class="assignment-item">
-                                    <div class="assignment-icon bg-warning">
-                                        <i class="fas fa-file-alt"></i>
-                                    </div>
-                                    <div class="assignment-details">
-                                        <h4>Physics Lab Report</h4>
-                                        <p>Physics 101</p>
-                                        <div class="assignment-meta">
-                                            <span class="due-date">
-                                                <i class="fas fa-clock"></i> Due in 5 days
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <button class="btn btn-sm btn-primary">Start</button>
+                            <div class="schedule-list" id="todaySchedule">
+                                <div style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-calendar-day" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>
+                                    <p>Loading schedule...</p>
                                 </div>
                             </div>
                         </div>
@@ -240,35 +223,43 @@
                         </div>
                         <div class="card-body p-0">
                             <div class="grades-list" id="recentGrades">
-                                <div class="grade-item">
-                                    <div class="grade-subject">
-                                        <h4>Algebra Test</h4>
-                                        <p>Mathematics 101</p>
-                                    </div>
-                                    <div class="grade-score grade-a">
-                                        <span class="score">A</span>
-                                        <span class="percentage">95%</span>
-                                    </div>
+                                <div style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-star" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>
+                                    <p>No graded work yet</p>
                                 </div>
-                                <div class="grade-item">
-                                    <div class="grade-subject">
-                                        <h4>Essay Assignment</h4>
-                                        <p>English Literature</p>
-                                    </div>
-                                    <div class="grade-score grade-b">
-                                        <span class="score">B+</span>
-                                        <span class="percentage">87%</span>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Grid: Pending Assignments + Announcements -->
+                <div class="grid grid-cols-2 mt-2">
+                    <!-- Pending Assignments -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-clipboard-list"></i> Pending Assignments</h3>
+                            <a href="#" class="btn btn-sm btn-outline">View All</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="assignments-list" id="pendingAssignmentsList">
+                                <div style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-check-circle" style="font-size:2rem;margin-bottom:.5rem;display:block;color:#10b981;"></i>
+                                    <p>All caught up!</p>
                                 </div>
-                                <div class="grade-item">
-                                    <div class="grade-subject">
-                                        <h4>Lab Report</h4>
-                                        <p>Chemistry 101</p>
-                                    </div>
-                                    <div class="grade-score grade-a">
-                                        <span class="score">A-</span>
-                                        <span class="percentage">92%</span>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Announcements -->
+                    <div class="card fade-in-up">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bullhorn"></i> Announcements</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="announcements-list" id="recentAnnouncements">
+                                <div style="padding:1.5rem;text-align:center;color:#6b7280;">
+                                    <i class="fas fa-bullhorn" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i>
+                                    <p>No announcements</p>
                                 </div>
                             </div>
                         </div>
@@ -282,63 +273,18 @@
                     </div>
                     <div class="card-body">
                         <div class="courses-grid" id="coursesGrid">
-                            <div class="course-card">
-                                <div class="course-header bg-primary">
-                                    <i class="fas fa-calculator"></i>
-                                </div>
-                                <div class="course-body">
-                                    <h4>Mathematics 101</h4>
-                                    <p>Prof. John Smith</p>
-                                    <div class="course-progress">
-                                        <div class="progress-bar-container">
-                                            <div class="progress-bar" style="width: 75%"></div>
-                                        </div>
-                                        <span class="progress-text">75% Complete</span>
-                                    </div>
-                                </div>
-                                <div class="course-footer">
-                                    <button class="btn btn-sm btn-outline">Continue Learning</button>
-                                </div>
-                            </div>
-
-                            <div class="course-card">
-                                <div class="course-header bg-success">
-                                    <i class="fas fa-atom"></i>
-                                </div>
-                                <div class="course-body">
-                                    <h4>Physics 101</h4>
-                                    <p>Prof. Jane Doe</p>
-                                    <div class="course-progress">
-                                        <div class="progress-bar-container">
-                                            <div class="progress-bar bg-success" style="width: 60%"></div>
-                                        </div>
-                                        <span class="progress-text">60% Complete</span>
-                                    </div>
-                                </div>
-                                <div class="course-footer">
-                                    <button class="btn btn-sm btn-outline">Continue Learning</button>
-                                </div>
-                            </div>
-
-                            <div class="course-card">
-                                <div class="course-header bg-warning">
-                                    <i class="fas fa-flask"></i>
-                                </div>
-                                <div class="course-body">
-                                    <h4>Chemistry 101</h4>
-                                    <p>Prof. Bob Johnson</p>
-                                    <div class="course-progress">
-                                        <div class="progress-bar-container">
-                                            <div class="progress-bar bg-warning" style="width: 45%"></div>
-                                        </div>
-                                        <span class="progress-text">45% Complete</span>
-                                    </div>
-                                </div>
-                                <div class="course-footer">
-                                    <button class="btn btn-sm btn-outline">Continue Learning</button>
-                                </div>
-                            </div>
+                            <div style="color:var(--text-secondary);padding:.5rem 0">Loading courses...</div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Grade Trend Chart -->
+                <div class="card mt-2 fade-in-up">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Grade Trends by Subject</h3>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="gradeTrendChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -384,9 +330,11 @@
 <div id="toastContainer" class="toast-container"></div>
 
 
+    <script src="../assets/js/env.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/components.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="student.js"></script>
     <script>

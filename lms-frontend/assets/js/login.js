@@ -20,6 +20,14 @@ function initLoginPage() {
     const rememberCheckbox = document.getElementById('rememberMe');
     const loginBtn = document.getElementById('loginBtn');
 
+    //Auth.clearToken();
+    //check if session exists and redirect to dashboard
+    // if (Auth.isAuthenticated()) {
+    //     const user = Auth.getUser();
+    //     Auth.redirectToDashboard(user.role);
+    //     return;
+    // }
+
     // Setup event listeners
     if (loginForm) {
         loginForm.addEventListener('submit', handleLogin);
@@ -36,6 +44,14 @@ function initLoginPage() {
     if (loginInput) {
         loginInput.focus();
     }
+
+    // Show session-expired message if redirected due to inactivity
+    try {
+        if (sessionStorage.getItem('lms_session_expired') === '1') {
+            sessionStorage.removeItem('lms_session_expired');
+            showAlert('Your session has expired due to inactivity. Please log in again.', ALERT_TYPES.WARNING);
+        }
+    } catch (e) { /* storage blocked */ }
 
     // Auto-fill remembered login (optional)
     const rememberedLogin = localStorage.getItem('lms_remembered_login');

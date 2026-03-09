@@ -3,38 +3,36 @@
  * Allows users to request a new reset link if previous one expired or wasn't received
  */
 
-// Check if user is already logged in
-if (authManager.isAuthenticated()) {
-    const user = authManager.getCurrentUser();
-    const role = user.role;
-    
-    // Redirect to appropriate dashboard
-    const dashboardMap = {
-        'super_admin': 'superadmin/dashboard.html',
-        'administrator': 'admin/dashboard.html',
-        'teacher': 'teacher/dashboard.html',
-        'student': 'student/dashboard.html',
-        'parent': 'parent/dashboard.html'
-    };
-    
-    if (dashboardMap[role]) {
-        window.location.href = dashboardMap[role];
-    }
-}
-
-// DOM Elements
-const resendResetForm = document.getElementById('resendResetForm');
-const alertContainer = document.getElementById('alertContainer');
-const resendBtn = document.getElementById('resendBtn');
-
 // Track last request time to prevent spam
 let lastRequestTime = 0;
 const REQUEST_COOLDOWN = 60000; // 60 seconds
+
+// Wait for DOM to load
+document.addEventListener('DOMContentLoaded', () => {
+    // Prevent authenticated users from accessing this page
+    if (Auth.isAuthenticated()) {
+        Auth.redirectToDashboard();
+        return;
+    }
+    
+    initResendReset();
+});
+
+function initResendReset() {
+    const resendResetForm = document.getElementById('resendResetForm');
+    
+    if (resendResetForm) {
+        resendResetForm.addEventListener('submit', handleResendReset);
+    }
+}
 
 /**
  * Show alert message
  */
 function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    if (!alertContainer) return;
+    
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} slide-down`;
     alertDiv.innerHTML = `
@@ -63,12 +61,13 @@ function formatTimeRemaining(ms) {
 /**
  * Handle Resend Form Submission
  */
-resendResetForm.addEventListener('submit', async (e) => {
+async function handleResendReset(e) {
     e.preventDefault();
 
-    const btnText = resendBtn.querySelector('.btn-text');
-    const btnLoader = resendBtn.querySelector('.btn-loader');
-    const email = document.getElementById('email').value.trim();
+    const resendBtn = document.getElementById('resendBtn');
+    const btnText = resendBtn?.querySelector('.btn-text');
+    const btnLoader = resendBtn?.querySelector('.btn-loader');
+    const email = document.getElementById('email')?.value.trim();
 
     // Validate email
     if (!email) {
@@ -90,13 +89,15 @@ resendResetForm.addEventListener('submit', async (e) => {
     }
 
     // Disable button
-    resendBtn.disabled = true;
-    btnText.style.display = 'none';
-    btnLoader.style.display = 'inline-block';
+    if (resendBtn) {
+        resendBtn.disabled = true;
+        if (btnText) btnText.style.display = 'none';
+        if (btnLoader) btnLoader.style.display = 'inline-block';
+    }
 
     try {
         // Call forgot password API (same endpoint as forgot-password page)
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -116,7 +117,8 @@ resendResetForm.addEventListener('submit', async (e) => {
             );
             
             // Clear form
-            resendResetForm.reset();
+            const resendResetForm = document.getElementById('resendResetForm');
+            if (resendResetForm) resendResetForm.reset();
 
             // Show countdown message
             setTimeout(() => {
@@ -153,11 +155,13 @@ resendResetForm.addEventListener('submit', async (e) => {
         );
     } finally {
         // Re-enable button
-        resendBtn.disabled = false;
-        btnText.style.display = 'inline-block';
-        btnLoader.style.display = 'none';
+        if (resendBtn) {
+            resendBtn.disabled = false;
+            if (btnText) btnText.style.display = 'inline-block';
+            if (btnLoader) btnLoader.style.display = 'none';
+        }
     }
-});
+}
 
 /**
  * Auto-fill email from URL parameter if provided

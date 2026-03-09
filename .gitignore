@@ -12,6 +12,9 @@
 .env.staging
 *.env
 
+# Frontend runtime env (generated from .env by scripts/generate-env.js)
+lms-frontend/assets/js/env.js
+
 # ==========================================
 # Composer (PHP Dependencies)
 # ==========================================

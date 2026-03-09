@@ -25,6 +25,7 @@ return [
     'GET /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'show', 'auth' => true],
     'POST /students' => ['controller' => 'StudentController', 'method' => 'create', 'auth' => true],
     'PUT /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'update', 'auth' => true],
+    'PUT /students/{uuid}/status' => ['controller' => 'StudentController', 'method' => 'toggleStatus', 'auth' => true],
     'DELETE /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'delete', 'auth' => true],
     'GET /students/{uuid}/courses' => ['controller' => 'StudentController', 'method' => 'getEnrolledCourses', 'auth' => true],
     'POST /students/enroll' => ['controller' => 'StudentController', 'method' => 'enrollInCourse', 'auth' => true],
@@ -373,6 +374,28 @@ return [
     'GET /user-activity/{id}' => ['controller' => 'UserActivityController', 'method' => 'show', 'auth' => true],
     'POST /user-activity' => ['controller' => 'UserActivityController', 'method' => 'log', 'auth' => true],
     'DELETE /user-activity/cleanup' => ['controller' => 'UserActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Admin Activity routes (Institution-level audit trail, admin only)
+    'GET /admin-activity' => ['controller' => 'AdminActivityController', 'method' => 'index', 'auth' => true],
+    'GET /admin-activity/recent' => ['controller' => 'AdminActivityController', 'method' => 'recent', 'auth' => true],
+    'GET /admin-activity/stats' => ['controller' => 'AdminActivityController', 'method' => 'stats', 'auth' => true],
+    'GET /admin-activity/type/{type}' => ['controller' => 'AdminActivityController', 'method' => 'byType', 'auth' => true],
+    'GET /admin-activity/severity/{severity}' => ['controller' => 'AdminActivityController', 'method' => 'bySeverity', 'auth' => true],
+    'GET /admin-activity/performer/{userId}' => ['controller' => 'AdminActivityController', 'method' => 'byPerformer', 'auth' => true],
+    'GET /admin-activity/{id}' => ['controller' => 'AdminActivityController', 'method' => 'show', 'auth' => true],
+    'POST /admin-activity' => ['controller' => 'AdminActivityController', 'method' => 'store', 'auth' => true],
+    'DELETE /admin-activity/cleanup' => ['controller' => 'AdminActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Superadmin Activity routes (Platform-level audit trail, super admin only)
+    'GET /superadmin-activity' => ['controller' => 'SuperadminActivityController', 'method' => 'index', 'auth' => true],
+    'GET /superadmin-activity/recent' => ['controller' => 'SuperadminActivityController', 'method' => 'recent', 'auth' => true],
+    'GET /superadmin-activity/stats' => ['controller' => 'SuperadminActivityController', 'method' => 'stats', 'auth' => true],
+    'GET /superadmin-activity/type/{type}' => ['controller' => 'SuperadminActivityController', 'method' => 'byType', 'auth' => true],
+    'GET /superadmin-activity/severity/{severity}' => ['controller' => 'SuperadminActivityController', 'method' => 'bySeverity', 'auth' => true],
+    'GET /superadmin-activity/performer/{userId}' => ['controller' => 'SuperadminActivityController', 'method' => 'byPerformer', 'auth' => true],
+    'GET /superadmin-activity/{id}' => ['controller' => 'SuperadminActivityController', 'method' => 'show', 'auth' => true],
+    'POST /superadmin-activity' => ['controller' => 'SuperadminActivityController', 'method' => 'store', 'auth' => true],
+    'DELETE /superadmin-activity/cleanup' => ['controller' => 'SuperadminActivityController', 'method' => 'cleanup', 'auth' => true],
 
     // Course Content routes (Lesson Plans & Content Management)
     'GET /course-content' => ['controller' => 'CourseContentController', 'method' => 'index', 'auth' => true],

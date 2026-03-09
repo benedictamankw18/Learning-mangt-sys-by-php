@@ -6,7 +6,7 @@
     <title>Admin Dashboard - LMS</title>
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="../assets/css/animations.css">
-    <link rel="icon" type="image/x-icon" href="../assets/img/fav.ico">
+    <link rel="icon" type="image/png" href="../assets/img/favicon.ico">
     <link rel="stylesheet" href="admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -28,6 +28,14 @@
             <a href="#" class="nav-item active" data-page="overview">
                 <i class="fas fa-th-large"></i>
                 <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-page="students">
+                <i class="fas fa-user-graduate"></i>
+                <span>Students</span>
+            </a>
+            <a href="#" class="nav-item" data-page="teachers">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Teachers</span>
             </a>
             <a href="#" class="nav-item" data-page="users">
                 <i class="fas fa-users"></i>
@@ -162,53 +170,92 @@
                 <!-- Statistics Cards -->
                 <div class="stats-grid">
                     <div class="stat-card fade-in stagger-1">
-                        <div class="stat-icon bg-primary">
-                            <i class="fas fa-users"></i>
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-user-graduate"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="totalUsers">0</h3>
-                            <p>Total Users</p>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 12% this month
+                            <h3 id="totalStudents">0</h3>
+                            <p>Total Students</p>
+                            <div class="stat-change" id="studentsChange">
+                                <i class="fas fa-minus"></i> <span>—</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon bg-danger">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalTeachers">0</h3>
+                            <p>Total Teachers</p>
+                            <div class="stat-change" id="teachersChange">
+                                <i class="fas fa-minus"></i> <span>—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-3">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-school"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="totalClasses">0</h3>
+                            <p>Total Classes</p>
+                            <div class="stat-change" id="classesChange">
+                                <i class="fas fa-minus"></i> <span>—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-4">
                         <div class="stat-icon bg-success">
                             <i class="fas fa-book"></i>
                         </div>
                         <div class="stat-details">
                             <h3 id="totalCourses">0</h3>
                             <p>Active Courses</p>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 8% this month
+                            <div class="stat-change" id="coursesChange">
+                                <i class="fas fa-minus"></i> <span>—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-1">
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#3090cf,#1a6fa8)">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="attendanceRate">0%</h3>
+                            <p>Attendance Rate</p>
+                            <div class="stat-change neutral" id="attendanceChange">
+                                <i class="fas fa-minus"></i> <span>Today</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card fade-in stagger-2">
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#9333ea,#6b21a8)">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="upcomingExams">0</h3>
+                            <p>Upcoming Exams</p>
+                            <div class="stat-change neutral" id="upcomingExamsChange">
+                                <i class="fas fa-clock"></i> <span>Next 7 days</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="stat-card fade-in stagger-3">
-                        <div class="stat-icon bg-warning">
-                            <i class="fas fa-user-graduate"></i>
+                        <div class="stat-icon" style="background: linear-gradient(135deg,#d4af37,#b8960c)">
+                            <i class="fas fa-user-clock"></i>
                         </div>
                         <div class="stat-details">
-                            <h3 id="totalStudents">0</h3>
-                            <p>Students</p>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 15% this month
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="stat-card fade-in stagger-4">
-                        <div class="stat-icon bg-danger">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="totalTeachers">0</h3>
-                            <p>Teachers</p>
-                            <div class="stat-change positive">
-                                <i class="fas fa-arrow-up"></i> 5% this month
+                            <h3 id="pendingTasks">0</h3>
+                            <p>Pending Activations</p>
+                            <div class="stat-change neutral" id="pendingChange">
+                                <i class="fas fa-minus"></i> <span>Awaiting activation</span>
                             </div>
                         </div>
                     </div>
@@ -238,10 +285,10 @@
                         </div>
                     </div>
 
-                    <!-- Course Distribution Chart -->
+                    <!-- Program Distribution Chart -->
                     <div class="card fade-in-up">
                         <div class="card-header">
-                            <h3>Course Distribution</h3>
+                            <h3>Programs Distribution</h3>
                             <div class="card-actions">
                                 <div class="dropdown chart-actions-dropdown">
                                     <button class="btn-icon" id="courseDistributionMenuBtn" aria-haspopup="true" aria-expanded="false">
@@ -270,30 +317,8 @@
                     <div class="card-body p-0">
                         <div class="activity-list" id="activityList">
                             <div class="activity-item">
-                                <div class="activity-icon bg-success">
-                                    <i class="fas fa-user-plus"></i>
-                                </div>
                                 <div class="activity-details">
-                                    <p><strong>John Doe</strong> registered as a new student</p>
-                                    <small>2 minutes ago</small>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon bg-primary">
-                                    <i class="fas fa-book"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p><strong>Jane Smith</strong> created a new course "Advanced Math"</p>
-                                    <small>15 minutes ago</small>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon bg-warning">
-                                    <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="activity-details">
-                                    <p><strong>Bob Johnson</strong> updated course materials</p>
-                                    <small>1 hour ago</small>
+                                    <p style="color:var(--text-secondary);padding:0.5rem 0">Loading activities...</p>
                                 </div>
                             </div>
                         </div>
@@ -332,11 +357,13 @@
     <!-- Toast Container -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <script src="../assets/js/env.js"></script>
     <script src="../assets/js/config.js"></script>
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="admin.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/components.js"></script>
     <script src="./js/settings.js"></script>
     <script>
     // Dynamic section loader with hash routing (persists across refresh)
@@ -422,8 +449,9 @@
     })();
     </script>
     
-    <!-- Page-specific scripts -->
     <script src="./js/settings.js"></script>
     <script src="./js/myprofile.js"></script>
+    <script src="./js/students.js"></script>
+    <script src="./js/student-details.js"></script>
 </body>
 </html>

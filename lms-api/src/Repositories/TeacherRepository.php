@@ -242,6 +242,42 @@ class TeacherRepository
         }
     }
 
+    public function countByInstitutionThisMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM teachers t
+                INNER JOIN users u ON t.user_id = u.user_id
+                WHERE t.institution_id = :institution_id AND u.deleted_at IS NULL
+                AND YEAR(t.created_at) = YEAR(CURRENT_DATE())
+                AND MONTH(t.created_at) = MONTH(CURRENT_DATE())
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Teachers This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByInstitutionLastMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM teachers t
+                INNER JOIN users u ON t.user_id = u.user_id
+                WHERE t.institution_id = :institution_id AND u.deleted_at IS NULL
+                AND YEAR(t.created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(t.created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Teachers Last Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     public function getCourses(int $teacherId): array
     {
         try {
@@ -282,19 +318,27 @@ class TeacherRepository
     {
         try {
             $sql = "
-                SELECT 
-                    cs.*,
-                    c.course_name,
-                    c.course_code
+                SELECT
+                    cs.schedule_id,
+                    cs.day_of_week,
+                    cs.start_time,
+                    cs.end_time,
+                    cs.room,
+                    s.subject_name,
+                    s.subject_code,
+                    cl.class_name,
+                    cl.class_code
                 FROM course_schedules cs
-                INNER JOIN courses c ON cs.course_id = c.course_id
-                WHERE c.teacher_id = :teacher_id
+                INNER JOIN class_subjects csub ON cs.course_id = csub.course_id
+                INNER JOIN subjects s          ON csub.subject_id = s.subject_id
+                INNER JOIN classes cl          ON csub.class_id = cl.class_id
+                WHERE csub.teacher_id = :teacher_id
             ";
 
             $params = ['teacher_id' => $teacherId];
 
             if ($date) {
-                $sql .= " AND cs.day_of_week = DAYNAME(:date)";
+                $sql .= " AND LOWER(cs.day_of_week) = LOWER(DAYNAME(:date))";
                 $params['date'] = $date;
             }
 
@@ -306,6 +350,39 @@ class TeacherRepository
         } catch (\PDOException $e) {
             error_log("Get Teacher Schedule Error: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * Per-course average assignment score for a teacher (class performance chart).
+     * Returns ['labels' => [...], 'data' => [...]] ready for Chart.js.
+     */
+    public function getClassPerformanceChart(int $teacherId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    CONCAT(s.subject_code, ' (', c.class_code, ')') AS label,
+                    COALESCE(ROUND(AVG(asub.score), 1), 0)           AS avg_score
+                FROM class_subjects cs
+                INNER JOIN subjects s    ON cs.subject_id = s.subject_id
+                INNER JOIN classes c     ON cs.class_id   = c.class_id
+                LEFT  JOIN assignments a ON a.course_id   = cs.course_id AND a.status = 'active'
+                LEFT  JOIN assignment_submissions asub
+                                         ON asub.assignment_id = a.assignment_id
+                                        AND asub.score IS NOT NULL
+                WHERE cs.teacher_id = :teacher_id
+                GROUP BY cs.course_id, s.subject_name, c.class_name
+                ORDER BY avg_score DESC
+            ");
+            $stmt->execute(['teacher_id' => $teacherId]);
+            $rows   = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            $labels = array_column($rows, 'label');
+            $data   = array_map('floatval', array_column($rows, 'avg_score'));
+            return compact('labels', 'data');
+        } catch (\PDOException $e) {
+            error_log("Class Performance Chart Error: " . $e->getMessage());
+            return ['labels' => [], 'data' => []];
         }
     }
 }

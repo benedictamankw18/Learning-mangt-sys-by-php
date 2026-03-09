@@ -4,28 +4,27 @@
  */
 
 // Check if user is already logged in
-if (authManager.isAuthenticated()) {
-    const user = authManager.getCurrentUser();
-    const role = user.role;
+document.addEventListener('DOMContentLoaded', () => {
+    // Prevent authenticated users from accessing this page
+    if (Auth.isAuthenticated()) {
+        Auth.redirectToDashboard();
+        return;
+    }
     
-    // Redirect to appropriate dashboard
-    const dashboardMap = {
-        'super_admin': 'superadmin/dashboard.html',
-        'administrator': 'admin/dashboard.html',
-        'teacher': 'teacher/dashboard.html',
-        'student': 'student/dashboard.html',
-        'parent': 'parent/dashboard.html'
-    };
+    initForgotPassword();
+});
+
+function initForgotPassword() {
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const resetBtn = document.getElementById('resetBtn');
     
-    if (dashboardMap[role]) {
-        window.location.href = `/auth/${dashboardMap[role]}`;
+    if (forgotPasswordForm) {
+        forgotPasswordForm.addEventListener('submit', handleForgotPassword);
     }
 }
 
 // DOM Elements
-const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const alertContainer = document.getElementById('alertContainer');
-const resetBtn = document.getElementById('resetBtn');
 
 /**
  * Show alert message
@@ -51,9 +50,11 @@ function showAlert(message, type = 'info') {
 /**
  * Handle Forgot Password Form Submission
  */
-forgotPasswordForm.addEventListener('submit', async (e) => {
+async function handleForgotPassword(e) {
     e.preventDefault();
 
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const resetBtn = document.getElementById('resetBtn');
     const btnText = resetBtn.querySelector('.btn-txt');
     const btnLoader = resetBtn.querySelector('.btn-loader');
     const email = document.getElementById('email').value.trim();
@@ -71,7 +72,7 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
 
     try {
         // Call forgot password API
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -92,7 +93,7 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
 
             // Redirect to login after 3 seconds
             setTimeout(() => {
-                window.location.href = '/auth/login.html';
+                window.location.href = 'login.html';
             }, 3000);
         } else {
             showAlert(
@@ -112,4 +113,4 @@ forgotPasswordForm.addEventListener('submit', async (e) => {
         btnText.style.display = 'inline-block';
         btnLoader.style.display = 'none';
     }
-});
+}

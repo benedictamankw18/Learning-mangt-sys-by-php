@@ -9,6 +9,7 @@ use App\Repositories\UserRepository;
 use App\Repositories\StudentRepository;
 use App\Repositories\TeacherRepository;
 use App\Repositories\LoginActivityRepository;
+use App\Services\EmailService;
 use App\Config\Database;
 
 class AuthController
@@ -18,6 +19,7 @@ class AuthController
     private TeacherRepository $teacherRepo;
     private LoginActivityRepository $loginActivityRepo;
     private JWTHandler $jwtHandler;
+    private EmailService $emailService;
 
     public function __construct()
     {
@@ -26,6 +28,7 @@ class AuthController
         $this->teacherRepo = new TeacherRepository();
         $this->loginActivityRepo = new LoginActivityRepository();
         $this->jwtHandler = new JWTHandler();
+        $this->emailService = new EmailService();
     }
 
     public function register(): void
@@ -272,23 +275,28 @@ class AuthController
             $token = $this->userRepo->createPasswordResetToken($user['user_id'], 60); // 60 minutes expiry
 
             if ($token) {
-                // TODO: Send email with reset link containing the token
-                // Example reset link: https://yourdomain.com/reset-password?token={$token}
-                // For now, we'll return the token in the response (remove in production)
+                // Send password reset email
+                $userName = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? '')) ?: $user['username'];
+                $emailSent = $this->emailService->sendPasswordResetEmail(
+                    $user['email'],
+                    $userName,
+                    $token
+                );
 
                 // Log the password reset request
                 $this->userRepo->logActivity($user['user_id'], 'password_reset_requested', [
                     'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-                    'email' => $data['email']
+                    'email' => $data['email'],
+                    'email_sent' => $emailSent
                 ]);
 
-                // In development, return the token. In production, just return success message
-                if (getenv('APP_ENV') === 'development' || getenv('APP_ENV') === 'local') {
+                // In development, return the token for testing (remove in production)
+                if ($_ENV['APP_DEBUG'] === 'true' && !$emailSent) {
                     Response::success([
-                        'message' => 'Password reset token generated successfully',
+                        'message' => 'Email service not configured. Password reset token:',
                         'token' => $token,
                         'expires_in' => '60 minutes',
-                        'reset_url' => getenv('APP_URL') . '/reset-password?token=' . $token
+                        'reset_url' => ($_ENV['APP_URL'] ?? 'http://localhost:8080') . '/auth/reset-password.html?token=' . $token
                     ]);
                     return;
                 }

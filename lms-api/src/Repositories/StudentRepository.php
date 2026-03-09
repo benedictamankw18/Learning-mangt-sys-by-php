@@ -163,35 +163,64 @@ class StudentRepository
         }
     }
 
-    public function getAll(int $page = 1, int $limit = 20, ?string $gradeLevel = null): array
-    {
+    public function getAll(
+        int $page = 1,
+        int $limit = 20,
+        ?int $institutionId = null,
+        ?int $classId = null,
+        ?int $programId = null,
+        ?string $status = null,
+        ?string $search = null
+    ): array {
         try {
             $offset = ($page - 1) * $limit;
+            $params = [];
 
             $sql = "
-                SELECT 
-                    s.*,
-                    u.username,
-                    u.email,
-                    u.first_name,
-                    u.last_name
+                SELECT
+                    s.student_id, s.uuid, s.institution_id, s.student_id_number,
+                    s.enrollment_date, s.class_id, s.gender, s.status,
+                    s.parent_name, s.parent_phone, s.parent_email,
+                    s.emergency_contact, s.created_at,
+                    u.user_id, u.username, u.email, u.first_name, u.last_name,
+                    u.phone_number, u.date_of_birth, u.is_active,
+                    c.class_name, c.class_code,
+                    p.program_id, p.program_name
                 FROM students s
                 INNER JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN programs p ON c.program_id = p.program_id
                 WHERE u.deleted_at IS NULL
             ";
 
-            if ($gradeLevel) {
-                $sql .= " AND s.grade_level = :grade_level";
+            if ($institutionId !== null) {
+                $sql .= " AND s.institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($classId !== null) {
+                $sql .= " AND s.class_id = :class_id";
+                $params['class_id'] = $classId;
+            }
+            if ($programId !== null) {
+                $sql .= " AND p.program_id = :program_id";
+                $params['program_id'] = $programId;
+            }
+            if ($status !== null && $status !== '') {
+                $sql .= " AND s.status = :status";
+                $params['status'] = $status;
+            }
+            if ($search !== null && $search !== '') {
+                $sql .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search
+                          OR u.email LIKE :search OR s.student_id_number LIKE :search)";
+                $params['search'] = '%' . $search . '%';
             }
 
             $sql .= " ORDER BY s.created_at DESC LIMIT :limit OFFSET :offset";
 
             $stmt = $this->db->prepare($sql);
-
-            if ($gradeLevel) {
-                $stmt->bindValue(':grade_level', $gradeLevel);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(":$key", $value);
             }
-
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
             $stmt->execute();
@@ -203,27 +232,48 @@ class StudentRepository
         }
     }
 
-    public function count(?string $gradeLevel = null): int
-    {
+    public function count(
+        ?int $institutionId = null,
+        ?int $classId = null,
+        ?int $programId = null,
+        ?string $status = null,
+        ?string $search = null
+    ): int {
         try {
+            $params = [];
+
             $sql = "
                 SELECT COUNT(*) FROM students s
                 INNER JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN programs p ON c.program_id = p.program_id
                 WHERE u.deleted_at IS NULL
             ";
 
-            if ($gradeLevel) {
-                $sql .= " AND s.grade_level = :grade_level";
+            if ($institutionId !== null) {
+                $sql .= " AND s.institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($classId !== null) {
+                $sql .= " AND s.class_id = :class_id";
+                $params['class_id'] = $classId;
+            }
+            if ($programId !== null) {
+                $sql .= " AND p.program_id = :program_id";
+                $params['program_id'] = $programId;
+            }
+            if ($status !== null && $status !== '') {
+                $sql .= " AND s.status = :status";
+                $params['status'] = $status;
+            }
+            if ($search !== null && $search !== '') {
+                $sql .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search
+                          OR u.email LIKE :search OR s.student_id_number LIKE :search)";
+                $params['search'] = '%' . $search . '%';
             }
 
             $stmt = $this->db->prepare($sql);
-
-            if ($gradeLevel) {
-                $stmt->execute(['grade_level' => $gradeLevel]);
-            } else {
-                $stmt->execute();
-            }
-
+            $stmt->execute($params);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Students Error: " . $e->getMessage());
@@ -261,6 +311,42 @@ class StudentRepository
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Active Students By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByInstitutionThisMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id AND u.deleted_at IS NULL
+                AND YEAR(s.created_at) = YEAR(CURRENT_DATE())
+                AND MONTH(s.created_at) = MONTH(CURRENT_DATE())
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Students This Month Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    public function countByInstitutionLastMonth(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id AND u.deleted_at IS NULL
+                AND YEAR(s.created_at) = YEAR(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+                AND MONTH(s.created_at) = MONTH(DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH))
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Students Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -395,35 +481,52 @@ class StudentRepository
     /**
      * Get monthly enrollment counts for current year by institution
      */
+    /**
+     * Get monthly new-enrollment counts for the last 12 months (rolling window).
+     * Returns a 12-element array: index 0 = oldest month, index 11 = current month.
+     * Spans two calendar years when needed (e.g. Apr 2025 – Mar 2026).
+     *
+     * @param int $institutionId
+     * @return array<int, int>
+     */
     public function getMonthlyEnrollmentsByInstitution(int $institutionId): array
     {
         try {
             $stmt = $this->db->prepare("
                 SELECT 
-                    MONTH(s.created_at) as month,
-                    COUNT(*) as count
+                    YEAR(s.enrollment_date)  AS year,
+                    MONTH(s.enrollment_date) AS month,
+                    COUNT(*)            AS count
                 FROM students s
                 INNER JOIN users u ON s.user_id = u.user_id
                 WHERE s.institution_id = :institution_id
-                AND YEAR(s.created_at) = YEAR(CURDATE())
+                AND s.enrollment_date >= DATE_FORMAT(
+                        DATE_SUB(CURRENT_DATE(), INTERVAL 11 MONTH), '%Y-%m-01'
+                    )
                 AND u.deleted_at IS NULL
-                GROUP BY MONTH(s.created_at)
-                ORDER BY month
+                GROUP BY YEAR(s.enrollment_date), MONTH(s.enrollment_date)
+                ORDER BY year, month
             ");
 
             $stmt->execute(['institution_id' => $institutionId]);
-            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
-            // Initialize array with zeros for all 12 months
-            $monthlyData = array_fill(1, 12, 0);
-
-            // Fill in actual counts
+            // Build a year-month keyed map
+            $map = [];
             foreach ($results as $row) {
-                $monthlyData[(int) $row['month']] = (int) $row['count'];
+                $key = $row['year'] . '-' . str_pad($row['month'], 2, '0', STR_PAD_LEFT);
+                $map[$key] = (int) $row['count'];
             }
 
-            // Return indexed array (0-11) for frontend
-            return array_values($monthlyData);
+            // Produce an ordered 12-element array matching the frontend getLast12MonthLabels()
+            $counts = [];
+            $now = new \DateTime();
+            for ($i = 11; $i >= 0; $i--) {
+                $d = (clone $now)->modify("-{$i} months");
+                $counts[] = $map[$d->format('Y-m')] ?? 0;
+            }
+
+            return $counts; // index 0 = 11 months ago, index 11 = current month
         } catch (\PDOException $e) {
             error_log("Get Monthly Enrollments Error: " . $e->getMessage());
             return array_fill(0, 12, 0);

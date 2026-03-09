@@ -326,4 +326,222 @@ class AssignmentRepository
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
+
+    /**
+     * Count active assignments (status='active') for a teacher's courses.
+     */
+    public function countActiveByTeacher(int $teacherId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assignments a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE cs.teacher_id = :teacher_id
+                  AND a.status      = 'active'
+            ");
+            $stmt->execute(['teacher_id' => $teacherId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Active Assignments Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Count ungraded (status='submitted') submissions for a teacher's assignments.
+     */
+    public function countPendingGradesByTeacher(int $teacherId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assignment_submissions asub
+                INNER JOIN assignments a   ON asub.assignment_id = a.assignment_id
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE cs.teacher_id  = :teacher_id
+                  AND asub.status    = 'submitted'
+            ");
+            $stmt->execute(['teacher_id' => $teacherId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Pending Grades Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Count active assignments not yet submitted by a student.
+     */
+    public function countPendingByStudent(int $studentId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) AS cnt
+                FROM assignments a
+                INNER JOIN course_enrollments ce ON a.course_id = ce.course_id
+                WHERE ce.student_id = :student_id
+                  AND ce.status     = 'active'
+                  AND a.status      = 'active'
+                  AND due_date > NOW()
+                  AND NOT EXISTS (
+                      SELECT 1 FROM assignment_submissions asub
+                      WHERE asub.assignment_id = a.assignment_id
+                        AND asub.student_id    = :student_id2
+                  )
+            ");
+            $stmt->execute(['student_id' => $studentId, 'student_id2' => $studentId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Student Pending Assignments Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Returns the list of pending assignments for a student (not yet submitted, still active, due in future).
+     */
+    public function getPendingByStudent(int $studentId, int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    a.assignment_id,
+                    a.title          AS assignment_title,
+                    a.due_date,
+                    a.max_score,
+                    s.subject_name,
+                    s.subject_code
+                FROM assignments a
+                INNER JOIN course_enrollments ce ON a.course_id = ce.course_id
+                INNER JOIN class_subjects     cs ON a.course_id = cs.course_id
+                INNER JOIN subjects            s  ON cs.subject_id = s.subject_id
+                WHERE ce.student_id = :student_id
+                  AND ce.status     = 'active'
+                  AND a.status      = 'active'
+                  AND a.due_date    > NOW()
+                  AND NOT EXISTS (
+                      SELECT 1 FROM assignment_submissions asub
+                      WHERE asub.assignment_id = a.assignment_id
+                        AND asub.student_id    = :student_id2
+                  )
+                ORDER BY a.due_date ASC
+                LIMIT :lim
+            ");
+            $stmt->bindValue('student_id',  $studentId, \PDO::PARAM_INT);
+            $stmt->bindValue('student_id2', $studentId, \PDO::PARAM_INT);
+            $stmt->bindValue('lim',          $limit,     \PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Student Pending Assignments Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Most recent graded submissions for a student with score and percentage.
+     */
+    public function getRecentGradesByStudent(int $studentId, int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    a.title          AS assignment_title,
+                    s.subject_name,
+                    s.subject_code,
+                    asub.score,
+                    asub.graded_at,
+                    a.max_score,
+                    CASE WHEN a.max_score > 0
+                         THEN ROUND((asub.score / a.max_score) * 100, 1)
+                         ELSE 0 END AS percentage
+                FROM assignment_submissions asub
+                INNER JOIN assignments a     ON asub.assignment_id = a.assignment_id
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                INNER JOIN subjects s        ON cs.subject_id = s.subject_id
+                WHERE asub.student_id = :student_id
+                  AND asub.status     = 'graded'
+                ORDER BY asub.graded_at DESC
+                LIMIT :lim
+            ");
+            $stmt->bindValue(':student_id', $studentId, \PDO::PARAM_INT);
+            $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Student Recent Grades Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Average score per subject for a student (grade trend chart).
+     * Returns ['labels' => [...], 'data' => [...]] for Chart.js.
+     */
+    public function getGradeTrendByStudent(int $studentId): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    s.subject_name                                       AS label,
+                    COALESCE(ROUND(AVG(
+                        CASE WHEN a.max_score > 0
+                             THEN (asub.score / a.max_score) * 100
+                             ELSE 0 END
+                    ), 1), 0)                                            AS avg_pct
+                FROM assignment_submissions asub
+                INNER JOIN assignments a     ON asub.assignment_id = a.assignment_id
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                INNER JOIN subjects s        ON cs.subject_id = s.subject_id
+                WHERE asub.student_id = :student_id
+                  AND asub.status     = 'graded'
+                GROUP BY s.subject_id, s.subject_name
+                ORDER BY s.subject_name
+            ");
+            $stmt->execute(['student_id' => $studentId]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            return [
+                'labels' => array_column($rows, 'label'),
+                'data'   => array_map('floatval', array_column($rows, 'avg_pct')),
+            ];
+        } catch (\PDOException $e) {
+            error_log("Student Grade Trend Error: " . $e->getMessage());
+            return ['labels' => [], 'data' => []];
+        }
+    }
+
+    /**
+     * Get the most recent N ungraded submissions for a teacher, with student name and assignment title.
+     */
+    public function getRecentSubmissionsByTeacher(int $teacherId, int $limit = 5): array
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    asub.submission_id,
+                    asub.assignment_id,
+                    asub.submitted_at,
+                    a.title           AS assignment_title,
+                    CONCAT(u.first_name, ' ', u.last_name) AS student_name,
+                    s.student_id_number
+                FROM assignment_submissions asub
+                INNER JOIN assignments a     ON asub.assignment_id = a.assignment_id
+                INNER JOIN class_subjects cs ON a.course_id        = cs.course_id
+                INNER JOIN students s        ON asub.student_id    = s.student_id
+                INNER JOIN users u           ON s.user_id          = u.user_id
+                WHERE cs.teacher_id = :teacher_id
+                  AND asub.status   = 'submitted'
+                ORDER BY asub.submitted_at DESC
+                LIMIT :lim
+            ");
+            $stmt->bindValue(':teacher_id', $teacherId, PDO::PARAM_INT);
+            $stmt->bindValue(':lim',        $limit,     PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Recent Submissions Error: " . $e->getMessage());
+            return [];
+        }
+    }
 }

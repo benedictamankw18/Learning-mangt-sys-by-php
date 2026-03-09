@@ -2,69 +2,112 @@
    API Configuration
 ============================================ */
 
-// Base API URL (update this for production)
-const API_BASE_URL = 'http://localhost:80';
+const APP_NAME = 'Ghana SHS LMS';
+
+// Environment & API URL are injected by env.js, which must be loaded before this script.
+// Falls back to 'development' / localhost only when env.js is absent.
+const _env        = (typeof window !== 'undefined' && window.ENV_CONFIG) || {};
+const APP_ENV     = _env.APP_ENV      || 'development';
+const API_BASE_URL = _env.API_BASE_URL || 'http://localhost:8000';
 
 // API Endpoints
 const API_ENDPOINTS = {
     // Authentication
-    AUTH_LOGIN: '/auth/login',
-    AUTH_LOGOUT: '/auth/logout',
-    AUTH_REFRESH: '/auth/refresh',
-    AUTH_ME: '/auth/me',
+    AUTH_LOGIN: '/api/auth/login',
+    AUTH_LOGOUT: '/api/auth/logout',
+    AUTH_REFRESH: '/api/auth/refresh',
+    AUTH_ME: '/api/auth/me',
     
+    // Students
+    STUDENTS: '/api/students',
+    STUDENT_BY_UUID: (uuid) => `/api/students/${uuid}`,
+    STUDENT_STATUS: (uuid) => `/api/students/${uuid}/status`,
+
+    // Teachers
+    TEACHERS: '/api/teachers',
+    TEACHER_BY_UUID: (uuid) => `/api/teachers/${uuid}`,
+
+    // Classes
+    CLASSES: '/api/classes',
+    CLASS_BY_UUID: (uuid) => `/api/classes/${uuid}`,
+
+    // Programs
+    PROGRAMS: '/api/programs',
+    PROGRAMS_ACTIVE: '/api/programs/active',
+    PROGRAM_BY_ID: (id) => `/api/programs/${id}`,
+
     // Users
-    USERS: '/users',
-    USER_BY_ID: (id) => `/users/${id}`,
-    USER_PROFILE: '/users/profile',
+    USERS: '/api/users',
+    USER_BY_ID: (id) => `/api/users/${id}`,
+    USER_PROFILE: '/api/users/profile',
     // Roles & Institutions
     ROLES: '/api/roles',
     INSTITUTIONS: '/api/institutions',
     // Permissions
-    PERMISSIONS: '/permissions',
-    PERMISSION_BY_ID: (id) => `/permissions/${id}`,
-    // Superadmin users (frontend uses /api/superadmin/...)
+    PERMISSIONS: '/api/permissions',
+    PERMISSION_BY_ID: (id) => `/api/permissions/${id}`,
+    // Superadmin users
     SUPERADMIN_USERS: '/api/superadmin/users',
     SUPERADMIN_USER_BY_ID: (id) => `/api/superadmin/users/${id}`,
-    
+
+    // Superadmin Activity
+    SUPERADMIN_ACTIVITY: '/api/superadmin-activity',
+    SUPERADMIN_ACTIVITY_BY_ID: (id) => `/api/superadmin-activity/${id}`,
+    SUPERADMIN_ACTIVITY_RECENT: '/api/superadmin-activity/recent',
+    SUPERADMIN_ACTIVITY_STATS: '/api/superadmin-activity/stats',
+    SUPERADMIN_ACTIVITY_BY_TYPE: (type) => `/api/superadmin-activity/type/${type}`,
+    SUPERADMIN_ACTIVITY_BY_SEVERITY: (severity) => `/api/superadmin-activity/severity/${severity}`,
+    SUPERADMIN_ACTIVITY_BY_PERFORMER: (userId) => `/api/superadmin-activity/performer/${userId}`,
+    SUPERADMIN_ACTIVITY_CLEANUP: '/api/superadmin-activity/cleanup',
+
+    // Admin Activity
+    ADMIN_ACTIVITY: '/api/admin-activity',
+    ADMIN_ACTIVITY_BY_ID: (id) => `/api/admin-activity/${id}`,
+    ADMIN_ACTIVITY_RECENT: '/api/admin-activity/recent',
+    ADMIN_ACTIVITY_STATS: '/api/admin-activity/stats',
+    ADMIN_ACTIVITY_BY_TYPE: (type) => `/api/admin-activity/type/${type}`,
+    ADMIN_ACTIVITY_BY_SEVERITY: (severity) => `/api/admin-activity/severity/${severity}`,
+    ADMIN_ACTIVITY_BY_PERFORMER: (userId) => `/api/admin-activity/performer/${userId}`,
+    ADMIN_ACTIVITY_CLEANUP: '/api/admin-activity/cleanup',
+
     // Courses
-    COURSES: '/courses',
-    COURSE_BY_ID: (id) => `/courses/${id}`,
-    MY_COURSES: '/courses/my',
-    
+    COURSES: '/api/courses',
+    COURSE_BY_ID: (id) => `/api/courses/${id}`,
+    MY_COURSES: '/api/courses/my',
+
     // Assignments
-    ASSIGNMENTS: '/assignments',
-    ASSIGNMENT_BY_ID: (id) => `/assignments/${id}`,
-    ASSIGNMENT_SUBMISSIONS: (id) => `/assignments/${id}/submissions`,
-    
+    ASSIGNMENTS: '/api/assignments',
+    ASSIGNMENT_BY_ID: (id) => `/api/assignments/${id}`,
+    ASSIGNMENT_SUBMISSIONS: (id) => `/api/assignments/${id}/submissions`,
+
     // Grades
-    GRADES: '/grades',
-    STUDENT_GRADES: (studentId) => `/grades/student/${studentId}`,
-    
+    GRADES: '/api/grades',
+    STUDENT_GRADES: (studentId) => `/api/grades/student/${studentId}`,
+
     // Attendance
-    ATTENDANCE: '/attendance',
-    STUDENT_ATTENDANCE: (studentId) => `/attendance/student/${studentId}`,
-    
+    ATTENDANCE: '/api/attendance',
+    STUDENT_ATTENDANCE: (studentId) => `/api/attendance/student/${studentId}`,
+
     // Announcements
-    ANNOUNCEMENTS: '/announcements',
-    
+    ANNOUNCEMENTS: '/api/announcements',
+
     // Messages
-    MESSAGES: '/messages',
-    SEND_MESSAGE: '/messages/send',
-    
+    MESSAGES: '/api/messages',
+    SEND_MESSAGE: '/api/messages/send',
+
     // Notifications
-    NOTIFICATIONS: '/notifications',
-    NOTIFICATION_SUMMARY: '/notifications/summary',
-    NOTIFICATION_BY_ID: (id) => `/notifications/${id}`,
-    NOTIFICATION_MARK_READ: (id) => `/notifications/${id}/read`,
-    NOTIFICATION_MARK_ALL_READ: '/notifications/read-all',
+    NOTIFICATIONS: '/api/notifications',
+    NOTIFICATION_SUMMARY: '/api/notifications/summary',
+    NOTIFICATION_BY_ID: (id) => `/api/notifications/${id}`,
+    NOTIFICATION_MARK_READ: (id) => `/api/notifications/${id}/read`,
+    NOTIFICATION_MARK_ALL_READ: '/api/notifications/read-all',
     
     // Dashboard Stats
-    SUPER_ADMIN_STATS: '/dashboard/superadmin',
-    ADMIN_STATS: '/dashboard/admin',
-    TEACHER_STATS: '/dashboard/teacher',
-    STUDENT_STATS: '/dashboard/student',
-    PARENT_STATS: '/dashboard/parent',
+    SUPER_ADMIN_STATS: '/api/dashboard/superadmin',
+    ADMIN_STATS: '/api/dashboard/admin',
+    TEACHER_STATS: '/api/dashboard/teacher',
+    STUDENT_STATS: '/api/dashboard/student',
+    PARENT_STATS: '/api/dashboard/parent',
 };
 
 // Storage Keys
@@ -126,6 +169,8 @@ const DEMO_CREDENTIALS = {
 // Export configuration
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
+        APP_ENV,
+        APP_NAME,
         API_BASE_URL,
         API_ENDPOINTS,
         STORAGE_KEYS,

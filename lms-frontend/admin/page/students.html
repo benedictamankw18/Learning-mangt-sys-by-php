@@ -1,0 +1,616 @@
+<style>
+/* ============================================
+   Students Management Page Styles
+============================================ */
+.students-page { padding: 0; }
+
+.students-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.students-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+}
+.students-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+}
+.students-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Stats */
+.students-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 1024px) { .students-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .students-stats { grid-template-columns: 1fr; } }
+
+.students-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+}
+.students-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.students-stat-icon i { font-size: 1.2rem; color: #fff; }
+.students-stat-info h3 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary,#1e293b); margin:0 0 0.2rem 0; }
+.students-stat-info p  { font-size: 0.8rem; color: var(--text-secondary,#64748b); margin: 0; }
+.students-stat-sub     { font-size: 0.75rem; color: #10b981; font-weight: 600; margin-top: 0.15rem; }
+.students-stat-sub.negative { color: #ef4444; }
+
+/* Toolbar */
+.students-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.students-toolbar-left  { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
+.students-toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+
+.student-search-wrap {
+    position: relative;
+    min-width: 240px;
+}
+.student-search-wrap i {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary,#94a3b8);
+    font-size: 0.85rem;
+}
+.student-search-wrap input {
+    padding: 0.5rem 0.75rem 0.5rem 2.2rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    width: 100%;
+    outline: none;
+    background: #fff;
+    color: var(--text-primary,#1e293b);
+    transition: border-color 0.2s;
+}
+.student-search-wrap input:focus { border-color: var(--primary,#3b82f6); }
+
+.students-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    color: var(--text-primary,#1e293b);
+    cursor: pointer;
+    outline: none;
+    width: auto;
+    min-width: 130px;
+}
+.students-filter-select:focus { border-color: var(--primary,#3b82f6); }
+
+/* Bulk actions */
+.students-bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #1d4ed8;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+.students-bulk-bar.visible { display: flex; }
+.students-bulk-bar span { flex: 1; }
+
+/* Table */
+.students-table-container {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+.students-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.students-table thead tr { background: #f8fafc; }
+.students-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary,#64748b);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.students-table td {
+    padding: 0.875rem 1rem;
+    color: var(--text-primary,#1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.students-table tbody tr:last-child td { border-bottom: none; }
+.students-table tbody tr:hover { background: #f8fafc; }
+
+.student-cell { display: flex; align-items: center; gap: 0.75rem; }
+.student-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg,#3b82f6,#1d4ed8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+}
+.student-name  { font-weight: 600; color: var(--text-primary,#1e293b); line-height: 1.3; }
+.student-email { font-size: 0.78rem; color: var(--text-secondary,#64748b); }
+
+.students-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.badge-active     { background: #dcfce7; color: #15803d; }
+.badge-inactive   { background: #fef9c3; color: #854d0e; }
+.badge-withdrawn  { background: #fee2e2; color: #b91c1c; }
+
+.student-actions { display: flex; gap: 0.375rem; align-items: center; }
+.student-actions button {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-secondary,#64748b);
+    font-size: 0.8rem;
+}
+.student-actions button:hover { background: #f1f5f9; border-color: #cbd5e1; color: var(--text-primary,#1e293b); }
+.student-actions .btn-view-student:hover  { color: #3b82f6; border-color: #93c5fd; background: #eff6ff; }
+.student-actions .btn-edit-student:hover  { color: #10b981; border-color: #6ee7b7; background: #ecfdf5; }
+.student-actions .btn-toggle-student:hover { color: #f59e0b; border-color: #fcd34d; background: #fffbeb; }
+.student-actions .btn-delete-student:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+
+/* Table footer */
+.students-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary,#64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.students-pagination { display: flex; gap: 0.25rem; align-items: center; }
+.page-btn {
+    min-width: 32px; height: 32px; padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff; border-radius: 6px;
+    cursor: pointer; font-size: 0.8rem;
+    color: var(--text-secondary,#64748b);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.page-btn:hover  { background: #f1f5f9; border-color: #cbd5e1; }
+.page-btn.active { background: var(--primary,#3b82f6); border-color: var(--primary,#3b82f6); color: #fff; font-weight:600; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Modal */
+.student-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+}
+.student-modal-overlay.open { opacity: 1; pointer-events: all; }
+.student-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    transform: translateY(20px); transition: transform 0.2s;
+}
+.student-modal-overlay.open .student-modal { transform: translateY(0); }
+.student-modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+    border-radius: 16px 16px 0 0;
+}
+.student-modal-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary,#1e293b); margin:0; }
+.student-modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: none; background: #f1f5f9; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary,#64748b);
+    font-size: 0.9rem; transition: all 0.15s;
+}
+.student-modal-close:hover { background: #e2e8f0; color: var(--text-primary,#1e293b); }
+.student-modal-body { padding: 1.5rem; }
+.student-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: flex-end; gap: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+}
+
+/* Form grid */
+.student-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 500px) { .student-form-grid { grid-template-columns: 1fr; } }
+.student-form-grid .span-2 { grid-column: span 2; }
+@media (max-width: 500px) { .student-form-grid .span-2 { grid-column: span 1; } }
+
+.form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+.form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary,#64748b); }
+.form-group label .required { color: #ef4444; margin-left: 2px; }
+.form-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text-primary,#1e293b);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+.form-input:focus { border-color: var(--primary,#3b82f6); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+.form-input.error { border-color: #ef4444; }
+.form-error { font-size: 0.75rem; color: #ef4444; }
+.form-section-title {
+    font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--text-secondary,#94a3b8);
+    grid-column: span 2;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+@media (max-width: 500px) { .form-section-title { grid-column: span 1; } }
+
+/* Import modal */
+.import-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary,#64748b);
+    margin-bottom: 1rem;
+}
+.import-drop-zone:hover, .import-drop-zone.dragover { border-color: var(--primary,#3b82f6); background: #eff6ff; }
+.import-drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; }
+.import-drop-zone p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.import-preview { background: #f8fafc; border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; margin-top: 0.5rem; }
+
+/* Empty & loading states */
+.students-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--text-secondary,#94a3b8);
+}
+.students-empty i { font-size: 3rem; margin-bottom: 1rem; }
+.students-empty h4 { margin: 0 0 0.5rem; color: var(--text-primary,#475569); }
+.students-empty p { margin: 0; font-size: 0.875rem; }
+
+.students-loading td { padding: 1rem; text-align: center; color: var(--text-secondary,#94a3b8); }
+
+/* Buttons shared */
+.btn-sm { padding: 0.35rem 0.75rem !important; font-size: 0.8rem !important; }
+</style>
+
+<div class="students-page">
+
+    <!-- Page Header -->
+    <div class="students-page-header">
+        <div>
+            <h2><i class="fas fa-user-graduate" style="margin-right:.5rem;color:var(--primary,#3b82f6)"></i>Student Management</h2>
+            <p>Manage student records, enrollment, and profiles</p>
+        </div>
+        <div class="students-header-actions">
+            <button class="btn btn-outline btn-sm" id="importStudentsBtn" title="Import from CSV">
+                <i class="fas fa-file-csv"></i> Import CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportStudentsBtn" title="Export to CSV">
+                <i class="fas fa-download"></i> Export
+            </button>
+            <button class="btn btn-primary btn-sm" id="addStudentBtn">
+                <i class="fas fa-plus"></i> Add Student
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="students-stats" id="studentStats">
+        <div class="students-stat-card">
+            <div class="students-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="students-stat-info">
+                <h3 id="statTotalStudents">—</h3>
+                <p>Total Students</p>
+                <div class="students-stat-sub" id="statNewThisMonth"></div>
+            </div>
+        </div>
+        <div class="students-stat-card">
+            <div class="students-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="students-stat-info">
+                <h3 id="statActiveStudents">—</h3>
+                <p>Active Students</p>
+            </div>
+        </div>
+        <div class="students-stat-card">
+            <div class="students-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="students-stat-info">
+                <h3 id="statInactiveStudents">—</h3>
+                <p>Inactive Students</p>
+            </div>
+        </div>
+        <div class="students-stat-card">
+            <div class="students-stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="students-stat-info">
+                <h3 id="statTotalClasses">—</h3>
+                <p>Classes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="students-toolbar">
+        <div class="students-toolbar-left">
+            <div class="student-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="studentSearch" placeholder="Search by name, ID or email…">
+            </div>
+            <select class="students-filter-select" id="filterStudentClass">
+                <option value="">All Classes</option>
+            </select>
+            <select class="students-filter-select" id="filterStudentProgram">
+                <option value="">All Programs</option>
+            </select>
+            <select class="students-filter-select" id="filterStudentStatus">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="withdrawn">Withdrawn</option>
+            </select>
+        </div>
+        <div class="students-toolbar-right">
+            <span id="studentsCount" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="students-bulk-bar" id="studentsBulkBar">
+        <span><strong id="bulkSelectedCount">0</strong> students selected</span>
+        <button class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none" id="bulkActivateBtn"><i class="fas fa-check"></i> Activate</button>
+        <button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:none" id="bulkDeactivateBtn"><i class="fas fa-pause"></i> Deactivate</button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none" id="bulkDeleteBtn"><i class="fas fa-trash"></i> Delete</button>
+        <button class="btn btn-sm btn-outline" id="bulkClearBtn">Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="students-table-container">
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th style="width:40px"><input type="checkbox" id="selectAllStudents" title="Select all"></th>
+                    <th>Student</th>
+                    <th>ID Number</th>
+                    <th>Class</th>
+                    <th>Program</th>
+                    <th>Enrolled</th>
+                    <th>Status</th>
+                    <th style="width:120px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTableBody">
+                <tr><td colspan="8" class="students-loading"><div class="spinner"></div> Loading students…</td></tr>
+            </tbody>
+        </table>
+        <div class="students-table-footer">
+            <span id="studentsTableInfo" style="color:var(--text-secondary,#64748b)">—</span>
+            <div class="students-pagination" id="studentsPagination"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============ Add / Edit Student Modal ============ -->
+<div class="student-modal-overlay" id="studentModalOverlay">
+    <div class="student-modal">
+        <div class="student-modal-header">
+            <h3 id="studentModalTitle">Add Student</h3>
+            <button class="student-modal-close" id="closeStudentModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="student-modal-body">
+            <form id="studentForm" novalidate>
+                <div class="student-form-grid">
+                    <div class="form-section-title">Personal Information</div>
+
+                    <div class="form-group">
+                        <label>First Name <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="sfFirstName" placeholder="e.g. Kwame" required>
+                        <span class="form-error" id="sfFirstNameErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="sfLastName" placeholder="e.g. Mensah" required>
+                        <span class="form-error" id="sfLastNameErr"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email <span class="required">*</span></label>
+                        <input type="email" class="form-input" id="sfEmail" placeholder="kwame.mensah@school.edu.gh" required>
+                        <span class="form-error" id="sfEmailErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Username <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="sfUsername" placeholder="kwame.mensah" required>
+                        <span class="form-error" id="sfUsernameErr"></span>
+                    </div>
+
+                    <div class="form-group" id="sfPasswordGroup">
+                        <label>Password <span class="required">*</span></label>
+                        <input type="password" class="form-input" id="sfPassword" placeholder="Min. 8 characters" required>
+                        <span class="form-error" id="sfPasswordErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select class="form-input" id="sfGender">
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" class="form-input" id="sfDob">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" class="form-input" id="sfPhone" placeholder="e.g. 0244123456">
+                    </div>
+
+                    <div class="form-section-title">Academic Information</div>
+
+                    <div class="form-group">
+                        <label>Student ID Number <span class="required">*</span></label>
+                        <input type="text" class="form-input" id="sfStudentId" placeholder="e.g. SHS2024001" required>
+                        <span class="form-error" id="sfStudentIdErr"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>Class</label>
+                        <select class="form-input" id="sfClass">
+                            <option value="">Select class</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Enrollment Date</label>
+                        <input type="date" class="form-input" id="sfEnrollmentDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select class="form-input" id="sfStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="form-section-title">Parent / Guardian</div>
+
+                    <div class="form-group">
+                        <label>Parent / Guardian Name</label>
+                        <input type="text" class="form-input" id="sfParentName" placeholder="e.g. Mrs. Akosua Mensah">
+                    </div>
+                    <div class="form-group">
+                        <label>Parent Phone</label>
+                        <input type="tel" class="form-input" id="sfParentPhone" placeholder="e.g. 0244567890">
+                    </div>
+
+                    <div class="form-group span-2">
+                        <label>Parent Email</label>
+                        <input type="email" class="form-input" id="sfParentEmail" placeholder="parent@email.com">
+                    </div>
+
+                    <div class="form-group span-2">
+                        <label>Emergency Contact</label>
+                        <input type="text" class="form-input" id="sfEmergency" placeholder="Name and phone number">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="student-modal-footer">
+            <button class="btn btn-outline" id="cancelStudentModalBtn">Cancel</button>
+            <button class="btn btn-primary" id="saveStudentBtn">
+                <span id="saveStudentBtnText">Save Student</span>
+                <span id="saveStudentSpinner" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ Import CSV Modal ============ -->
+<div class="student-modal-overlay" id="importModalOverlay">
+    <div class="student-modal" style="max-width:480px">
+        <div class="student-modal-header">
+            <h3>Import Students from CSV</h3>
+            <button class="student-modal-close" id="closeImportModalBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="student-modal-body">
+            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
+                Upload a CSV file with student data. Download the
+                <a href="#" id="downloadTemplateLink" style="color:var(--primary,#3b82f6)">template</a> to get started.
+            </p>
+            <div class="import-drop-zone" id="importDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p style="font-size:.75rem;margin-top:.25rem">CSV files only · Max 5MB</p>
+                <input type="file" id="importFileInput" accept=".csv" style="display:none">
+            </div>
+            <div class="import-preview" id="importPreview" style="display:none">
+                <strong id="importFileName"></strong>
+                <span id="importRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
+            </div>
+            <div id="importErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
+        </div>
+        <div class="student-modal-footer">
+            <button class="btn btn-outline" id="cancelImportBtn">Cancel</button>
+            <button class="btn btn-primary" id="confirmImportBtn" disabled>
+                <span id="confirmImportText">Import</span>
+                <span id="confirmImportSpinner" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </div>
+    </div>
+</div>

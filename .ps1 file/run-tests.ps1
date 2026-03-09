@@ -17,9 +17,10 @@ Write-Host "6. Test Assessments & Grading" -ForegroundColor Cyan
 Write-Host "7. Test Dashboard" -ForegroundColor Cyan
 Write-Host "8. Test Authentication" -ForegroundColor Cyan
 Write-Host "9. Verbose Test (See All Requests)" -ForegroundColor Magenta
+Write-Host "10. Test Superadmin Activity & Audit Trail" -ForegroundColor Cyan
 Write-Host "0. Exit" -ForegroundColor Red
 
-$choice = Read-Host "`nEnter your choice (0-9)"
+$choice = Read-Host "`nEnter your choice (0-10)"
 
 switch ($choice) {
     "1" {
@@ -62,6 +63,10 @@ switch ($choice) {
     "9" {
         Write-Host "`nRunning Verbose Test (All output shown)..." -ForegroundColor Magenta
         .\test-api.ps1 -QuickTest -Verbose
+    }
+    "10" {
+        Write-Host "`nTesting Superadmin Activity & Audit Trail..." -ForegroundColor Cyan
+        .\test-api.ps1 -Category superadmin-activity -Verbose
     }
     "0" {
         Write-Host "`nExiting..." -ForegroundColor Red
