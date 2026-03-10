@@ -1,0 +1,89 @@
+[33mcommit 0678c929bf30518049cce7073b4197e58d1f1d86[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mlms-api[m[33m, [m[1;31morigin/lms-api[m[33m)[m
+Author: Benedict Amankwa Osei <benedictamankwa18@gmail.com>
+Date:   Tue Mar 10 22:15:14 2026 +0000
+
+    Donetrtr
+
+[33mcommit bbc159c068076b4edd852306e03daa1e0cd47878[m
+Author: Benedict Amankwa Osei <benedictamankwa18@gmail.com>
+Date:   Tue Mar 10 10:03:18 2026 +0000
+
+    Refactor authentication handling in APIService to prevent infinite logout loop; enhance AuthService for improved in-memory token management and storage access; expand API endpoints for teachers and subjects; update Nginx PID; add sensitive account details file.
+
+[33mcommit a70d6c22cd6b4d487a5db12f766cbfbbc2a7fd20[m
+Author: Benedict Amankwa Osei <benedictamankwa18@gmail.com>
+Date:   Mon Mar 9 14:44:08 2026 +0000
+
+    Stage 1 done
+
+[33mcommit 3be130490ee8edace14b9df5fc22100d87bcbd24[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Tue Mar 3 22:11:10 2026 +0000
+
+    LMS-API 1.2
+
+[33mcommit abdc099b91ebae25875d5931a627df152a5bf91a[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Tue Mar 3 00:19:43 2026 +0000
+
+    start 102
+
+[33mcommit a5f70cb920ee547568742eaf79b74c1b806ce3c5[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Mon Mar 2 23:20:17 2026 +0000
+
+    frontend finish admin
+
+[33mcommit dede364c20be60747615e5be2b3b1926aeaeaf50[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Mon Mar 2 14:49:38 2026 +0000
+
+    frontend finish admin
+
+[33mcommit e873a99e5074b34c92f4a2d95b5b27732a83ef78[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Mon Mar 2 11:09:46 2026 +0000
+
+    Removed Stripe secret key
+
+[33mcommit 642e6ba6ae07553ce55431518da30098de766f81[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Mon Mar 2 10:39:33 2026 +0000
+
+    finish with super admin important things
+
+[33mcommit dd86e2b87a7ff9fd818ab29cbf5df5d4ad0a2611[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Sun Feb 22 21:27:56 2026 +0000
+
+    roles page create finish
+
+[33mcommit 4d2e731445ea50ec0a517bf18969c929724cd36b[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Sun Feb 22 01:56:09 2026 +0000
+
+    Institution and user pages done
+
+[33mcommit c142d90fe84dc855f4d685886580dd056cb1f110[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Wed Feb 18 21:52:37 2026 +0000
+
+    Some pages created
+
+[33mcommit 848d8cb9d54c2e2f94612d0ac131bf0598777c9c[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Tue Feb 17 16:28:58 2026 +0000
+
+    Dashboard meeting at admin
+
+[33mcommit d646b97aaf05e5ad8511af6a8d6e48c2eb1c1d4e[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Sun Feb 15 21:48:51 2026 +0000
+
+    api first push
+
+[33mcommit 889c6e19ac01d94f80d76ff49d09a7b6b70f10b5[m
+Author: Benedict Amankwa <BENEDICTAMANKWA18@GMAIL.COM>
+Date:   Sun Feb 15 21:44:38 2026 +0000
+
+    api first push
