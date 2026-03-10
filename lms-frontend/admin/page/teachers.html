@@ -1,0 +1,759 @@
+<!-- ===================================================
+     Teachers Management Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/teachers.js
+==================================================== -->
+<style>
+/* ============================================
+   Teachers Management Page Styles
+============================================ */
+.teachers-page { padding: 0; }
+
+.teachers-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.teachers-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+}
+.teachers-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+}
+.teachers-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Stats */
+.teachers-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 1024px) { .teachers-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .teachers-stats { grid-template-columns: 1fr; } }
+
+.teachers-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+}
+.teachers-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.teachers-stat-icon i { font-size: 1.2rem; color: #fff; }
+.teachers-stat-info h3 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary,#1e293b); margin:0 0 0.2rem 0; }
+.teachers-stat-info p  { font-size: 0.8rem; color: var(--text-secondary,#64748b); margin: 0; }
+
+/* Toolbar */
+.teachers-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.teachers-toolbar-left  { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; flex-wrap: nowrap; flex: 1; 
+    width: 100%; max-width: 600px;
+}
+.teachers-toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+
+.teacher-search-wrap {
+    position: relative;
+    min-width: 240px;
+}
+.teacher-search-wrap i {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary,#94a3b8);
+    font-size: 0.85rem;
+}
+.teacher-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    transition: border-color .2s;
+}
+.teacher-search-wrap input:focus { border-color: var(--primary,#6366f1); }
+
+.teachers-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary,#1e293b);
+}
+.teachers-filter-select:focus { border-color: var(--primary,#6366f1); width: 100%; max-width: 200px; }
+
+.teachers-count-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary,#64748b);
+    white-space: nowrap;
+}
+
+/* Table */
+.teachers-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+.teachers-table { width: 100%; border-collapse: collapse; }
+.teachers-table thead th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary,#64748b);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.teachers-table thead th:first-child { width: 40px; }
+.teachers-table tbody tr { border-bottom: 1px solid #f1f5f9; transition: background .15s; }
+.teachers-table tbody tr:last-child { border-bottom: none; }
+.teachers-table tbody tr:hover { background: #f8fafc; }
+.teachers-table tbody td { padding: 0.85rem 1rem; font-size: 0.875rem; color: var(--text-primary,#1e293b); vertical-align: middle; }
+
+.teacher-cell { display: flex; align-items: center; gap: 0.75rem; }
+.teacher-initials {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--primary,#6366f1);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.teacher-name { font-weight: 600; color: var(--text-primary,#1e293b); }
+.teacher-email { font-size: 0.75rem; color: var(--text-secondary,#94a3b8); }
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.badge-active { background: #dcfce7; color: #16a34a; }
+.badge-inactive { background: #fee2e2; color: #dc2626; }
+
+.teachers-actions { display: flex; gap: 0.4rem; align-items: center; }
+.btn-icon-sm {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary,#64748b);
+    transition: all .15s;
+}
+.btn-icon-sm:hover { background: #f1f5f9; color: var(--text-primary,#1e293b); }
+.btn-icon-sm.danger:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+.btn-icon-sm.view:hover { background: #ede9fe; color: #7c3aed; border-color: #c4b5fd; }
+.btn-icon-sm.edit:hover { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+.btn-icon-sm.assign:hover { background: #ecfdf5; color: #059669; border-color: #6ee7b7; }
+.btn-icon-sm.schedule:hover { background: #eff6ff; color: #2563eb; border-color: #93c5fd; }
+
+/* Assign Subjects Modal */
+.assign-subjects-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .5rem .75rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: .4rem;
+    border: 1px solid #e2e8f0;
+}
+.assign-subjects-subject-name { font-weight: 600; font-size: .875rem; }
+.assign-subjects-subject-code { color: #94a3b8; font-size: .75rem; margin-left: .4rem; }
+.assign-subjects-core-badge {
+    background: #dbeafe; color: #1d4ed8;
+    font-size: .7rem; font-weight: 600;
+    padding: 2px 6px; border-radius: 4px; margin-left: .4rem;
+}
+
+/* Pagination */
+.teachers-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.teachers-pagination span { font-size: 0.8rem; color: var(--text-secondary,#64748b); }
+.teachers-pagination-btns { display: flex; gap: 0.35rem; }
+.teachers-pagination-btns button {
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    color: var(--text-primary,#1e293b);
+    transition: all .15s;
+}
+.teachers-pagination-btns button:hover:not(:disabled) { background: var(--primary,#6366f1); color: #fff; border-color: var(--primary,#6366f1); }
+.teachers-pagination-btns button:disabled { opacity: .45; cursor: default; }
+.teachers-pagination-btns button.active { background: var(--primary,#6366f1); color: #fff; border-color: var(--primary,#6366f1); }
+
+/* Modal overlay */
+.teacher-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    display: none;
+}
+.teacher-modal-overlay.open { display: flex; }
+.teacher-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+}
+.teacher-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.teacher-modal-header h3 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+.teacher-modal-close {
+    background: none; border: none; font-size: 1.1rem;
+    cursor: pointer; color: var(--text-secondary,#64748b);
+    width: 32px; height: 32px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+}
+.teacher-modal-close:hover { background: #f1f5f9; }
+.teacher-modal-body { padding: 1.5rem; flex: 1; }
+.teacher-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.tf-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary,#64748b);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin: 0 0 1rem 0;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.tf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+@media (max-width: 560px) { .tf-grid { grid-template-columns: 1fr; } }
+.tf-grid.three-col { grid-template-columns: 1fr 1fr 1fr; }
+@media (max-width: 700px) { .tf-grid.three-col { grid-template-columns: 1fr 1fr; } }
+.tf-col-full { grid-column: 1 / -1; }
+
+.tf-field { display: flex; flex-direction: column; }
+.tf-field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-secondary,#475569);
+    margin-bottom: .35rem;
+}
+.tf-field label span.req { color: #ef4444; margin-left: .15rem; }
+.tf-field input, .tf-field select, .tf-field textarea {
+    padding: .55rem .75rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: .875rem;
+    background: #fff;
+    color: var(--text-primary,#1e293b);
+    outline: none;
+    transition: border-color .2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+.tf-field input:focus, .tf-field select:focus, .tf-field textarea:focus { border-color: var(--primary,#6366f1); }
+.tf-field input.error, .tf-field select.error { border-color: #ef4444; }
+.tf-error-msg { font-size: .74rem; color: #ef4444; margin-top: .25rem; }
+
+.tf-input-lock { position: relative; }
+.tf-input-lock input { padding-right: 2.5rem; }
+.tf-lock-btn {
+    position: absolute; right: .5rem; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--text-secondary,#94a3b8); font-size: .85rem;
+    padding: .2rem .3rem;
+}
+.tf-lock-btn:hover { color: var(--primary,#6366f1); }
+
+.tf-pw-wrap { position: relative; }
+.tf-pw-wrap input { padding-right: 5rem; }
+.tf-pw-btns {
+    position: absolute; right: .4rem; top: 50%;
+    transform: translateY(-50%);
+    display: flex; gap: .15rem;
+}
+.tf-pw-btns button {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-secondary,#94a3b8);
+    font-size: .8rem; padding: .25rem .35rem;
+    border-radius: 4px; transition: color .15s;
+}
+.tf-pw-btns button:hover { color: var(--primary,#6366f1); }
+
+/* Import Modal */
+.teacher-import-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.teacher-import-modal-overlay.open { display: flex; }
+.teacher-import-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%; max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.teacher-import-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.teacher-import-modal-header h3 { font-size: 1.05rem; font-weight: 700; margin: 0; }
+.teacher-import-drop-zone {
+    border: 2px dashed #c7d2fe;
+    border-radius: 10px;
+    padding: 2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    margin: 1rem 1.5rem;
+    transition: background .2s;
+    color: var(--text-secondary,#64748b);
+}
+.teacher-import-drop-zone:hover, .teacher-import-drop-zone.dragover { background: #ede9fe; border-color: var(--primary,#6366f1); }
+.teacher-import-drop-zone i { font-size: 2rem; color: var(--primary,#6366f1); margin-bottom: .5rem; }
+.teacher-import-preview { padding: .5rem 1.5rem 1rem; }
+.teacher-import-preview table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.teacher-import-preview th { background: #f8fafc; padding: .4rem .6rem; text-align: left; font-weight: 600; color: var(--text-secondary,#64748b); border-bottom: 1px solid #e2e8f0; }
+.teacher-import-preview td { padding: .4rem .6rem; border-bottom: 1px solid #f1f5f9; }
+.teacher-import-footer { padding: .75rem 1.5rem 1.25rem; display: flex; justify-content: flex-end; gap: .5rem; }
+
+/* Import Results Modal */
+.teacher-import-results-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1100;
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.teacher-import-results-overlay.open { display: flex; }
+.teacher-import-results-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%; max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+</style>
+
+<!-- ─── Page Header ─────────────────────────────────────────────── -->
+<div class="teachers-page">
+  <div class="teachers-page-header">
+    <div>
+      <h2>Teachers</h2>
+      <p>Manage your institution's teaching staff</p>
+    </div>
+    <div class="teachers-header-actions">
+      <button class="btn btn-outline btn-sm" id="exportTeachersBtn" title="Export to CSV">
+        <i class="fas fa-file-csv"></i> Export CSV
+      </button>
+      <button class="btn btn-outline btn-sm" id="exportPDFTeachersBtn" title="Export to PDF">
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+      <button class="btn btn-outline btn-sm" id="importTeachersBtn" title="Import CSV">
+        <i class="fas fa-upload"></i> Import CSV
+      </button>
+      <button class="btn btn-primary btn-sm" id="addTeacherBtn" title="Add Teacher">
+        <i class="fas fa-plus"></i> Add Teacher
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="teachers-stats">
+    <div class="teachers-stat-card">
+      <div class="teachers-stat-icon" style="background:#6366f1">
+        <i class="fas fa-chalkboard-teacher"></i>
+      </div>
+      <div class="teachers-stat-info">
+        <h3 id="statTotalTeachers">—</h3>
+        <p>Total Teachers</p>
+      </div>
+    </div>
+    <div class="teachers-stat-card">
+      <div class="teachers-stat-icon" style="background:#10b981">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="teachers-stat-info">
+        <h3 id="statActiveTeachers">—</h3>
+        <p>Active Teachers</p>
+      </div>
+    </div>
+    <div class="teachers-stat-card">
+      <div class="teachers-stat-icon" style="background:#f59e0b">
+        <i class="fas fa-building"></i>
+      </div>
+      <div class="teachers-stat-info">
+        <h3 id="statPrograms">—</h3>
+        <p>Departments</p>
+      </div>
+    </div>
+    <div class="teachers-stat-card">
+      <div class="teachers-stat-icon" style="background:#3b82f6">
+        <i class="fas fa-user-plus"></i>
+      </div>
+      <div class="teachers-stat-info">
+        <h3 id="statNewThisMonth">—</h3>
+        <p>New This Month</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="teachers-toolbar">
+    <div class="teachers-toolbar-left">
+      <div class="teacher-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" id="teacherSearch" placeholder="Search teachers…" autocomplete="off">
+      </div>
+      <select class="teachers-filter-select" id="teacherProgramFilter">
+        <option value="">All Departments</option>
+      </select>
+      <select class="teachers-filter-select" id="teacherSubjectFilter">
+        <option value="">All Subjects</option>
+      </select>
+      <select class="teachers-filter-select" id="teacherStatusFilter">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="teachers-toolbar-right">
+      <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;cursor:pointer;color:var(--text-secondary); display: none;">
+        <input type="checkbox" id="teacherSelectAll" style="cursor:pointer"> Select All
+      </label>
+      <button class="btn btn-outline btn-sm" id="teacherDeleteSelectedBtn" style="display:none;color:#dc2626;border-color:#fca5a5">
+        <i class="fas fa-trash"></i> Delete Selected
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="teachers-table-wrap">
+    <table class="teachers-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="teacherSelectAllHeader" style="cursor:pointer"></th>
+          <th>Teacher</th>
+          <th>Employee ID</th>
+          <th>Department</th>
+          <th>Qualification</th>
+          <th>Hire Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="teachersTableBody">
+        <tr>
+          <td colspan="8" style="text-align:center;padding:2rem;color:#94a3b8">
+            <i class="fas fa-spinner fa-spin"></i> Loading teachers…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="teachers-pagination">
+      <span id="teachersPaginationInfo">—</span>
+      <div class="teachers-pagination-btns" id="teachersPaginationBtns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Add / Edit Teacher Modal ────────────────────────────────── -->
+<div class="teacher-modal-overlay" id="teacherModalOverlay">
+  <div class="teacher-modal" role="dialog" aria-modal="true" aria-labelledby="teacherModalTitle">
+    <div class="teacher-modal-header">
+      <h3 id="teacherModalTitle">Add Teacher</h3>
+      <button class="teacher-modal-close" id="closeTeacherModalBtn" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="teacher-modal-body">
+
+      <!-- Personal Information -->
+      <p class="tf-section-title"><i class="fas fa-user" style="margin-right:.4rem"></i>Personal Information</p>
+      <div class="tf-grid">
+        <div class="tf-field">
+          <label>First Name <span class="req">*</span></label>
+          <input type="text" id="tfFirstName" placeholder="First name" autocomplete="off">
+          <span class="tf-error-msg" id="tfFirstNameErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Last Name <span class="req">*</span></label>
+          <input type="text" id="tfLastName" placeholder="Last name" autocomplete="off">
+          <span class="tf-error-msg" id="tfLastNameErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Email Address <span class="req">*</span></label>
+          <input type="email" id="tfEmail" placeholder="teacher@school.com" autocomplete="off">
+          <span class="tf-error-msg" id="tfEmailErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Username <span class="req">*</span></label>
+          <div class="tf-input-lock">
+            <input type="text" id="tfUsername" placeholder="Auto-generated" autocomplete="off">
+            <button class="tf-lock-btn" id="tfUsernameEditBtn" type="button" title="Edit username">
+              <i class="fas fa-pencil-alt" id="tfUsernameEditIcon"></i>
+            </button>
+          </div>
+          <span class="tf-error-msg" id="tfUsernameErr"></span>
+        </div>
+        <div class="tf-field" id="tfPasswordField">
+          <label>Password <span class="req">*</span></label>
+          <div class="tf-pw-wrap">
+            <input type="password" id="tfPassword" placeholder="Min 8 characters" autocomplete="new-password">
+            <div class="tf-pw-btns">
+              <button type="button" id="tfPasswordToggle" title="Show/hide"><i class="fas fa-eye" id="tfPasswordToggleIcon"></i></button>
+              <button type="button" id="tfPasswordGenerate" title="Generate"><i class="fas fa-dice"></i></button>
+            </div>
+          </div>
+          <span class="tf-error-msg" id="tfPasswordErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Phone Number</label>
+          <input type="tel" id="tfPhone" placeholder="+1 234 567 8900" autocomplete="off">
+          <span class="tf-error-msg" id="tfPhoneErr"></span>
+        </div>
+        <div class="tf-field tf-col-full">
+          <label>Address</label>
+          <input type="text" id="tfAddress" placeholder="Street address" autocomplete="off">
+          <span class="tf-error-msg" id="tfAddressErr"></span>
+        </div>
+      </div>
+
+      <!-- Professional Information -->
+      <p class="tf-section-title"><i class="fas fa-briefcase" style="margin-right:.4rem"></i>Professional Information</p>
+      <div class="tf-grid">
+        <div class="tf-field">
+          <label>Employee ID <span class="req">*</span></label>
+          <div class="tf-input-lock">
+            <input type="text" id="tfEmployeeId" placeholder="Auto-generated" autocomplete="off">
+            <button class="tf-lock-btn" id="tfEmployeeIdEditBtn" type="button" title="Edit employee ID">
+              <i class="fas fa-pencil-alt" id="tfEmployeeIdEditIcon"></i>
+            </button>
+          </div>
+          <span class="tf-error-msg" id="tfEmployeeIdErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Department</label>
+          <select id="tfProgram">
+            <option value="">Select Department</option>
+          </select>
+          <span class="tf-error-msg" id="tfProgramErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Qualification</label>
+          <input type="text" id="tfQualification" placeholder="e.g. B.Ed., M.Sc." autocomplete="off">
+          <span class="tf-error-msg" id="tfQualificationErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Specialization</label>
+          <input type="text" id="tfSpecialization" placeholder="e.g. Mathematics" autocomplete="off">
+          <span class="tf-error-msg" id="tfSpecializationErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Hire Date</label>
+          <input type="date" id="tfHireDate">
+          <span class="tf-error-msg" id="tfHireDateErr"></span>
+        </div>
+        <div class="tf-field">
+          <label>Years of Experience</label>
+          <input type="number" id="tfYearsExp" min="0" max="60" placeholder="0">
+          <span class="tf-error-msg" id="tfYearsExpErr"></span>
+        </div>
+        <div class="tf-field" id="tfStatusField" style="display:none">
+          <label>Status</label>
+          <select id="tfStatus">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <span class="tf-error-msg" id="tfStatusErr"></span>
+        </div>
+      </div>
+
+    </div>
+    <div class="teacher-modal-footer">
+      <button class="btn btn-outline btn-sm" id="cancelTeacherModalBtn">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="saveTeacherBtn">
+        <span id="saveTeacherBtnText">Add Teacher</span>
+        <i class="fas fa-spinner fa-spin" id="saveTeacherSpinner" style="display:none;margin-left:.4rem"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Import CSV Modal ─────────────────────────────────────────── -->
+<div class="teacher-import-modal-overlay" id="teacherImportModalOverlay">
+  <div class="teacher-import-modal">
+    <div class="teacher-import-modal-header">
+      <h3><i class="fas fa-file-csv" style="margin-right:.5rem;color:var(--primary,#6366f1)"></i>Import Teachers from CSV</h3>
+      <button class="teacher-modal-close" id="closeTeacherImportModalBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:1rem 1.5rem 0">
+      <p style="font-size:.85rem;color:var(--text-secondary,#64748b);margin:0 0 .75rem">
+        Upload a CSV file to bulk import teachers.
+        <a href="#" id="teacherDownloadTemplateLink" style="color:var(--primary,#6366f1)">Download template</a>
+      </p>
+      <div class="teacher-import-drop-zone" id="teacherImportDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p style="margin:.5rem 0 .25rem;font-weight:600">Click or drag to upload</p>
+        <p style="font-size:.78rem;margin:0">CSV files only</p>
+        <input type="file" id="teacherImportFileInput" accept=".csv" style="display:none">
+      </div>
+    </div>
+    <div class="teacher-import-preview" id="teacherImportPreview" style="display:none">
+      <p style="font-size:.82rem;font-weight:600;margin:.5rem 0"><span id="teacherImportPreviewCount">0</span> records found</p>
+      <div style="max-height:200px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+        <table>
+          <thead id="teacherImportPreviewHead"></thead>
+          <tbody id="teacherImportPreviewBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="teacher-import-footer">
+      <button class="btn btn-outline btn-sm" id="cancelTeacherImportBtn">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="confirmTeacherImportBtn" disabled>
+        <span id="confirmTeacherImportText">Import</span>
+        <i class="fas fa-spinner fa-spin" id="teacherImportSpinner" style="display:none;margin-left:.4rem"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Assign Subjects Modal ─────────────────────────────────────────── -->
+<div class="teacher-modal-overlay" id="assignSubjectsOverlay">
+  <div class="teacher-modal" role="dialog" aria-modal="true" aria-labelledby="assignSubjectsTitle" style="max-width:560px">
+    <div class="teacher-modal-header">
+      <h3 id="assignSubjectsTitle">Assign Subjects</h3>
+      <button class="teacher-modal-close" id="closeAssignSubjectsBtn" aria-label="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="teacher-modal-body">
+      <p class="tf-section-title"><i class="fas fa-book" style="margin-right:.4rem"></i>Assigned Subjects</p>
+      <div id="assignedSubjectsList" style="min-height:60px;max-height:260px;overflow-y:auto">
+        <p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:1rem">Loading…</p>
+      </div>
+
+      <p class="tf-section-title" style="margin-top:1.25rem"><i class="fas fa-plus-circle" style="margin-right:.4rem"></i>Add Subject</p>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <select id="assignSubjectSelect" class="teachers-filter-select" style="flex:1;max-width:none">
+          <option value="">Select a subject to assign</option>
+        </select>
+        <button class="btn btn-primary btn-sm" id="confirmAssignSubjectBtn">
+          <i class="fas fa-plus"></i> Assign
+        </button>
+      </div>
+      <div id="assignSubjectMsg" style="font-size:.8rem;margin-top:.5rem;min-height:1.2rem"></div>
+    </div>
+    <div class="teacher-modal-footer">
+      <button class="btn btn-outline btn-sm" id="doneAssignSubjectsBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Import Results Modal ─────────────────────────────────────── -->
+<div class="teacher-import-results-overlay" id="teacherImportResultsOverlay">
+  <div class="teacher-import-results-modal">
+    <div class="teacher-import-modal-header">
+      <h3><i class="fas fa-poll" style="margin-right:.5rem;color:var(--primary,#6366f1)"></i>Import Results</h3>
+      <button class="teacher-modal-close" id="closeTeacherImportResultsBtn"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:1rem 1.5rem">
+      <div id="teacherImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+      <div style="max-height:320px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead>
+            <tr style="background:#f8fafc">
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0">Row</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0">Name</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0">Status</th>
+              <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0">Reason</th>
+            </tr>
+          </thead>
+          <tbody id="teacherImportResultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="padding:.75rem 1.5rem 1.25rem;display:flex;justify-content:flex-end;gap:.5rem">
+      <button class="btn btn-outline btn-sm" id="closeTeacherImportResultsDoneBtn">Done</button>
+    </div>
+  </div>
+</div>

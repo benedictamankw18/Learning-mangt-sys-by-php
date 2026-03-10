@@ -22,29 +22,35 @@ class TeacherSubjectController
         $this->subjectRepo = new SubjectRepository();
     }
 
-    public function getTeacherSubjects(array $user, int $teacherId): void
+    public function getTeacherSubjects(array $user, string $teacherId): void
     {
-        $teacher = $this->teacherRepo->findById($teacherId);
+        // Accept both UUID string and numeric teacher_id
+        $teacher = is_numeric($teacherId)
+            ? $this->teacherRepo->findById((int)$teacherId)
+            : $this->teacherRepo->findByUuid($teacherId);
 
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
 
-        $subjects = $this->teacherSubjectRepo->getTeacherSubjects($teacherId);
+        $subjects = $this->teacherSubjectRepo->getTeacherSubjects((int)$teacher['teacher_id']);
         Response::success($subjects);
     }
 
-    public function getSubjectTeachers(array $user, int $subjectId): void
+    public function getSubjectTeachers(array $user, string $subjectId): void
     {
-        $subject = $this->subjectRepo->findById($subjectId);
+        // Accept both UUID string and numeric subject_id
+        $subject = is_numeric($subjectId)
+            ? $this->subjectRepo->findById((int)$subjectId)
+            : $this->subjectRepo->findByUuid($subjectId);
 
         if (!$subject) {
             Response::notFound('Subject not found');
             return;
         }
 
-        $teachers = $this->teacherSubjectRepo->getSubjectTeachers($subjectId);
+        $teachers = $this->teacherSubjectRepo->getSubjectTeachers((int)$subject['subject_id']);
         Response::success($teachers);
     }
 
@@ -71,9 +77,7 @@ class TeacherSubjectController
         $data = json_decode(file_get_contents('php://input'), true);
 
         $validator = new Validator($data);
-        $validator->required(['teacher_id', 'subject_id'])
-            ->numeric('teacher_id')
-            ->numeric('subject_id');
+        $validator->required(['teacher_id', 'subject_id']);
 
         if (isset($data['assigned_date'])) {
             $validator->date('assigned_date');
@@ -84,19 +88,27 @@ class TeacherSubjectController
             return;
         }
 
-        // Check if teacher exists
-        $teacher = $this->teacherRepo->findById($data['teacher_id']);
+        // Resolve teacher (UUID or numeric)
+        $teacherIdRaw = $data['teacher_id'];
+        $teacher = is_numeric($teacherIdRaw)
+            ? $this->teacherRepo->findById((int)$teacherIdRaw)
+            : $this->teacherRepo->findByUuid((string)$teacherIdRaw);
         if (!$teacher) {
             Response::notFound('Teacher not found');
             return;
         }
+        $data['teacher_id'] = (int)$teacher['teacher_id'];
 
-        // Check if subject exists
-        $subject = $this->subjectRepo->findById($data['subject_id']);
+        // Resolve subject (UUID or numeric)
+        $subjectIdRaw = $data['subject_id'];
+        $subject = is_numeric($subjectIdRaw)
+            ? $this->subjectRepo->findById((int)$subjectIdRaw)
+            : $this->subjectRepo->findByUuid((string)$subjectIdRaw);
         if (!$subject) {
             Response::notFound('Subject not found');
             return;
         }
+        $data['subject_id'] = (int)$subject['subject_id'];
 
         // Check if assignment already exists
         if ($this->teacherSubjectRepo->assignmentExists($data['teacher_id'], $data['subject_id'])) {

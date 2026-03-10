@@ -33,7 +33,16 @@
     function initStudentsPage() {
         setupEventListeners();
         loadFilterOptions();
-        loadStudents();
+        loadStudents().then(() => {
+            // Check if we were redirected here from the details page to edit a student
+            try {
+                const editUuid = sessionStorage.getItem('lms_student_edit_uuid');
+                if (editUuid) {
+                    sessionStorage.removeItem('lms_student_edit_uuid');
+                    openStudentModal(editUuid);
+                }
+            } catch (_) {}
+        });
     }
 
     // ─── Event Listeners ──────────────────────────────────────────────────────
@@ -43,6 +52,7 @@
 
         // Export
         on('exportStudentsBtn', 'click', exportStudents);
+        on('exportPDFStudentsBtn', 'click', exportStudentsPDF);
 
         // Import
         on('importStudentsBtn', 'click', () => openImportModal());
@@ -52,6 +62,9 @@
         on('cancelImportBtn', 'click', closeImportModal);
         on('closeImportModalBtn', 'click', closeImportModal);
         on('confirmImportBtn', 'click', confirmImport);
+        on('closeImportResultsBtn', 'click', closeImportResults);
+        on('closeImportResultsDoneBtn', 'click', closeImportResults);
+        on('importResultsOverlay', 'click', e => { if (e.target.id === 'importResultsOverlay') closeImportResults(); });
 
         const dropZone = q('#importDropZone');
         if (dropZone) {
@@ -68,6 +81,68 @@
         on('cancelStudentModalBtn', 'click', closeStudentModal);
         on('saveStudentBtn', 'click', saveStudent);
         on('studentModalOverlay', 'click', e => { if (e.target.id === 'studentModalOverlay') closeStudentModal(); });
+
+        // Password eye toggle
+        on('sfPasswordToggle', 'click', () => {
+            const input = q('#sfPassword');
+            const icon  = q('#sfPasswordToggleIcon');
+            if (!input) return;
+            const showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            if (icon) { icon.classList.toggle('fa-eye', showing); icon.classList.toggle('fa-eye-slash', !showing); }
+        });
+
+        // Generate random password
+        on('sfPasswordGenerate', 'click', () => {
+            const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*';
+            let pwd = '';
+            const arr = new Uint8Array(12);
+            crypto.getRandomValues(arr);
+            arr.forEach(b => { pwd += charset[b % charset.length]; });
+            const input = q('#sfPassword');
+            const icon  = q('#sfPasswordToggleIcon');
+            if (input) { input.value = pwd; input.type = 'text'; }
+            if (icon)  { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        });
+
+        // Auto-generate username from first + last name (only when not manually edited)
+        const autoUsername = () => {
+            const input = q('#sfUsername');
+            if (!input || input.dataset.manualEdit === 'true') return;
+            input.value = generateUsername(val('sfFirstName'), val('sfLastName'));
+        };
+        on('sfFirstName', 'input', autoUsername);
+        on('sfLastName',  'input', autoUsername);
+
+        // Username edit toggle — lock/unlock the field
+        on('sfUsernameEdit', 'click', () => {
+            const input = q('#sfUsername');
+            const icon  = q('#sfUsernameEditIcon');
+            if (!input) return;
+            if (input.readOnly) {
+                input.readOnly = false;
+                input.style.background = '';
+                input.style.cursor = '';
+                input.dataset.manualEdit = 'true';
+                if (icon) { icon.classList.remove('fa-pen'); icon.classList.add('fa-lock-open'); }
+                input.focus();
+            } else {
+                input.readOnly = true;
+                input.style.background = 'var(--bg-secondary,#f8fafc)';
+                input.style.cursor = 'default';
+                input.dataset.manualEdit = 'false';
+                if (icon) { icon.classList.remove('fa-lock-open'); icon.classList.add('fa-pen'); }
+            }
+        });
+
+        // Generate / regenerate student ID (fetches from server so count resets per year)
+        on('sfStudentIdGenerate', 'click', async () => {
+            try {
+                const res = await API.get(API_ENDPOINTS.STUDENT_GENERATE_ID);
+                if (res && res.success) setVal('sfStudentId', res.data.next_id);
+                else setVal('sfStudentId', generateStudentIdFallback());
+            } catch (_) { setVal('sfStudentId', generateStudentIdFallback()); }
+        });
         on('importModalOverlay',  'click', e => { if (e.target.id === 'importModalOverlay')  closeImportModal(); });
 
         // Search (debounce)
@@ -104,14 +179,12 @@
             ]);
 
             if (classesRes && classesRes.success) {
-                S.classes = classesRes.data || classesRes.data?.data || [];
-                // The ClassController returns data nested differently
-                if (classesRes.data && classesRes.data.data) S.classes = classesRes.data.data;
+                S.classes = classesRes.data?.data || [];
                 populateSelect('filterStudentClass', S.classes, 'class_id', 'class_name', 'All Classes');
                 populateSelect('sfClass', S.classes, 'class_id', 'class_name', 'Select class');
             }
             if (programsRes && programsRes.success) {
-                S.programs = Array.isArray(programsRes.data) ? programsRes.data : [];
+                S.programs = programsRes.data?.data || [];
                 populateSelect('filterStudentProgram', S.programs, 'program_id', 'program_name', 'All Programs');
             }
         } catch (err) {
@@ -298,7 +371,7 @@
     }
 
     // ─── Add / Edit Modal ─────────────────────────────────────────────────────
-    function openStudentModal(uuid) {
+    async function openStudentModal(uuid) {
         S.editingUuid = uuid || null;
         setText('studentModalTitle', uuid ? 'Edit Student' : 'Add Student');
         setText('saveStudentBtnText', uuid ? 'Update Student' : 'Save Student');
@@ -314,15 +387,30 @@
         clearFormErrors();
         resetStudentForm();
 
+        // Always re-populate the class select from current state (avoids async race)
+        populateSelect('sfClass', S.classes, 'class_id', 'class_name', 'Select class');
+
         if (uuid) {
             // Find in current list
             const student = S.students.find(s => s.uuid === uuid);
             if (student) fillStudentForm(student);
+            else {
+                // Not in current page — fetch fresh from API
+                API.get(API_ENDPOINTS.STUDENT_BY_UUID(uuid)).then(res => {
+                    if (res && res.success) fillStudentForm(res.data);
+                });
+            }
         } else {
             // Set today's enrollment date
             const today = new Date().toISOString().split('T')[0];
             const sfEnroll = q('#sfEnrollmentDate');
             if (sfEnroll) sfEnroll.value = today;
+            // Auto-generate student ID for new students (year-aware, from server)
+            try {
+                const res = await API.get(API_ENDPOINTS.STUDENT_GENERATE_ID);
+                if (res && res.success) setVal('sfStudentId', res.data.next_id);
+                else setVal('sfStudentId', generateStudentIdFallback());
+            } catch (_) { setVal('sfStudentId', generateStudentIdFallback()); }
         }
 
         openOverlay('studentModalOverlay');
@@ -332,8 +420,24 @@
         setVal('sfFirstName', s.first_name || '');
         setVal('sfLastName',  s.last_name  || '');
         setVal('sfEmail',     s.email      || '');
-        setVal('sfUsername',  s.username   || '');
-        setVal('sfGender',    s.gender     || '');
+        // When editing, show the existing username and unlock the field so admin can change it
+        const unInput = q('#sfUsername');
+        const unIcon  = q('#sfUsernameEditIcon');
+        if (unInput) {
+            unInput.value = s.username || '';
+            unInput.readOnly = false;
+            unInput.style.background = '';
+            unInput.style.cursor = '';
+            unInput.dataset.manualEdit = 'true';
+        }
+        if (unIcon) { unIcon.classList.remove('fa-pen'); unIcon.classList.add('fa-lock-open'); }
+        // Set gender explicitly via option matching (more reliable than el.value = v)
+        (function () {
+            const sel = document.querySelector('#sfGender');
+            if (!sel) return;
+            const target = (s.gender || '').toLowerCase();
+            Array.from(sel.options).forEach(opt => { opt.selected = opt.value === target; });
+        }());
         setVal('sfDob',       s.date_of_birth ? s.date_of_birth.split(' ')[0] : '');
         setVal('sfPhone',     s.phone_number  || '');
         setVal('sfStudentId', s.student_id_number || '');
@@ -347,8 +451,21 @@
     }
 
     function resetStudentForm() {
-        const form = q('#studentForm');
-        if (form) form.reset();
+        // Manually clear all form inputs to avoid form.reset() wiping dynamically populated selects
+        ['sfFirstName','sfLastName','sfEmail','sfUsername','sfPassword',
+         'sfDob','sfPhone','sfStudentId','sfEnrollmentDate',
+         'sfParentName','sfParentPhone','sfParentEmail','sfEmergency'].forEach(id => setVal(id, ''));
+        setVal('sfGender',  '');
+        setVal('sfStatus',  'active');
+        setVal('sfClass',   '');
+        // Reset password field to hidden state
+        const pwInput = q('#sfPassword'); if (pwInput) pwInput.type = 'password';
+        const pwIcon  = q('#sfPasswordToggleIcon'); if (pwIcon) { pwIcon.classList.add('fa-eye'); pwIcon.classList.remove('fa-eye-slash'); }
+        // Reset username field to auto-generate mode (locked)
+        const unInput = q('#sfUsername');
+        const unIcon  = q('#sfUsernameEditIcon');
+        if (unInput) { unInput.readOnly = true; unInput.style.background = 'var(--bg-secondary,#f8fafc)'; unInput.style.cursor = 'default'; unInput.dataset.manualEdit = 'false'; }
+        if (unIcon)  { unIcon.classList.add('fa-pen'); unIcon.classList.remove('fa-lock-open'); }
         clearFormErrors();
     }
 
@@ -363,6 +480,12 @@
         if (Object.keys(errors).length) {
             showFormErrors(errors);
             return;
+        }
+
+        // Guarantee username is filled (may be blank if names were pasted without firing input events)
+        if (!S.editingUuid && !val('sfUsername').trim()) {
+            const generated = generateUsername(val('sfFirstName'), val('sfLastName'));
+            if (generated) setVal('sfUsername', generated);
         }
 
         const payload = buildStudentPayload();
@@ -387,8 +510,45 @@
                 if (typeof showToast === 'function') showToast(msg, 'error');
             }
         } catch (err) {
-            console.error('Save student error:', err);
-            if (typeof showToast === 'function') showToast('An error occurred. Please try again.', 'error');
+            // If it's a username-taken 422, auto-regenerate and retry once silently
+            if (!S.editingUuid && err.status === 422 && err.body && err.body.errors &&
+                    err.body.errors.username && q('#sfUsername')?.dataset.manualEdit !== 'true') {
+                try {
+                    const fn = val('sfFirstName'); const ln = val('sfLastName');
+                    const newUsername = generateUsername(fn, ln, String(Date.now()).slice(-4));
+                    setVal('sfUsername', newUsername);
+                    payload.username = newUsername;
+                    const retry = await API.post(API_ENDPOINTS.STUDENTS, payload);
+                    if (retry && retry.success) {
+                        if (typeof showToast === 'function') showToast('Student added successfully', 'success');
+                        closeStudentModal(); loadStudents(); return;
+                    }
+                } catch (_) {}
+            }
+            // Map server-side validation errors (field name → form input id)
+            if (err.status === 422 && err.body && err.body.errors && Object.keys(err.body.errors).length) {
+                const fieldMap = {
+                    username: 'sfUsername', email: 'sfEmail', password: 'sfPassword',
+                    first_name: 'sfFirstName', last_name: 'sfLastName',
+                    student_id_number: 'sfStudentId', phone_number: 'sfPhone',
+                    date_of_birth: 'sfDob', class_id: 'sfClass', gender: 'sfGender',
+                    enrollment_date: 'sfEnrollmentDate', parent_name: 'sfParentName',
+                    parent_phone: 'sfParentPhone', parent_email: 'sfParentEmail',
+                    emergency_contact: 'sfEmergency',
+                };
+                const mapped = {};
+                Object.entries(err.body.errors).forEach(([k, v]) => {
+                    // Validator returns arrays; duplicate checks return strings — normalise to string
+                    mapped[fieldMap[k] || k] = Array.isArray(v) ? v[0] : v;
+                });
+                showFormErrors(mapped);
+                if (typeof showToast === 'function') showToast(err.body.message || 'Please fix the errors below', 'error');
+            } else {
+                // Unexpected error — log and show generic message
+                if (err.status !== 401) console.error('Save student error:', err);
+                const msg = (err.body && err.body.message) || err.message || 'An error occurred. Please try again.';
+                if (typeof showToast === 'function') showToast(msg, 'error');
+            }
         } finally {
             setSaveLoading(false);
         }
@@ -407,7 +567,6 @@
         if (!ln.trim()) errors.sfLastName  = 'Last name is required';
         if (!em.trim()) errors.sfEmail     = 'Email is required';
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) errors.sfEmail = 'Enter a valid email';
-        if (!un.trim()) errors.sfUsername  = 'Username is required';
         if (!S.editingUuid && !pw.trim())  errors.sfPassword = 'Password is required';
         if (!S.editingUuid && pw.trim().length < 8) errors.sfPassword = 'Password must be at least 8 characters';
         if (!sid.trim()) errors.sfStudentId = 'Student ID is required';
@@ -442,44 +601,60 @@
     // ─── Toggle Status ────────────────────────────────────────────────────────
     async function toggleStudentStatus(uuid, currentStatus) {
         const newStatus  = currentStatus === 'active' ? 'inactive' : 'active';
-        const actionText = currentStatus === 'active' ? 'deactivate' : 'activate';
+        const actionText = currentStatus === 'active' ? 'Deactivate' : 'Activate';
+        const iconColor  = currentStatus === 'active' ? '#dc2626' : '#059669';
+        const iconClass  = currentStatus === 'active' ? 'fa-user-slash' : 'fa-user-check';
 
-        if (!confirm(`Are you sure you want to ${actionText} this student?`)) return;
-
-        try {
-            const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(uuid), { status: newStatus });
-            if (res && res.success) {
-                if (typeof showToast === 'function') showToast(`Student ${newStatus}`, 'success');
-                loadStudents();
-            } else {
-                if (typeof showToast === 'function') showToast(res?.message || 'Failed to update status', 'error');
+        showModal(
+            `${actionText} Student`,
+            `<div style="display:flex;align-items:center;gap:.75rem">
+                <i class="fas ${iconClass}" style="font-size:1.5rem;color:${iconColor}"></i>
+                <span>Are you sure you want to <strong>${actionText.toLowerCase()}</strong> this student?</span>
+            </div>`,
+            async () => {
+                try {
+                    const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(uuid), { status: newStatus });
+                    if (res && res.success) {
+                        showToast(`Student ${newStatus} successfully`, 'success');
+                        loadStudents();
+                    } else {
+                        showToast(res?.message || 'Failed to update status', 'error');
+                    }
+                } catch (err) {
+                    console.error('Toggle status error:', err);
+                    showToast('An error occurred', 'error');
+                }
             }
-        } catch (err) {
-            console.error('Toggle status error:', err);
-            if (typeof showToast === 'function') showToast('An error occurred', 'error');
-        }
+        );
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
     async function deleteStudent(uuid) {
         const student = S.students.find(s => s.uuid === uuid);
-        const name = student ? `${student.first_name} ${student.last_name}`.trim() : 'this student';
+        const name = student ? `${escapeHtml(student.first_name)} ${escapeHtml(student.last_name)}`.trim() : 'this student';
 
-        if (!confirm(`Delete ${name}? This will mark the student as withdrawn.`)) return;
-
-        try {
-            const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
-            if (res && res.success) {
-                if (typeof showToast === 'function') showToast('Student removed', 'success');
-                if (S.selectedUuids.has(uuid)) S.selectedUuids.delete(uuid);
-                loadStudents();
-            } else {
-                if (typeof showToast === 'function') showToast(res?.message || 'Failed to delete student', 'error');
+        showModal(
+            'Remove Student',
+            `<div style="display:flex;align-items:center;gap:.75rem">
+                <i class="fas fa-trash" style="font-size:1.5rem;color:#dc2626"></i>
+                <span>Remove <strong>${name}</strong>? This will mark the student as withdrawn.</span>
+            </div>`,
+            async () => {
+                try {
+                    const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
+                    if (res && res.success) {
+                        showToast('Student removed successfully', 'success');
+                        if (S.selectedUuids.has(uuid)) S.selectedUuids.delete(uuid);
+                        loadStudents();
+                    } else {
+                        showToast(res?.message || 'Failed to delete student', 'error');
+                    }
+                } catch (err) {
+                    console.error('Delete student error:', err);
+                    showToast('An error occurred', 'error');
+                }
             }
-        } catch (err) {
-            console.error('Delete student error:', err);
-            if (typeof showToast === 'function') showToast('An error occurred', 'error');
-        }
+        );
     }
 
     // ─── View Details ─────────────────────────────────────────────────────────
@@ -511,35 +686,54 @@
     async function bulkSetStatus(newStatus) {
         if (!S.selectedUuids.size) return;
         const count = S.selectedUuids.size;
-        if (!confirm(`${capitalize(newStatus)} ${count} student${count !== 1 ? 's' : ''}?`)) return;
+        const actionText = capitalize(newStatus);
+        const iconColor  = newStatus === 'active' ? '#059669' : '#dc2626';
+        const iconClass  = newStatus === 'active' ? 'fa-user-check' : 'fa-user-slash';
 
-        let success = 0;
-        for (const uuid of S.selectedUuids) {
-            try {
-                const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(uuid), { status: newStatus });
-                if (res && res.success) success++;
-            } catch (_) { /* ignore per-item */ }
-        }
-        if (typeof showToast === 'function') showToast(`${success} / ${count} students updated`, 'success');
-        clearSelection();
-        loadStudents();
+        showModal(
+            `${actionText} Students`,
+            `<div style="display:flex;align-items:center;gap:.75rem">
+                <i class="fas ${iconClass}" style="font-size:1.5rem;color:${iconColor}"></i>
+                <span>${actionText} <strong>${count} student${count !== 1 ? 's' : ''}</strong>?</span>
+            </div>`,
+            async () => {
+                let success = 0;
+                for (const uuid of S.selectedUuids) {
+                    try {
+                        const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(uuid), { status: newStatus });
+                        if (res && res.success) success++;
+                    } catch (_) { /* ignore per-item */ }
+                }
+                showToast(`${success} / ${count} students updated`, 'success');
+                clearSelection();
+                loadStudents();
+            }
+        );
     }
 
     async function bulkDelete() {
         if (!S.selectedUuids.size) return;
         const count = S.selectedUuids.size;
-        if (!confirm(`Delete ${count} student${count !== 1 ? 's' : ''}? They will be marked as withdrawn.`)) return;
 
-        let success = 0;
-        for (const uuid of S.selectedUuids) {
-            try {
-                const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
-                if (res && res.success) success++;
-            } catch (_) { /* ignore per-item */ }
-        }
-        if (typeof showToast === 'function') showToast(`${success} / ${count} students removed`, 'success');
-        clearSelection();
-        loadStudents();
+        showModal(
+            'Remove Students',
+            `<div style="display:flex;align-items:center;gap:.75rem">
+                <i class="fas fa-trash" style="font-size:1.5rem;color:#dc2626"></i>
+                <span>Remove <strong>${count} student${count !== 1 ? 's' : ''}</strong>? They will be marked as withdrawn.</span>
+            </div>`,
+            async () => {
+                let success = 0;
+                for (const uuid of S.selectedUuids) {
+                    try {
+                        const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
+                        if (res && res.success) success++;
+                    } catch (_) { /* ignore per-item */ }
+                }
+                showToast(`${success} / ${count} students removed`, 'success');
+                clearSelection();
+                loadStudents();
+            }
+        );
     }
 
     function updateBulkBar() {
@@ -588,12 +782,131 @@
                     csvEscape(s.parent_name), csvEscape(s.parent_phone), csvEscape(s.parent_email),
                 ].join(',')),
             ];
-            downloadCsv(csvRows.join('\n'), `students_export_${new Date().toISOString().split('T')[0]}.csv`);
+            const now = new Date();
+            const stamp = now.getFullYear()
+                + String(now.getMonth() + 1).padStart(2, '0')
+                + String(now.getDate()).padStart(2, '0')
+                + '_' + String(now.getHours()).padStart(2, '0')
+                + String(now.getMinutes()).padStart(2, '0')
+                + String(now.getSeconds()).padStart(2, '0');
+            downloadCsv(csvRows.join('\n'), `students_export_${stamp}.csv`);
             if (typeof showToast === 'function') showToast(`Exported ${rows.length} students`, 'success');
         } catch (err) {
             console.error('Export error:', err);
             if (typeof showToast === 'function') showToast('Export failed', 'error');
         }
+    }
+
+    // ─── Export PDF ───────────────────────────────────────────────────────────
+    async function exportStudentsPDF() {
+        const params = new URLSearchParams({ page: 1, limit: 10000 });
+        if (S.search)    params.set('search',     S.search);
+        if (S.classId)   params.set('class_id',   S.classId);
+        if (S.programId) params.set('program_id', S.programId);
+        if (S.status)    params.set('status',     S.status);
+
+        if (typeof showToast === 'function') showToast('Preparing PDF…', 'info');
+
+        let rows = [];
+        try {
+            const res = await API.get(`${API_ENDPOINTS.STUDENTS}?${params}`);
+            if (!res || !res.success) {
+                if (typeof showToast === 'function') showToast('PDF export failed', 'error');
+                return;
+            }
+            rows = res.data || [];
+        } catch (err) {
+            console.error('PDF export error:', err);
+            if (typeof showToast === 'function') showToast('PDF export failed', 'error');
+            return;
+        }
+
+        const date   = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+        const filterLabel = [
+            S.search    ? `Search: "${S.search}"` : '',
+            S.classId   ? `Class: ${S.classes.find(c => String(c.class_id) === String(S.classId))?.class_name || S.classId}` : '',
+            S.programId ? `Program: ${S.programs.find(p => String(p.program_id) === String(S.programId))?.program_name || S.programId}` : '',
+            S.status    ? `Status: ${S.status}` : '',
+        ].filter(Boolean).join(' | ');
+
+        const esc = v => String(v || '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const fmt = d => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); } catch(_){return d;} };
+        const badge = s => {
+            const colors = { active:'#15803d;background:#dcfce7', inactive:'#854d0e;background:#fef9c3', withdrawn:'#b91c1c;background:#fee2e2' };
+            const c = colors[s] || '#64748b;background:#f1f5f9';
+            return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;color:${c}">${esc(s)}</span>`;
+        };
+
+        const tableRows = rows.map((s, i) => `
+            <tr style="background:${i % 2 === 0 ? '#fff' : '#f8fafc'}">
+                <td>${i + 1}</td>
+                <td>${esc(s.first_name)} ${esc(s.last_name)}</td>
+                <td style="font-family:monospace;font-size:11px">${esc(s.student_id_number)}</td>
+                <td>${esc(s.class_name)}</td>
+                <td>${esc(s.program_name)}</td>
+                <td>${esc(s.gender)}</td>
+                <td>${fmt(s.enrollment_date)}</td>
+                <td>${badge(s.status)}</td>
+                <td>${esc(s.parent_name)}<br><span style="color:#64748b;font-size:10px">${esc(s.parent_phone)}</span></td>
+            </tr>`).join('');
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Students Export — ${date}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1e293b; padding: 24px; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2px solid #3b82f6; padding-bottom: 12px; }
+  .header h1 { font-size: 18px; color: #1d4ed8; }
+  .header .meta { text-align: right; color: #64748b; font-size: 11px; line-height: 1.6; }
+  .filter-bar { font-size: 11px; color: #64748b; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #1d4ed8; color: #fff; padding: 7px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+  td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+  .footer { margin-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }
+  @media print {
+    body { padding: 0; }
+    @page { margin: 15mm; size: A4 landscape; }
+    button { display: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>&#127891; Student Report</h1>
+      <p style="color:#64748b;margin-top:2px">Total: <strong>${rows.length}</strong> student${rows.length !== 1 ? 's' : ''}</p>
+    </div>
+    <div class="meta">
+      <div>Exported: ${date}</div>
+      <button onclick="window.print()" style="margin-top:6px;padding:4px 12px;background:#1d4ed8;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px">&#128438; Print / Save PDF</button>
+    </div>
+  </div>
+  ${filterLabel ? `<div class="filter-bar">Filters: ${esc(filterLabel)}</div>` : ''}
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Student Name</th><th>ID Number</th><th>Class</th><th>Program</th>
+        <th>Gender</th><th>Enrolled</th><th>Status</th><th>Parent / Guardian</th>
+      </tr>
+    </thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+  <div class="footer">Generated by LMS &bull; ${date}</div>
+</body>
+</html>`;
+
+        const win = window.open('', '_blank', 'width=1100,height=750');
+        if (!win) {
+            if (typeof showToast === 'function') showToast('Allow pop-ups to export PDF', 'error');
+            return;
+        }
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        if (typeof showToast === 'function') showToast(`PDF ready — ${rows.length} students`, 'success');
     }
 
     // ─── Import CSV ───────────────────────────────────────────────────────────
@@ -651,29 +964,94 @@
         show('confirmImportSpinner');
         setText('confirmImportText', 'Importing…');
 
-        let success = 0, failed = 0;
-        for (const row of S.importRows) {
+        const results = []; // { row, name, status: 'success'|'failed', reason }
+        const REQUIRED = ['first_name', 'last_name', 'email', 'student_id_number', 'username', 'password'];
+
+        for (let i = 0; i < S.importRows.length; i++) {
+            const row  = S.importRows[i];
+            const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || `Row ${i + 2}`;
+
+            // Client-side required field check
+            const missing = REQUIRED.filter(f => !row[f] || !String(row[f]).trim());
+            if (missing.length) {
+                results.push({ name, status: 'failed', reason: `Missing: ${missing.map(f => f.replace(/_/g,' ')).join(', ')}` });
+                continue;
+            }
+
             try {
-                // Minimal required fields check
-                if (!row.first_name || !row.last_name || !row.email || !row.student_id_number || !row.username || !row.password) {
-                    failed++;
-                    continue;
-                }
                 const res = await API.post(API_ENDPOINTS.STUDENTS, row);
-                if (res && res.success) success++;
-                else failed++;
-            } catch (_) { failed++; }
+                if (res && res.success) {
+                    results.push({ name, status: 'success', reason: '' });
+                } else {
+                    results.push({ name, status: 'failed', reason: res?.message || 'Unknown error' });
+                }
+            } catch (err) {
+                // Extract field-level errors if available
+                let reason = err.message || 'Request failed';
+                if (err.body && err.body.errors) {
+                    const msgs = Object.entries(err.body.errors).map(([k, v]) =>
+                        `${k.replace(/_/g,' ')}: ${Array.isArray(v) ? v[0] : v}`);
+                    if (msgs.length) reason = msgs.join('; ');
+                }
+                results.push({ name, status: 'failed', reason });
+            }
         }
 
         hide('confirmImportSpinner');
         setText('confirmImportText', 'Import');
         if (confirmBtn) confirmBtn.disabled = false;
 
+        const success = results.filter(r => r.status === 'success').length;
         closeImportModal();
-        if (typeof showToast === 'function') {
-            showToast(`Imported ${success} students${failed ? `, ${failed} failed` : ''}`, success ? 'success' : 'error');
-        }
         if (success) loadStudents();
+        showImportResults(results);
+    }
+
+    function showImportResults(results) {
+        const success = results.filter(r => r.status === 'success').length;
+        const failed  = results.filter(r => r.status === 'failed').length;
+
+        // Summary chips
+        const summaryEl = q('#importResultsSummary');
+        if (summaryEl) {
+            summaryEl.innerHTML = [
+                `<span style="display:inline-flex;align-items:center;gap:.4rem;background:#dcfce7;color:#166534;border-radius:20px;padding:.3rem .85rem;font-size:.82rem;font-weight:600">
+                    <i class="fas fa-check-circle"></i> ${success} Successful
+                </span>`,
+                failed ? `<span style="display:inline-flex;align-items:center;gap:.4rem;background:#fee2e2;color:#991b1b;border-radius:20px;padding:.3rem .85rem;font-size:.82rem;font-weight:600">
+                    <i class="fas fa-times-circle"></i> ${failed} Failed
+                </span>` : '',
+                `<span style="display:inline-flex;align-items:center;gap:.4rem;background:var(--bg-secondary,#f8fafc);color:var(--text-secondary,#64748b);border-radius:20px;padding:.3rem .85rem;font-size:.82rem">
+                    <i class="fas fa-list"></i> ${results.length} Total
+                </span>`
+            ].join('');
+        }
+
+        // Rows
+        const tbody = q('#importResultsBody');
+        if (tbody) {
+            tbody.innerHTML = results.map((r, i) => {
+                const isOk = r.status === 'success';
+                return `<tr style="border-bottom:1px solid var(--border,#e2e8f0);background:${isOk ? '' : '#fff7f7'}">
+                    <td style="padding:.45rem .75rem;color:var(--text-secondary,#64748b)">${i + 2}</td>
+                    <td style="padding:.45rem .75rem;font-weight:500">${escapeHtml(r.name)}</td>
+                    <td style="padding:.45rem .75rem">
+                        <span style="display:inline-flex;align-items:center;gap:.3rem;font-size:.75rem;font-weight:600;color:${isOk ? '#16a34a' : '#dc2626'}">
+                            <i class="fas ${isOk ? 'fa-check' : 'fa-times'}"></i>
+                            ${isOk ? 'Success' : 'Failed'}
+                        </span>
+                    </td>
+                    <td style="padding:.45rem .75rem;color:${isOk ? 'var(--text-secondary,#64748b)' : '#b91c1c'};font-size:.78rem">${escapeHtml(r.reason || '—')}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        setText('importResultsTitle', `Import Results \u2014 ${success} of ${results.length} students added`);
+        openOverlay('importResultsOverlay');
+    }
+
+    function closeImportResults() {
+        closeOverlay('importResultsOverlay');
     }
 
     function downloadCsvTemplate() {
@@ -740,6 +1118,35 @@
         el.value = current;
     }
 
+    function generateUsername(first, last, seed) {
+        const clean = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const f = clean(first || '');
+        const l = clean(last  || '');
+        if (!f && !l) return '';
+        const base = f && l ? `${f}.${l}` : (f || l);
+        // Use last 3 digits of current ms timestamp (or provided seed) for uniqueness
+        const suffix = seed !== undefined ? String(seed) : String(Date.now()).slice(-3);
+        return base + suffix;
+    }
+
+    // Fallback ID generator used only when the API call fails
+    function generateStudentIdFallback() {
+        const year = new Date().getFullYear();
+        const next = (S.total || 0) + 1;
+        let prefix = 'SHS';
+        try {
+            const user = Auth.getUser();
+            const name = (user && user.institution_name) ? user.institution_name : '';
+            if (name) {
+                const initials = name.match(/\b[A-Za-z]/g);
+                if (initials && initials.length >= 2) {
+                    prefix = initials.join('').toUpperCase().slice(0, 6);
+                }
+            }
+        } catch (_) {}
+        return `${prefix}-${year}-${String(next).padStart(4, '0')}`;
+    }
+
     function getInitials(first, last) {
         return ((first || '').charAt(0) + (last || '').charAt(0)).toUpperCase() || '?';
     }
@@ -780,11 +1187,27 @@
         const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g,'').toLowerCase().replace(/\s+/g,'_'));
         const rows = [];
 
+        // Fields that must be null (not empty string) when blank to avoid FK/type errors
+        const nullableFields = new Set(['class_id', 'gender', 'date_of_birth', 'phone_number',
+            'parent_name', 'parent_phone', 'parent_email', 'emergency_contact', 'enrollment_date']);
+
+        // Date fields that need to be normalised to YYYY-MM-DD for MySQL
+        const dateFields = new Set(['date_of_birth', 'enrollment_date']);
+
         for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g,''));
             if (cols.length < 2) continue;
             const row = {};
-            rawHeaders.forEach((h, idx) => { row[h] = cols[idx] || ''; });
+            rawHeaders.forEach((h, idx) => {
+                let v = (cols[idx] !== undefined ? cols[idx] : '').trim();
+                // Normalise M/D/YYYY or M/D/YY → YYYY-MM-DD
+                if (dateFields.has(h) && v && /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(v)) {
+                    const [m, d, y] = v.split('/');
+                    const year = y.length === 2 ? (parseInt(y, 10) > 50 ? '19' + y : '20' + y) : y;
+                    v = `${year}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+                }
+                row[h] = (v === '' && nullableFields.has(h)) ? null : v;
+            });
             rows.push(row);
         }
         return { rows, errors };

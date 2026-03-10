@@ -57,12 +57,103 @@
                 renderPersonalTab(currentStudent);
                 renderParentTab(currentStudent);
                 setupActions(currentStudent);
+                loadCourses(uuid);
+                loadAttendance(res.data.student_id);
+                loadGrades(res.data.student_id);
             } else {
                 showError(res?.message || 'Student not found.');
             }
         } catch (err) {
             console.error('Load student details error:', err);
             showError('Failed to load student details.');
+        }
+    }
+
+    // ─── Academic Tab – Course Enrollments ───────────────────────────────────
+    async function loadCourses(uuid) {
+        const tbody = document.querySelector('#sdCoursesBody');
+        if (!tbody) return;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gray-400)"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>`;
+        try {
+            const res = await API.get(API_ENDPOINTS.STUDENT_COURSES(uuid));
+            const courses = Array.isArray(res?.data) ? res.data : [];
+            if (!courses.length) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:2rem">
+                    <i class="fas fa-book-open" style="font-size:1.5rem;margin-bottom:.5rem;display:block"></i>
+                    No course enrollments yet
+                </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = courses.map(c => {
+                const teacher = c.teacher_first_name
+                    ? `${c.teacher_first_name} ${c.teacher_last_name || ''}`.trim()
+                    : '—';
+                const statusClass = c.enrollment_status === 'active' ? 'badge-active' : 'badge-inactive';
+                const progress = c.progress_percentage != null ? `${c.progress_percentage}%` : '—';
+                return `<tr>
+                    <td><strong>${escapeHtml(c.subject_name || '—')}</strong><br>
+                        <span style="font-size:.75rem;color:var(--gray-500)">${escapeHtml(c.subject_code || '')}</span>
+                    </td>
+                    <td>${escapeHtml(teacher)}</td>
+                    <td>${escapeHtml(c.semester_name || '—')}</td>
+                    <td><span class="students-badge ${statusClass}">${capitalize(c.enrollment_status || '—')}</span></td>
+                    <td>${escapeHtml(progress)}</td>
+                </tr>`;
+            }).join('');
+        } catch (err) {
+            console.error('Load courses error:', err);
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:1.5rem">Failed to load courses</td></tr>`;
+        }
+    }
+
+    // ─── Attendance Tab ────────────────────────────────────────────────────────
+    async function loadAttendance(studentId) {
+        if (!studentId) return;
+        try {
+            const res = await API.get(API_ENDPOINTS.STUDENT_ATTENDANCE_STATS(studentId));
+            const s = res?.data || {};
+            setText('sdAttTotal',   s.total_days   != null ? s.total_days   : '—');
+            setText('sdAttPresent', s.present_days != null ? s.present_days : '—');
+            setText('sdAttAbsent',  s.absent_days  != null ? s.absent_days  : '—');
+            setText('sdAttLate',    s.late_days    != null ? s.late_days    : '—');
+            setText('sdAttRate',    s.attendance_percentage != null ? `${s.attendance_percentage}%` : '—');
+        } catch (err) {
+            console.error('Load attendance error:', err);
+        }
+    }
+
+    // ─── Grades Tab ────────────────────────────────────────────────────────────
+    async function loadGrades(studentId) {
+        const tbody = document.querySelector('#sdGradesBody');
+        if (!tbody || !studentId) return;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.5rem;color:var(--gray-400)"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>`;
+        try {
+            const res = await API.get(API_ENDPOINTS.STUDENT_RESULTS(studentId));
+            const results = Array.isArray(res?.data) ? res.data : [];
+            if (!results.length) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:2rem">
+                    <i class="fas fa-chart-bar" style="font-size:1.5rem;margin-bottom:.5rem;display:block"></i>
+                    No assessment results yet
+                </td></tr>`;
+                return;
+            }
+            tbody.innerHTML = results.map(r => {
+                const gradeClass = r.grade === 'A1' ? 'color:#059669' :
+                    (r.grade && r.grade.startsWith('F')) ? 'color:#dc2626' : 'color:var(--gray-700)';
+                const date = r.created_at ? r.created_at.split(' ')[0] : '—';
+                return `<tr>
+                    <td><strong>${escapeHtml(r.subject_name || '—')}</strong></td>
+                    <td>${escapeHtml(r.semester_name || '—')}</td>
+                    <td>Exam Result</td>
+                    <td>${r.total_score != null ? r.total_score : '—'}</td>
+                    <td>100</td>
+                    <td><strong style="${gradeClass}">${escapeHtml(r.grade || '—')}</strong></td>
+                    <td>${escapeHtml(date)}</td>
+                </tr>`;
+            }).join('');
+        } catch (err) {
+            console.error('Load grades error:', err);
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--gray-400);padding:1.5rem">Failed to load grades</td></tr>`;
         }
     }
 
@@ -138,22 +229,32 @@
 
     async function toggleStatus(s) {
         const newStatus  = s.status === 'active' ? 'inactive' : 'active';
-        const actionText = s.status === 'active' ? 'deactivate' : 'activate';
-        if (!confirm(`Are you sure you want to ${actionText} ${s.first_name} ${s.last_name}?`)) return;
+        const actionText = s.status === 'active' ? 'Deactivate' : 'Activate';
+        const iconColor  = s.status === 'active' ? '#dc2626' : '#059669';
+        const iconClass  = s.status === 'active' ? 'fa-user-slash' : 'fa-user-check';
 
-        try {
-            const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(s.uuid), { status: newStatus });
-            if (res && res.success) {
-                if (typeof showToast === 'function') showToast(`Student ${newStatus}`, 'success');
-                s.status = newStatus;
-                renderHeader(s);
-            } else {
-                if (typeof showToast === 'function') showToast(res?.message || 'Failed to update status', 'error');
+        showModal(
+            `${actionText} Student`,
+            `<div style="display:flex;align-items:center;gap:.75rem">
+                <i class="fas ${iconClass}" style="font-size:1.5rem;color:${iconColor}"></i>
+                <span>Are you sure you want to <strong>${actionText.toLowerCase()}</strong> <strong>${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</strong>?</span>
+            </div>`,
+            async () => {
+                try {
+                    const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(s.uuid), { status: newStatus });
+                    if (res && res.success) {
+                        showToast(`Student ${newStatus} successfully`, 'success');
+                        s.status = newStatus;
+                        renderHeader(s);
+                    } else {
+                        showToast(res?.message || 'Failed to update status', 'error');
+                    }
+                } catch (err) {
+                    console.error('Toggle status error:', err);
+                    showToast('An error occurred', 'error');
+                }
             }
-        } catch (err) {
-            console.error('Toggle status error:', err);
-            if (typeof showToast === 'function') showToast('An error occurred', 'error');
-        }
+        );
     }
 
     // ─── Error Display ────────────────────────────────────────────────────────

@@ -7,17 +7,20 @@ use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\StudentRepository;
 use App\Repositories\UserRepository;
+use App\Repositories\ClassRepository;
 use App\Middleware\RoleMiddleware;
 
 class StudentController
 {
     private StudentRepository $studentRepo;
     private UserRepository $userRepo;
+    private ClassRepository $classRepo;
 
     public function __construct()
     {
         $this->studentRepo = new StudentRepository();
-        $this->userRepo = new UserRepository();
+        $this->userRepo    = new UserRepository();
+        $this->classRepo   = new ClassRepository();
     }
 
     public function index(array $user): void
@@ -148,6 +151,32 @@ class StudentController
             $data['institution_id'] = $user['institution_id'];
         }
 
+        // Check for duplicate username / email before attempting the INSERT
+        $institutionId = isset($data['institution_id']) ? (int) $data['institution_id'] : null;
+        $duplicates = [];
+        if ($this->userRepo->isUsernameTaken($data['username'], $institutionId)) {
+            $duplicates['username'] = 'Username is already taken';
+        }
+        if ($this->userRepo->isEmailTaken($data['email'])) {
+            $duplicates['email'] = 'Email address is already in use';
+        }
+        if ($this->studentRepo->isStudentIdTaken($data['student_id_number'], $institutionId)) {
+            $duplicates['student_id_number'] = 'Student ID is already in use';
+        }
+        if (!empty($duplicates)) {
+            Response::validationError($duplicates);
+            return;
+        }
+
+        // Validate class_id if provided
+        if (!empty($data['class_id'])) {
+            $class = $this->classRepo->findById((int) $data['class_id']);
+            if (!$class) {
+                Response::validationError(['class_id' => 'Selected class does not exist']);
+                return;
+            }
+        }
+
         // Create user first
         $userId = $this->userRepo->create($data);
 
@@ -199,23 +228,19 @@ class StudentController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        // Update user info
-        if (isset($data['first_name']) || isset($data['last_name']) || isset($data['phone']) || isset($data['address'])) {
-            $updateData = [];
-            if (isset($data['first_name']))
-                $updateData['first_name'] = $data['first_name'];
-            if (isset($data['last_name']))
-                $updateData['last_name'] = $data['last_name'];
-            if (isset($data['phone']))
-                $updateData['phone'] = $data['phone'];
-            if (isset($data['address']))
-                $updateData['address'] = $data['address'];
-
-            $this->userRepo->update($student['user_id'], $updateData);
+        // Update user-table fields only
+        $userFields = ['first_name', 'last_name', 'email', 'username', 'phone_number', 'phone', 'address', 'date_of_birth'];
+        $updateUserData = array_intersect_key($data, array_flip($userFields));
+        if (!empty($updateUserData)) {
+            $this->userRepo->update($student['user_id'], $updateUserData);
         }
 
-        // Update student-specific info
-        if ($this->studentRepo->update($studentId, $data)) {
+        // Update student-table fields only (never pass user-table columns to students)
+        $studentFields = ['student_id_number', 'enrollment_date', 'class_id', 'gender', 'status',
+                          'parent_name', 'parent_phone', 'parent_email', 'emergency_contact'];
+        $updateStudentData = array_intersect_key($data, array_flip($studentFields));
+
+        if (empty($updateStudentData) || $this->studentRepo->update($studentId, $updateStudentData)) {
             $updated = $this->studentRepo->findByUuid($sanitizedUuid);
             Response::success($updated);
         } else {
@@ -397,6 +422,40 @@ class StudentController
         } else {
             Response::serverError('Failed to update enrollment');
         }
+    }
+
+    /**
+     * Generate the next available student ID for this institution and year.
+     * GET /api/students/generate-id
+     */
+    public function generateId(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->hasRole(['admin', 'super_admin'])) {
+            Response::forbidden('Only admins can generate student IDs');
+            return;
+        }
+
+        $institutionId = (int) $user['institution_id'];
+        $year = (int) date('Y');
+
+        // Fetch institution name to derive prefix (same logic as frontend)
+        $fullUser = $this->userRepo->findById($user['user_id']);
+        $institutionName = $fullUser['institution_name'] ?? '';
+
+        $prefix = 'SHS';
+        if ($institutionName !== '') {
+            preg_match_all('/\b[A-Za-z]/', $institutionName, $matches);
+            $initials = $matches[0] ?? [];
+            if (count($initials) >= 2) {
+                $prefix = strtoupper(implode('', array_slice($initials, 0, 6)));
+            }
+        }
+
+        $seq    = $this->studentRepo->getNextIdSequence($institutionId, $prefix, $year);
+        $nextId = sprintf('%s-%d-%04d', $prefix, $year, $seq);
+
+        Response::success(['next_id' => $nextId]);
     }
 
     /**

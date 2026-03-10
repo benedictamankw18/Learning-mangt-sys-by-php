@@ -219,7 +219,6 @@ class AnnouncementRepository
                 SELECT
                     a.title,
                     a.content,
-                    a.priority,
                     a.published_at,
                     CONCAT(u.first_name, ' ', u.last_name) AS author_name
                 FROM announcements a

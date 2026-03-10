@@ -5,26 +5,41 @@
 
 class AuthService {
     constructor() {
-        // in-memory fallbacks when browser blocks storage access
+        // in-memory cache — populated once from storage at startup
         this._inMemoryToken = null;
         this._inMemoryRefresh = null;
         this._inMemoryUser = null;
         this._inMemoryRemember = false;
+        // Pre-load everything from storage in one shot so no getter ever
+        // touches storage again (prevents "Tracking Prevention blocked" spam).
+        this._initFromStorage();
     }
+
+    _initFromStorage() {
+        try {
+            this._inMemoryRemember = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
+            const tokenStorage = this._inMemoryRemember ? localStorage : sessionStorage;
+            this._inMemoryToken   = tokenStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || null;
+            this._inMemoryRefresh = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || null;
+            const rawUser = tokenStorage.getItem(STORAGE_KEYS.USER_DATA);
+            try { this._inMemoryUser = rawUser ? JSON.parse(rawUser) : null; } catch (_) {}
+        } catch (_) {
+            // Storage fully blocked (Tracking Prevention) — session works in-memory only
+        }
+    }
+
     /**
      * Save access token to storage
      */
     saveToken(token, remember = false) {
+        this._inMemoryToken = token;
+        if (remember) this._inMemoryRemember = true;
         try {
             const storage = remember ? localStorage : sessionStorage;
             storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
-            if (remember) {
-                localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
-            }
+            if (remember) localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
         } catch (e) {
             console.warn('Storage unavailable, using in-memory token', e);
-            this._inMemoryToken = token;
-            if (remember) this._inMemoryRemember = true;
         }
     }
 
@@ -32,39 +47,31 @@ class AuthService {
      * Get access token from storage
      */
     getToken() {
-        try {
-            return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || 
-                   sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) ||
-                   this._inMemoryToken;
-        } catch (e) {
-            // Storage access blocked (Tracking Prevention). Fall back to memory.
-            console.warn('Storage access blocked when getting token', e);
-            return this._inMemoryToken || null;
-        }
+        return this._inMemoryToken;
     }
 
     /**
      * Remove access token from storage
      */
     clearToken() {
+        this._inMemoryToken = null;
         try {
             localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
             sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         } catch (e) {
             console.warn('Storage unavailable when clearing token', e);
         }
-        this._inMemoryToken = null;
     }
 
     /**
      * Save refresh token to storage
      */
     saveRefreshToken(token) {
+        this._inMemoryRefresh = token;
         try {
             localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
         } catch (e) {
             console.warn('Storage unavailable when saving refresh token', e);
-            this._inMemoryRefresh = token;
         }
     }
 
@@ -72,36 +79,31 @@ class AuthService {
      * Get refresh token from storage
      */
     getRefreshToken() {
-        try {
-            return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || this._inMemoryRefresh;
-        } catch (e) {
-            console.warn('Storage access blocked when getting refresh token', e);
-            return this._inMemoryRefresh || null;
-        }
+        return this._inMemoryRefresh;
     }
 
     /**
      * Remove refresh token from storage
      */
     clearRefreshToken() {
+        this._inMemoryRefresh = null;
         try {
             localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
         } catch (e) {
             console.warn('Storage unavailable when clearing refresh token', e);
         }
-        this._inMemoryRefresh = null;
     }
 
     /**
      * Save user data to storage
      */
     saveUser(userData, remember = false) {
+        this._inMemoryUser = userData;
         try {
             const storage = remember ? localStorage : sessionStorage;
             storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         } catch (e) {
             console.warn('Storage unavailable when saving user data', e);
-            this._inMemoryUser = userData;
         }
     }
 
@@ -109,33 +111,20 @@ class AuthService {
      * Get user data from storage
      */
     getUser() {
-        try {
-            const userData = localStorage.getItem(STORAGE_KEYS.USER_DATA) || 
-                             sessionStorage.getItem(STORAGE_KEYS.USER_DATA) ||
-                             (this._inMemoryUser ? JSON.stringify(this._inMemoryUser) : null);
-            try {
-                return userData ? JSON.parse(userData) : null;
-            } catch (error) {
-                console.error('Error parsing user data:', error);
-                return null;
-            }
-        } catch (e) {
-            console.warn('Storage access blocked when getting user data', e);
-            return this._inMemoryUser || null;
-        }
+        return this._inMemoryUser || null;
     }
 
     /**
      * Remove user data from storage
      */
     clearUser() {
+        this._inMemoryUser = null;
         try {
             localStorage.removeItem(STORAGE_KEYS.USER_DATA);
             sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
         } catch (e) {
             console.warn('Storage unavailable when clearing user data', e);
         }
-        this._inMemoryUser = null;
     }
 
     /**
@@ -202,23 +191,16 @@ class AuthService {
                 logger.storage(`Saving user data to ${userStorage}`, response.data.user);
                 this.saveUser(response.data.user, remember);
 
-                // Verify storage
-                const accessTokenSaved = remember ? 
-                    localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) !== null : 
-                    sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) !== null;
-                const refreshTokenSaved = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) !== null;
-                const userDataSaved = remember ? 
-                    localStorage.getItem(STORAGE_KEYS.USER_DATA) !== null :
-                    sessionStorage.getItem(STORAGE_KEYS.USER_DATA) !== null;
-                
+                // Verify via in-memory state (no extra storage reads needed)
+                const accessTokenSaved = !!this._inMemoryToken;
+                const userDataSaved    = !!this._inMemoryUser;
+
                 logger.success('AUTH', 'Access Token saved: ' + accessTokenSaved);
-                logger.success('AUTH', 'Refresh Token saved: ' + refreshTokenSaved);
-                logger.success('AUTH', 'User Data saved: ' + userDataSaved);
+                logger.success('AUTH', 'User Data saved: '    + userDataSaved);
 
                 if (!accessTokenSaved || !userDataSaved) {
                     logger.error('AUTH', 'CRITICAL: Some data failed to save to storage!', {
                         accessTokenSaved,
-                        refreshTokenSaved,
                         userDataSaved
                     });
                 }
@@ -295,11 +277,16 @@ class AuthService {
      */
     async refreshToken() {
         try {
-            const response = await AuthAPI.refresh();
+            const refreshToken = this.getRefreshToken();
+            if (!refreshToken) return false;
+
+            const response = await API.post(API_ENDPOINTS.AUTH_REFRESH, { refresh_token: refreshToken });
 
             if (response.success && response.data.access_token) {
-                const remember = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
-                this.saveToken(response.data.access_token, remember);
+                this.saveToken(response.data.access_token, this._inMemoryRemember);
+                if (response.data.refresh_token) {
+                    this.saveRefreshToken(response.data.refresh_token);
+                }
                 return true;
             }
 
@@ -315,7 +302,6 @@ class AuthService {
      */
     getDashboardURL(role = null) {
         const userRole = role || this.getUserRole();
-        localStorage.setItem("role", role);
         // Get base path - detect if we're in a subdirectory
         const currentPath = window.location.pathname;
         const isInAuthFolder = currentPath.includes('/auth/');

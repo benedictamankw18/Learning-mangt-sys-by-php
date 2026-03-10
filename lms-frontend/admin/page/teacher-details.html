@@ -1,0 +1,304 @@
+<!-- ===================================================
+     Teacher Details Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/teacher-details.js
+==================================================== -->
+<style>
+/* ── Teacher Details Page ──────────────────────────── */
+.td-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: var(--white, #fff);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.07));
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.td-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary, #6366f1);
+    font-size: .9rem;
+    cursor: pointer;
+    padding: .4rem .75rem;
+    border-radius: var(--border-radius, 8px);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    transition: background .2s;
+    flex-shrink: 0;
+    margin-top: .25rem;
+}
+.td-back-btn:hover { background: var(--primary-light, #ede9fe); color: #fff; }
+.td-avatar-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--primary, #6366f1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.td-info { flex: 1; min-width: 0; }
+.td-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900, #0f172a);
+    margin-bottom: .2rem;
+}
+.td-meta {
+    font-size: .82rem;
+    color: var(--gray-500, #64748b);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.4rem;
+    margin-bottom: .5rem;
+}
+.td-meta span { display: flex; align-items: center; gap: .3rem; }
+.td-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+.td-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    gap: .3rem;
+}
+.td-badge-active   { background: #dcfce7; color: #16a34a; }
+.td-badge-inactive { background: #fee2e2; color: #dc2626; }
+.td-badge-dept     { background: #ede9fe; color: #7c3aed; }
+.td-header-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* Tabs */
+.td-tabs {
+    display: flex;
+    gap: .25rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+.td-tab-btn {
+    padding: .6rem 1.2rem;
+    border: none;
+    background: none;
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--gray-500, #64748b);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.td-tab-btn:hover { color: var(--primary, #6366f1); }
+.td-tab-btn.active {
+    color: var(--primary, #6366f1);
+    border-bottom-color: var(--primary, #6366f1);
+    font-weight: 600;
+}
+.td-tab-panel { display: none; }
+.td-tab-panel.active { display: block; }
+
+/* Cards */
+.td-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+}
+.td-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--gray-600, #475569);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.td-card-body { padding: 1.25rem; }
+.td-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 900px) { .td-fields-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .td-fields-grid { grid-template-columns: 1fr; } }
+.td-field label {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--gray-400, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .25rem;
+    display: block;
+}
+.td-field p {
+    font-size: .875rem;
+    color: var(--gray-800, #1e293b);
+    margin: 0;
+    word-break: break-word;
+}
+
+/* Courses / Schedule table */
+.td-data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.td-data-table thead th {
+    padding: .65rem 1rem;
+    text-align: left;
+    font-size: .72rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+.td-data-table tbody tr { border-bottom: 1px solid #f1f5f9; }
+.td-data-table tbody tr:last-child { border-bottom: none; }
+.td-data-table tbody td { padding: .75rem 1rem; }
+
+/* Error / Empty state */
+.td-empty {
+    text-align: center;
+    padding: 2.5rem;
+    color: #94a3b8;
+    font-size: .875rem;
+}
+.td-error-banner {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: .875rem;
+}
+</style>
+
+<!-- ─── Header ─────────────────────────────────────────────────── -->
+<div class="td-header">
+  <button class="td-back-btn" id="tdBackBtn">
+    <i class="fas fa-arrow-left"></i> Back to Teachers
+  </button>
+
+  <div class="td-avatar-lg" id="tdAvatarLg">?</div>
+
+  <div class="td-info">
+    <div class="td-name" id="tdName">Loading…</div>
+    <div class="td-meta" id="tdMeta"></div>
+    <div class="td-badges" id="tdBadges"></div>
+  </div>
+
+  <div class="td-header-actions">
+    <button class="btn btn-outline btn-sm" id="tdEditBtn" style="display:none">
+      <i class="fas fa-pencil-alt"></i> Edit
+    </button>
+  </div>
+</div>
+
+<!-- Error Banner -->
+<div class="td-error-banner" id="tdErrorBanner" style="display:none"></div>
+
+<!-- ─── Tabs ───────────────────────────────────────────────────── -->
+<div class="td-tabs">
+  <button class="td-tab-btn active" data-tab="profile">
+    <i class="fas fa-user"></i> Profile
+  </button>
+  <button class="td-tab-btn" data-tab="courses">
+    <i class="fas fa-book"></i> Courses
+  </button>
+  <button class="td-tab-btn" data-tab="schedule">
+    <i class="fas fa-calendar-alt"></i> Schedule
+  </button>
+</div>
+
+<!-- ─── Profile Tab ────────────────────────────────────────────── -->
+<div class="td-tab-panel active" id="tdTab-profile">
+
+  <div class="td-card">
+    <div class="td-card-header"><i class="fas fa-user"></i> Personal Information</div>
+    <div class="td-card-body">
+      <div class="td-fields-grid">
+        <div class="td-field"><label>First Name</label><p id="tdProfileFirstName">—</p></div>
+        <div class="td-field"><label>Last Name</label><p id="tdProfileLastName">—</p></div>
+        <div class="td-field"><label>Email</label><p id="tdProfileEmail">—</p></div>
+        <div class="td-field"><label>Username</label><p id="tdProfileUsername">—</p></div>
+        <div class="td-field"><label>Phone</label><p id="tdProfilePhone">—</p></div>
+        <div class="td-field"><label>Address</label><p id="tdProfileAddress">—</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="td-card">
+    <div class="td-card-header"><i class="fas fa-briefcase"></i> Professional Information</div>
+    <div class="td-card-body">
+      <div class="td-fields-grid">
+        <div class="td-field"><label>Employee ID</label><p id="tdProfileEmployeeId">—</p></div>
+        <div class="td-field"><label>Department</label><p id="tdProfileProgram">—</p></div>
+        <div class="td-field"><label>Qualification</label><p id="tdProfileQualification">—</p></div>
+        <div class="td-field"><label>Specialization</label><p id="tdProfileSpecialization">—</p></div>
+        <div class="td-field"><label>Hire Date</label><p id="tdProfileHireDate">—</p></div>
+        <div class="td-field"><label>Years of Experience</label><p id="tdProfileYearsExp">—</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ─── Courses Tab ────────────────────────────────────────────── -->
+<div class="td-tab-panel" id="tdTab-courses">
+  <div class="td-card">
+    <div class="td-card-header"><i class="fas fa-book"></i> Assigned Courses</div>
+    <table class="td-data-table">
+      <thead>
+        <tr>
+          <th>Course Name</th>
+          <th>Code</th>
+          <th>Class</th>
+          <th>Students</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tdCoursesBody">
+        <tr><td colspan="5" class="td-empty"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ─── Schedule Tab ───────────────────────────────────────────── -->
+<div class="td-tab-panel" id="tdTab-schedule">
+  <div class="td-card">
+    <div class="td-card-header"><i class="fas fa-calendar-alt"></i> Teaching Schedule</div>
+    <table class="td-data-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Subject</th>
+          <th>Class</th>
+          <th>Room</th>
+        </tr>
+      </thead>
+      <tbody id="tdScheduleBody">
+        <tr><td colspan="5" class="td-empty"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>

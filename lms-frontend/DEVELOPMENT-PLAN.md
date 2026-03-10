@@ -288,22 +288,22 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 3-4: Teacher Management**
 
-- [ ] **Enhance** `admin/teachers.html`
-  - Teacher list with DataTables
-  - Filter by department, subject, status
-  - Add teacher → modal form
-  - Edit teacher → modal form
-  - View teacher details → dedicated page
-  - Assign subjects to teacher
-  - View teacher schedule
-  - Export teacher list
-- [ ] **Create** `admin/teacher-details.html`
-  - Personal information tab
-  - Assigned subjects tab
-  - Assigned classes tab
-  - Schedule/timetable tab
-  - Performance metrics (optional)
-  - Edit button
+- [x] **Enhance** `admin/teachers.html`
+  - [x] Teacher list with DataTables
+  - [ ] Filter by department, subject, status
+  - [x] Add teacher → modal form
+  - [x] Edit teacher → modal form
+  - [x] View teacher details → dedicated page
+  - [ ] Assign subjects to teacher
+  - [ ] View teacher schedule
+  - [x] Export teacher list
+- [x] **Create** `admin/teacher-details.html`
+  - [x] Personal information tab
+  - [x] Assigned subjects tab
+  - [ ] Assigned classes tab
+  - [x] Schedule/timetable tab
+  - [ ] Performance metrics (optional)
+  - [x] Edit button
 
 **Day 5: Profile Pages**
 

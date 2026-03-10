@@ -352,12 +352,15 @@
         </div>
         <div class="students-header-actions">
             <button class="btn btn-outline btn-sm" id="importStudentsBtn" title="Import from CSV">
-                <i class="fas fa-file-csv"></i> Import CSV
+                <i class="fas fa-upload"></i> Import CSV
             </button>
             <button class="btn btn-outline btn-sm" id="exportStudentsBtn" title="Export to CSV">
-                <i class="fas fa-download"></i> Export
+                <i class="fas fa-file-csv"></i> Export CSV
             </button>
-            <button class="btn btn-primary btn-sm" id="addStudentBtn">
+            <button class="btn btn-outline btn-sm" id="exportPDFStudentsBtn" title="Export to PDF">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="btn btn-primary btn-sm" id="addStudentBtn" title="Add Student">
                 <i class="fas fa-plus"></i> Add Student
             </button>
         </div>
@@ -495,13 +498,31 @@
                     </div>
                     <div class="form-group">
                         <label>Username <span class="required">*</span></label>
-                        <input type="text" class="form-input" id="sfUsername" placeholder="kwame.mensah" required>
+                        <div style="display:flex;gap:.4rem;align-items:flex-start">
+                            <input type="text" class="form-input" id="sfUsername" placeholder="auto-generated" readonly
+                                style="flex:1;background:var(--bg-secondary,#f8fafc);cursor:default">
+                            <button type="button" id="sfUsernameEdit" title="Edit username manually"
+                                style="padding:.55rem .75rem;background:var(--bg-secondary,#f1f5f9);border:1px solid var(--border-color,#e2e8f0);border-radius:.5rem;cursor:pointer;color:var(--text-secondary,#64748b);white-space:nowrap;font-size:.8rem">
+                                <i class="fas fa-pen" id="sfUsernameEditIcon"></i>
+                            </button>
+                        </div>
                         <span class="form-error" id="sfUsernameErr"></span>
                     </div>
 
                     <div class="form-group" id="sfPasswordGroup">
                         <label>Password <span class="required">*</span></label>
-                        <input type="password" class="form-input" id="sfPassword" placeholder="Min. 8 characters" required>
+                        <div style="display:flex;gap:.5rem;align-items:flex-start">
+                            <div style="position:relative;flex:1">
+                                <input type="password" class="form-input" id="sfPassword" placeholder="Min. 8 characters" required style="padding-right:2.5rem">
+                                <button type="button" id="sfPasswordToggle" title="Show / hide password"
+                                    style="position:absolute;right:.65rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-secondary,#94a3b8);padding:0;font-size:.9rem;line-height:1">
+                                    <i class="fas fa-eye" id="sfPasswordToggleIcon"></i>
+                                </button>
+                            </div>
+                            <button type="button" id="sfPasswordGenerate" class="btn btn-outline btn-sm" title="Generate random password" style="white-space:nowrap;flex-shrink:0;height:36px">
+                                <i class="fas fa-dice"></i> Generate
+                            </button>
+                        </div>
                         <span class="form-error" id="sfPasswordErr"></span>
                     </div>
                     <div class="form-group">
@@ -526,7 +547,14 @@
 
                     <div class="form-group">
                         <label>Student ID Number <span class="required">*</span></label>
-                        <input type="text" class="form-input" id="sfStudentId" placeholder="e.g. SHS2024001" required>
+                        <div style="display:flex;gap:.5rem;align-items:flex-start">
+                            <div style="flex:1">
+                                <input type="text" class="form-input" id="sfStudentId" placeholder="e.g. SHS2024001" required>
+                            </div>
+                            <button type="button" id="sfStudentIdGenerate" class="btn btn-outline btn-sm" title="Generate ID" style="white-space:nowrap;flex-shrink:0;height:36px">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
                         <span class="form-error" id="sfStudentIdErr"></span>
                     </div>
                     <div class="form-group">
@@ -534,6 +562,7 @@
                         <select class="form-input" id="sfClass">
                             <option value="">Select class</option>
                         </select>
+                        <span class="form-error" id="sfClassErr"></span>
                     </div>
 
                     <div class="form-group">
@@ -577,6 +606,37 @@
                 <span id="saveStudentBtnText">Save Student</span>
                 <span id="saveStudentSpinner" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============ Import Results Modal ============ -->
+<div class="student-modal-overlay" id="importResultsOverlay">
+    <div class="student-modal" style="max-width:600px">
+        <div class="student-modal-header">
+            <h3 id="importResultsTitle">Import Results</h3>
+            <button class="student-modal-close" id="closeImportResultsBtn"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="student-modal-body" style="padding-bottom:.5rem">
+            <!-- Summary bar -->
+            <div id="importResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+            <!-- Results table -->
+            <div style="max-height:380px;overflow-y:auto;border:1px solid var(--border,#e2e8f0);border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                    <thead>
+                        <tr style="background:var(--bg-secondary,#f8fafc);position:sticky;top:0;z-index:1">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border,#e2e8f0)">#</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border,#e2e8f0)">Name</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border,#e2e8f0)">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid var(--border,#e2e8f0)">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="importResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="student-modal-footer">
+            <button class="btn btn-primary" id="closeImportResultsDoneBtn">Done</button>
         </div>
     </div>
 </div>

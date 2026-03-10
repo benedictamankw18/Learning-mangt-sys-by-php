@@ -208,15 +208,28 @@ class AuthController
         Response::success($user);
     }
 
-    public function logout(array $user): void
+    public function logout(): void
     {
-        // Update logout time in login_activity table
-        $this->loginActivityRepo->logLogout($user['user_id']);
+        // Best-effort: parse the Bearer token to log activity.
+        // We do NOT require a valid (non-expired) token — the frontend may call
+        // this with an already-expired token, and that is fine.
+        $token = JWTHandler::getBearerToken();
+        if ($token) {
+            $payload = JWTHandler::validateToken($token);
+            // validateToken returns null for expired tokens; skip logging in that case.
+            if ($payload !== null) {
+                $userId = isset($payload->data->user_id)
+                    ? (int) $payload->data->user_id
+                    : (isset($payload->user_id) ? (int) $payload->user_id : null);
 
-        // Log logout activity (legacy)
-        $this->userRepo->logActivity($user['user_id'], 'logout', [
-            'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
-        ]);
+                if ($userId) {
+                    $this->loginActivityRepo->logLogout($userId);
+                    $this->userRepo->logActivity($userId, 'logout', [
+                        'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
+                    ]);
+                }
+            }
+        }
 
         Response::success(['message' => 'Logged out successfully']);
     }

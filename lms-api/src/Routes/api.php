@@ -10,7 +10,7 @@ return [
 
     // Auth routes (Protected)
     'GET /auth/me' => ['controller' => 'AuthController', 'method' => 'me', 'auth' => true],
-    'POST /auth/logout' => ['controller' => 'AuthController', 'method' => 'logout', 'auth' => true],
+    'POST /auth/logout' => ['controller' => 'AuthController', 'method' => 'logout', 'auth' => false],
     'POST /auth/change-password' => ['controller' => 'AuthController', 'method' => 'changePassword', 'auth' => true],
 
     // Dashboard routes (Protected)
@@ -22,6 +22,7 @@ return [
 
     // Student routes
     'GET /students' => ['controller' => 'StudentController', 'method' => 'index', 'auth' => true],
+    'GET /students/generate-id' => ['controller' => 'StudentController', 'method' => 'generateId', 'auth' => true],
     'GET /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'show', 'auth' => true],
     'POST /students' => ['controller' => 'StudentController', 'method' => 'create', 'auth' => true],
     'PUT /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'update', 'auth' => true],
@@ -35,6 +36,7 @@ return [
 
     // Teacher routes
     'GET /teachers' => ['controller' => 'TeacherController', 'method' => 'index', 'auth' => true],
+    'GET /teachers/generate-id' => ['controller' => 'TeacherController', 'method' => 'generateId', 'auth' => true],
     'GET /teachers/{uuid}' => ['controller' => 'TeacherController', 'method' => 'show', 'auth' => true],
     'POST /teachers' => ['controller' => 'TeacherController', 'method' => 'create', 'auth' => true],
     'PUT /teachers/{uuid}' => ['controller' => 'TeacherController', 'method' => 'update', 'auth' => true],

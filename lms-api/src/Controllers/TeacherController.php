@@ -31,10 +31,13 @@ class TeacherController
 
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
-        $department = $_GET['department'] ?? null;
+        $programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : null;
+        $search = $_GET['search'] ?? null;
+        $institutionId = (int) $user['institution_id'];
 
-        $teachers = $this->teacherRepo->getAll($page, $limit, $department);
-        $total = $this->teacherRepo->count($department);
+        $teachers = $this->teacherRepo->getAll($page, $limit, $programId, $search, $institutionId);
+        $total = $this->teacherRepo->count($programId, $search, $institutionId);
+        $newThisMonth = $this->teacherRepo->countByInstitutionThisMonth($institutionId);
 
         Response::success([
             'teachers' => $teachers,
@@ -42,7 +45,8 @@ class TeacherController
                 'current_page' => $page,
                 'per_page' => $limit,
                 'total' => $total,
-                'total_pages' => ceil($total / $limit)
+                'total_pages' => ceil($total / $limit),
+                'new_this_month' => $newThisMonth
             ]
         ]);
     }
@@ -90,40 +94,56 @@ class TeacherController
         $data = json_decode(file_get_contents('php://input'), true);
 
         $validator = new Validator($data);
-        $validator->required(['user_id', 'employee_id']);
+        $validator
+            ->required(['username', 'email', 'password', 'first_name', 'last_name', 'employee_id'])
+            ->email('email')
+            ->min('password', 8);
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
         }
 
-        // Add institution_id for multi-tenant support
-        if ($user['role'] !== 'super_admin') {
-            $data['institution_id'] = $user['institution_id'];
-        }
+        $institutionId = (int) $user['institution_id'];
+        $data['institution_id'] = $institutionId;
 
-        // Check if user exists
-        $userExists = $this->userRepo->findById((int) $data['user_id']);
-        if (!$userExists) {
-            Response::notFound('User not found');
+        // Duplicate checks
+        $duplicates = [];
+        if ($this->userRepo->isUsernameTaken($data['username'], $institutionId)) {
+            $duplicates['username'] = ['Username already taken'];
+        }
+        if ($this->userRepo->isEmailTaken($data['email'])) {
+            $duplicates['email'] = ['Email already in use'];
+        }
+        if ($this->teacherRepo->isEmployeeIdTaken($data['employee_id'], $institutionId)) {
+            $duplicates['employee_id'] = ['Employee ID already in use'];
+        }
+        if (!empty($duplicates)) {
+            Response::validationError($duplicates);
             return;
         }
 
-        // Check if teacher profile already exists
-        $existingTeacher = $this->teacherRepo->findByUserId((int) $data['user_id']);
-        if ($existingTeacher) {
-            Response::badRequest('Teacher profile already exists for this user');
+        // Create user account
+        $userId = $this->userRepo->create($data);
+        if (!$userId) {
+            Response::serverError('Failed to create user account');
             return;
         }
 
-        $teacherId = $this->teacherRepo->create((int) $data['user_id'], $data);
-
-        if ($teacherId) {
-            $teacher = $this->teacherRepo->findById($teacherId);
-            Response::success($teacher, 201);
-        } else {
-            Response::serverError('Failed to create teacher');
+        // Assign teacher role
+        $teacherRole = $this->userRepo->getRoleByName('teacher');
+        if ($teacherRole) {
+            $this->userRepo->assignRole($userId, (int) $teacherRole['role_id']);
         }
+
+        // Create teacher profile
+        $teacherId = $this->teacherRepo->create($userId, $data);
+        if (!$teacherId) {
+            Response::serverError('Failed to create teacher profile');
+            return;
+        }
+
+        Response::success($this->teacherRepo->findById($teacherId), 201);
     }
 
     public function update(array $user, string $uuid): void
@@ -156,12 +176,60 @@ class TeacherController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
-        if ($this->teacherRepo->update($teacherId, $data)) {
-            $updatedTeacher = $this->teacherRepo->findByUuid($sanitizedUuid);
-            Response::success($updatedTeacher);
-        } else {
-            Response::serverError('Failed to update teacher');
+        // Update user-table fields
+        $userFieldKeys = ['first_name', 'last_name', 'email', 'username', 'phone_number', 'address', 'is_active'];
+        $userFields = array_intersect_key($data, array_flip($userFieldKeys));
+        if (!empty($userFields)) {
+            $this->userRepo->update($teacher['user_id'], $userFields);
         }
+
+        // Update teacher-table fields (exclude user fields)
+        $teacherFields = array_diff_key($data, array_flip($userFieldKeys));
+        if (!empty($teacherFields) && !$this->teacherRepo->update($teacherId, $teacherFields)) {
+            // Still return success if at least user fields were updated
+            if (empty($userFields)) {
+                Response::serverError('Failed to update teacher');
+                return;
+            }
+        }
+
+        $updatedTeacher = $this->teacherRepo->findByUuid($sanitizedUuid);
+        Response::success($updatedTeacher);
+    }
+
+    /**
+     * Generate the next available employee ID for this institution and year.
+     * GET /api/teachers/generate-id
+     */
+    public function generateId(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->hasRole(['admin', 'super_admin'])) {
+            Response::forbidden('Only admins can generate teacher IDs');
+            return;
+        }
+
+        $institutionId = (int) $user['institution_id'];
+        $year = (int) date('Y');
+
+        $fullUser = $this->userRepo->findById($user['user_id']);
+        $institutionName = $fullUser['institution_name'] ?? '';
+
+        $prefix = 'SHS-T';
+        if ($institutionName !== '') {
+            preg_match_all('/\b[A-Za-z]/', $institutionName, $matches);
+            $initials = $matches[0] ?? [];
+            if (count($initials) >= 2) {
+                // Append 'T' to distinguish employee IDs from student IDs
+                // e.g. institution "Springfield High School" → teachers: SHST, students: SHS
+                $prefix = strtoupper(implode('', array_slice($initials, 0, 5))) . '-T';
+            }
+        }
+
+        $seq    = $this->teacherRepo->getNextIdSequence($institutionId, $prefix, $year);
+        $nextId = sprintf('%s-%d-%04d', $prefix, $year, $seq);
+
+        Response::success(['next_id' => $nextId]);
     }
 
     public function getCourses(array $user, string $uuid): void

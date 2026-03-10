@@ -105,6 +105,56 @@ class UserRepository
         }
     }
 
+    /**
+     * Check if a username already exists within an institution (respects unique_username_institution constraint).
+     */
+    public function isUsernameTaken(string $username, ?int $institutionId, ?int $excludeUserId = null): bool
+    {
+        try {
+            $sql = "SELECT user_id FROM users WHERE username = :username";
+            $params = ['username' => $username];
+            if ($institutionId !== null) {
+                $sql .= " AND institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            } else {
+                $sql .= " AND institution_id IS NULL";
+            }
+            if ($excludeUserId !== null) {
+                $sql .= " AND user_id != :exclude_id";
+                $params['exclude_id'] = $excludeUserId;
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("isUsernameTaken Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Check if an email already exists (emails are globally unique).
+     */
+    public function isEmailTaken(string $email, ?int $excludeUserId = null): bool
+    {
+        try {
+            $sql = "SELECT user_id FROM users WHERE email = :email";
+            $params = ['email' => $email];
+            if ($excludeUserId !== null) {
+                $sql .= " AND user_id != :exclude_id";
+                $params['exclude_id'] = $excludeUserId;
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("isEmailTaken Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public function findByUsername(string $username): ?array
     {
         try {

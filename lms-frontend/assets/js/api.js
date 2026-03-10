@@ -55,7 +55,19 @@ class APIService {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401) {
-                Auth.logout();
+                // Clear auth state DIRECTLY — do NOT call Auth.logout() here because
+                // Auth.logout() makes another API call (POST /auth/logout) which would
+                // also get a 401, triggering this handler again → infinite loop.
+                try {
+                    if (typeof Auth !== 'undefined') {
+                        Auth.clearToken();
+                        Auth.clearRefreshToken();
+                        Auth.clearUser();
+                    }
+                    if (typeof stopTokenRefresh === 'function') stopTokenRefresh();
+                    localStorage.clear();
+                    sessionStorage.clear();
+                } catch (_) {}
                 window.location.href = '/auth/login.html';
                 const e = new Error('Session expired. Please login again.');
                 e.status = response.status;

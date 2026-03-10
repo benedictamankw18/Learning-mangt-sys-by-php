@@ -22,10 +22,26 @@ const API_ENDPOINTS = {
     STUDENTS: '/api/students',
     STUDENT_BY_UUID: (uuid) => `/api/students/${uuid}`,
     STUDENT_STATUS: (uuid) => `/api/students/${uuid}/status`,
+    STUDENT_COURSES: (uuid) => `/api/students/${uuid}/courses`,
+    STUDENT_ATTENDANCE_STATS: (studentId) => `/api/students/${studentId}/attendance/stats`,
+    STUDENT_RESULTS: (studentId) => `/api/students/${studentId}/results`,
+    STUDENT_GENERATE_ID: '/api/students/generate-id',
 
     // Teachers
     TEACHERS: '/api/teachers',
     TEACHER_BY_UUID: (uuid) => `/api/teachers/${uuid}`,
+    TEACHER_GENERATE_ID: '/api/teachers/generate-id',
+    TEACHER_COURSES: (uuid) => `/api/teachers/${uuid}/courses`,
+    TEACHER_SCHEDULE: (uuid) => `/api/teachers/${uuid}/schedule`,
+    TEACHER_SUBJECTS: (id) => `/api/teachers/${id}/subjects`,
+
+    // Subjects
+    SUBJECTS: '/api/subjects',
+    SUBJECT_TEACHERS: (id) => `/api/subjects/${id}/teachers`,
+
+    // Teacher-Subject assignments
+    TEACHER_SUBJECT: '/api/teacher-subjects',
+    TEACHER_SUBJECT_BY_ID: (id) => `/api/teacher-subjects/${id}`,
 
     // Classes
     CLASSES: '/api/classes',

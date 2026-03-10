@@ -41,14 +41,14 @@ class StudentRepository
                 'institution_id' => $data['institution_id'],
                 'user_id' => $userId,
                 'student_id_number' => $data['student_id_number'],
-                'enrollment_date' => $data['enrollment_date'] ?? date('Y-m-d'),
-                'class_id' => $data['class_id'] ?? null,
-                'gender' => $data['gender'] ?? null,
-                'date_of_birth' => $data['date_of_birth'] ?? null,
-                'parent_name' => $data['parent_name'] ?? null,
-                'parent_phone' => $data['parent_phone'] ?? null,
-                'parent_email' => $data['parent_email'] ?? null,
-                'emergency_contact' => $data['emergency_contact'] ?? null,
+                'enrollment_date' => (!empty($data['enrollment_date'])) ? $data['enrollment_date'] : date('Y-m-d'),
+                'class_id' => (!empty($data['class_id'])) ? (int) $data['class_id'] : null,
+                'gender' => (!empty($data['gender'])) ? $data['gender'] : null,
+                'date_of_birth' => (!empty($data['date_of_birth'])) ? $data['date_of_birth'] : null,
+                'parent_name' => (!empty($data['parent_name'])) ? $data['parent_name'] : null,
+                'parent_phone' => (!empty($data['parent_phone'])) ? $data['parent_phone'] : null,
+                'parent_email' => (!empty($data['parent_email'])) ? $data['parent_email'] : null,
+                'emergency_contact' => (!empty($data['emergency_contact'])) ? $data['emergency_contact'] : null,
                 'status' => $data['status'] ?? 'active'
             ]);
 
@@ -56,6 +56,29 @@ class StudentRepository
         } catch (\PDOException $e) {
             error_log("Student Create Error: " . $e->getMessage());
             return null;
+        }
+    }
+
+    public function isStudentIdTaken(string $studentIdNumber, ?int $institutionId, ?int $excludeStudentId = null): bool
+    {
+        try {
+            $sql = "SELECT student_id FROM students WHERE student_id_number = :sid";
+            $params = ['sid' => $studentIdNumber];
+            if ($institutionId !== null) {
+                $sql .= " AND institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($excludeStudentId !== null) {
+                $sql .= " AND student_id != :exclude_id";
+                $params['exclude_id'] = $excludeStudentId;
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("isStudentIdTaken Error: " . $e->getMessage());
+            return false;
         }
     }
 
@@ -113,7 +136,7 @@ class StudentRepository
 
         try {
             $stmt = $this->db->prepare("
-                SELECT 
+                SELECT
                     s.*,
                     u.username,
                     u.email,
@@ -122,9 +145,15 @@ class StudentRepository
                     u.phone_number,
                     u.address,
                     u.date_of_birth,
-                    u.is_active
+                    u.is_active,
+                    c.class_name,
+                    c.class_code,
+                    p.program_id,
+                    p.program_name
                 FROM students s
                 INNER JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN programs p ON c.program_id = p.program_id
                 WHERE s.uuid = :uuid
             ");
 
@@ -210,9 +239,13 @@ class StudentRepository
                 $params['status'] = $status;
             }
             if ($search !== null && $search !== '') {
-                $sql .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search
-                          OR u.email LIKE :search OR s.student_id_number LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $sql .= " AND (u.first_name LIKE :search1 OR u.last_name LIKE :search2
+                          OR u.email LIKE :search3 OR s.student_id_number LIKE :search4)";
+                $searchVal = '%' . $search . '%';
+                $params['search1'] = $searchVal;
+                $params['search2'] = $searchVal;
+                $params['search3'] = $searchVal;
+                $params['search4'] = $searchVal;
             }
 
             $sql .= " ORDER BY s.created_at DESC LIMIT :limit OFFSET :offset";
@@ -267,9 +300,13 @@ class StudentRepository
                 $params['status'] = $status;
             }
             if ($search !== null && $search !== '') {
-                $sql .= " AND (u.first_name LIKE :search OR u.last_name LIKE :search
-                          OR u.email LIKE :search OR s.student_id_number LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $sql .= " AND (u.first_name LIKE :search1 OR u.last_name LIKE :search2
+                          OR u.email LIKE :search3 OR s.student_id_number LIKE :search4)";
+                $searchVal = '%' . $search . '%';
+                $params['search1'] = $searchVal;
+                $params['search2'] = $searchVal;
+                $params['search3'] = $searchVal;
+                $params['search4'] = $searchVal;
             }
 
             $stmt = $this->db->prepare($sql);
@@ -455,6 +492,7 @@ class StudentRepository
                     s.subject_name,
                     s.subject_code,
                     cl.class_name,
+                    sem.semester_name,
                     ce.enrollment_date,
                     ce.status as enrollment_status,
                     ce.progress_percentage,
@@ -464,9 +502,10 @@ class StudentRepository
                 INNER JOIN class_subjects cs ON ce.course_id = cs.course_id
                 INNER JOIN subjects s ON cs.subject_id = s.subject_id
                 INNER JOIN classes cl ON cs.class_id = cl.class_id
+                LEFT JOIN semesters sem ON cs.semester_id = sem.semester_id
                 LEFT JOIN teachers teach ON cs.teacher_id = teach.teacher_id
                 LEFT JOIN users t ON teach.user_id = t.user_id
-                WHERE ce.student_id = :student_id AND ce.status = 'active'
+                WHERE ce.student_id = :student_id -- AND ce.status = 'active'
                 ORDER BY ce.enrollment_date DESC
             ");
 
@@ -481,6 +520,40 @@ class StudentRepository
     /**
      * Get monthly enrollment counts for current year by institution
      */
+    /**
+     * Get the next available sequence number for a student ID in a given year.
+     * Looks for existing IDs matching '{prefix}-{year}-*' for this institution,
+     * finds the max sequence, and returns max + 1 (or 1 if none exist).
+     */
+    public function getNextIdSequence(int $institutionId, string $prefix, int $year): int
+    {
+        try {
+            $like = $prefix . '-' . $year . '-%';
+            $stmt = $this->db->prepare("
+                SELECT student_id_number
+                FROM students
+                WHERE institution_id = :institution_id
+                  AND student_id_number LIKE :like
+                ORDER BY student_id_number DESC
+                LIMIT 1
+            ");
+            $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+            $stmt->bindValue(':like', $like);
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                return 1;
+            }
+            // Extract sequence from the last segment e.g. "ASHS-2026-0042" → 42
+            $parts = explode('-', $row['student_id_number']);
+            $seq = (int) end($parts);
+            return $seq + 1;
+        } catch (\PDOException $e) {
+            error_log("Get Next ID Sequence Error: " . $e->getMessage());
+            return 1;
+        }
+    }
+
     /**
      * Get monthly new-enrollment counts for the last 12 months (rolling window).
      * Returns a 12-element array: index 0 = oldest month, index 11 = current month.

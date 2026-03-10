@@ -25,12 +25,12 @@ class TeacherRepository
 
             $stmt = $this->db->prepare("
                 INSERT INTO teachers (
-                    uuid, institution_id, user_id, employee_id, department, 
+                    uuid, institution_id, user_id, employee_id, program_id, 
                     specialization, hire_date, employment_end_date, qualification, 
                     years_of_experience
                 )
                 VALUES (
-                    :uuid, :institution_id, :user_id, :employee_id, :department,
+                    :uuid, :institution_id, :user_id, :employee_id, :program_id,
                     :specialization, :hire_date, :employment_end_date, :qualification,
                     :years_of_experience
                 )
@@ -41,7 +41,7 @@ class TeacherRepository
                 'institution_id' => $data['institution_id'],
                 'user_id' => $userId,
                 'employee_id' => $data['employee_id'],
-                'department' => $data['department'] ?? null,
+                'program_id' => isset($data['program_id']) ? (int)$data['program_id'] : null,
                 'specialization' => $data['specialization'] ?? null,
                 'hire_date' => $data['hire_date'] ?? date('Y-m-d'),
                 'employment_end_date' => $data['employment_end_date'] ?? null,
@@ -68,9 +68,12 @@ class TeacherRepository
                     u.last_name,
                     u.phone_number,
                     u.address,
-                    u.is_active
+                    u.is_active,
+                    p.program_name,
+                    p.program_code
                 FROM teachers t
                 INNER JOIN users u ON t.user_id = u.user_id
+                LEFT JOIN programs p ON t.program_id = p.program_id
                 WHERE t.teacher_id = :id
             ");
 
@@ -117,9 +120,12 @@ class TeacherRepository
                     u.last_name,
                     u.phone_number,
                     u.address,
-                    u.is_active
+                    u.is_active,
+                    p.program_name,
+                    p.program_code
                 FROM teachers t
                 INNER JOIN users u ON t.user_id = u.user_id
+                LEFT JOIN programs p ON t.program_id = p.program_id
                 WHERE t.uuid = :uuid
             ");
 
@@ -158,7 +164,7 @@ class TeacherRepository
         }
     }
 
-    public function getAll(int $page = 1, int $limit = 20, ?string $department = null): array
+    public function getAll(int $page = 1, int $limit = 20, ?int $programId = null, ?string $search = null, ?int $institutionId = null): array
     {
         try {
             $offset = ($page - 1) * $limit;
@@ -169,22 +175,47 @@ class TeacherRepository
                     u.username,
                     u.email,
                     u.first_name,
-                    u.last_name
+                    u.last_name,
+                    u.phone_number,
+                    u.address,
+                    u.is_active,
+                    p.program_name,
+                    p.program_code
                 FROM teachers t
                 INNER JOIN users u ON t.user_id = u.user_id
+                LEFT JOIN programs p ON t.program_id = p.program_id
                 WHERE u.deleted_at IS NULL
             ";
 
-            if ($department) {
-                $sql .= " AND t.department = :department";
+            if ($programId) {
+                $sql .= " AND t.program_id = :program_id";
+            }
+
+            if ($institutionId) {
+                $sql .= " AND t.institution_id = :institution_id";
+            }
+
+            if ($search) {
+                $sql .= " AND (u.first_name LIKE :s1 OR u.last_name LIKE :s2 OR u.email LIKE :s3 OR t.employee_id LIKE :s4)";
             }
 
             $sql .= " ORDER BY t.created_at DESC LIMIT :limit OFFSET :offset";
 
             $stmt = $this->db->prepare($sql);
 
-            if ($department) {
-                $stmt->bindValue(':department', $department);
+            if ($institutionId) {
+                $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+            }
+            if ($programId) {
+                $stmt->bindValue(':program_id', $programId, PDO::PARAM_INT);
+            }
+
+            if ($search) {
+                $searchVal = '%' . $search . '%';
+                $stmt->bindValue(':s1', $searchVal);
+                $stmt->bindValue(':s2', $searchVal);
+                $stmt->bindValue(':s3', $searchVal);
+                $stmt->bindValue(':s4', $searchVal);
             }
 
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -198,7 +229,7 @@ class TeacherRepository
         }
     }
 
-    public function count(?string $department = null): int
+    public function count(?int $programId = null, ?string $search = null, ?int $institutionId = null): int
     {
         try {
             $sql = "
@@ -207,22 +238,78 @@ class TeacherRepository
                 WHERE u.deleted_at IS NULL
             ";
 
-            if ($department) {
-                $sql .= " AND t.department = :department";
+            if ($institutionId) {
+                $sql .= " AND t.institution_id = :institution_id";
+            }
+
+            if ($programId) {
+                $sql .= " AND t.program_id = :program_id";
+            }
+
+            if ($search) {
+                $sql .= " AND (u.first_name LIKE :s1 OR u.last_name LIKE :s2 OR u.email LIKE :s3 OR t.employee_id LIKE :s4)";
             }
 
             $stmt = $this->db->prepare($sql);
 
-            if ($department) {
-                $stmt->execute(['department' => $department]);
-            } else {
-                $stmt->execute();
+            $params = [];
+            if ($institutionId) $params['institution_id'] = $institutionId;
+            if ($programId) $params['program_id'] = $programId;
+            if ($search) {
+                $searchVal = '%' . $search . '%';
+                $params['s1'] = $searchVal;
+                $params['s2'] = $searchVal;
+                $params['s3'] = $searchVal;
+                $params['s4'] = $searchVal;
             }
+            $stmt->execute($params);
 
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Teachers Error: " . $e->getMessage());
             return 0;
+        }
+    }
+
+    public function isEmployeeIdTaken(string $employeeId, ?int $institutionId = null, ?int $excludeTeacherId = null): bool
+    {
+        try {
+            $sql = "SELECT teacher_id FROM teachers WHERE employee_id = :eid";
+            $params = ['eid' => $employeeId];
+            if ($institutionId !== null) {
+                $sql .= " AND institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($excludeTeacherId !== null) {
+                $sql .= " AND teacher_id != :exclude_id";
+                $params['exclude_id'] = $excludeTeacherId;
+            }
+            $sql .= " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("isEmployeeIdTaken Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getNextIdSequence(int $institutionId, string $prefix, int $year): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT employee_id FROM teachers
+                WHERE institution_id = :institution_id AND employee_id LIKE :pattern
+                ORDER BY employee_id DESC LIMIT 1
+            ");
+            $stmt->execute(['institution_id' => $institutionId, 'pattern' => "{$prefix}-{$year}-%"]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) return 1;
+            $parts = explode('-', $row['employee_id']);
+            return (int) end($parts) + 1;
+        } catch (\PDOException $e) {
+            error_log("TeacherRepository::getNextIdSequence error: " . $e->getMessage());
+            return 1;
         }
     }
 
