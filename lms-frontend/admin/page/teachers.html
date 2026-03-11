@@ -208,6 +208,46 @@
     padding: 2px 6px; border-radius: 4px; margin-left: .4rem;
 }
 
+/* Class-section checkbox rows */
+.assign-cs-list-header {
+    font-size: .74rem;
+    font-weight: 600;
+    color: var(--text-secondary,#64748b);
+    padding: .35rem .5rem;
+    letter-spacing:.03em;
+}
+.assign-class-section-row {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .5rem .6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .12s;
+    user-select: none;
+}
+.assign-class-section-row:hover { background: #f1f5f9; }
+.assign-class-section-row.is-me { background: #f0fdf4; }
+.assign-class-section-row.is-me:hover { background: #dcfce7; }
+.assign-class-section-row input[type="checkbox"] {
+    width: 15px; height: 15px;
+    accent-color: var(--primary,#6366f1);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.assign-cs-info {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+}
+.assign-cs-class { font-weight: 600; font-size: .85rem; color: var(--text-primary,#1e293b); }
+.assign-cs-free  { font-size: .74rem; color: #94a3b8; }
+.assign-cs-me    { font-size: .74rem; color: #16a34a; font-weight: 600; }
+.assign-cs-other { font-size: .74rem; color: #d97706; }
+
 /* Pagination */
 .teachers-pagination {
     display: flex;
@@ -699,31 +739,45 @@
   </div>
 </div>
 
-<!-- ─── Assign Subjects Modal ─────────────────────────────────────────── -->
+<!-- ─── Assign to Class Sections Modal ───────────────────────────────── -->
 <div class="teacher-modal-overlay" id="assignSubjectsOverlay">
-  <div class="teacher-modal" role="dialog" aria-modal="true" aria-labelledby="assignSubjectsTitle" style="max-width:560px">
+  <div class="teacher-modal" role="dialog" aria-modal="true" aria-labelledby="assignSubjectsTitle" style="max-width:600px">
     <div class="teacher-modal-header">
-      <h3 id="assignSubjectsTitle">Assign Subjects</h3>
+      <h3 id="assignSubjectsTitle">Assign to Class Sections</h3>
       <button class="teacher-modal-close" id="closeAssignSubjectsBtn" aria-label="Close"><i class="fas fa-times"></i></button>
     </div>
     <div class="teacher-modal-body">
-      <p class="tf-section-title"><i class="fas fa-book" style="margin-right:.4rem"></i>Assigned Subjects</p>
-      <div id="assignedSubjectsList" style="min-height:60px;max-height:260px;overflow-y:auto">
-        <p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:1rem">Loading…</p>
+
+      <!-- Current class-subject assignments (top panel) -->
+      <p class="tf-section-title"><i class="fas fa-chalkboard" style="margin-right:.4rem"></i>Current Assignments</p>
+      <div id="assignedClassSubjectsList" style="min-height:48px;max-height:200px;overflow-y:auto">
+        <p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:.75rem">Loading…</p>
       </div>
 
-      <p class="tf-section-title" style="margin-top:1.25rem"><i class="fas fa-plus-circle" style="margin-right:.4rem"></i>Add Subject</p>
-      <div style="display:flex;gap:.5rem;align-items:center">
-        <select id="assignSubjectSelect" class="teachers-filter-select" style="flex:1;max-width:none">
-          <option value="">Select a subject to assign</option>
+      <!-- Add assignment form -->
+      <p class="tf-section-title" style="margin-top:1.25rem"><i class="fas fa-plus-circle" style="margin-right:.4rem"></i>Add Assignment</p>
+      <div id="assignTermInfo" style="display:none;font-size:.76rem;color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:.3rem .65rem;margin-bottom:.75rem"></div>
+
+      <div class="tf-field" style="margin-bottom:.85rem">
+        <label>Subject</label>
+        <select id="assignSubjectSelect"
+                style="padding:.5rem .75rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.875rem;width:100%;background:#fff;color:var(--text-primary,#1e293b);outline:none">
+          <option value="">— Select a subject —</option>
         </select>
-        <button class="btn btn-primary btn-sm" id="confirmAssignSubjectBtn">
-          <i class="fas fa-plus"></i> Assign
-        </button>
       </div>
-      <div id="assignSubjectMsg" style="font-size:.8rem;margin-top:.5rem;min-height:1.2rem"></div>
+
+      <div class="assign-cs-list-header">Select Classes</div>
+      <div id="assignClassSectionsList"
+           style="max-height:220px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;padding:.4rem .5rem;background:#fafafa">
+      </div>
+
+      <div id="assignClassSectionsMsg" style="font-size:.8rem;margin-top:.45rem;min-height:1.1rem"></div>
+
     </div>
     <div class="teacher-modal-footer">
+      <button class="btn btn-primary btn-sm" id="confirmAssignClassSectionsBtn">
+        <i class="fas fa-check"></i> Apply
+      </button>
       <button class="btn btn-outline btn-sm" id="doneAssignSubjectsBtn">Done</button>
     </div>
   </div>

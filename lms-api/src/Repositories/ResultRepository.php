@@ -17,10 +17,12 @@ class ResultRepository
     {
         try {
             $sql = "
-                SELECT r.*, c.course_name, c.course_code, s.subject_name, sem.semester_name
+                SELECT r.*,
+                       sub.subject_name AS course_name, sub.subject_code AS course_code,
+                       sub.subject_name, sem.semester_name
                 FROM results r
-                LEFT JOIN courses c ON r.course_id = c.course_id
-                LEFT JOIN subjects s ON r.subject_id = s.subject_id
+                LEFT JOIN class_subjects cs ON r.course_id = cs.course_id
+                LEFT JOIN subjects sub ON COALESCE(r.subject_id, cs.subject_id) = sub.subject_id
                 LEFT JOIN semesters sem ON r.semester_id = sem.semester_id
                 WHERE r.student_id = :student_id
             ";
@@ -29,7 +31,7 @@ class ResultRepository
                 $sql .= " AND r.semester_id = :semester_id";
             }
 
-            $sql .= " ORDER BY sem.start_date DESC, s.subject_name";
+            $sql .= " ORDER BY sem.start_date DESC, sub.subject_name";
 
             $stmt = $this->db->prepare($sql);
             $params = ['student_id' => $studentId];
@@ -49,11 +51,13 @@ class ResultRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT r.*, c.course_name, c.course_code, s.subject_name, sem.semester_name,
+                SELECT r.*,
+                       sub.subject_name AS course_name, sub.subject_code AS course_code,
+                       sub.subject_name, sem.semester_name,
                        st.student_id_number, u.first_name, u.last_name
                 FROM results r
-                LEFT JOIN courses c ON r.course_id = c.course_id
-                LEFT JOIN subjects s ON r.subject_id = s.subject_id
+                LEFT JOIN class_subjects cs ON r.course_id = cs.course_id
+                LEFT JOIN subjects sub ON COALESCE(r.subject_id, cs.subject_id) = sub.subject_id
                 LEFT JOIN semesters sem ON r.semester_id = sem.semester_id
                 LEFT JOIN students st ON r.student_id = st.student_id
                 LEFT JOIN users u ON st.user_id = u.user_id

@@ -136,7 +136,7 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 5: Common Components**
 
-- [x] **Create Reusable Components**
+- [ ] **Create Reusable Components**
   - Navigation sidebar template
   - Header with user menu
   - Breadcrumb component
@@ -144,7 +144,7 @@ Build a solid foundation with working authentication and basic dashboards for al
   - Toast notifications (success/error/warning)
   - Modal dialog template
   - Data table template
-- [x] **Build Utility Functions** (`assets/js/utils.js`)
+- [ ] **Build Utility Functions** (`assets/js/utils.js`)
   - Date formatting
   - Number formatting
   - Form validation helpers
@@ -159,41 +159,41 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 1: Super Admin Dashboard**
 
-- [x] **Complete** `superadmin/dashboard.html`
-  - [x] Total institutions widget
-  - [x] Total users by role widget
-  - [x] Active subscriptions widget
-  - [x] System health indicators
-  - [x] Recent activities list
-  - [x] Quick action buttons
-  - [x] Charts: User growth, Institution growth
+- [ ] **Complete** `superadmin/dashboard.html`
+  - [ ] Total institutions widget
+  - [ ] Total users by role widget
+  - [ ] Active subscriptions widget
+  - [ ] System health indicators
+  - [ ] Recent activities list
+  - [ ] Quick action buttons
+  - [ ] Charts: User growth, Institution growth
 
 **Day 2: Admin Dashboard**
 
-- [x] **Complete** `admin/dashboard.html`
-  - [x] Total students widget (with growth % badge)
-  - [x] Total teachers widget (with growth % badge)
-  - [x] Total classes widget (with growth % badge)
-  - [x] Attendance rate (today/week) — `AttendanceRepository::getDailyRateByInstitution()` + `getWeeklyRateByInstitution()`, wired to `DashboardController::adminStats()`
-  - [x] Upcoming exams widget — `AssessmentRepository::countUpcomingByInstitution()` (published exams due within 7 days)
-  - [x] Pending tasks widget — `UserRepository::countInactiveByInstitution()` (accounts awaiting activation)
-  - [x] Recent activities (stacked list via `AdminActivityAPI`)
-  - [x] Charts: Enrollment trend (rolling 12-month), Student distribution by program
+- [ ] **Complete** `admin/dashboard.html`
+  - [ ] Total students widget (with growth % badge)
+  - [ ] Total teachers widget (with growth % badge)
+  - [ ] Total classes widget (with growth % badge)
+  - [ ] Attendance rate (today/week) — `AttendanceRepository::getDailyRateByInstitution()` + `getWeeklyRateByInstitution()`, wired to `DashboardController::adminStats()`
+  - [ ] Upcoming exams widget — `AssessmentRepository::countUpcomingByInstitution()` (published exams due within 7 days)
+  - [ ] Pending tasks widget — `UserRepository::countInactiveByInstitution()` (accounts awaiting activation)
+  - [ ] Recent activities (stacked list via `AdminActivityAPI`)
+  - [ ] Charts: Enrollment trend (rolling 12-month), Student distribution by program
 
 **Day 3: Teacher Dashboard**
 
-- [x] **Complete** `teacher/dashboard.html`
-  - [x] Today's classes widget — `AttendanceRepository::countTodayScheduleByTeacher()` via `course_schedules`
-  - [x] Pending assignments to grade — `AssignmentRepository::countPendingGradesByTeacher()` (status='submitted')
-  - [x] Attendance summary — `AttendanceRepository::getDailyRateByTeacher()` + `getWeeklyRateByTeacher()`
-  - [x] Upcoming assessments — `AssessmentRepository::countUpcomingByTeacher()` (next 7 days)
-  - [x] Recent student submissions — `AssignmentRepository::getRecentSubmissionsByTeacher()` (5 most recent ungraded)
-  - [x] Quick actions (take attendance, grade assignment, create assignment, view schedule)
-  - [x] Charts: Class performance (bar, avg score per course), Attendance trends (rolling 12-month line)
+- [ ] **Complete** `teacher/dashboard.html`
+  - [ ] Today's classes widget — `AttendanceRepository::countTodayScheduleByTeacher()` via `course_schedules`
+  - [ ] Pending assignments to grade — `AssignmentRepository::countPendingGradesByTeacher()` (status='submitted')
+  - [ ] Attendance summary — `AttendanceRepository::getDailyRateByTeacher()` + `getWeeklyRateByTeacher()`
+  - [ ] Upcoming assessments — `AssessmentRepository::countUpcomingByTeacher()` (next 7 days)
+  - [ ] Recent student submissions — `AssignmentRepository::getRecentSubmissionsByTeacher()` (5 most recent ungraded)
+  - [ ] Quick actions (take attendance, grade assignment, create assignment, view schedule)
+  - [ ] Charts: Class performance (bar, avg score per course), Attendance trends (rolling 12-month line)
 
 **Day 4: Student Dashboard**
 
-- [x] **Complete** `student/dashboard.html`
+- [ ] **Complete** `student/dashboard.html`
   - Today's classes widget
   - Pending assignments widget
   - Recent grades widget
@@ -204,7 +204,7 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 5: Parent Dashboard**
 
-- [x] **Complete** `parent/dashboard.html`
+- [ ] **Complete** `parent/dashboard.html`
   - Children selector (if multiple)
   - Selected child's overview
   - Recent grades widget
@@ -219,31 +219,31 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Functional Requirements:**
 
-- [x] Users can log in with correct credentials
-- [x] Invalid login shows appropriate error
-- [x] Users are redirected to correct dashboard based on role
-- [x] All dashboards load with live data from API
-- [x] Widgets display accurate real-time statistics
-- [x] Charts render correctly with proper data
-- [x] Logout works and clears session
-- [x] Session timeout redirects to login
+- [ ] Users can log in with correct credentials
+- [ ] Invalid login shows appropriate error
+- [ ] Users are redirected to correct dashboard based on role
+- [ ] All dashboards load with live data from API
+- [ ] Widgets display accurate real-time statistics
+- [ ] Charts render correctly with proper data
+- [ ] Logout works and clears session
+- [ ] Session timeout redirects to login
 
 **Technical Requirements:**
 
-- [x] No console errors on any page
-- [x] All API calls use proper authentication
-- [x] Token is stored securely
-- [x] Loading indicators show during API calls
-- [x] Error messages display user-friendly text
-- [x] Responsive design works on mobile/tablet/desktop
+- [ ] No console errors on any page
+- [ ] All API calls use proper authentication
+- [ ] Token is stored securely
+- [ ] Loading indicators show during API calls
+- [ ] Error messages display user-friendly text
+- [ ] Responsive design works on mobile/tablet/desktop
 
 **Testing:**
 
-- [x] Test with all 5 user roles
-- [x] Test with invalid credentials
-- [x] Test session timeout
-- [x] Test logout from all dashboards
-- [x] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [ ] Test with all 5 user roles
+- [ ] Test with invalid credentials
+- [ ] Test session timeout
+- [ ] Test logout from all dashboards
+- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
 
 ---
 
@@ -290,24 +290,43 @@ Build the foundational data management pages for students, teachers, classes, an
 
 - [x] **Enhance** `admin/teachers.html`
   - [x] Teacher list with DataTables
-  - [ ] Filter by department, subject, status
+  - [x] Filter by department, subject, status
   - [x] Add teacher → modal form
   - [x] Edit teacher → modal form
   - [x] View teacher details → dedicated page
-  - [ ] Assign subjects to teacher
-  - [ ] View teacher schedule
+  - [x] Assign teacher to subject(s) per class section
+    - "Assign" button on teacher list row opens a modal in `admin/page/teachers.html`
+    - Modal fetches all subjects from DB → populates a subject `<select>` dropdown
+    - Modal fetches all class sections → renders a checkbox list per class
+    - On subject change, auto-ticks checkboxes for classes already assigned to that subject+teacher combo (`autoCheckClassesBySubject()`)
+    - On open, current assignments are shown in a "Current Assignments" panel (subject + class pair, with × remove button)
+    - "Apply" saves via `POST /api/class-subjects` with `class_id`, `subject_id`, `teacher_id`, `academic_year_id`, `semester_id`, `start_date`, `end_date`
+    - Academic year and semester are auto-detected from `GET /api/academic-years/current` + `GET /api/semesters/current`
+    - Remove assignment via `DELETE /api/class-subjects/{course_id}`
+    - Duplicate assignments return 400 and are handled gracefully
+  - [x] View teacher schedule
   - [x] Export teacher list
 - [x] **Create** `admin/teacher-details.html`
   - [x] Personal information tab
-  - [x] Assigned subjects tab
-  - [ ] Assigned classes tab
+  - [x] Class-subject assignments tab *(e.g. "SHS 1 Gen Art A — English", "SHS 2 Gen Science B — English & French")*
+    - List all (class section, subject) pairs assigned to this teacher
+    - Add new assignment: pick subject → pick class section(s)
+    - Remove individual class-subject assignment
   - [x] Schedule/timetable tab
-  - [ ] Performance metrics (optional)
+  - [x] Performance metrics (optional)
+    - Tab in `admin/teacher-details.html` — only visible if data exists
+    - Fetch from `GET /api/teachers/{uuid}/performance` (to be built)
+    - Display: average student scores per subject taught (bar chart via Chart.js)
+    - Display: attendance rate across all classes (percentage ring / gauge)
+    - Display: assignment submission rate — how many students submitted vs. total per assignment
+    - Display: grade distribution per subject (A1–F9 breakdown bar chart)
+    - All charts use Chart.js; data grouped by current semester (use `S.currentTerm`)
+    - Show "No performance data available yet" placeholder if no records
   - [x] Edit button
 
 **Day 5: Profile Pages**
 
-- [ ] **Enhance** `admin/myprofile.html`
+- [x] **Enhance** `admin/myprofile.html`
   - View/edit personal information
   - Change password
   - Upload profile photo
@@ -333,7 +352,7 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 1-2: Classes**
 
-- [ ] **Enhance** `admin/classes.html`
+- [ ] **Enhance** `admin/classes.html` *(implemented as `admin/page/departments.html`)*
   - Class list with filtering
   - Create class → modal form
   - Edit class
@@ -351,17 +370,17 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 2-3: Programs & Subjects**
 
-- [ ] **Enhance** `admin/programs.html`
+- [ ] **Enhance** `admin/programs.html` *(combined in `admin/page/departments.html`)*
   - Programs list (General Science, Arts, Business, etc.)
   - Create/edit programs
   - Program subjects (core and elective)
   - Active/inactive status
-- [ ] **Enhance** `admin/subjects.html`
+- [ ] **Enhance** `admin/subjects.html` *(implemented as `admin/page/courses.html`)*
   - Subject list with DataTables
   - Create/edit subjects
   - Subject codes (Ghana syllabus)
-  - Assign subjects to classes
-  - Assign teachers to subjects
+  - Assign subject to class sections (creates class-subject record per section)
+  - Assign a teacher to a subject *for a specific class section* (not globally)
   - Core vs elective marking
 
 **Day 4: Teacher Pages**
@@ -415,7 +434,7 @@ Build the foundational data management pages for students, teachers, classes, an
   - Permission assignment
   - Users with role count
   - Default permissions per role
-- [ ] **Enhance** `superadmin/users.html`
+- [x] **Enhance** `superadmin/users.html`
   - Platform-wide user list
   - Filter by institution
   - Super admin management
@@ -439,7 +458,7 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 4-5: Institution Management (Super Admin)**
 
-- [ ] **Enhance** `superadmin/institutions.html`
+- [x] **Enhance** `superadmin/institutions.html`
   - Institution list with search/filter
   - Add institution → comprehensive form
   - Edit institution details
@@ -770,16 +789,17 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 **Day 3-4: Assessment Management**
 
 - [ ] **Create** `admin/assessments.html`
-  - Assessment categories management
+  - ⚠️ Admin cannot create or give assignments — only teachers can
+  - Assessment categories management (configure, not assign)
     - Class Test (CA)
     - Mid-term Exam
     - End-of-term Exam
     - Project/Assignment
     - Classwork
-  - Weight/percentage per category
-  - Assessment schedule
-  - Upcoming assessments by class
-  - Assessment calendar
+  - Weight/percentage per category (school-wide config)
+  - Assessment schedule overview (read-only view of what teachers have created)
+  - Upcoming assessments by class (read-only)
+  - Assessment calendar (read-only)
 - [ ] **Create** `teacher/assessments.html`
   - Create assessment:
     - Select class and subject
@@ -1159,13 +1179,13 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Subscription analytics
   - System usage reports
   - Export reports
-- [ ] **Create** `superadmin/activity-logs.html`
+- [ ] **Create** `superadmin/activity-logs.html` *(implemented as `superadmin/page/logs.html`)*
   - User login activity (all institutions)
   - System activity logs
   - Security events
   - Filter by institution, user, date, action
   - Export logs
-- [ ] **Create** `superadmin/api-management.html` 🔒
+- [ ] **Create** `superadmin/api-management.html` 🔒 *(implemented as `superadmin/page/api.html`)*
   - API keys management
   - Create/revoke API keys
   - Third-party integrations

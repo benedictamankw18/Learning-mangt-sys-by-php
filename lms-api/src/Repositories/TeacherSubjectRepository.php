@@ -38,11 +38,12 @@ class TeacherSubjectRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT ts.*, t.employee_id, t.department, t.qualification,
+                SELECT ts.*, t.employee_id, p.program_name as department, t.qualification,
                        u.first_name, u.last_name, u.email, u.phone_number
                 FROM teacher_subjects ts
                 LEFT JOIN teachers t ON ts.teacher_id = t.teacher_id
                 LEFT JOIN users u ON t.user_id = u.user_id
+                LEFT JOIN programs p ON t.program_id = p.program_id
                 WHERE ts.subject_id = :subject_id
                 ORDER BY u.last_name, u.first_name
             ");

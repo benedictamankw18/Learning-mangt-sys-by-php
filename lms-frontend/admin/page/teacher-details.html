@@ -157,6 +157,48 @@
     word-break: break-word;
 }
 
+/* Performance tab */
+.td-perf-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 700px) { .td-perf-grid { grid-template-columns: 1fr; } }
+.td-perf-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+    gap: .35rem;
+}
+.td-perf-stat .val {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary, #6366f1);
+    line-height: 1;
+}
+.td-perf-stat .lbl {
+    font-size: .75rem;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.td-chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 240px;
+}
+.td-chart-wrap.ring {
+    height: 200px;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
 /* Courses / Schedule table */
 .td-data-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 .td-data-table thead th {
@@ -226,6 +268,9 @@
   <button class="td-tab-btn" data-tab="schedule">
     <i class="fas fa-calendar-alt"></i> Schedule
   </button>
+  <button class="td-tab-btn" data-tab="performance">
+    <i class="fas fa-chart-bar"></i> Performance
+  </button>
 </div>
 
 <!-- ─── Profile Tab ────────────────────────────────────────────── -->
@@ -280,6 +325,53 @@
       </tbody>
     </table>
   </div>
+</div>
+
+<!-- ─── Performance Tab ──────────────────────────────────────── -->
+<div class="td-tab-panel" id="tdTab-performance">
+
+  <div class="td-card" id="tdPerfStats" style="display:none">
+    <div class="td-card-header"><i class="fas fa-tachometer-alt"></i> Overview</div>
+    <div class="td-card-body">
+      <div class="td-perf-grid">
+        <div class="td-perf-stat"><span class="val" id="tdPerfAttRate">—</span><span class="lbl">Attendance Rate</span></div>
+        <div class="td-perf-stat"><span class="val" id="tdPerfAvgScore">—</span><span class="lbl">Avg. Assignment Score</span></div>
+        <div class="td-perf-stat"><span class="val" id="tdPerfSubRate">—</span><span class="lbl">Submission Rate</span></div>
+        <div class="td-perf-stat"><span class="val" id="tdPerfCourses">—</span><span class="lbl">Active Courses</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="td-card" id="tdPerfAvgCard" style="display:none">
+    <div class="td-card-header"><i class="fas fa-chart-bar"></i> Average Score per Course</div>
+    <div class="td-card-body">
+      <div class="td-chart-wrap"><canvas id="tdChartAvgScores"></canvas></div>
+    </div>
+  </div>
+
+  <div class="td-card" id="tdPerfGradeCard" style="display:none">
+    <div class="td-card-header"><i class="fas fa-graduation-cap"></i> Grade Distribution (WAEC A1–F9)</div>
+    <div class="td-card-body">
+      <div class="td-chart-wrap"><canvas id="tdChartGradeDist"></canvas></div>
+    </div>
+  </div>
+
+  <div class="td-card" id="tdPerfSubCard" style="display:none">
+    <div class="td-card-header"><i class="fas fa-tasks"></i> Assignment Submission Rate (last 10)</div>
+    <div class="td-card-body">
+      <div class="td-chart-wrap"><canvas id="tdChartSubmission"></canvas></div>
+    </div>
+  </div>
+
+  <div class="td-empty" id="tdPerfEmpty" style="display:none">
+    <i class="fas fa-chart-pie" style="font-size:2rem;margin-bottom:.5rem;"></i><br>
+    No performance data available yet.
+  </div>
+
+  <div class="td-empty" id="tdPerfLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading performance data…
+  </div>
+
 </div>
 
 <!-- ─── Schedule Tab ───────────────────────────────────────────── -->

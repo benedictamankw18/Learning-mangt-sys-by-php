@@ -369,7 +369,7 @@ class TeacherRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT 
+                 SELECT 
                     cs.course_id,
                     cs.institution_id,
                     cs.class_id,
@@ -387,7 +387,7 @@ class TeacherRepository
                 FROM class_subjects cs
                 INNER JOIN subjects s ON cs.subject_id = s.subject_id
                 INNER JOIN classes c ON cs.class_id = c.class_id
-                LEFT JOIN course_enrollments ce ON cs.course_id = ce.course_id AND ce.status = 'active'
+                LEFT JOIN students ce ON c.class_id = ce.class_id AND ce.status = 'active'
                 WHERE cs.teacher_id = :teacher_id
                 GROUP BY cs.course_id
                 ORDER BY cs.created_at DESC
@@ -471,5 +471,134 @@ class TeacherRepository
             error_log("Class Performance Chart Error: " . $e->getMessage());
             return ['labels' => [], 'data' => []];
         }
+    }
+
+    /**
+     * Aggregate performance data for a teacher.
+     * Returns avg_scores, attendance, grade_dist, submissions, submission_rate.
+     */
+    public function getPerformance(int $teacherId): array
+    {
+        // 0. Get teacher's institution_id for grade scale lookup
+        $institutionId = null;
+        try {
+            $stmt = $this->db->prepare("SELECT institution_id FROM teachers WHERE teacher_id = :id LIMIT 1");
+            $stmt->execute(['id' => $teacherId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            $institutionId = $row ? (int)$row['institution_id'] : null;
+        } catch (\PDOException $e) {
+            error_log("Performance institution lookup error: " . $e->getMessage());
+        }
+
+        // 1. Average scores per course (reuse existing logic)
+        $avg_scores = $this->getClassPerformanceChart($teacherId);
+
+        // 2. Attendance rate — join via course_id (attendance.course_id = class_subjects.course_id)
+        $attendance = ['rate' => 0, 'present' => 0, 'total' => 0];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    COUNT(*)                                                    AS total,
+                    SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END)      AS present
+                FROM attendance a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE cs.teacher_id = :teacher_id
+            ");
+            $stmt->execute(['teacher_id' => $teacherId]);
+            $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+            if ($row && (int)$row['total'] > 0) {
+                $attendance = [
+                    'rate'    => round(((int)$row['present'] / (int)$row['total']) * 100, 1),
+                    'present' => (int)$row['present'],
+                    'total'   => (int)$row['total'],
+                ];
+            }
+        } catch (\PDOException $e) {
+            error_log("Performance attendance error: " . $e->getMessage());
+        }
+
+        // 3. Grade distribution — dynamic from grade_scales table.
+        //    Uses institution-specific scales if they exist, falls back to global (institution_id IS NULL).
+        $grade_dist = ['labels' => [], 'data' => []];
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    gs.grade,
+                    gs.min_score,
+                    gs.max_score,
+                    COUNT(asub.submission_id) AS cnt
+                FROM grade_scales gs
+                LEFT JOIN (
+                    SELECT asub2.score, asub2.submission_id
+                    FROM assignment_submissions asub2
+                    INNER JOIN class_subjects cs ON asub2.course_id = cs.course_id
+                    WHERE cs.teacher_id = :teacher_id AND asub2.score IS NOT NULL
+                ) asub ON asub.score >= gs.min_score AND asub.score <= gs.max_score
+                WHERE
+                    gs.institution_id = :institution_id
+                    OR (
+                        gs.institution_id IS NULL
+                        AND NOT EXISTS (
+                            SELECT 1 FROM grade_scales gs2
+                            WHERE gs2.institution_id = :institution_id2
+                              AND gs2.grade = gs.grade
+                        )
+                    )
+                GROUP BY gs.grade_scale_id, gs.grade, gs.min_score, gs.max_score
+                ORDER BY gs.min_score DESC
+            ");
+            $stmt->execute([
+                'teacher_id'     => $teacherId,
+                'institution_id'  => $institutionId,
+                'institution_id2' => $institutionId,
+            ]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            if ($rows) {
+                $grade_dist['labels'] = array_column($rows, 'grade');
+                $grade_dist['data']   = array_map('intval', array_column($rows, 'cnt'));
+            }
+        } catch (\PDOException $e) {
+            error_log("Performance grade dist error: " . $e->getMessage());
+        }
+
+        // 4. Submission rate per assignment (last 10 active assignments)
+        $submissions = ['labels' => [], 'submitted' => [], 'total' => []];
+        $submission_rate = 0;
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    CONCAT(LEFT(a.title, 20), IF(LENGTH(a.title) > 20, '…', '')) AS label,
+                    COUNT(DISTINCT asub.student_id)                               AS submitted,
+                    COUNT(DISTINCT enr.student_id)                                AS total_enrolled
+                FROM assignments a
+                INNER JOIN class_subjects cs  ON a.course_id = cs.course_id
+                LEFT  JOIN assignment_submissions asub
+                                               ON asub.assignment_id = a.assignment_id
+                                              AND asub.status IN ('submitted','graded')
+                LEFT  JOIN students enr    ON enr.class_id = cs.class_id
+                                              AND enr.status = 'active'
+                WHERE cs.teacher_id = :teacher_id AND a.status = 'active'
+                GROUP BY a.assignment_id, a.title
+                ORDER BY a.created_at DESC
+                LIMIT 10
+            ");
+            $stmt->execute(['teacher_id' => $teacherId]);
+            $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            if ($rows) {
+                $submissions['labels']    = array_column($rows, 'label');
+                $submissions['submitted'] = array_map('intval', array_column($rows, 'submitted'));
+                $submissions['total']     = array_map('intval', array_column($rows, 'total_enrolled'));
+
+                $totalEnrolled  = array_sum($submissions['total']);
+                $totalSubmitted = array_sum($submissions['submitted']);
+                $submission_rate = $totalEnrolled > 0
+                    ? round(($totalSubmitted / $totalEnrolled) * 100, 1)
+                    : 0;
+            }
+        } catch (\PDOException $e) {
+            error_log("Performance submission error: " . $e->getMessage());
+        }
+
+        return compact('avg_scores', 'attendance', 'grade_dist', 'submissions', 'submission_rate');
     }
 }

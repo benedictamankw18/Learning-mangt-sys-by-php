@@ -22,6 +22,8 @@
         importRows: [],
         searchTimer: null,
         assignSubjectsTeacher: null,  // { uuid, teacher_id }
+        currentTerm: null,            // { academic_year_id, semester_id, start_date, end_date }
+        currentAssignments: [],       // class_subjects records for this teacher
     };
 
     // ─── Init ─────────────────────────────────────────────────────────────────
@@ -68,8 +70,6 @@
         ).join('');
         const filterSel = document.getElementById('teacherSubjectFilter');
         if (filterSel) filterSel.innerHTML = '<option value="">All Subjects</option>' + options;
-        const assignSel = document.getElementById('assignSubjectSelect');
-        if (assignSel) assignSel.innerHTML = '<option value="">Select a subject to assign</option>' + options;
     }
 
     async function loadPrograms() {
@@ -242,10 +242,10 @@
 
         on('teacherDeleteSelectedBtn', 'click', deleteSelected);
 
-        // Assign subjects modal
-        on('closeAssignSubjectsBtn', 'click', closeAssignSubjectsModal);
-        on('doneAssignSubjectsBtn',  'click', closeAssignSubjectsModal);
-        on('confirmAssignSubjectBtn', 'click', assignSubject);
+        // Assign to class sections modal
+        on('closeAssignSubjectsBtn',        'click', closeAssignSubjectsModal);
+        on('doneAssignSubjectsBtn',          'click', closeAssignSubjectsModal);
+        on('confirmAssignClassSectionsBtn',  'click', assignToSelectedClasses);
         on('assignSubjectsOverlay', 'click', e => { if (e.target.id === 'assignSubjectsOverlay') closeAssignSubjectsModal(); });
     }
 
@@ -487,7 +487,7 @@
         });
     }
 
-    // ─── Assign Subjects Modal ──────────────────────────────────────
+    // ─── Assign Class-Subjects Modal ──────────────────────────────────────────
     async function openAssignSubjectsModal(uuid, teacherId) {
         S.assignSubjectsTeacher = { uuid, teacher_id: Number(teacherId) };
 
@@ -496,15 +496,25 @@
         const titleEl = document.getElementById('assignSubjectsTitle');
         if (titleEl) titleEl.textContent = `Assign Subjects — ${name}`;
 
-        const msgEl = document.getElementById('assignSubjectMsg');
+        const msgEl = document.getElementById('assignClassSectionsMsg');
         if (msgEl) msgEl.textContent = '';
-        const sel = document.getElementById('assignSubjectSelect');
-        if (sel) sel.value = '';
 
         const overlay = document.getElementById('assignSubjectsOverlay');
         if (overlay) overlay.classList.add('open');
 
-        await reloadAssignedSubjects();
+        populateAssignSubjectSelect();
+        await loadAndRenderAssignPanel();
+    }
+
+    // Populate the subject <select> from already-loaded S.subjects
+    function populateAssignSubjectSelect() {
+        const sel = document.getElementById('assignSubjectSelect');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">— Select a subject —</option>' +
+            S.subjects.map(s =>
+                `<option value="${s.subject_id}">${escHtml(s.subject_name)}${s.subject_code ? ` (${escHtml(s.subject_code)})` : ''}</option>`
+            ).join('');
+        sel.onchange = autoCheckClassesBySubject;
     }
 
     function closeAssignSubjectsModal() {
@@ -513,81 +523,202 @@
         S.assignSubjectsTeacher = null;
     }
 
-    async function reloadAssignedSubjects() {
+    // Parallel fetch: existing class-subject assignments + all classes + current term
+    async function loadAndRenderAssignPanel() {
         if (!S.assignSubjectsTeacher) return;
-        const listEl = document.getElementById('assignedSubjectsList');
-        if (listEl) listEl.innerHTML = '<p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:1rem">Loading…</p>';
+        const listEl  = document.getElementById('assignedClassSubjectsList');
+        const checkEl = document.getElementById('assignClassSectionsList');
+        const msgEl   = document.getElementById('assignClassSectionsMsg');
+        if (listEl)  listEl.innerHTML  = '<p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:.75rem"><i class="fas fa-spinner fa-spin"></i> Loading…</p>';
+        if (checkEl) checkEl.innerHTML = '<p style="color:#94a3b8;font-size:.8rem;text-align:center;padding:.75rem"><i class="fas fa-spinner fa-spin"></i> Loading…</p>';
+        if (msgEl)   msgEl.textContent = '';
         try {
-            const res = await API.get(API_ENDPOINTS.TEACHER_SUBJECTS(S.assignSubjectsTeacher.uuid));
-            renderAssignedSubjects(res?.data || []);
+            const [csRes, classRes, ayRes, semRes] = await Promise.all([
+                API.get(API_ENDPOINTS.CLASS_SUBJECTS, { teacher_id: S.assignSubjectsTeacher.teacher_id, limit: 500 }),
+                API.get(API_ENDPOINTS.CLASSES, { limit: 200 }),
+                API.get(API_ENDPOINTS.ACADEMIC_YEAR_CURRENT).catch(() => null),
+                API.get(API_ENDPOINTS.SEMESTER_CURRENT).catch(() => null),
+            ]);
+            const assignments = csRes?.data?.data   || csRes?.data   || [];
+            const classes     = classRes?.data?.data || classRes?.data || [];
+
+            // Store current academic year + semester for use when POSTing
+            const ay  = ayRes?.data?.data  || ayRes?.data  || null;
+            const sem = semRes?.data?.data || semRes?.data || null;
+            S.currentTerm = (ay || sem) ? {
+                academic_year_id: ay?.academic_year_id  ?? null,
+                semester_id:      sem?.semester_id      ?? null,
+                start_date:       sem?.start_date       ?? null,
+                end_date:         sem?.end_date         ?? null,
+            } : null;
+
+            // Show term info badge in modal
+            const termEl = document.getElementById('assignTermInfo');
+            if (termEl) {
+                if (S.currentTerm?.academic_year_id) {
+                    termEl.textContent = [
+                        ay?.year_name   ? `Year: ${ay.year_name}`          : '',
+                        sem?.semester_name ? `Sem: ${sem.semester_name}` : '',
+                    ].filter(Boolean).join('  •  ');
+                    termEl.style.display = '';
+                } else {
+                    termEl.textContent = 'No active academic year/semester found — record will be saved without term.';
+                    termEl.style.display = '';
+                    termEl.style.color = '#d97706';
+                }
+            }
+
+            S.currentAssignments = Array.isArray(assignments) ? assignments : [];
+            renderAssignedClassSubjects(S.currentAssignments);
+            renderClassCheckboxes(Array.isArray(classes) ? classes : []);
+            autoCheckClassesBySubject();
         } catch (_) {
-            if (listEl) listEl.innerHTML = '<p style="color:#ef4444;font-size:.875rem;text-align:center;padding:1rem">Failed to load subjects.</p>';
+            if (listEl)  listEl.innerHTML  = '<p style="color:#ef4444;font-size:.875rem;text-align:center;padding:.75rem">Failed to load assignments.</p>';
+            if (checkEl) checkEl.innerHTML = '<p style="color:#ef4444;font-size:.8rem;text-align:center;padding:.75rem">Failed to load classes.</p>';
         }
     }
 
-    function renderAssignedSubjects(subjects) {
-        const el = document.getElementById('assignedSubjectsList');
+    // Auto-check class checkboxes for classes already assigned the currently-selected subject
+    function autoCheckClassesBySubject() {
+        const sel = document.getElementById('assignSubjectSelect');
+        const subjectId = sel ? Number(sel.value) : 0;
+        const assignedClassIds = new Set(
+            S.currentAssignments
+                .filter(a => Number(a.subject_id) === subjectId)
+                .map(a => String(a.class_id))
+        );
+        document.querySelectorAll('.assign-cs-check').forEach(cb => {
+            cb.checked = assignedClassIds.has(cb.value);
+            const row = cb.closest('.assign-class-section-row');
+            if (row) row.classList.toggle('is-me', cb.checked);
+        });
+    }
+
+    // Build a human-readable class label
+    function buildClassName(cs) {
+        return cs.class_name || cs.class_code || `Class ${cs.class_id}`;
+    }
+
+    // Top panel — list of class_subjects records already assigned to this teacher
+    function renderAssignedClassSubjects(records) {
+        const el = document.getElementById('assignedClassSubjectsList');
         if (!el) return;
-        if (!subjects.length) {
-            el.innerHTML = '<p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:.75rem 1rem">No subjects assigned yet.</p>';
+        if (!records.length) {
+            el.innerHTML = '<p style="color:#94a3b8;font-size:.875rem;text-align:center;padding:.75rem">No class-subjects assigned yet.</p>';
             return;
         }
-        el.innerHTML = subjects.map(s => `
+        el.innerHTML = records.map(r => `
             <div class="assign-subjects-list-item">
                 <div>
-                    <span class="assign-subjects-subject-name">${escHtml(s.subject_name)}</span>
-                    ${s.subject_code ? `<span class="assign-subjects-subject-code">${escHtml(s.subject_code)}</span>` : ''}
-                    ${s.is_core ? '<span class="assign-subjects-core-badge">Core</span>' : ''}
+                    <span class="assign-subjects-subject-name">${escHtml(r.subject_name || '')}</span>
+                    <span class="assign-subjects-subject-code">${escHtml(r.class_name || r.class_code || '')}</span>
+                    ${r.is_core ? '<span class="assign-subjects-core-badge">Core</span>' : ''}
                 </div>
-                <button class="btn-icon-sm danger" title="Remove" onclick="removeTeacherSubject(${s.teacher_subject_id})" style="flex-shrink:0">
+                <button class="btn-icon-sm danger" title="Remove assignment"
+                    data-course-id="${escHtml(String(r.course_id))}" style="flex-shrink:0">
                     <i class="fas fa-times"></i>
                 </button>
             </div>`).join('');
+        el.querySelectorAll('[data-course-id]').forEach(btn => {
+            btn.onclick = () => removeClassSubjectAssignment(btn.dataset.courseId);
+        });
     }
 
-    async function assignSubject() {
-        const selectEl = document.getElementById('assignSubjectSelect');
-        const msgEl    = document.getElementById('assignSubjectMsg');
-        if (!selectEl || !S.assignSubjectsTeacher) return;
-
-        const subjectId = selectEl.value;
-        if (!subjectId) {
-            if (msgEl) { msgEl.textContent = 'Please select a subject.'; msgEl.style.color = '#ef4444'; }
+    // Bottom panel — plain checkbox list of all classes
+    function renderClassCheckboxes(classes) {
+        const el = document.getElementById('assignClassSectionsList');
+        if (!el) return;
+        if (!classes.length) {
+            el.innerHTML = '<p style="color:#94a3b8;font-size:.8rem;padding:.5rem 0">No classes found.</p>';
             return;
         }
-        const btn = document.getElementById('confirmAssignSubjectBtn');
-        if (btn) btn.disabled = true;
-        try {
-            const res = await API.post(API_ENDPOINTS.TEACHER_SUBJECT, {
-                teacher_id: S.assignSubjectsTeacher.uuid,
-                subject_id: subjectId,
-            });
-            if (res && res.success) {
-                if (msgEl) { msgEl.textContent = 'Subject assigned successfully.'; msgEl.style.color = '#16a34a'; }
-                selectEl.value = '';
-                await reloadAssignedSubjects();
-            } else {
-                const msg = res?.errors?.message || res?.message || 'Failed to assign subject.';
-                if (msgEl) { msgEl.textContent = msg; msgEl.style.color = '#ef4444'; }
-            }
-        } catch (err) {
-            const msg = err?.body?.errors?.message || err?.body?.message || 'Failed to assign subject.';
-            if (msgEl) { msgEl.textContent = msg; msgEl.style.color = '#ef4444'; }
-        } finally {
-            if (btn) btn.disabled = false;
-        }
+        el.innerHTML = classes.map(c => `
+            <label class="assign-class-section-row">
+                <input type="checkbox" class="assign-cs-check" value="${c.class_id}">
+                <div class="assign-cs-info">
+                    <span class="assign-cs-class">${escHtml(buildClassName(c))}</span>
+                    ${c.student_count != null ? `<span style="color:#94a3b8;font-size:.75rem">${c.student_count} students</span>` : ''}
+                </div>
+            </label>`).join('');
     }
 
-    window.removeTeacherSubject = async (teacherSubjectId) => {
+    async function assignToSelectedClasses() {
+        if (!S.assignSubjectsTeacher) return;
+        const msgEl      = document.getElementById('assignClassSectionsMsg');
+        const confirmBtn = document.getElementById('confirmAssignClassSectionsBtn');
+        const subjectSel = document.getElementById('assignSubjectSelect');
+        if (msgEl) msgEl.textContent = '';
+
+        const subjectId = subjectSel ? Number(subjectSel.value) : 0;
+        if (!subjectId) {
+            if (msgEl) { msgEl.textContent = 'Please select a subject first.'; msgEl.style.color = '#ef4444'; }
+            return;
+        }
+        const checked = [...document.querySelectorAll('.assign-cs-check:checked')];
+        if (!checked.length) {
+            if (msgEl) { msgEl.textContent = 'Please select at least one class.'; msgEl.style.color = '#ef4444'; }
+            return;
+        }
+
+        if (confirmBtn) confirmBtn.disabled = true;
+        let assigned = 0, skipped = 0, errors = 0;
+
+        for (const cb of checked) {
+            try {
+                const payload = {
+                    class_id:   Number(cb.value),
+                    subject_id: subjectId,
+                    teacher_id: S.assignSubjectsTeacher.teacher_id,
+                };
+                if (S.currentTerm) {
+                    if (S.currentTerm.academic_year_id) payload.academic_year_id = S.currentTerm.academic_year_id;
+                    if (S.currentTerm.semester_id)      payload.semester_id      = S.currentTerm.semester_id;
+                    if (S.currentTerm.start_date)       payload.start_date       = S.currentTerm.start_date;
+                    if (S.currentTerm.end_date)         payload.end_date         = S.currentTerm.end_date;
+                }
+                const res = await API.post(API_ENDPOINTS.CLASS_SUBJECTS, payload);
+                if (res?.success !== false) assigned++; else errors++;
+            } catch (err) {
+                // HTTP 400 = record already exists
+                if (err?.status === 400 || err?.response?.status === 400) skipped++;
+                else errors++;
+            }
+        }
+
+        if (confirmBtn) confirmBtn.disabled = false;
+        document.querySelectorAll('.assign-cs-check').forEach(cb => { cb.checked = false; });
+
+        const parts = [];
+        if (assigned) parts.push(`${assigned} assigned`);
+        if (skipped)  parts.push(`${skipped} already existed`);
+        if (errors)   parts.push(`${errors} failed`);
+        if (msgEl) {
+            msgEl.textContent = parts.join(', ') || 'No changes made.';
+            msgEl.style.color = (errors && !assigned && !skipped) ? '#ef4444' : '#16a34a';
+        }
+
+        // Refresh top panel only
         try {
-            const res = await API.delete(API_ENDPOINTS.TEACHER_SUBJECT_BY_ID(teacherSubjectId));
-            if (res && res.success) {
-                await reloadAssignedSubjects();
+            const csRes = await API.get(API_ENDPOINTS.CLASS_SUBJECTS, { teacher_id: S.assignSubjectsTeacher.teacher_id, limit: 500 });
+            const assignments = csRes?.data?.data || csRes?.data || [];
+            renderAssignedClassSubjects(Array.isArray(assignments) ? assignments : []);
+        } catch (_) {}
+    }
+
+    window.removeClassSubjectAssignment = async (courseId) => {
+        try {
+            const res = await API.delete(API_ENDPOINTS.CLASS_SUBJECT_BY_ID(courseId));
+            if (res?.success !== false) {
+                if (S.assignSubjectsTeacher) {
+                    const csRes = await API.get(API_ENDPOINTS.CLASS_SUBJECTS, { teacher_id: S.assignSubjectsTeacher.teacher_id, limit: 500 });
+                    const assignments = csRes?.data?.data || csRes?.data || [];
+                    renderAssignedClassSubjects(Array.isArray(assignments) ? assignments : []);
+                }
             } else {
-                showToast(res?.message || 'Failed to remove subject.', 'error');
+                showToast(res?.message || 'Failed to remove assignment.', 'error');
             }
         } catch (_) {
-            showToast('Failed to remove subject.', 'error');
+            showToast('Failed to remove assignment.', 'error');
         }
     };
 

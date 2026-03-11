@@ -43,6 +43,7 @@ return [
     'DELETE /teachers/{uuid}' => ['controller' => 'TeacherController', 'method' => 'delete', 'auth' => true],
     'GET /teachers/{uuid}/courses' => ['controller' => 'TeacherController', 'method' => 'getCourses', 'auth' => true],
     'GET /teachers/{uuid}/schedule' => ['controller' => 'TeacherController', 'method' => 'getSchedule', 'auth' => true],
+    'GET /teachers/{uuid}/performance' => ['controller' => 'TeacherController', 'method' => 'getPerformance', 'auth' => true],
 
     // User Management routes
     'GET /users' => ['controller' => 'UserController', 'method' => 'index', 'auth' => true],

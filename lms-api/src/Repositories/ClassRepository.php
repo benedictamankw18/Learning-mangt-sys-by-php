@@ -31,6 +31,7 @@ class ClassRepository
         $query = "
             SELECT 
                 c.class_id,
+                c.uuid,
                 c.institution_id,
                 c.class_code,
                 c.class_name,

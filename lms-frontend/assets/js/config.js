@@ -33,6 +33,7 @@ const API_ENDPOINTS = {
     TEACHER_GENERATE_ID: '/api/teachers/generate-id',
     TEACHER_COURSES: (uuid) => `/api/teachers/${uuid}/courses`,
     TEACHER_SCHEDULE: (uuid) => `/api/teachers/${uuid}/schedule`,
+    TEACHER_PERFORMANCE: (uuid) => `/api/teachers/${uuid}/performance`,
     TEACHER_SUBJECTS: (id) => `/api/teachers/${id}/subjects`,
 
     // Subjects
@@ -43,9 +44,18 @@ const API_ENDPOINTS = {
     TEACHER_SUBJECT: '/api/teacher-subjects',
     TEACHER_SUBJECT_BY_ID: (id) => `/api/teacher-subjects/${id}`,
 
+    // Class-Subjects (course records — each links a class section + subject + assigned teacher)
+    CLASS_SUBJECTS: '/api/class-subjects',
+    CLASS_SUBJECT_BY_ID: (id) => `/api/class-subjects/${id}`,
+
+    // Academic Year & Semester
+    ACADEMIC_YEAR_CURRENT: '/api/academic-years/current',
+    SEMESTER_CURRENT: '/api/semesters/current',
+
     // Classes
     CLASSES: '/api/classes',
     CLASS_BY_UUID: (uuid) => `/api/classes/${uuid}`,
+    CLASS_ASSIGN_TEACHER: (uuid) => `/api/classes/${uuid}/assign-teacher`,
 
     // Programs
     PROGRAMS: '/api/programs',
@@ -56,6 +66,20 @@ const API_ENDPOINTS = {
     USERS: '/api/users',
     USER_BY_ID: (id) => `/api/users/${id}`,
     USER_PROFILE: '/api/users/profile',
+    USER_ACTIVITY: (uuid) => `/api/users/${uuid}/activity`,
+
+    // Auth actions
+    AUTH_CHANGE_PASSWORD: '/api/auth/change-password',
+    FILE_UPLOAD: '/api/upload',
+
+    // Admin Activity (institution-level audit trail)
+    ADMIN_ACTIVITY: '/api/admin-activity',
+    ADMIN_ACTIVITY_RECENT: '/api/admin-activity/recent',
+    ADMIN_ACTIVITY_BY_TYPE: (type) => `/api/admin-activity/type/${type}`,
+
+    // Dashboard
+    DASHBOARD_ADMIN: '/api/dashboard/admin',
+
     // Roles & Institutions
     ROLES: '/api/roles',
     INSTITUTIONS: '/api/institutions',

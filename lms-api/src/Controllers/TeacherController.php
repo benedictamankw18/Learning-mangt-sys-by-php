@@ -334,4 +334,39 @@ class TeacherController
             Response::serverError('Failed to deactivate teacher');
         }
     }
+
+    /**
+     * GET /api/teachers/{uuid}/performance
+     * Returns performance metrics for a teacher (admin or own).
+     */
+    public function getPerformance(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+
+        $teacher = $this->teacherRepo->findByUuid($sanitizedUuid);
+        if (!$teacher) {
+            Response::notFound('Teacher not found');
+            return;
+        }
+
+        $teacherId = $teacher['teacher_id'];
+
+        // Teachers can only view their own performance unless they're admin
+        if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
+            $currentTeacher = $this->teacherRepo->findByUserId($user['user_id']);
+            if (!$currentTeacher || $currentTeacher['teacher_id'] != $teacherId) {
+                Response::forbidden('You can only view your own performance');
+                return;
+            }
+        }
+
+        $data = $this->teacherRepo->getPerformance($teacherId);
+        Response::success($data);
+    }
 }

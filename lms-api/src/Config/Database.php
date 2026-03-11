@@ -30,9 +30,29 @@ class Database
             ];
 
             $this->connection = new PDO($dsn, $user, $pass, $options);
+            $this->runMigrations();
         } catch (PDOException $e) {
             error_log("Database Connection Error: " . $e->getMessage());
             throw new Exception("Database connection failed");
+        }
+    }
+
+    /**
+     * Safe, idempotent schema additions (run once per connection, silently ignored if already applied).
+     */
+    private function runMigrations(): void
+    {
+        $migrations = [
+            // Add profile photo URL storage to users table
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(500) DEFAULT NULL",
+        ];
+        foreach ($migrations as $sql) {
+            try {
+                $this->connection->exec($sql);
+            } catch (PDOException $e) {
+                // Column already exists or DB version doesn't support IF NOT EXISTS — safe to ignore
+                error_log("Migration skipped: " . $e->getMessage());
+            }
         }
     }
 

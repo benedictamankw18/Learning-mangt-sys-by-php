@@ -422,10 +422,10 @@ class StudentRepository
         try {
             $stmt = $this->db->prepare("
                 SELECT ce.*, 
-                       c.course_name, c.course_code,
+                       c.subject_name, c.subject_code,
                        u.first_name, u.last_name, s.student_id_number
                 FROM course_enrollments ce
-                JOIN courses c ON ce.course_id = c.course_id
+                JOIN subjects c ON ce.course_id = c.subject_id
                 JOIN students s ON ce.student_id = s.student_id
                 JOIN users u ON s.user_id = u.user_id
                 WHERE ce.enrollment_id = :enrollment_id

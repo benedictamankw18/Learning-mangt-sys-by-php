@@ -92,6 +92,7 @@
                 setupEditButton(currentTeacher);
                 loadCourses(uuid);
                 loadSchedule(uuid);
+                loadPerformance(uuid);
             } else {
                 showError(res?.message || 'Teacher not found.');
             }
@@ -207,6 +208,107 @@
                 </tr>`).join('');
         } catch (_) {
             tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Could not load schedule.</td></tr>`;
+        }
+    }
+
+    // ─── Load Performance ─────────────────────────────────────────────────────
+    let _perfCharts = {};
+
+    async function loadPerformance(uuid) {
+        const loading = document.getElementById('tdPerfLoading');
+        const empty   = document.getElementById('tdPerfEmpty');
+        const stats   = document.getElementById('tdPerfStats');
+        const avgCard = document.getElementById('tdPerfAvgCard');
+        const gradeCard = document.getElementById('tdPerfGradeCard');
+        const subCard = document.getElementById('tdPerfSubCard');
+
+        try {
+            const res = await API.get(API_ENDPOINTS.TEACHER_PERFORMANCE(uuid));
+            if (loading) loading.style.display = 'none';
+
+            if (!res || !res.success) { if (empty) empty.style.display = 'block'; return; }
+
+            const d = res.data;
+            const hasAvg   = d.avg_scores  && d.avg_scores.labels  && d.avg_scores.labels.length  > 0;
+            const hasGrade = d.grade_dist  && d.grade_dist.data    && d.grade_dist.data.some(v => v > 0);
+            const hasSub   = d.submissions && d.submissions.labels && d.submissions.labels.length > 0;
+
+            if (!hasAvg && !hasGrade && !hasSub) { if (empty) empty.style.display = 'block'; return; }
+
+            // Overview stats
+            if (stats) {
+                stats.style.display = 'block';
+                const txt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+                txt('tdPerfAttRate',  d.attendance ? `${d.attendance.rate}%` : '—');
+                txt('tdPerfAvgScore', hasAvg ? `${(d.avg_scores.data.reduce((a,b)=>a+b,0)/d.avg_scores.data.length).toFixed(1)}%` : '—');
+                txt('tdPerfSubRate',  d.submission_rate !== undefined ? `${d.submission_rate}%` : '—');
+                txt('tdPerfCourses',  d.avg_scores ? d.avg_scores.labels.length : '—');
+            }
+
+            // Destroy stale charts before re-rendering
+            Object.values(_perfCharts).forEach(c => { try { c.destroy(); } catch(_){} });
+            _perfCharts = {};
+
+            // Chart: Average scores per course
+            if (hasAvg && avgCard) {
+                avgCard.style.display = 'block';
+                const ctx = document.getElementById('tdChartAvgScores');
+                if (ctx) _perfCharts.avg = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: d.avg_scores.labels,
+                        datasets: [{ label: 'Avg Score (%)', data: d.avg_scores.data,
+                            backgroundColor: 'rgba(99,102,241,.7)', borderColor: 'rgba(99,102,241,1)',
+                            borderWidth: 1, borderRadius: 4 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Chart: Grade distribution
+            if (hasGrade && gradeCard) {
+                gradeCard.style.display = 'block';
+                const ctx = document.getElementById('tdChartGradeDist');
+                const colors = ['#16a34a','#2563eb','#3b82f6','#7c3aed','#a855f7','#f59e0b','#f97316','#ef4444','#dc2626'];
+                if (ctx) _perfCharts.grade = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: d.grade_dist.labels, datasets: [{ label: 'Students', data: d.grade_dist.data, backgroundColor: colors, borderRadius: 4 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Chart: Submission rate
+            if (hasSub && subCard) {
+                subCard.style.display = 'block';
+                const ctx = document.getElementById('tdChartSubmission');
+                if (ctx) _perfCharts.sub = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: d.submissions.labels,
+                        datasets: [
+                            { label: 'Submitted', data: d.submissions.submitted, backgroundColor: 'rgba(99,102,241,.7)', borderRadius: 4 },
+                            { label: 'Total Enrolled', data: d.submissions.total, backgroundColor: 'rgba(203,213,225,.7)', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('Load performance error:', err);
+            if (loading) loading.style.display = 'none';
+            if (empty) empty.style.display = 'block';
         }
     }
 
