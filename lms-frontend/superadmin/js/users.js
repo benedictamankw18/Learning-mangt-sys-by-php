@@ -544,7 +544,9 @@
         showModal('Confirm Bulk Action', `<p>${confirmMsg}</p>`, async () => {
             try {
                 await SuperAdminUserAPI.bulk({ action, ids });
-                showToast('Bulk action applied', 'success'); loadUsers();
+                showToast('Bulk action applied', 'success');
+                SuperadminActivityAPI.log({ activity_type: 'user_bulk_action', description: `Bulk '${action}' applied to ${ids.length} user(s)`, entity_type: 'user', severity: 'warning' }).catch(() => {});
+                loadUsers();
                 // unselect all checkbox
                 const unselectAll = document.getElementById('selectAllUsers');
                 unselectAll.checked = false;

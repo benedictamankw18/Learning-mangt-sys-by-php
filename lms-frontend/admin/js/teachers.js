@@ -459,6 +459,7 @@
             const res = await API.put(API_ENDPOINTS.TEACHER_BY_UUID(uuid), payload);
             if (res && res.success) {
                 showToast(`Teacher ${isCurrentlyActive ? 'deactivated' : 'activated'} successfully.`, 'success');
+                AdminActivityAPI.log({ activity_type: 'teacher_status_changed', description: `Teacher ${isCurrentlyActive ? 'deactivated' : 'activated'}`, entity_type: 'teacher', severity: 'info' }).catch(() => {});
                 loadTeachers();
             } else {
                 showToast(res?.message || 'Action failed.', 'error');
@@ -483,6 +484,7 @@
             S.selectedUuids.clear();
             updateBulkActions();
             showToast(`${done} teacher(s) deactivated.`, 'success');
+            AdminActivityAPI.log({ activity_type: 'teacher_deleted', description: `Bulk removed ${done} teacher(s)`, entity_type: 'teacher', severity: 'warning' }).catch(() => {});
             loadTeachers();
         });
     }
@@ -843,6 +845,12 @@
             if (res && res.success) {
                 closeTeacherModal();
                 showToast(S.editingUuid ? 'Teacher updated successfully.' : 'Teacher added successfully.', 'success');
+                AdminActivityAPI.log({
+                    activity_type: S.editingUuid ? 'teacher_updated' : 'teacher_created',
+                    description: (S.editingUuid ? 'Updated' : 'Added') + ` teacher: ${payload.first_name || ''} ${payload.last_name || ''}`.trim(),
+                    entity_type: 'teacher',
+                    severity: 'info'
+                }).catch(() => {});
                 loadTeachers();
             } else if (res && res.status === 422) {
                 applyValidationErrors(res.errors || res.body?.errors || {});

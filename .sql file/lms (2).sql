@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 10, 2026 at 11:08 PM
+-- Generation Time: Mar 11, 2026 at 06:55 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -29,8 +29,6 @@ USE `lms`;
 --
 -- Table structure for table `academic_years`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `academic_years`;
 CREATE TABLE IF NOT EXISTS `academic_years` (
@@ -55,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `academic_years` (
 
 INSERT INTO `academic_years` (`academic_year_id`, `institution_id`, `year_name`, `start_date`, `end_date`, `is_current`, `created_at`, `updated_at`) VALUES
 (17, 1, '2024-2025', '2024-09-01', '2025-06-30', 1, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(18, 1, '2023-2024', '2023-09-01', '2024-06-30', 0, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(18, 1, '2023-2024', '2023-09-01', '2024-06-30', 0, '2026-03-03 21:21:31', '2026-03-11 01:33:30'),
 (19, 1, '2022-2023', '2022-09-01', '2023-06-30', 0, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (20, 1, '2021-2022', '2021-09-01', '2022-06-30', 0, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (21, 1, '2020-2021', '2020-09-01', '2021-06-30', 0, '2026-03-03 21:21:31', '2026-03-03 21:21:31');
@@ -64,8 +62,6 @@ INSERT INTO `academic_years` (`academic_year_id`, `institution_id`, `year_name`,
 
 --
 -- Table structure for table `admins`
---
--- Creation: Mar 10, 2026 at 10:07 PM
 --
 
 DROP TABLE IF EXISTS `admins`;
@@ -111,8 +107,6 @@ INSERT INTO `admins` (`admin_id`, `uuid`, `institution_id`, `user_id`, `employee
 --
 -- Table structure for table `admin_activity`
 --
--- Creation: Mar 08, 2026 at 07:49 AM
---
 
 DROP TABLE IF EXISTS `admin_activity`;
 CREATE TABLE IF NOT EXISTS `admin_activity` (
@@ -144,14 +138,24 @@ CREATE TABLE IF NOT EXISTS `admin_activity` (
 --
 
 INSERT INTO `admin_activity` (`activity_id`, `uuid`, `institution_id`, `performed_by`, `activity_type`, `description`, `entity_type`, `entity_id`, `meta`, `ip_address`, `user_agent`, `severity`, `created_at`) VALUES
-(1, 'd42afd6e-0332-4640-9c3a-c6dbe77acfc6', 1, 147, 'student_enrolled', 'Enrolled student Kwame Osei into Form 1A', 'student', 1, 'Kwame Osei', '::1', 'PostmanRuntime/7.52.0', 'info', '2026-03-08 08:30:33');
+(1, 'd42afd6e-0332-4640-9c3a-c6dbe77acfc6', 1, 147, 'student_enrolled', 'Enrolled student Kwame Osei into Form 1A', 'users', 1, 'Kwame Osei', '::1', 'PostmanRuntime/7.52.0', 'info', '2026-03-08 08:30:33');
+
+--
+-- Triggers `admin_activity`
+--
+DROP TRIGGER IF EXISTS `trg_admin_activity_purge`;
+DELIMITER $$
+CREATE TRIGGER `trg_admin_activity_purge` AFTER INSERT ON `admin_activity` FOR EACH ROW BEGIN
+  DELETE FROM `admin_activity`
+  WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `announcements`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `announcements`;
@@ -197,8 +201,6 @@ INSERT INTO `announcements` (`announcement_id`, `uuid`, `title`, `content`, `aut
 --
 -- Table structure for table `assessments`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `assessments`;
 CREATE TABLE IF NOT EXISTS `assessments` (
@@ -228,8 +230,6 @@ CREATE TABLE IF NOT EXISTS `assessments` (
 --
 -- Table structure for table `assessment_categories`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `assessment_categories`;
 CREATE TABLE IF NOT EXISTS `assessment_categories` (
@@ -258,8 +258,6 @@ INSERT INTO `assessment_categories` (`category_id`, `category_name`, `weight_per
 
 --
 -- Table structure for table `assessment_submissions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `assessment_submissions`;
@@ -315,8 +313,6 @@ DELIMITER ;
 --
 -- Table structure for table `assignments`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `assignments`;
 CREATE TABLE IF NOT EXISTS `assignments` (
@@ -346,28 +342,10 @@ CREATE TABLE IF NOT EXISTS `assignments` (
   KEY `idx_assignments_uuid` (`uuid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `assignments`
---
-
-INSERT INTO `assignments` (`assignment_id`, `uuid`, `course_id`, `section_id`, `title`, `description`, `file_path`, `max_score`, `passing_score`, `rubric`, `submission_type`, `due_date`, `status`, `created_at`, `updated_at`) VALUES
-(32, 'f5b9f76d-1746-11f1-8ccc-10653022c2a0', 48, NULL, 'Essay Writing - My First Day', 'Write a 500-word essay about your first day at school', NULL, 20.00, 60.00, NULL, 'both', '2024-09-15 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(33, 'f5bd81f0-1746-11f1-8ccc-10653022c2a0', 48, NULL, 'Grammar Exercise Set 1', 'Complete exercises on page 25-30', NULL, 15.00, 60.00, NULL, 'both', '2024-09-22 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(34, 'f5bd8749-1746-11f1-8ccc-10653022c2a0', 54, NULL, 'Cell Structure Diagram', 'Draw and label a plant cell', NULL, 25.00, 60.00, NULL, 'both', '2027-09-01 13:59:59', 'active', '2026-03-03 21:21:31', '2026-03-09 06:04:12'),
-(35, 'f5bd8b3e-1746-11f1-8ccc-10653022c2a0', 54, NULL, 'Photosynthesis Report', 'Write a detailed report on photosynthesis', NULL, 30.00, 60.00, NULL, 'both', '2024-10-01 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(36, 'f5bd8e99-1746-11f1-8ccc-10653022c2a0', 55, NULL, 'Newton Laws  Problems', 'Solve problems 1-10 from textbook', NULL, 20.00, 60.00, NULL, 'both', '2024-09-20 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(37, 'f5bd91b3-1746-11f1-8ccc-10653022c2a0', 56, NULL, 'Math Problem Set 1', 'Algebra questions from chapter 2', NULL, 20.00, 60.00, NULL, 'both', '2024-09-25 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(38, 'f5bd944f-1746-11f1-8ccc-10653022c2a0', 57, NULL, 'Chemistry Lab Report', 'Write lab report on acid-base titration', NULL, 35.00, 60.00, NULL, 'both', '2024-09-30 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(39, 'f5bd96dd-1746-11f1-8ccc-10653022c2a0', 58, NULL, 'Historical Essay', 'Essay on Ghana Independence', NULL, 25.00, 60.00, NULL, 'both', '2024-10-05 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(40, 'f5bd99bd-1746-11f1-8ccc-10653022c2a0', 59, NULL, 'Literature Analysis', 'Analyze a Shakespearean sonnet', NULL, 30.00, 60.00, NULL, 'both', '2024-10-10 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(41, 'f5bd9c43-1746-11f1-8ccc-10653022c2a0', 60, NULL, 'Math Quiz Preparation', 'Review chapters 1-3 for quiz', NULL, 10.00, 60.00, NULL, 'both', '2024-09-28 23:59:59', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `assignment_submissions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `assignment_submissions`;
@@ -399,8 +377,6 @@ CREATE TABLE IF NOT EXISTS `assignment_submissions` (
 --
 -- Table structure for table `attendance`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `attendance`;
 CREATE TABLE IF NOT EXISTS `attendance` (
@@ -420,118 +396,10 @@ CREATE TABLE IF NOT EXISTS `attendance` (
   KEY `idx_attendance_date_range` (`student_id`,`attendance_date`)
 ) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `attendance`
---
-
-INSERT INTO `attendance` (`attendance_id`, `student_id`, `course_id`, `attendance_date`, `status`, `remarks`, `created_at`, `updated_at`) VALUES
-(1, 64, 48, '2026-02-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-08 14:22:10'),
-(2, 66, 48, '2025-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-08 14:23:39'),
-(3, 70, 48, '2025-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-08 14:23:28'),
-(4, 68, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(5, 72, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(6, 63, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(7, 65, 48, '2024-09-01', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(8, 71, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(9, 67, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(10, 73, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(11, 69, 48, '2024-09-01', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(12, 64, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(13, 66, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(14, 70, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(15, 68, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(16, 72, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(17, 63, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(18, 65, 48, '2024-09-02', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(19, 71, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(20, 67, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(21, 73, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(22, 69, 48, '2024-09-02', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(23, 64, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(24, 66, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(25, 70, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(26, 68, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(27, 72, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(28, 63, 48, '2024-09-03', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(29, 65, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(30, 71, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(31, 67, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(32, 73, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(33, 69, 48, '2024-09-03', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(34, 64, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(35, 66, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(36, 70, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(37, 68, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(38, 72, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(39, 63, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(40, 65, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(41, 71, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(42, 67, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(43, 73, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(44, 69, 48, '2024-09-04', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(45, 64, 48, '2024-09-05', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(46, 66, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(47, 70, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(48, 68, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(49, 72, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(50, 63, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(51, 65, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(52, 71, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(53, 67, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(54, 73, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(55, 69, 48, '2024-09-05', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(56, 64, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(57, 66, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(58, 70, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(59, 68, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(60, 72, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(61, 63, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(62, 65, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(63, 71, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(64, 67, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(65, 73, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(66, 69, 48, '2024-09-08', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(67, 64, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(68, 66, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(69, 70, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(70, 68, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(71, 72, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(72, 63, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(73, 65, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(74, 71, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(75, 67, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(76, 73, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(77, 69, 48, '2024-09-09', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(78, 64, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(79, 66, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(80, 70, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(81, 68, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(82, 72, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(83, 63, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(84, 65, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(85, 71, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(86, 67, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(87, 73, 48, '2024-09-10', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(88, 69, 48, '2024-09-10', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(89, 64, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(90, 66, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(91, 70, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(92, 68, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(93, 72, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(94, 63, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(95, 65, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(96, 71, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(97, 67, 48, '2024-09-11', 'late', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(98, 73, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(99, 69, 48, '2024-09-11', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32'),
-(100, 64, 48, '2024-09-12', 'present', NULL, '2026-03-03 21:21:32', '2026-03-03 21:21:32');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `classes`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `classes`;
@@ -573,23 +441,21 @@ CREATE TABLE IF NOT EXISTS `classes` (
 --
 
 INSERT INTO `classes` (`class_id`, `uuid`, `institution_id`, `program_id`, `grade_level_id`, `class_code`, `class_name`, `section`, `academic_year_id`, `class_teacher_id`, `max_students`, `room_number`, `status`, `created_at`, `updated_at`) VALUES
-(33, 'f5685ff7-1746-11f1-8ccc-10653022c2a0', 1, 22, 22, 'SHS1-ARTS-A', 'SHS 1 General Arts A', 'A', 17, 33, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(33, 'f5685ff7-1746-11f1-8ccc-10653022c2a0', 1, 22, 22, 'SHS1-ARTS-A', 'SHS 1 General Arts A', 'A', 17, 63, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-11 01:01:08'),
 (34, 'f56875aa-1746-11f1-8ccc-10653022c2a0', 1, 22, 22, 'SHS1-ARTS-B', 'SHS 1 General Arts B', 'B', 17, NULL, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (35, 'f5687f4e-1746-11f1-8ccc-10653022c2a0', 1, 23, 22, 'SHS1-SCI-A', 'SHS 1 General Science A', 'A', 17, 34, 35, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (36, 'f56884f0-1746-11f1-8ccc-10653022c2a0', 1, 23, 22, 'SHS1-SCI-B', 'SHS 1 General Science B', 'B', 17, 35, 35, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (37, 'f5688aa2-1746-11f1-8ccc-10653022c2a0', 1, 24, 22, 'SHS1-BUS-A', 'SHS 1 Business A', 'A', 17, NULL, 38, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (38, 'f5689021-1746-11f1-8ccc-10653022c2a0', 1, 22, 23, 'SHS2-ARTS-A', 'SHS 2 General Arts A', 'A', 17, NULL, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (39, 'f568960c-1746-11f1-8ccc-10653022c2a0', 1, 23, 23, 'SHS2-SCI-A', 'SHS 2 General Science A', 'A', 17, 36, 35, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(40, 'f5689eed-1746-11f1-8ccc-10653022c2a0', 1, 22, 24, 'SHS3-ARTS-A', 'SHS 3 General Arts A', 'A', 17, NULL, 42, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(40, 'f5689eed-1746-11f1-8ccc-10653022c2a0', 1, 22, 24, 'SHS3-ARTS-A', 'SHS 3 General Arts A', 'A', 17, 63, 42, NULL, 'active', '2026-03-03 21:21:31', '2026-03-11 01:01:08'),
 (41, 'f568a349-1746-11f1-8ccc-10653022c2a0', 1, 23, 24, 'SHS3-SCI-A', 'SHS 3 General Science A', 'A', 17, 37, 36, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(42, 'f568a6ce-1746-11f1-8ccc-10653022c2a0', 1, 24, 24, 'SHS3-BUS-A', 'SHS 3 Business A', 'A', 17, NULL, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31');
+(42, 'f568a6ce-1746-11f1-8ccc-10653022c2a0', 1, 24, 24, 'SHS3-BUS-A', 'SHS 3 Business A', 'A', 17, 63, 40, NULL, 'active', '2026-03-03 21:21:31', '2026-03-11 01:01:08');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `class_subjects`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `class_subjects`;
@@ -617,35 +483,44 @@ CREATE TABLE IF NOT EXISTS `class_subjects` (
   KEY `idx_semester_id` (`semester_id`),
   KEY `idx_status` (`status`),
   KEY `idx_course_teacher_status` (`teacher_id`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=63 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=76 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `class_subjects`
 --
 
 INSERT INTO `class_subjects` (`course_id`, `institution_id`, `class_id`, `subject_id`, `teacher_id`, `academic_year_id`, `semester_id`, `duration_weeks`, `start_date`, `end_date`, `status`, `created_at`, `updated_at`) VALUES
-(48, 1, 33, 74, 33, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(49, 1, 33, 75, 35, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(48, 1, 33, 74, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:01'),
+(49, 1, 33, 75, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:01'),
 (50, 1, 33, 78, NULL, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
 (51, 1, 33, 79, NULL, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(52, 1, 35, 74, 33, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(52, 1, 35, 74, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:01'),
 (53, 1, 35, 75, 58, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-10 15:16:56'),
 (54, 1, 35, 85, 34, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(55, 1, 35, 83, 36, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(55, 1, 35, 83, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:01'),
 (56, 1, 35, 84, 37, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(57, 1, 36, 74, 33, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(58, 1, 36, 85, 34, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(57, 1, 36, 74, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:02'),
+(58, 1, 36, 85, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:02'),
 (59, 1, 36, 83, 58, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-10 15:16:26'),
 (60, 1, 34, 74, 33, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(61, 1, 34, 78, NULL, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(62, 1, 34, 79, NULL, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31');
+(61, 1, 34, 78, 54, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-11 00:40:01'),
+(62, 1, 34, 79, NULL, 17, 21, 14, '2024-09-01', '2024-12-20', 'active', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
+(65, 1, 37, 86, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 01:46:36', '2026-03-11 01:46:36'),
+(66, 1, 37, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(67, 1, 33, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(68, 1, 34, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(69, 1, 35, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(70, 1, 36, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(71, 1, 38, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(72, 1, 39, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(73, 1, 42, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(74, 1, 40, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23'),
+(75, 1, 41, 89, 33, 17, 21, 16, '2024-09-01', '2024-12-20', 'active', '2026-03-11 03:05:23', '2026-03-11 03:05:23');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `course_content`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `course_content`;
@@ -678,8 +553,6 @@ CREATE TABLE IF NOT EXISTS `course_content` (
 --
 -- Table structure for table `course_content_order`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `course_content_order`;
 CREATE TABLE IF NOT EXISTS `course_content_order` (
@@ -705,8 +578,6 @@ CREATE TABLE IF NOT EXISTS `course_content_order` (
 --
 -- Table structure for table `course_enrollments`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `course_enrollments`;
 CREATE TABLE IF NOT EXISTS `course_enrollments` (
@@ -725,62 +596,6 @@ CREATE TABLE IF NOT EXISTS `course_enrollments` (
   KEY `idx_status` (`status`),
   KEY `idx_enrollment_student_status` (`student_id`,`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=242 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `course_enrollments`
---
-
-INSERT INTO `course_enrollments` (`enrollment_id`, `student_id`, `course_id`, `enrollment_date`, `completion_date`, `status`, `progress_percentage`, `final_grade`) VALUES
-(192, 63, 52, '2026-03-01 00:00:00', NULL, 'inactive', 15.00, NULL),
-(193, 63, 53, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(194, 63, 54, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(195, 63, 55, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(196, 63, 56, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(197, 64, 48, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(198, 64, 49, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(199, 64, 50, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(200, 64, 51, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(201, 65, 52, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(202, 65, 53, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(203, 65, 54, '2026-03-03 00:00:00', NULL, 'active', 15.00, NULL),
-(204, 65, 55, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(205, 65, 56, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(206, 66, 48, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(207, 66, 49, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(208, 66, 50, '2026-03-04 00:00:00', NULL, 'active', 15.00, NULL),
-(209, 66, 51, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(210, 67, 57, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(211, 67, 58, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(212, 67, 59, '2026-03-03 00:00:00', NULL, 'active', 15.00, NULL),
-(213, 68, 60, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(214, 68, 61, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(215, 68, 62, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(216, 70, 48, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(217, 70, 49, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(218, 70, 50, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(219, 70, 51, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(220, 71, 52, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(221, 71, 53, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(222, 71, 54, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(223, 71, 55, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(224, 71, 56, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(225, 72, 60, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(226, 72, 61, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(227, 72, 62, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(228, 73, 57, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(229, 73, 58, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(230, 73, 59, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(231, 75, 52, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(232, 75, 53, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(233, 75, 54, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(234, 75, 55, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(235, 75, 56, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(236, 76, 48, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(237, 76, 49, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(238, 76, 50, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(239, 76, 51, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(240, 77, 57, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL),
-(241, 77, 58, '2024-09-01 00:00:00', NULL, 'active', 15.00, NULL);
 
 --
 -- Triggers `course_enrollments`
@@ -811,8 +626,6 @@ DELIMITER ;
 
 --
 -- Table structure for table `course_materials`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `course_materials`;
@@ -849,8 +662,6 @@ CREATE TABLE IF NOT EXISTS `course_materials` (
 --
 -- Table structure for table `course_reviews`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `course_reviews`;
 CREATE TABLE IF NOT EXISTS `course_reviews` (
@@ -872,8 +683,6 @@ CREATE TABLE IF NOT EXISTS `course_reviews` (
 
 --
 -- Table structure for table `course_schedules`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `course_schedules`;
@@ -924,8 +733,6 @@ INSERT INTO `course_schedules` (`schedule_id`, `course_id`, `day_of_week`, `star
 --
 -- Table structure for table `course_sections`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `course_sections`;
 CREATE TABLE IF NOT EXISTS `course_sections` (
@@ -949,8 +756,6 @@ CREATE TABLE IF NOT EXISTS `course_sections` (
 
 --
 -- Table structure for table `error_logs`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `error_logs`;
@@ -978,8 +783,6 @@ CREATE TABLE IF NOT EXISTS `error_logs` (
 
 --
 -- Table structure for table `events`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `events`;
@@ -1036,8 +839,6 @@ INSERT INTO `events` (`event_id`, `uuid`, `institution_id`, `title`, `descriptio
 --
 -- Table structure for table `grade_levels`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `grade_levels`;
 CREATE TABLE IF NOT EXISTS `grade_levels` (
@@ -1075,8 +876,6 @@ INSERT INTO `grade_levels` (`grade_level_id`, `institution_id`, `grade_level_cod
 
 --
 -- Table structure for table `grade_reports`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `grade_reports`;
@@ -1123,8 +922,6 @@ CREATE TABLE IF NOT EXISTS `grade_reports` (
 --
 -- Table structure for table `grade_report_details`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `grade_report_details`;
 CREATE TABLE IF NOT EXISTS `grade_report_details` (
@@ -1153,8 +950,6 @@ CREATE TABLE IF NOT EXISTS `grade_report_details` (
 
 --
 -- Table structure for table `grade_scales`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `grade_scales`;
@@ -1192,8 +987,6 @@ INSERT INTO `grade_scales` (`grade_scale_id`, `institution_id`, `grade`, `min_sc
 
 --
 -- Table structure for table `institutions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `institutions`;
@@ -1244,8 +1037,6 @@ INSERT INTO `institutions` (`institution_id`, `uuid`, `institution_code`, `insti
 
 --
 -- Table structure for table `institution_settings`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `institution_settings`;
@@ -1300,9 +1091,6 @@ INSERT INTO `institution_settings` (`setting_id`, `institution_id`, `school_name
 --
 -- Table structure for table `login_activity`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
--- Last update: Mar 10, 2026 at 09:19 PM
---
 
 DROP TABLE IF EXISTS `login_activity`;
 CREATE TABLE IF NOT EXISTS `login_activity` (
@@ -1318,7 +1106,7 @@ CREATE TABLE IF NOT EXISTS `login_activity` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_login_time` (`login_time`),
   KEY `idx_is_successful` (`is_successful`)
-) ENGINE=InnoDB AUTO_INCREMENT=281 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=294 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `login_activity`
@@ -1461,14 +1249,25 @@ INSERT INTO `login_activity` (`login_activity_id`, `user_id`, `login_time`, `log
 (277, 147, '2026-03-10 19:08:53', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
 (278, 1, '2026-03-10 19:14:18', NULL, '::1', 'PostmanRuntime/7.52.0', 0, 'Invalid credentials'),
 (279, 147, '2026-03-10 19:14:40', '2026-03-10 19:07:11', '::1', 'PostmanRuntime/7.52.0', 1, NULL),
-(280, 147, '2026-03-10 22:19:41', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL);
+(280, 147, '2026-03-10 22:19:41', '2026-03-10 23:19:43', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(281, 1, '2026-03-11 00:19:51', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(282, 1, '2026-03-11 00:20:00', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(283, 1, '2026-03-11 00:20:32', '2026-03-10 23:26:39', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(284, 1, '2026-03-11 00:32:10', '2026-03-10 23:48:23', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(285, 147, '2026-03-11 00:48:35', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(286, 147, '2026-03-11 02:30:29', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(287, 147, '2026-03-11 05:20:20', '2026-03-11 05:19:14', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(288, 147, '2026-03-11 06:19:19', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(289, 147, '2026-03-11 06:19:28', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(290, 147, '2026-03-11 06:19:35', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(291, 1, '2026-03-11 06:19:43', '2026-03-11 05:19:48', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL),
+(292, 147, '2026-03-11 06:19:53', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 0, 'Invalid credentials'),
+(293, 147, '2026-03-11 06:20:26', NULL, '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36', 1, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `messages`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `messages`;
@@ -1519,8 +1318,6 @@ INSERT INTO `messages` (`message_id`, `uuid`, `sender_id`, `receiver_id`, `cours
 
 --
 -- Table structure for table `notifications`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `notifications`;
@@ -1627,8 +1424,6 @@ INSERT INTO `notifications` (`notification_id`, `uuid`, `sender_id`, `user_id`, 
 --
 -- Table structure for table `parents`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `parents`;
 CREATE TABLE IF NOT EXISTS `parents` (
@@ -1669,9 +1464,50 @@ INSERT INTO `parents` (`parent_id`, `institution_id`, `user_id`, `first_name`, `
 -- --------------------------------------------------------
 
 --
--- Table structure for table `parent_students`
+-- Table structure for table `parent_activity`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
+
+DROP TABLE IF EXISTS `parent_activity`;
+CREATE TABLE IF NOT EXISTS `parent_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL COMMENT 'Institution the parent belongs to (via their child)',
+  `performed_by` int(11) NOT NULL COMMENT 'user_id of the parent who performed the action',
+  `activity_type` varchar(50) NOT NULL COMMENT 'e.g. grade_viewed, attendance_viewed, announcement_read, message_sent, login, logout',
+  `description` varchar(500) NOT NULL COMMENT 'Human-readable summary shown in the activity list',
+  `entity_type` varchar(50) DEFAULT NULL COMMENT 'Type of resource affected: student, grade, attendance, announcement, etc.',
+  `entity_id` int(11) DEFAULT NULL COMMENT 'Primary key of the affected entity (optional)',
+  `meta` varchar(255) DEFAULT NULL COMMENT 'Extra context: child name, subject, class, etc.',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `severity` enum('info','warning','critical') NOT NULL DEFAULT 'info',
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_pa_institution_id` (`institution_id`),
+  KEY `idx_pa_performed_by` (`performed_by`),
+  KEY `idx_pa_activity_type` (`activity_type`),
+  KEY `idx_pa_entity` (`entity_type`,`entity_id`),
+  KEY `idx_pa_severity` (`severity`),
+  KEY `idx_pa_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by parents';
+
+--
+-- Triggers `parent_activity`
+--
+DROP TRIGGER IF EXISTS `trg_parent_activity_purge`;
+DELIMITER $$
+CREATE TRIGGER `trg_parent_activity_purge` AFTER INSERT ON `parent_activity` FOR EACH ROW BEGIN
+  DELETE FROM `parent_activity`
+  WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `parent_students`
 --
 
 DROP TABLE IF EXISTS `parent_students`;
@@ -1715,8 +1551,6 @@ INSERT INTO `parent_students` (`parent_student_id`, `parent_id`, `student_id`, `
 --
 -- Table structure for table `password_reset_tokens`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `password_reset_tokens`;
 CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
@@ -1735,7 +1569,7 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_expiry_date` (`expiry_date`),
   KEY `idx_is_active` (`is_active`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `password_reset_tokens`
@@ -1755,14 +1589,13 @@ INSERT INTO `password_reset_tokens` (`token_id`, `user_id`, `token`, `expiry_dat
 (11, 1, '2444c17fdf81459e9f7c54e3a98bd194b77c8e462801a89f4f75303f5a50c5ec', '2026-03-06 12:16:48', 0, '2026-03-06 10:16:48', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0'),
 (12, 1, '23c7123140eb12e424e7c25adf2eace4b9d32ae0542ca4f5da1ef7752423665e', '2026-03-06 12:20:41', 0, '2026-03-06 10:20:41', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0'),
 (13, 1, '8c921a1ae67517c94ca7fe97038755f1c6312cba723b0b94f60a4d8490a9f461', '2026-03-06 12:30:56', 0, '2026-03-06 10:30:56', '2026-03-06 10:32:28', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0'),
-(14, 1, 'c282fd36b1de94f88f97e2d84c3f8f58598812c28135ffdcf197c80d0874a7b1', '2026-03-09 11:04:18', 0, '2026-03-09 09:04:18', '2026-03-09 09:08:07', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0');
+(14, 1, 'c282fd36b1de94f88f97e2d84c3f8f58598812c28135ffdcf197c80d0874a7b1', '2026-03-09 11:04:18', 0, '2026-03-09 09:04:18', '2026-03-09 09:08:07', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0'),
+(15, 194, '27ea64d28336b2334a579701d1dd3a507f6d9c3f122e7c7772b2f63c7962526a', '2026-03-11 01:28:02', 0, '2026-03-10 23:28:02', '2026-03-10 23:31:26', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `permissions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `permissions`;
@@ -1797,8 +1630,6 @@ INSERT INTO `permissions` (`permission_id`, `permission_name`, `description`, `c
 
 --
 -- Table structure for table `programs`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `programs`;
@@ -1836,8 +1667,6 @@ INSERT INTO `programs` (`program_id`, `institution_id`, `program_code`, `program
 --
 -- Table structure for table `quizzes`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `quizzes`;
 CREATE TABLE IF NOT EXISTS `quizzes` (
@@ -1865,26 +1694,10 @@ CREATE TABLE IF NOT EXISTS `quizzes` (
   KEY `idx_end_date` (`end_date`)
 ) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `quizzes`
---
-
-INSERT INTO `quizzes` (`quiz_id`, `course_id`, `section_id`, `title`, `description`, `duration_minutes`, `max_attempts`, `status`, `quiz_type`, `is_activated`, `show_results`, `start_date`, `end_date`, `created_at`, `updated_at`) VALUES
-(26, 48, NULL, 'English Grammar Quiz 1', 'Basic grammar and parts of speech', 30, 1, 'active', 'graded', 0, 'after_end', '2024-09-16 08:00:00', '2024-09-16 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(27, 54, NULL, 'Cell Biology Quiz', 'Test on cell structure and function', 45, 1, 'active', 'graded', 0, 'after_end', '2024-09-19 08:00:00', '2024-09-19 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(28, 55, NULL, 'Physics Mechanics Quiz', 'Newton laws and motion', 40, 1, 'active', 'graded', 0, 'after_end', '2024-09-23 08:00:00', '2024-09-23 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(29, 56, NULL, 'Algebra Basics Quiz', 'Linear equations and inequalities', 35, 1, 'active', 'graded', 0, 'after_end', '2024-09-26 08:00:00', '2024-09-26 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(30, 57, NULL, 'Chemical Reactions Quiz', 'Types of chemical reactions', 40, 1, 'active', 'graded', 0, 'after_end', '2024-10-02 08:00:00', '2024-10-02 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(31, 58, NULL, 'Ghana History Quiz', 'Pre-colonial to independence', 30, 1, 'active', 'graded', 0, 'after_end', '2024-10-07 08:00:00', '2024-10-07 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(32, 59, NULL, 'Poetry Analysis Quiz', 'Literary devices and themes', 35, 1, 'active', 'graded', 0, 'after_end', '2024-10-12 08:00:00', '2024-10-12 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(33, 60, NULL, 'Calculus Introduction Quiz', 'Limits and derivatives basics', 45, 1, 'active', 'graded', 0, 'after_end', '2024-10-15 08:00:00', '2024-10-15 23:59:59', '2026-03-03 21:21:31', '2026-03-03 21:21:31');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `quiz_questions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `quiz_questions`;
@@ -1906,38 +1719,10 @@ CREATE TABLE IF NOT EXISTS `quiz_questions` (
   KEY `idx_order_index` (`order_index`)
 ) ENGINE=InnoDB AUTO_INCREMENT=64 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `quiz_questions`
---
-
-INSERT INTO `quiz_questions` (`question_id`, `quiz_id`, `question_text`, `question_type`, `points`, `difficulty`, `explanation`, `correct_answer`, `order_index`, `created_at`, `updated_at`) VALUES
-(44, 26, 'What is a noun?', 'multiple_choice', 2, NULL, NULL, 'a', 1, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(45, 26, 'Identify the verb in: \"She runs quickly\"', 'multiple_choice', 2, NULL, NULL, 'b', 2, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(46, 26, 'Which is an adjective?', 'multiple_choice', 2, NULL, NULL, 'c', 3, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(47, 26, 'What is a pronoun?', 'multiple_choice', 2, NULL, NULL, 'a', 4, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(48, 26, 'Identify the adverb', 'multiple_choice', 2, NULL, NULL, 'd', 5, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(49, 27, 'What is the powerhouse of the cell?', 'multiple_choice', 5, NULL, NULL, 'a', 1, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(50, 27, 'Which organelle controls cell activities?', 'multiple_choice', 5, NULL, NULL, 'b', 2, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(51, 27, 'What is the function of chloroplasts?', 'multiple_choice', 5, NULL, NULL, 'c', 3, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(52, 27, 'What surrounds the cell?', 'multiple_choice', 5, NULL, NULL, 'a', 4, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(53, 27, 'What stores genetic information?', 'multiple_choice', 5, NULL, NULL, 'd', 5, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(54, 28, 'State Newton first law', 'short_answer', 6, NULL, NULL, NULL, 1, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(55, 28, 'What is the formula for force?', 'multiple_choice', 6, NULL, NULL, 'a', 2, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(56, 28, 'Define acceleration', 'short_answer', 6, NULL, NULL, NULL, 3, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(57, 28, 'Calculate: F = ma when m=5kg, a=2m/s²', 'multiple_choice', 6, NULL, NULL, 'b', 4, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(58, 28, 'What is inertia?', 'short_answer', 6, NULL, NULL, NULL, 5, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(59, 29, 'Solve: 2x + 5 = 15', 'multiple_choice', 4, NULL, NULL, 'a', 1, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(60, 29, 'What is x in: 3x = 21?', 'multiple_choice', 4, NULL, NULL, 'c', 2, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(61, 29, 'Simplify: 4x + 3x', 'multiple_choice', 4, NULL, NULL, 'b', 3, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(62, 29, 'Factorize: x² - 9', 'multiple_choice', 4, NULL, NULL, 'd', 4, '2026-03-03 21:21:31', '2026-03-03 21:21:31'),
-(63, 29, 'Expand: (x+3)(x-2)', 'short_answer', 4, NULL, NULL, NULL, 5, '2026-03-03 21:21:31', '2026-03-03 21:21:31');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `quiz_question_options`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `quiz_question_options`;
@@ -1952,30 +1737,10 @@ CREATE TABLE IF NOT EXISTS `quiz_question_options` (
   KEY `idx_question_id` (`question_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `quiz_question_options`
---
-
-INSERT INTO `quiz_question_options` (`option_id`, `question_id`, `option_label`, `option_text`, `is_correct`, `created_at`) VALUES
-(11, 44, 'A', 'A person, place, or thing', 1, '2026-03-03 21:21:32'),
-(12, 44, 'B', 'An action word', 0, '2026-03-03 21:21:32'),
-(13, 44, 'C', 'A describing word', 0, '2026-03-03 21:21:32'),
-(14, 44, 'D', 'A connecting word', 0, '2026-03-03 21:21:32'),
-(18, 45, 'A', 'She', 0, '2026-03-03 21:21:32'),
-(19, 45, 'B', 'runs', 1, '2026-03-03 21:21:32'),
-(20, 45, 'C', 'quickly', 0, '2026-03-03 21:21:32'),
-(21, 45, 'D', 'None', 0, '2026-03-03 21:21:32'),
-(25, 49, 'A', 'Mitochondria', 1, '2026-03-03 21:21:32'),
-(26, 49, 'B', 'Nucleus', 0, '2026-03-03 21:21:32'),
-(27, 49, 'C', 'Ribosome', 0, '2026-03-03 21:21:32'),
-(28, 49, 'D', 'Vacuole', 0, '2026-03-03 21:21:32');
-
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `quiz_submissions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `quiz_submissions`;
@@ -2007,8 +1772,6 @@ CREATE TABLE IF NOT EXISTS `quiz_submissions` (
 --
 -- Table structure for table `quiz_submission_answers`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `quiz_submission_answers`;
 CREATE TABLE IF NOT EXISTS `quiz_submission_answers` (
@@ -2028,8 +1791,6 @@ CREATE TABLE IF NOT EXISTS `quiz_submission_answers` (
 
 --
 -- Table structure for table `results`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `results`;
@@ -2061,8 +1822,6 @@ CREATE TABLE IF NOT EXISTS `results` (
 --
 -- Table structure for table `roles`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE IF NOT EXISTS `roles` (
@@ -2090,8 +1849,6 @@ INSERT INTO `roles` (`role_id`, `role_name`, `description`, `created_at`, `updat
 
 --
 -- Table structure for table `role_permissions`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `role_permissions`;
@@ -2176,8 +1933,6 @@ INSERT INTO `role_permissions` (`role_permission_id`, `role_id`, `permission_id`
 --
 -- Table structure for table `schema_migrations`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `schema_migrations`;
 CREATE TABLE IF NOT EXISTS `schema_migrations` (
@@ -2203,8 +1958,6 @@ INSERT INTO `schema_migrations` (`version`, `description`, `applied_at`, `applie
 
 --
 -- Table structure for table `semesters`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `semesters`;
@@ -2240,8 +1993,6 @@ INSERT INTO `semesters` (`semester_id`, `institution_id`, `academic_year_id`, `s
 
 --
 -- Table structure for table `students`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `students`;
@@ -2316,16 +2067,57 @@ INSERT INTO `students` (`student_id`, `uuid`, `institution_id`, `user_id`, `clas
 (116, 'af974722-083f-4d4f-9839-6356be63e2d2', 1, 226, NULL, 'ASHS-2026-0015', '2024-09-01', 'female', '2008-11-03', 'Mr. Adusei', '0244210015', 'adusei.parent@gmail.com', NULL, 'withdrawn', '2026-03-09 23:22:52', '2026-03-09 23:24:00'),
 (117, 'ba606b63-afe6-446b-a774-c0b07b2d8d32', 1, 227, NULL, 'ASHS-2026-0016', '2024-09-01', 'male', '2007-08-27', 'Mrs. Quansah', '0244210016', 'quansah.parent@gmail.com', NULL, 'withdrawn', '2026-03-09 23:22:52', '2026-03-09 23:24:00'),
 (118, 'fa607265-7573-4010-b5e5-a4eb4d8de69a', 1, 228, NULL, 'ASHS-2026-0017', '2024-09-01', 'female', '2008-05-11', 'Mr. Tetteh', '0244210017', 'tetteh.parent@gmail.com', NULL, 'withdrawn', '2026-03-09 23:22:52', '2026-03-09 23:24:00'),
-(119, 'b1de86ab-4b48-48ab-ab12-5c4ac6f45619', 1, 229, NULL, 'ASHS-2026-0018', '2024-09-01', 'male', '2007-01-30', 'Mrs. Donkor', '0244210018', 'donkor.parent@gmail.com', NULL, 'inactive', '2026-03-09 23:22:53', '2026-03-09 23:24:19'),
+(119, 'b1de86ab-4b48-48ab-ab12-5c4ac6f45619', 1, 229, 37, 'ASHS-2026-0018', '2024-09-01', 'male', '2007-01-30', 'Mrs. Donkor', '0244210018', 'donkor.parent@gmail.com', NULL, 'inactive', '2026-03-09 23:22:53', '2026-03-11 02:19:06'),
 (120, '0d5995fd-221f-4be6-91f1-9245d08f17eb', 1, 230, NULL, 'ASHS-2026-0019', '2024-09-01', 'female', '2008-09-06', 'Mr. Appiah', '0244210019', 'appiah.parent@gmail.com', NULL, 'withdrawn', '2026-03-09 23:22:53', '2026-03-09 23:23:59'),
 (121, 'd64358b6-081d-4767-9ddb-50f456a7986f', 1, 231, NULL, 'ASHS-2026-0020', '2024-09-01', 'male', '2007-06-22', 'Mrs. Barimah', '0244210020', 'barimah.parent@gmail.com', NULL, 'withdrawn', '2026-03-09 23:22:53', '2026-03-09 23:23:59');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `subjects`
+-- Table structure for table `student_activity`
 --
--- Creation: Mar 09, 2026 at 07:02 AM
+
+DROP TABLE IF EXISTS `student_activity`;
+CREATE TABLE IF NOT EXISTS `student_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL COMMENT 'Institution the student belongs to',
+  `performed_by` int(11) NOT NULL COMMENT 'user_id of the student who performed the action',
+  `activity_type` varchar(50) NOT NULL COMMENT 'e.g. assignment_submitted, material_viewed, grade_viewed, login, logout, attendance_checked',
+  `description` varchar(500) NOT NULL COMMENT 'Human-readable summary shown in the activity list',
+  `entity_type` varchar(50) DEFAULT NULL COMMENT 'Type of resource affected: assignment, material, grade, course, etc.',
+  `entity_id` int(11) DEFAULT NULL COMMENT 'Primary key of the affected entity (optional)',
+  `meta` varchar(255) DEFAULT NULL COMMENT 'Extra context: subject name, assignment title, score, etc.',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `severity` enum('info','warning','critical') NOT NULL DEFAULT 'info',
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_sa_institution_id` (`institution_id`),
+  KEY `idx_sa_performed_by` (`performed_by`),
+  KEY `idx_sa_activity_type` (`activity_type`),
+  KEY `idx_sa_entity` (`entity_type`,`entity_id`),
+  KEY `idx_sa_severity` (`severity`),
+  KEY `idx_sa_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by students';
+
+--
+-- Triggers `student_activity`
+--
+DROP TRIGGER IF EXISTS `trg_student_activity_purge`;
+DELIMITER $$
+CREATE TRIGGER `trg_student_activity_purge` AFTER INSERT ON `student_activity` FOR EACH ROW BEGIN
+  DELETE FROM `student_activity`
+  WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `subjects`
 --
 
 DROP TABLE IF EXISTS `subjects`;
@@ -2382,8 +2174,6 @@ INSERT INTO `subjects` (`subject_id`, `uuid`, `institution_id`, `subject_code`, 
 --
 -- Table structure for table `superadmin_activity`
 --
--- Creation: Mar 08, 2026 at 05:36 AM
---
 
 DROP TABLE IF EXISTS `superadmin_activity`;
 CREATE TABLE IF NOT EXISTS `superadmin_activity` (
@@ -2420,8 +2210,6 @@ INSERT INTO `superadmin_activity` (`activity_id`, `uuid`, `performed_by`, `activ
 --
 -- Table structure for table `system_settings`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
---
 
 DROP TABLE IF EXISTS `system_settings`;
 CREATE TABLE IF NOT EXISTS `system_settings` (
@@ -2442,8 +2230,6 @@ INSERT INTO `system_settings` (`settings_id`, `settings`, `updated_at`) VALUES
 
 --
 -- Table structure for table `teachers`
---
--- Creation: Mar 10, 2026 at 05:28 AM
 --
 
 DROP TABLE IF EXISTS `teachers`;
@@ -2513,9 +2299,50 @@ INSERT INTO `teachers` (`teacher_id`, `uuid`, `institution_id`, `user_id`, `empl
 -- --------------------------------------------------------
 
 --
--- Table structure for table `teacher_subjects`
+-- Table structure for table `teacher_activity`
 --
--- Creation: Mar 03, 2026 at 08:58 PM
+
+DROP TABLE IF EXISTS `teacher_activity`;
+CREATE TABLE IF NOT EXISTS `teacher_activity` (
+  `activity_id` int(11) NOT NULL AUTO_INCREMENT,
+  `uuid` char(36) NOT NULL,
+  `institution_id` int(11) NOT NULL COMMENT 'Institution the teacher belongs to',
+  `performed_by` int(11) NOT NULL COMMENT 'user_id of the teacher who performed the action',
+  `activity_type` varchar(50) NOT NULL COMMENT 'e.g. grade_added, assignment_created, attendance_marked, material_uploaded, login, logout',
+  `description` varchar(500) NOT NULL COMMENT 'Human-readable summary shown in the activity list',
+  `entity_type` varchar(50) DEFAULT NULL COMMENT 'Type of resource affected: student, class, course, assignment, grade, etc.',
+  `entity_id` int(11) DEFAULT NULL COMMENT 'Primary key of the affected entity (optional)',
+  `meta` varchar(255) DEFAULT NULL COMMENT 'Extra context: student name, class name, subject, etc.',
+  `ip_address` varchar(50) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `severity` enum('info','warning','critical') NOT NULL DEFAULT 'info',
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`activity_id`),
+  UNIQUE KEY `uuid` (`uuid`),
+  KEY `idx_ta_institution_id` (`institution_id`),
+  KEY `idx_ta_performed_by` (`performed_by`),
+  KEY `idx_ta_activity_type` (`activity_type`),
+  KEY `idx_ta_entity` (`entity_type`,`entity_id`),
+  KEY `idx_ta_severity` (`severity`),
+  KEY `idx_ta_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by teachers';
+
+--
+-- Triggers `teacher_activity`
+--
+DROP TRIGGER IF EXISTS `trg_teacher_activity_purge`;
+DELIMITER $$
+CREATE TRIGGER `trg_teacher_activity_purge` AFTER INSERT ON `teacher_activity` FOR EACH ROW BEGIN
+  DELETE FROM `teacher_activity`
+  WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `teacher_subjects`
 --
 
 DROP TABLE IF EXISTS `teacher_subjects`;
@@ -2529,7 +2356,7 @@ CREATE TABLE IF NOT EXISTS `teacher_subjects` (
   KEY `idx_teacher_id` (`teacher_id`),
   KEY `idx_subject_id` (`subject_id`),
   KEY `idx_teacher_subject` (`teacher_id`,`subject_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `teacher_subjects`
@@ -2539,15 +2366,13 @@ INSERT INTO `teacher_subjects` (`teacher_subject_id`, `teacher_id`, `subject_id`
 (3, 33, 83, '2026-03-10', '2026-03-10 09:15:59'),
 (4, 33, 75, '2026-03-10', '2026-03-10 09:20:27'),
 (5, 58, 87, '2026-03-10', '2026-03-10 11:21:55'),
-(6, 58, 77, '2026-03-10', '2026-03-10 13:55:43');
+(6, 58, 77, '2026-03-10', '2026-03-10 13:55:43'),
+(7, 58, 79, '2026-03-11', '2026-03-11 00:19:30');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `users`
---
--- Creation: Mar 10, 2026 at 09:59 PM
--- Last update: Mar 10, 2026 at 09:59 PM
 --
 
 DROP TABLE IF EXISTS `users`;
@@ -2572,6 +2397,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` datetime DEFAULT NULL,
+  `profile_photo` varchar(500) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `uuid` (`uuid`),
   UNIQUE KEY `uuid_2` (`uuid`),
@@ -2591,125 +2417,122 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`user_id`, `uuid`, `institution_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`, `phone_number`, `address`, `city`, `region`, `date_of_birth`, `title`, `gender`, `is_super_admin`, `is_active`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, '1bfe8992-16ae-11f1-9c28-10653022c2a0', NULL, 'superadmin', 'benedictamankwa18@gmail.com', '$2y$10$CAU/aeWxSNiY8Af7vaQn0.dy2ibLA/zvSLxGoBaT5pWN0kzLdl36O', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-09 09:08:07', NULL),
-(8, 'def42c78-1743-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(54, '55d2f602-1744-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(100, '627dbb2e-1744-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(146, 'f53e889e-1746-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2026-03-01 21:21:31', '2026-03-08 09:27:46', NULL),
-(147, 'f55bd9f1-1746-11f1-8ccc-10653022c2a0', 1, 'admin', 'admin@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Justice', 'Mensah', '+233 30 111 1001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(148, 'f55bed57-1746-11f1-8ccc-10653022c2a0', 2, 'admin2', 'admin@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Agyemang', '+233 32 111 2001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(149, 'f55bf3bc-1746-11f1-8ccc-10653022c2a0', 3, 'admin3', 'admin@ccashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwesi', 'Atta', '+233 33 111 3001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(150, 'f55bf8f7-1746-11f1-8ccc-10653022c2a0', 4, 'admin4', 'admin@tamashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Alhassan', 'Mohammed', '+233 37 111 4001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(151, 'f55c96d5-1746-11f1-8ccc-10653022c2a0', 5, 'admin5', 'admin@hoshs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Elikem', 'Agbeko', '+233 36 111 5001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(152, 'f56106d8-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.mensah', 'kofi.mensah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Mensah', '+233 24 111 1111', 'South campus', NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-10 08:55:27', NULL),
-(153, 'f5617797-1746-11f1-8ccc-10653022c2a0', 1, 'ama.asante', 'ama.asante@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Asante', '+233 24 111 1112', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-02-04 21:21:31', '2026-03-08 09:28:10', NULL),
-(154, 'f5617b21-1746-11f1-8ccc-10653022c2a0', 1, 'kwabena.owusu', 'kwabena.owusu@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwabena', 'Owusu', '+233 24 111 1113', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(155, 'f5617dc9-1746-11f1-8ccc-10653022c2a0', 1, 'abena.boateng', 'abena.boateng@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Boateng', '+233 24 111 1114', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(156, 'f561800e-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.frimpong', 'yaw.frimpong@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Frimpong', '+233 24 111 1115', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(157, 'f5618275-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.darko', 'akosua.darko@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Darko', '+233 24 111 1116', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(158, 'f5618577-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.appiah', 'kwame.appiah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Appiah', '+233 24 111 1117', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(159, 'f56188e6-1746-11f1-8ccc-10653022c2a0', 1, 'efua.amoah', 'efua.amoah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Efua', 'Amoah', '+233 24 111 1118', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(160, 'f5618bfa-1746-11f1-8ccc-10653022c2a0', 2, 'kwasi.boadu', 'kwasi.boadu@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Boadu', '+233 24 112 1111', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-01-05 21:21:31', '2026-03-08 09:28:30', NULL),
-(161, 'f5618fc7-1746-11f1-8ccc-10653022c2a0', 2, 'adwoa.sarpong', 'adwoa.sarpong@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Adwoa', 'Sarpong', '+233 24 112 1112', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(162, 'f56feb3f-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.osei', 'kwame.osei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Osei', '+233 55 111 2001', 'Tema', NULL, NULL, '2014-11-01', NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:00', NULL),
-(163, 'f570186d-1746-11f1-8ccc-10653022c2a0', 1, 'abena.adjei', 'abena.adjei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Adjei', '+233 55 111 2002', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:00', NULL),
-(164, 'f5701c21-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.addo', 'kofi.addo@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Addo', '+233 55 111 2003', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-01 21:21:31', '2026-03-09 22:08:01', NULL),
-(165, 'f5701efa-1746-11f1-8ccc-10653022c2a0', 1, 'ama.boakye', 'ama.boakye@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Boakye', '+233 55 111 2004', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(166, 'f570218e-1746-11f1-8ccc-10653022c2a0', 1, 'kwabena.nyarko', 'kwabena.nyarko@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwabena', 'Nyarko', '+233 55 111 2005', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(167, 'f5702415-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.mensah', 'akosua.mensah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Mensah', '+233 55 111 2006', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(168, 'f57025ee-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.owusu', 'yaw.owusu@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Owusu', '+233 55 111 2007', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(169, 'f57027a8-1746-11f1-8ccc-10653022c2a0', 1, 'efua.asare', 'efua.asare@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Efua', 'Asare', '+233 55 111 2008', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(170, 'f5702949-1746-11f1-8ccc-10653022c2a0', 1, 'kwesi.boateng', 'kwesi.boateng@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwesi', 'Boateng', '+233 55 111 2009', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(171, 'f5702bcd-1746-11f1-8ccc-10653022c2a0', 1, 'adwoa.ofori', 'adwoa.ofori@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Adwoa', 'Ofori', '+233 55 111 2010', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(172, 'f5702e1f-1746-11f1-8ccc-10653022c2a0', 1, 'kojo.agyemang', 'kojo.agyemang@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kojo', 'Agyemang', '+233 55 111 2011', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(173, 'f570303a-1746-11f1-8ccc-10653022c2a0', 1, 'afua.darko', 'afua.darko@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Afua', 'Darko', '+233 55 111 2012', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(174, 'f5703293-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.frimpong', 'kwame.frimpong@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Frimpong', '+233 55 111 2013', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(175, 'f5703513-1746-11f1-8ccc-10653022c2a0', 1, 'abena.appiah', 'abena.appiah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Appiah', '+233 55 111 2014', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(176, 'f570370e-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.amoah', 'kofi.amoah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Amoah', '+233 55 111 2015', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL),
-(177, 'f570397e-1746-11f1-8ccc-10653022c2a0', 1, 'ama.sarpong', 'ama.sarpong@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Sarpong', '+233 55 111 2016', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:02', NULL),
-(178, 'f5703c1a-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.boadu', 'yaw.boadu@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Boadu', '+233 55 111 2017', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:02', NULL),
-(179, 'f57460aa-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.atta', 'akosua.atta@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Atta', '+233 55 111 2018', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:18', NULL),
-(180, 'f57472dd-1746-11f1-8ccc-10653022c2a0', 2, 'kwasi.mohammed', 'kwasi.mohammed@student.kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mohammed', '+233 55 112 2001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(181, 'f5756c83-1746-11f1-8ccc-10653022c2a0', 2, 'afua.agbeko', 'afua.agbeko@student.kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Afua', 'Agbeko', '+233 55 112 2002', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(182, 'f5893d8e-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.osei', 'yaw.osei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Osei', '+233 24 555 5555', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(183, 'f5895666-1746-11f1-8ccc-10653022c2a0', 1, 'akua.adjei', 'akua.adjei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akua', 'Adjei', '+233 24 555 5556', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(184, 'f5895a04-1746-11f1-8ccc-10653022c2a0', 1, 'emmanuel.addo', 'emmanuel.addo@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Emmanuel', 'Addo', '+233 24 555 5557', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(185, 'f5895ca7-1746-11f1-8ccc-10653022c2a0', 1, 'patience.boakye', 'patience.boakye@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Patience', 'Boakye', '+233 24 555 5558', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(186, 'f5896754-1746-11f1-8ccc-10653022c2a0', 1, 'samuel.nyarko', 'samuel.nyarko@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Samuel', 'Nyarko', '+233 24 555 5559', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(187, 'f5896b77-1746-11f1-8ccc-10653022c2a0', 1, 'grace.mensah', 'grace.mensah@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Grace', 'Mensah', '+233 24 555 5560', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(188, 'f5896f23-1746-11f1-8ccc-10653022c2a0', 1, 'peter.owusu', 'peter.owusu@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Peter', 'Owusu', '+233 24 555 5561', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(189, 'f58972c5-1746-11f1-8ccc-10653022c2a0', 1, 'mary.asare', 'mary.asare@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mary', 'Asare', '+233 24 555 5562', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(190, 'f589767e-1746-11f1-8ccc-10653022c2a0', 3, 'joseph.boateng', 'joseph.boateng@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Joseph', 'Boateng', '+233 24 555 5563', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 08:04:10', NULL),
-(191, 'f5897ade-1746-11f1-8ccc-10653022c2a0', 1, 'elizabeth.ofori', 'elizabeth.ofori@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Elizabeth', 'Ofori', '+233 24 555 5564', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL),
-(192, '16915edc-c68d-4ca7-a03c-74489c190c1d', 1, 'superadmin', 'benedictamankwa18@gmail.com', '$2y$10$TLvTH/nLKUlruSjJj4crlujCopGiw9Faa5nBQXxNPlmSJVp8H7R/O', 'University', 'Education, Winneba (Winneba) BENEDICT OSEI AMANKWA', '0594500785', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-09 21:51:27', '2026-03-09 22:08:00', NULL),
-(194, 'd6defd6d-3dff-4ca4-b2f6-5a5285bc5bb5', 1, '212ewewewe', 'benedictamankwa9@gmail.com', '$2y$10$fEMvz0.EDCQeWBWtmAsyDumZ/e.KXqquI2vfD2Jtv0G7ULYyDl1bC', 'BENEDICT OSEI', 'AMANKWA', '0550030318', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-09 22:06:52', '2026-03-09 22:06:52', NULL),
-(195, 'a4c27bd6-7fde-4f8e-b861-9bade903b61b', 1, 'superadmin12221', 'nethunterghana@gmail.com', '$2y$10$.IUP.C1JWVHW.YUvOzsXBO0FCJ1bk7lR67h9G8skC5TYwrXDoTl36', 'n3thun3r', 'n3thun3r', '0594500785', NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, '2026-03-09 22:07:30', '2026-03-09 22:40:04', NULL),
-(196, '115214ed-4a7a-44bd-851c-d041a986447d', 1, 'kwame.mensah', 'kwame.mensah@school.edu.gh', '$2y$10$XNY7QoGr3E1q9hoCTyQ.HumsvOEdAXQnjWQNDn7Y8SkIshzKK3ljq', 'Kwame', 'Mensah', '0244123456', NULL, NULL, NULL, '2008-05-15', NULL, NULL, 0, 1, '2026-03-09 22:41:47', '2026-03-09 22:41:47', NULL),
-(197, '5ac918f2-b23c-48fb-8dee-55d0ad3b7f6b', 1, 'kwame1.mensah', 'kwame1.mensah@school.edu.gh', '$2y$10$oUPIKvOp3MX9NAgpGVZTu.DQXvCEzCr3mhQPOh6YSsiY13HKnuHOO', 'Kwame1', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL),
-(198, '415d4a86-3be1-42f0-afe3-76c804dda18b', 1, 'kwame2.mensah', 'kwame2.mensah@school.edu.gh', '$2y$10$8IceZCT142Uy9QyxVn3eqONV/SAsCPDBG5Z8JfFw4nacN5EvspTym', 'Kwame2', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL),
-(199, '71fa67c3-1431-4d87-914d-e5b9a1b56cb4', 1, 'kwame3.mensah', 'kwame3.mensah@school.edu.gh', '$2y$10$1enyc8cxm6tf7gR8ehANBupL2UlgVuQbUtlSQ8JbvVq0g69p7S/U.', 'Kwame3', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL),
-(200, 'ea6ffa7b-4200-4c32-87c8-23cbbdf561be', 1, 'kwame4.mensah', 'kwame4.mensah@school.edu.gh', '$2y$10$iV0sH6.Xsn8xz0MZO/T2qu0cbYvzieUYfLCa.VYIGlS6S3JHIOJC2', 'Kwame4', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL),
-(201, '8169e18b-1a79-4db3-bef5-80bb7a03df31', 1, 'kwame5.mensah', 'kwame5.mensah@school.edu.gh', '$2y$10$xEOMbqbQzBW2F4g3310h.e2Px/sfBvttfkMknnH7.zV1NFUF7dd26', 'Kwame5', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL),
-(202, 'af73dd18-c3a3-4851-b0f7-833168d9cafb', 1, 'kwame6.mensah', 'kwame6.mensah@school.edu.gh', '$2y$10$aZKCa/5qF7KevRsnutHmdugiDNa45Y4eT8ZfEV1d0FOo0e1go7QOq', 'Kwame6', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL),
-(203, '71d8450a-3936-41a2-aade-fe38926e21cb', 1, 'kwame7.mensah', 'kwame7.mensah@school.edu.gh', '$2y$10$q7WATFLofxlIgOQq89MNbeH0clRu.t84cBjibqNPQ9b5zhTLrmEfK', 'Kwame7', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL),
-(204, 'e9d6b06e-5bbc-45bc-9c94-2ea526ed67b3', 1, 'kwame8.mensah', 'kwame8.mensah@school.edu.gh', '$2y$10$FzoL8RvjtmXhDxDHiIO5buWxSMLZvVltc/SeVYnCq4JzX0hlzlWDm', 'Kwame8', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL),
-(205, 'c54ce17e-9938-4e1d-8259-68ad8170a92a', 1, 'kwame9.mensah', 'kwame9.mensah@school.edu.gh', '$2y$10$iEBwZ41p85X0zL7uhUL73Oi8J8wF7drY2nIPFUMhnBGpa5srXfk4m', 'Kwame9', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL),
-(206, '439031a0-5451-4c95-baf2-7ebb50a4cc43', 1, 'kwame10.mensah', 'kwame10.mensah@school.edu.gh', '$2y$10$pEoIXbnaXv/C6wAvJ2QsiupZKqXZzicVrq1y.HdaLmM1PIc3fL8vm', 'Kwame10', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL),
-(207, '62d61b27-e178-41c5-bdd2-59f9e3381f87', 1, 'kwame11.mensah', 'kwame11.mensah@school.edu.gh', '$2y$10$LEz/ZxEt.iR23zKhl6LW1.RRicFmEhlR3OHPhbI0lS7WF7R5Uh37i', 'Kwame11', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL),
-(208, 'b997d8fb-783e-4c4a-874a-3fff0c8c171c', 1, 'kwame12.mensah', 'kwame12.mensah@school.edu.gh', '$2y$10$dlcKSZoqSY79M8Ij/sHA.ObdBBDki2Cut7cyYTGwq7VOAspYm6tGm', 'Kwame12', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL),
-(209, '7aef785b-91c8-4fc8-a234-a675ae7da834', 1, 'kwame13.mensah', 'kwame13.mensah@school.edu.gh', '$2y$10$oMq9LVjpa0bHVdh.3Noyke/8lHHmgLvsbc5efEbDVUi.Ae6xXkTly', 'Kwame13', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL),
-(210, 'e39d9287-d378-42d2-a68d-f15d65adbfd8', 1, 'kwame14.mensah', 'kwame14.mensah@school.edu.gh', '$2y$10$s2oyo2AlD5pLke0xPJ5xoeqz9IE6e4qxqtVQZmG4DxewFQXcEX/WC', 'Kwame14', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:32', '2026-03-09 22:50:32', NULL),
-(211, '37e99e79-4a92-470b-9a1a-4d0d5b09b8bf', 1, 'kwame15.mensah', 'kwame15.mensah@school.edu.gh', '$2y$10$9CON1XIuvT6.gay4tF8sHOOF8vOsX4iwSCjE0OpPMVvTGNus0BpIS', 'Kwame15', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:32', '2026-03-09 22:50:32', NULL),
-(212, '42f13855-2589-41b1-8d9a-aeb26b49b6f8', 1, 'ama.owusu', 'ama.owusu@school.edu.gh', '$2y$10$cszqb7stUZ2Q5oUCD9YHmuJd6AZZbo7do9S3UamwjXZcHPPGPq44O', 'Ama', 'Owusu', '0244100001', NULL, NULL, NULL, '2008-03-12', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL),
-(213, '3dbce357-0e96-4db9-bccc-b4f288cab391', 1, 'kofi.asante', 'kofi.asante@school.edu.gh', '$2y$10$dN7oDoNuUqIUXMzaePb5V.l5y6Vajmeu8AmwEKNyYLV1Pe5j22bJy', 'Kofi', 'Asante', '0244100002', NULL, NULL, NULL, '2007-11-25', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL),
-(214, '421f1aae-55c6-4749-ac40-1daea189da75', 1, 'akosua.boateng', 'akosua.boateng@school.edu.gh', '$2y$10$Yl18N97DBiK1p3BY9SPfR.iDWVAakSnZ//vM.HrYw5uhHTfpUdcz2', 'Akosua', 'Boateng', '0244100003', NULL, NULL, NULL, '2008-06-08', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL),
-(215, '768418f2-32e8-4da9-aa06-a62530ddca2a', 1, 'yaw.darko', 'yaw.darko@school.edu.gh', '$2y$10$0yJcPQEriU89hfBDOaXed.VdfHNJmbowzbWIgx8EL3e7kZI/zC1gm', 'Yaw', 'Darko', '0244100004', NULL, NULL, NULL, '2007-09-14', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL),
-(216, 'e6ae46dc-cd07-490b-a72a-6fd3267aba25', 1, 'abena.frimpong', 'abena.frimpong@school.edu.gh', '$2y$10$M12rX8oCiWfyBcpi1XPS0ewBAYoFDdjd9LuduQsMPHmQU/NdaeesC', 'Abena', 'Frimpong', '0244100005', NULL, NULL, NULL, '2008-01-30', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL),
-(217, '394c8725-3b70-41df-afbc-0ed8ca0a25bc', 1, 'kweku.mensah', 'kweku.mensah@school.edu.gh', '$2y$10$BGEkZOoedrv7mL1wjhlWdeKX/tS/Gn3dBgL8OXWuDHN592vnls1OC', 'Kweku', 'Mensah', '0244100006', NULL, NULL, NULL, '2007-07-19', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL),
-(218, '23a5fdbf-175d-46bb-b6a1-9fefaaeeaf0c', 1, 'adwoa.amponsah', 'adwoa.amponsah@school.edu.gh', '$2y$10$9LMLIvvul9mEokpbKTbR0.qg8KCMODeVz6Px2CrH0v6IPRwpquAJm', 'Adwoa', 'Amponsah', '0244100007', NULL, NULL, NULL, '2008-04-22', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL),
-(219, '88348fcf-85d7-484f-8ba7-4bd8c2295c5f', 1, 'kwame.adjei', 'kwame.adjei@school.edu.gh', '$2y$10$/GHTA/rdpt5eUtl2GwLj.u8p13xJ2ReiMbffm4rY.K/O8ef4fvh1G', 'Kwame', 'Adjei', '0244100008', NULL, NULL, NULL, '2007-12-05', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL),
-(220, 'bfea707b-7827-4462-a206-a38ee179a916', 1, 'efua.nkrumah', 'efua.nkrumah@school.edu.gh', '$2y$10$RGgVJwrE0rMmPaAHUpnOPeWmCq5BzSWcnWaur3n4oy0dbpoUReHk.', 'Efua', 'Nkrumah', '0244100009', NULL, NULL, NULL, '2008-08-17', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL),
-(221, 'e3ea4532-77d4-4d94-8349-45883b4d2246', 1, 'kojo.ofori', 'kojo.ofori@school.edu.gh', '$2y$10$tdobNEDhjD72gR8h.ZsTkO.E6b.od/V8tsbByXRfQgytL4UkyzGJa', 'Kojo', 'Ofori', '0244100010', NULL, NULL, NULL, '2007-05-03', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL),
-(222, '4c3cf172-04ad-46b4-bb77-8da4a0f30128', 1, 'afia.asare', 'afia.asare@school.edu.gh', '$2y$10$PtdbRPljYvbklgznf16AEe3PRlT0Uym3UsWe9WRbh0qY/2LrUraIq', 'Afia', 'Asare', '0244110011', NULL, NULL, NULL, '2008-02-14', NULL, NULL, 0, 1, '2026-03-09 23:22:51', '2026-03-09 23:22:51', NULL),
-(223, 'd8d142b6-87c3-4b3a-9f38-1ced2aa9aaed', 1, 'nana.boateng', 'nana.boateng@school.edu.gh', '$2y$10$EobKyzBWPiIdHSkCzBQ1ieflMpOsCfh7aKazgCqygeG2hCiqffJ2C', 'Nana', 'Boateng', '0244110012', NULL, NULL, NULL, '2007-10-09', NULL, NULL, 0, 1, '2026-03-09 23:22:51', '2026-03-09 23:22:51', NULL),
-(224, '242166ba-7331-44fe-97d9-9400057e061c', 1, 'serwaa.osei', 'serwaa.osei@school.edu.gh', '$2y$10$YcCg865JXxz/j7VDp59E7.2HWod3jt2mSyu7CWaShh.lCXwATYZXu', 'Serwaa', 'Osei', '0244110013', NULL, NULL, NULL, '2008-07-21', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL),
-(225, 'c1370a61-5883-4628-9753-fb031f08bb86', 1, 'kwabena.agyei', 'kwabena.agyei@school.edu.gh', '$2y$10$ZLTz6499pDtYkqVS.kQwI.P/vaYMOxqNDHg1hcA9iDYf3lNrCFr2O', 'Kwabena', 'Agyei', '0244110014', NULL, NULL, NULL, '2007-04-16', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL),
-(226, '8faafb91-f57d-4321-8735-f415b36fcdd2', 1, 'maame.adusei', 'maame.adusei@school.edu.gh', '$2y$10$lzWy/QoxH1VvTlhnEYo/v.69kMtuDE402aPf.LbNwaS0c8SqX5/8S', 'Maame', 'Adusei', '0244110015', NULL, NULL, NULL, '2008-11-03', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL),
-(227, '93bb2943-8465-4d3f-9822-c1b9a8997804', 1, 'fiifi.quansah', 'fiifi.quansah@school.edu.gh', '$2y$10$FfuRafoZns3RkNIImWTGJeMKinlfoCALlxje9uJI8AqWQJdOSiiB6', 'Fiifi', 'Quansah', '0244110016', NULL, NULL, NULL, '2007-08-27', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL),
-(228, '258e1cd6-94cf-4140-ae41-adb6dfd7c5a6', 1, 'akua.tetteh', 'akua.tetteh@school.edu.gh', '$2y$10$S73Ds6/V5MLLfnCouXijcet0hzwiDCO5fHNcOlKognCMArto2iZWK', 'Akua', 'Tetteh', '0244110017', NULL, NULL, NULL, '2008-05-11', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL),
-(229, '8090fbf4-44d7-4a12-8e12-c9c56cb7368d', 1, 'kobbina.donkor', 'kobbina.donkor@school.edu.gh', '$2y$10$DutGPmoZoYZ9RZmBKfnme.fjghE1fFtuTlk3xGwYFGmxPBkGgcRlO', 'Kobbina', 'Donkor', '0244110018', NULL, NULL, NULL, '2007-01-30', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL),
-(230, '044f3dc5-e4ec-49f3-93b3-8a0fbe024ab0', 1, 'yaa.appiah', 'yaa.appiah@school.edu.gh', '$2y$10$e2V60Ic.IEIpW4wQVkUu3.mqmcHGv7GNUUjgXWvKUfKbzUyjKVC6e', 'Yaa', 'Appiah', '0244110019', NULL, NULL, NULL, '2008-09-06', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL),
-(231, 'ea5a396d-dd3e-4dcb-b5d1-7f8c72081128', 1, 'ekow.barimah', 'ekow.barimah@school.edu.gh', '$2y$10$riwM7fhATP9NiOaB.zEPKO/bjJYH2HAY/Ns28.aAHKK0OVEr.YLq2', 'Ekow', 'Barimah', '0244110020', NULL, NULL, NULL, '2007-06-22', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL),
-(232, '2273185d-931f-4d0f-be77-8c44bab3a708', 1, 'benedictosei.amankwa', 'benedictamankwa9@gmail.comee', '$2y$10$xMprgxYMflMGCaKqn2LPB.hlpWYPlzrR1GLeoALueeUEfh/6xBCRu', 'BENEDICT OSEI', 'AMANKWA', '+233550030318', 'Ashiaman', NULL, NULL, NULL, NULL, NULL, 0, 0, '2026-03-10 07:20:32', '2026-03-10 07:22:25', NULL),
-(233, '96463c8d-7282-4b8b-ada3-bf6ef1a34055', 1, 'jane.smith', 'jane.smith@school.com', '$2y$10$fh7QCQ/CtbuTGkum2piOIePWRmTGgPcBwFNhD9rhOlTtvkOKxjEgK', 'Jane', 'Smith', '+1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:24:42', '2026-03-10 07:24:42', NULL),
-(234, '4f79c1d9-cf46-4b69-b4d1-3ceb6ae5596d', 1, 'jane.smith1', 'jane.smith@school.com1', '$2y$10$hJX6PJsr/yNz8Y9ku84JuuFBe1OYSPNmueII69Uw1MtzzL9iJKcXy', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL),
-(235, '7b87aec0-ca89-4370-825f-f09b2c22585b', 1, 'jane.smith2', 'jane.smith@school.com2', '$2y$10$7ldQ8As3tRaAvu1Fiy0Lu.EqshYW0MvXP.kAGJSa7Ok/1SvjiMgli', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL),
-(236, '22cdd3db-06c3-435b-ae49-f914b9bbd800', 1, 'jane.smith3', 'jane.smith@school.com3', '$2y$10$HWVmhXpDIiURUiQXnQY59O2hKUC46.tF1nhT.t7XN.rV/9b2E1Xkq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL),
-(237, '594d0aa3-9107-42eb-a661-54097e555ba5', 1, 'jane.smith4', 'jane.smith@school.com4', '$2y$10$wSieEdxUiolHCordc.hUv.RTnUlwjj0P0F/cc/2fCIfFufrBxJRuO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL),
-(238, '94c9e61a-ffef-4521-bff8-4265adbdff28', 1, 'jane.smith5', 'jane.smith@school.com5', '$2y$10$Tn29ngdM5qFGAWT6rjAzFuxU.83D.uhl9Ec74BKdw0X3q3bw4vUq2', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(239, '07d4ad91-4e4c-45cb-9791-187d25aef72a', 1, 'jane.smith6', 'jane.smith@school.com6', '$2y$10$CYkBOQRNzmZO3ksoKgBhHu6byf1RnTUBs5aOQxgsvu5lBHku5Pe82', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(240, 'ee67e847-1c26-4058-a31d-bebcfeff15d0', 1, 'jane.smith7', 'jane.smith@school.com7', '$2y$10$KbjO/CPC1kxAiaFNv7Pom.64pmu8rGOOacwx1L/Bw8u9H0vqhFXPq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(241, 'f5185132-deee-4443-b72b-b434fd1ebd97', 1, 'jane.smith8', 'jane.smith@school.com8', '$2y$10$xBjavyIjBNIJl0eZgIBRGOBYHDnPblk2VwNY6e8L65vV3ytIPL.wO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(242, '242c80a9-7be4-4c00-97e2-196f3ad81629', 1, 'jane.smith9', 'jane.smith@school.com9', '$2y$10$TnMuUb3qv4Aj8fcgTkTmzOt22RdPe2AyV4QEguwccrXVlDZAn.O8m', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(243, 'c88f1603-f060-428b-8c2f-a42de5f5264d', 1, 'jane.smith10', 'jane.smith@school.com10', '$2y$10$uN5Oc843.XApC3xmeLCxROvC/hozwXf9rBR2McJwKSnQVIHoJfSli', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(244, 'b88c3da7-f8eb-4007-b314-774020ec74fa', 1, 'jane.smith11', 'jane.smith@school.com11', '$2y$10$ujykPBnIDE6dFBGOtRPZT.fU57uXo6bFohFjnsdhu.o15/KMHpof.', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(245, '315ee268-22e4-40d3-8694-13a23cddd50c', 1, 'jane.smith12', 'jane.smith@school.com12', '$2y$10$xBBnppQ8Q.b298XvovmN1.wR9g/MNHUPu2tq921rm3elsEGJRysNS', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(246, 'd87d1ff1-0e61-4fd3-9274-14a5ea51b8bd', 1, 'jane.smith13', 'jane.smith@school.com13', '$2y$10$eYhC0zT9CcQoB9U3Iu.L7OV4qBPgA3nDj3X2d3mQWIDrA51auGcfW', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL),
-(247, 'bef75289-0a8f-42b3-966b-f7880c1b5640', 1, 'jane.smith14', 'jane.smith@school.com14', '$2y$10$sN2um49PwxpLqPwLrMx.4eDAjLXHgxWP0rJCJ/trNsPrAisn6YRHe', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL),
-(248, '60a1c60f-8ecb-4097-a425-2c404acef8aa', 1, 'jane.smith15', 'jane.smith@school.com15', '$2y$10$qqIEuNKdXBLKDm2dTkV6Ye/SO7JpcfBa60wkPJwGtPQJevNyszKBq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL),
-(249, '616e5c71-b6b4-4479-b614-51015ba823ec', 1, 'jane.smith16', 'jane.smith@school.com16', '$2y$10$TLbQ/JePNF0yNiZiGcDZG.U3r.XSEHBxX8KSbrPAjVvCJMhYuYJYO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL),
-(250, '21330c9d-10d9-426b-9eab-d62566b14979', 1, 'jane.smith18', 'jane.smith@school.com18', '$2y$10$pyeotKpujxaJSQ1FYs1rVen2cZpcVWap1oVmbqXhAwvQnprY1dVv2', 'Jane', 'Smith', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL),
-(251, 'ae1f52a5-71ed-4846-bf23-99219a03a027', 1, 'jane.smith19', 'jane.smith@school.com21', '$2y$10$8rFrr.g8rNmh/ZJw9tN6v./F1VPdW2jTCZYqy1tT2.4bSHsHoirIC', 'Jane', 'Smith', '1234567893', '126 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL),
-(252, 'a1d882e9-8d67-4437-b02b-612264e28a96', 1, 'jane.smith20', 'jane.smith@school.com23', '$2y$10$/uD/nIThhaUuBsFypXr8Yue3SpNQuwz5ckHLUGgJ.Hi.8tiEvtJKa', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL);
+INSERT INTO `users` (`user_id`, `uuid`, `institution_id`, `username`, `email`, `password_hash`, `first_name`, `last_name`, `phone_number`, `address`, `city`, `region`, `date_of_birth`, `title`, `gender`, `is_super_admin`, `is_active`, `created_at`, `updated_at`, `deleted_at`, `profile_photo`) VALUES
+(1, '1bfe8992-16ae-11f1-9c28-10653022c2a0', NULL, 'superadmin', 'benedictamankwa18@gmail.com', '$2y$10$CAU/aeWxSNiY8Af7vaQn0.dy2ibLA/zvSLxGoBaT5pWN0kzLdl36O', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-09 09:08:07', NULL, NULL),
+(8, 'def42c78-1743-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(54, '55d2f602-1744-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(100, '627dbb2e-1744-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(146, 'f53e889e-1746-11f1-8ccc-10653022c2a0', NULL, 'superadmin', 'superadmin@ghslms.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Platform', 'Super Administrator', '+233 30 000 0000', NULL, NULL, NULL, NULL, NULL, NULL, 1, 1, '2026-03-01 21:21:31', '2026-03-08 09:27:46', NULL, NULL),
+(147, 'f55bd9f1-1746-11f1-8ccc-10653022c2a0', 1, 'admin', 'admin@accrashs.edu.gh', '$2y$10$nwVfofoMWzYe.k4tmh8EkeuIKfo0MuoENSH8j7mBZb721UJlnXyRi', 'Justice', 'Mensah', '+233 30 111 1001', 'scsacac', 'Accra', 'bono', NULL, 'mr', 'male', 0, 1, '2025-12-04 21:21:31', '2026-03-11 05:21:57', NULL, NULL),
+(148, 'f55bed57-1746-11f1-8ccc-10653022c2a0', 2, 'admin2', 'admin@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Agyemang', '+233 32 111 2001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(149, 'f55bf3bc-1746-11f1-8ccc-10653022c2a0', 3, 'admin3', 'admin@ccashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwesi', 'Atta', '+233 33 111 3001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(150, 'f55bf8f7-1746-11f1-8ccc-10653022c2a0', 4, 'admin4', 'admin@tamashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Alhassan', 'Mohammed', '+233 37 111 4001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(151, 'f55c96d5-1746-11f1-8ccc-10653022c2a0', 5, 'admin5', 'admin@hoshs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Elikem', 'Agbeko', '+233 36 111 5001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(152, 'f56106d8-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.mensah', 'kofi.mensah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Mensah', '+233 24 111 1111', 'South campus', NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-10 08:55:27', NULL, NULL),
+(153, 'f5617797-1746-11f1-8ccc-10653022c2a0', 1, 'ama.asante', 'ama.asante@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Asante', '+233 24 111 1112', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-02-04 21:21:31', '2026-03-08 09:28:10', NULL, NULL),
+(154, 'f5617b21-1746-11f1-8ccc-10653022c2a0', 1, 'kwabena.owusu', 'kwabena.owusu@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwabena', 'Owusu', '+233 24 111 1113', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(155, 'f5617dc9-1746-11f1-8ccc-10653022c2a0', 1, 'abena.boateng', 'abena.boateng@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Boateng', '+233 24 111 1114', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(156, 'f561800e-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.frimpong', 'yaw.frimpong@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Frimpong', '+233 24 111 1115', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(157, 'f5618275-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.darko', 'akosua.darko@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Darko', '+233 24 111 1116', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(158, 'f5618577-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.appiah', 'kwame.appiah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Appiah', '+233 24 111 1117', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(159, 'f56188e6-1746-11f1-8ccc-10653022c2a0', 1, 'efua.amoah', 'efua.amoah@accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Efua', 'Amoah', '+233 24 111 1118', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(160, 'f5618bfa-1746-11f1-8ccc-10653022c2a0', 2, 'kwasi.boadu', 'kwasi.boadu@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Boadu', '+233 24 112 1111', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-01-05 21:21:31', '2026-03-08 09:28:30', NULL, NULL),
+(161, 'f5618fc7-1746-11f1-8ccc-10653022c2a0', 2, 'adwoa.sarpong', 'adwoa.sarpong@kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Adwoa', 'Sarpong', '+233 24 112 1112', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(162, 'f56feb3f-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.osei', 'kwame.osei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Osei', '+233 55 111 2001', 'Tema', NULL, NULL, '2014-11-01', NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:00', NULL, NULL),
+(163, 'f570186d-1746-11f1-8ccc-10653022c2a0', 1, 'abena.adjei', 'abena.adjei@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Adjei', '+233 55 111 2002', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:00', NULL, NULL),
+(164, 'f5701c21-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.addo', 'kofi.addo@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Addo', '+233 55 111 2003', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-01 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(165, 'f5701efa-1746-11f1-8ccc-10653022c2a0', 1, 'ama.boakye', 'ama.boakye@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Boakye', '+233 55 111 2004', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(166, 'f570218e-1746-11f1-8ccc-10653022c2a0', 1, 'kwabena.nyarko', 'kwabena.nyarko@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwabena', 'Nyarko', '+233 55 111 2005', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(167, 'f5702415-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.mensah', 'akosua.mensah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Mensah', '+233 55 111 2006', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(168, 'f57025ee-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.owusu', 'yaw.owusu@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Owusu', '+233 55 111 2007', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(169, 'f57027a8-1746-11f1-8ccc-10653022c2a0', 1, 'efua.asare', 'efua.asare@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Efua', 'Asare', '+233 55 111 2008', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(170, 'f5702949-1746-11f1-8ccc-10653022c2a0', 1, 'kwesi.boateng', 'kwesi.boateng@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwesi', 'Boateng', '+233 55 111 2009', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(171, 'f5702bcd-1746-11f1-8ccc-10653022c2a0', 1, 'adwoa.ofori', 'adwoa.ofori@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Adwoa', 'Ofori', '+233 55 111 2010', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(172, 'f5702e1f-1746-11f1-8ccc-10653022c2a0', 1, 'kojo.agyemang', 'kojo.agyemang@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kojo', 'Agyemang', '+233 55 111 2011', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(173, 'f570303a-1746-11f1-8ccc-10653022c2a0', 1, 'afua.darko', 'afua.darko@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Afua', 'Darko', '+233 55 111 2012', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(174, 'f5703293-1746-11f1-8ccc-10653022c2a0', 1, 'kwame.frimpong', 'kwame.frimpong@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwame', 'Frimpong', '+233 55 111 2013', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(175, 'f5703513-1746-11f1-8ccc-10653022c2a0', 1, 'abena.appiah', 'abena.appiah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Appiah', '+233 55 111 2014', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(176, 'f570370e-1746-11f1-8ccc-10653022c2a0', 1, 'kofi.amoah', 'kofi.amoah@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kofi', 'Amoah', '+233 55 111 2015', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:01', NULL, NULL),
+(177, 'f570397e-1746-11f1-8ccc-10653022c2a0', 1, 'ama.sarpong', 'ama.sarpong@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Sarpong', '+233 55 111 2016', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:02', NULL, NULL),
+(178, 'f5703c1a-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.boadu', 'yaw.boadu@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Boadu', '+233 55 111 2017', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:02', NULL, NULL),
+(179, 'f57460aa-1746-11f1-8ccc-10653022c2a0', 1, 'akosua.atta', 'akosua.atta@student.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akosua', 'Atta', '+233 55 111 2018', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 22:08:18', NULL, NULL),
+(180, 'f57472dd-1746-11f1-8ccc-10653022c2a0', 2, 'kwasi.mohammed', 'kwasi.mohammed@student.kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mohammed', '+233 55 112 2001', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(181, 'f5756c83-1746-11f1-8ccc-10653022c2a0', 2, 'afua.agbeko', 'afua.agbeko@student.kumashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Afua', 'Agbeko', '+233 55 112 2002', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(182, 'f5893d8e-1746-11f1-8ccc-10653022c2a0', 1, 'yaw.osei', 'yaw.osei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaw', 'Osei', '+233 24 555 5555', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(183, 'f5895666-1746-11f1-8ccc-10653022c2a0', 1, 'akua.adjei', 'akua.adjei@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Akua', 'Adjei', '+233 24 555 5556', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(184, 'f5895a04-1746-11f1-8ccc-10653022c2a0', 1, 'emmanuel.addo', 'emmanuel.addo@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Emmanuel', 'Addo', '+233 24 555 5557', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(185, 'f5895ca7-1746-11f1-8ccc-10653022c2a0', 1, 'patience.boakye', 'patience.boakye@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Patience', 'Boakye', '+233 24 555 5558', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(186, 'f5896754-1746-11f1-8ccc-10653022c2a0', 1, 'samuel.nyarko', 'samuel.nyarko@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Samuel', 'Nyarko', '+233 24 555 5559', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(187, 'f5896b77-1746-11f1-8ccc-10653022c2a0', 1, 'grace.mensah', 'grace.mensah@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Grace', 'Mensah', '+233 24 555 5560', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(188, 'f5896f23-1746-11f1-8ccc-10653022c2a0', 1, 'peter.owusu', 'peter.owusu@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Peter', 'Owusu', '+233 24 555 5561', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(189, 'f58972c5-1746-11f1-8ccc-10653022c2a0', 1, 'mary.asare', 'mary.asare@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Mary', 'Asare', '+233 24 555 5562', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(190, 'f589767e-1746-11f1-8ccc-10653022c2a0', 3, 'joseph.boateng', 'joseph.boateng@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Joseph', 'Boateng', '+233 24 555 5563', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-09 08:04:10', NULL, NULL),
+(191, 'f5897ade-1746-11f1-8ccc-10653022c2a0', 1, 'elizabeth.ofori', 'elizabeth.ofori@parent.accrashs.edu.gh', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Elizabeth', 'Ofori', '+233 24 555 5564', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2025-12-04 21:21:31', '2026-03-08 09:07:21', NULL, NULL),
+(192, '16915edc-c68d-4ca7-a03c-74489c190c1d', 1, 'superadmin', 'benedictamankwa18@gmail.com', '$2y$10$TLvTH/nLKUlruSjJj4crlujCopGiw9Faa5nBQXxNPlmSJVp8H7R/O', 'University', 'Education, Winneba (Winneba) BENEDICT OSEI AMANKWA', '0594500785', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-09 21:51:27', '2026-03-09 22:08:00', NULL, NULL),
+(194, 'd6defd6d-3dff-4ca4-b2f6-5a5285bc5bb5', 1, '212ewewewe', 'benedictamankwa9@gmail.com', '$2y$10$vWrib0kf/2NiuiNHDi.nYOB2ylbxzE7QjSFJoyiBqJmO2hIfHJKQ.', 'BENEDICT OSEI', 'AMANKWA', '0550030318', NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-09 22:06:52', '2026-03-10 23:31:26', NULL, NULL),
+(195, 'a4c27bd6-7fde-4f8e-b861-9bade903b61b', 1, 'superadmin12221', 'nethunterghana@gmail.com', '$2y$10$.IUP.C1JWVHW.YUvOzsXBO0FCJ1bk7lR67h9G8skC5TYwrXDoTl36', 'n3thun3r', 'n3thun3r', '0594500785', NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, '2026-03-09 22:07:30', '2026-03-09 22:40:04', NULL, NULL),
+(196, '115214ed-4a7a-44bd-851c-d041a986447d', 1, 'kwame.mensah', 'kwame.mensah@school.edu.gh', '$2y$10$XNY7QoGr3E1q9hoCTyQ.HumsvOEdAXQnjWQNDn7Y8SkIshzKK3ljq', 'Kwame', 'Mensah', '0244123456', NULL, NULL, NULL, '2008-05-15', NULL, NULL, 0, 1, '2026-03-09 22:41:47', '2026-03-09 22:41:47', NULL, NULL),
+(197, '5ac918f2-b23c-48fb-8dee-55d0ad3b7f6b', 1, 'kwame1.mensah', 'kwame1.mensah@school.edu.gh', '$2y$10$oUPIKvOp3MX9NAgpGVZTu.DQXvCEzCr3mhQPOh6YSsiY13HKnuHOO', 'Kwame1', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL, NULL),
+(198, '415d4a86-3be1-42f0-afe3-76c804dda18b', 1, 'kwame2.mensah', 'kwame2.mensah@school.edu.gh', '$2y$10$8IceZCT142Uy9QyxVn3eqONV/SAsCPDBG5Z8JfFw4nacN5EvspTym', 'Kwame2', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL, NULL),
+(199, '71fa67c3-1431-4d87-914d-e5b9a1b56cb4', 1, 'kwame3.mensah', 'kwame3.mensah@school.edu.gh', '$2y$10$1enyc8cxm6tf7gR8ehANBupL2UlgVuQbUtlSQ8JbvVq0g69p7S/U.', 'Kwame3', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL, NULL),
+(200, 'ea6ffa7b-4200-4c32-87c8-23cbbdf561be', 1, 'kwame4.mensah', 'kwame4.mensah@school.edu.gh', '$2y$10$iV0sH6.Xsn8xz0MZO/T2qu0cbYvzieUYfLCa.VYIGlS6S3JHIOJC2', 'Kwame4', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:29', '2026-03-09 22:50:29', NULL, NULL),
+(201, '8169e18b-1a79-4db3-bef5-80bb7a03df31', 1, 'kwame5.mensah', 'kwame5.mensah@school.edu.gh', '$2y$10$xEOMbqbQzBW2F4g3310h.e2Px/sfBvttfkMknnH7.zV1NFUF7dd26', 'Kwame5', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL, NULL),
+(202, 'af73dd18-c3a3-4851-b0f7-833168d9cafb', 1, 'kwame6.mensah', 'kwame6.mensah@school.edu.gh', '$2y$10$aZKCa/5qF7KevRsnutHmdugiDNa45Y4eT8ZfEV1d0FOo0e1go7QOq', 'Kwame6', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL, NULL),
+(203, '71d8450a-3936-41a2-aade-fe38926e21cb', 1, 'kwame7.mensah', 'kwame7.mensah@school.edu.gh', '$2y$10$q7WATFLofxlIgOQq89MNbeH0clRu.t84cBjibqNPQ9b5zhTLrmEfK', 'Kwame7', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL, NULL),
+(204, 'e9d6b06e-5bbc-45bc-9c94-2ea526ed67b3', 1, 'kwame8.mensah', 'kwame8.mensah@school.edu.gh', '$2y$10$FzoL8RvjtmXhDxDHiIO5buWxSMLZvVltc/SeVYnCq4JzX0hlzlWDm', 'Kwame8', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:30', '2026-03-09 22:50:30', NULL, NULL),
+(205, 'c54ce17e-9938-4e1d-8259-68ad8170a92a', 1, 'kwame9.mensah', 'kwame9.mensah@school.edu.gh', '$2y$10$iEBwZ41p85X0zL7uhUL73Oi8J8wF7drY2nIPFUMhnBGpa5srXfk4m', 'Kwame9', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL, NULL),
+(206, '439031a0-5451-4c95-baf2-7ebb50a4cc43', 1, 'kwame10.mensah', 'kwame10.mensah@school.edu.gh', '$2y$10$pEoIXbnaXv/C6wAvJ2QsiupZKqXZzicVrq1y.HdaLmM1PIc3fL8vm', 'Kwame10', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL, NULL),
+(207, '62d61b27-e178-41c5-bdd2-59f9e3381f87', 1, 'kwame11.mensah', 'kwame11.mensah@school.edu.gh', '$2y$10$LEz/ZxEt.iR23zKhl6LW1.RRicFmEhlR3OHPhbI0lS7WF7R5Uh37i', 'Kwame11', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL, NULL),
+(208, 'b997d8fb-783e-4c4a-874a-3fff0c8c171c', 1, 'kwame12.mensah', 'kwame12.mensah@school.edu.gh', '$2y$10$dlcKSZoqSY79M8Ij/sHA.ObdBBDki2Cut7cyYTGwq7VOAspYm6tGm', 'Kwame12', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL, NULL),
+(209, '7aef785b-91c8-4fc8-a234-a675ae7da834', 1, 'kwame13.mensah', 'kwame13.mensah@school.edu.gh', '$2y$10$oMq9LVjpa0bHVdh.3Noyke/8lHHmgLvsbc5efEbDVUi.Ae6xXkTly', 'Kwame13', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:31', '2026-03-09 22:50:31', NULL, NULL),
+(210, 'e39d9287-d378-42d2-a68d-f15d65adbfd8', 1, 'kwame14.mensah', 'kwame14.mensah@school.edu.gh', '$2y$10$s2oyo2AlD5pLke0xPJ5xoeqz9IE6e4qxqtVQZmG4DxewFQXcEX/WC', 'Kwame14', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:32', '2026-03-09 22:50:32', NULL, NULL),
+(211, '37e99e79-4a92-470b-9a1a-4d0d5b09b8bf', 1, 'kwame15.mensah', 'kwame15.mensah@school.edu.gh', '$2y$10$9CON1XIuvT6.gay4tF8sHOOF8vOsX4iwSCjE0OpPMVvTGNus0BpIS', 'Kwame15', 'Mensah', '244123456', NULL, NULL, NULL, '0000-00-00', NULL, NULL, 0, 1, '2026-03-09 22:50:32', '2026-03-09 22:50:32', NULL, NULL),
+(212, '42f13855-2589-41b1-8d9a-aeb26b49b6f8', 1, 'ama.owusu', 'ama.owusu@school.edu.gh', '$2y$10$cszqb7stUZ2Q5oUCD9YHmuJd6AZZbo7do9S3UamwjXZcHPPGPq44O', 'Ama', 'Owusu', '0244100001', NULL, NULL, NULL, '2008-03-12', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL, NULL),
+(213, '3dbce357-0e96-4db9-bccc-b4f288cab391', 1, 'kofi.asante', 'kofi.asante@school.edu.gh', '$2y$10$dN7oDoNuUqIUXMzaePb5V.l5y6Vajmeu8AmwEKNyYLV1Pe5j22bJy', 'Kofi', 'Asante', '0244100002', NULL, NULL, NULL, '2007-11-25', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL, NULL),
+(214, '421f1aae-55c6-4749-ac40-1daea189da75', 1, 'akosua.boateng', 'akosua.boateng@school.edu.gh', '$2y$10$Yl18N97DBiK1p3BY9SPfR.iDWVAakSnZ//vM.HrYw5uhHTfpUdcz2', 'Akosua', 'Boateng', '0244100003', NULL, NULL, NULL, '2008-06-08', NULL, NULL, 0, 1, '2026-03-09 23:17:53', '2026-03-09 23:17:53', NULL, NULL),
+(215, '768418f2-32e8-4da9-aa06-a62530ddca2a', 1, 'yaw.darko', 'yaw.darko@school.edu.gh', '$2y$10$0yJcPQEriU89hfBDOaXed.VdfHNJmbowzbWIgx8EL3e7kZI/zC1gm', 'Yaw', 'Darko', '0244100004', NULL, NULL, NULL, '2007-09-14', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL, NULL),
+(216, 'e6ae46dc-cd07-490b-a72a-6fd3267aba25', 1, 'abena.frimpong', 'abena.frimpong@school.edu.gh', '$2y$10$M12rX8oCiWfyBcpi1XPS0ewBAYoFDdjd9LuduQsMPHmQU/NdaeesC', 'Abena', 'Frimpong', '0244100005', NULL, NULL, NULL, '2008-01-30', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL, NULL),
+(217, '394c8725-3b70-41df-afbc-0ed8ca0a25bc', 1, 'kweku.mensah', 'kweku.mensah@school.edu.gh', '$2y$10$BGEkZOoedrv7mL1wjhlWdeKX/tS/Gn3dBgL8OXWuDHN592vnls1OC', 'Kweku', 'Mensah', '0244100006', NULL, NULL, NULL, '2007-07-19', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL, NULL),
+(218, '23a5fdbf-175d-46bb-b6a1-9fefaaeeaf0c', 1, 'adwoa.amponsah', 'adwoa.amponsah@school.edu.gh', '$2y$10$9LMLIvvul9mEokpbKTbR0.qg8KCMODeVz6Px2CrH0v6IPRwpquAJm', 'Adwoa', 'Amponsah', '0244100007', NULL, NULL, NULL, '2008-04-22', NULL, NULL, 0, 1, '2026-03-09 23:17:54', '2026-03-09 23:17:54', NULL, NULL),
+(219, '88348fcf-85d7-484f-8ba7-4bd8c2295c5f', 1, 'kwame.adjei', 'kwame.adjei@school.edu.gh', '$2y$10$/GHTA/rdpt5eUtl2GwLj.u8p13xJ2ReiMbffm4rY.K/O8ef4fvh1G', 'Kwame', 'Adjei', '0244100008', NULL, NULL, NULL, '2007-12-05', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL, NULL),
+(220, 'bfea707b-7827-4462-a206-a38ee179a916', 1, 'efua.nkrumah', 'efua.nkrumah@school.edu.gh', '$2y$10$RGgVJwrE0rMmPaAHUpnOPeWmCq5BzSWcnWaur3n4oy0dbpoUReHk.', 'Efua', 'Nkrumah', '0244100009', NULL, NULL, NULL, '2008-08-17', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL, NULL),
+(221, 'e3ea4532-77d4-4d94-8349-45883b4d2246', 1, 'kojo.ofori', 'kojo.ofori@school.edu.gh', '$2y$10$tdobNEDhjD72gR8h.ZsTkO.E6b.od/V8tsbByXRfQgytL4UkyzGJa', 'Kojo', 'Ofori', '0244100010', NULL, NULL, NULL, '2007-05-03', NULL, NULL, 0, 1, '2026-03-09 23:17:55', '2026-03-09 23:17:55', NULL, NULL),
+(222, '4c3cf172-04ad-46b4-bb77-8da4a0f30128', 1, 'afia.asare', 'afia.asare@school.edu.gh', '$2y$10$PtdbRPljYvbklgznf16AEe3PRlT0Uym3UsWe9WRbh0qY/2LrUraIq', 'Afia', 'Asare', '0244110011', NULL, NULL, NULL, '2008-02-14', NULL, NULL, 0, 1, '2026-03-09 23:22:51', '2026-03-09 23:22:51', NULL, NULL),
+(223, 'd8d142b6-87c3-4b3a-9f38-1ced2aa9aaed', 1, 'nana.boateng', 'nana.boateng@school.edu.gh', '$2y$10$EobKyzBWPiIdHSkCzBQ1ieflMpOsCfh7aKazgCqygeG2hCiqffJ2C', 'Nana', 'Boateng', '0244110012', NULL, NULL, NULL, '2007-10-09', NULL, NULL, 0, 1, '2026-03-09 23:22:51', '2026-03-09 23:22:51', NULL, NULL),
+(224, '242166ba-7331-44fe-97d9-9400057e061c', 1, 'serwaa.osei', 'serwaa.osei@school.edu.gh', '$2y$10$YcCg865JXxz/j7VDp59E7.2HWod3jt2mSyu7CWaShh.lCXwATYZXu', 'Serwaa', 'Osei', '0244110013', NULL, NULL, NULL, '2008-07-21', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL, NULL),
+(225, 'c1370a61-5883-4628-9753-fb031f08bb86', 1, 'kwabena.agyei', 'kwabena.agyei@school.edu.gh', '$2y$10$ZLTz6499pDtYkqVS.kQwI.P/vaYMOxqNDHg1hcA9iDYf3lNrCFr2O', 'Kwabena', 'Agyei', '0244110014', NULL, NULL, NULL, '2007-04-16', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL, NULL),
+(226, '8faafb91-f57d-4321-8735-f415b36fcdd2', 1, 'maame.adusei', 'maame.adusei@school.edu.gh', '$2y$10$lzWy/QoxH1VvTlhnEYo/v.69kMtuDE402aPf.LbNwaS0c8SqX5/8S', 'Maame', 'Adusei', '0244110015', NULL, NULL, NULL, '2008-11-03', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL, NULL),
+(227, '93bb2943-8465-4d3f-9822-c1b9a8997804', 1, 'fiifi.quansah', 'fiifi.quansah@school.edu.gh', '$2y$10$FfuRafoZns3RkNIImWTGJeMKinlfoCALlxje9uJI8AqWQJdOSiiB6', 'Fiifi', 'Quansah', '0244110016', NULL, NULL, NULL, '2007-08-27', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL, NULL),
+(228, '258e1cd6-94cf-4140-ae41-adb6dfd7c5a6', 1, 'akua.tetteh', 'akua.tetteh@school.edu.gh', '$2y$10$S73Ds6/V5MLLfnCouXijcet0hzwiDCO5fHNcOlKognCMArto2iZWK', 'Akua', 'Tetteh', '0244110017', NULL, NULL, NULL, '2008-05-11', NULL, NULL, 0, 1, '2026-03-09 23:22:52', '2026-03-09 23:22:52', NULL, NULL),
+(229, '8090fbf4-44d7-4a12-8e12-c9c56cb7368d', 1, 'kobbina.donkor', 'kobbina.donkor@school.edu.gh', '$2y$10$DutGPmoZoYZ9RZmBKfnme.fjghE1fFtuTlk3xGwYFGmxPBkGgcRlO', 'Kobbina', 'Donkor', '0244110018', NULL, NULL, NULL, '2007-01-30', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL, NULL),
+(230, '044f3dc5-e4ec-49f3-93b3-8a0fbe024ab0', 1, 'yaa.appiah', 'yaa.appiah@school.edu.gh', '$2y$10$e2V60Ic.IEIpW4wQVkUu3.mqmcHGv7GNUUjgXWvKUfKbzUyjKVC6e', 'Yaa', 'Appiah', '0244110019', NULL, NULL, NULL, '2008-09-06', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL, NULL),
+(231, 'ea5a396d-dd3e-4dcb-b5d1-7f8c72081128', 1, 'ekow.barimah', 'ekow.barimah@school.edu.gh', '$2y$10$riwM7fhATP9NiOaB.zEPKO/bjJYH2HAY/Ns28.aAHKK0OVEr.YLq2', 'Ekow', 'Barimah', '0244110020', NULL, NULL, NULL, '2007-06-22', NULL, NULL, 0, 1, '2026-03-09 23:22:53', '2026-03-09 23:22:53', NULL, NULL),
+(232, '2273185d-931f-4d0f-be77-8c44bab3a708', 1, 'benedictosei.amankwa', 'benedictamankwa9@gmail.comee', '$2y$10$xMprgxYMflMGCaKqn2LPB.hlpWYPlzrR1GLeoALueeUEfh/6xBCRu', 'BENEDICT OSEI', 'AMANKWA', '+233550030318', 'Ashiaman', NULL, NULL, NULL, NULL, NULL, 0, 0, '2026-03-10 07:20:32', '2026-03-10 07:22:25', NULL, NULL),
+(233, '96463c8d-7282-4b8b-ada3-bf6ef1a34055', 1, 'jane.smith', 'jane.smith@school.com', '$2y$10$fh7QCQ/CtbuTGkum2piOIePWRmTGgPcBwFNhD9rhOlTtvkOKxjEgK', 'Jane', 'Smith', '+1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:24:42', '2026-03-10 07:24:42', NULL, NULL),
+(234, '4f79c1d9-cf46-4b69-b4d1-3ceb6ae5596d', 1, 'jane.smith1', 'jane.smith@school.com1', '$2y$10$hJX6PJsr/yNz8Y9ku84JuuFBe1OYSPNmueII69Uw1MtzzL9iJKcXy', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL, NULL),
+(235, '7b87aec0-ca89-4370-825f-f09b2c22585b', 1, 'jane.smith2', 'jane.smith@school.com2', '$2y$10$7ldQ8As3tRaAvu1Fiy0Lu.EqshYW0MvXP.kAGJSa7Ok/1SvjiMgli', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL, NULL),
+(236, '22cdd3db-06c3-435b-ae49-f914b9bbd800', 1, 'jane.smith3', 'jane.smith@school.com3', '$2y$10$HWVmhXpDIiURUiQXnQY59O2hKUC46.tF1nhT.t7XN.rV/9b2E1Xkq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL, NULL),
+(237, '594d0aa3-9107-42eb-a661-54097e555ba5', 1, 'jane.smith4', 'jane.smith@school.com4', '$2y$10$wSieEdxUiolHCordc.hUv.RTnUlwjj0P0F/cc/2fCIfFufrBxJRuO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:04', '2026-03-10 07:43:04', NULL, NULL),
+(238, '94c9e61a-ffef-4521-bff8-4265adbdff28', 1, 'jane.smith5', 'jane.smith@school.com5', '$2y$10$Tn29ngdM5qFGAWT6rjAzFuxU.83D.uhl9Ec74BKdw0X3q3bw4vUq2', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(239, '07d4ad91-4e4c-45cb-9791-187d25aef72a', 1, 'jane.smith6', 'jane.smith@school.com6', '$2y$10$CYkBOQRNzmZO3ksoKgBhHu6byf1RnTUBs5aOQxgsvu5lBHku5Pe82', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(240, 'ee67e847-1c26-4058-a31d-bebcfeff15d0', 1, 'jane.smith7', 'jane.smith@school.com7', '$2y$10$KbjO/CPC1kxAiaFNv7Pom.64pmu8rGOOacwx1L/Bw8u9H0vqhFXPq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(241, 'f5185132-deee-4443-b72b-b434fd1ebd97', 1, 'jane.smith8', 'jane.smith@school.com8', '$2y$10$xBjavyIjBNIJl0eZgIBRGOBYHDnPblk2VwNY6e8L65vV3ytIPL.wO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(242, '242c80a9-7be4-4c00-97e2-196f3ad81629', 1, 'jane.smith9', 'jane.smith@school.com9', '$2y$10$TnMuUb3qv4Aj8fcgTkTmzOt22RdPe2AyV4QEguwccrXVlDZAn.O8m', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(243, 'c88f1603-f060-428b-8c2f-a42de5f5264d', 1, 'jane.smith10', 'jane.smith@school.com10', '$2y$10$uN5Oc843.XApC3xmeLCxROvC/hozwXf9rBR2McJwKSnQVIHoJfSli', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(244, 'b88c3da7-f8eb-4007-b314-774020ec74fa', 1, 'jane.smith11', 'jane.smith@school.com11', '$2y$10$ujykPBnIDE6dFBGOtRPZT.fU57uXo6bFohFjnsdhu.o15/KMHpof.', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(245, '315ee268-22e4-40d3-8694-13a23cddd50c', 1, 'jane.smith12', 'jane.smith@school.com12', '$2y$10$xBBnppQ8Q.b298XvovmN1.wR9g/MNHUPu2tq921rm3elsEGJRysNS', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(246, 'd87d1ff1-0e61-4fd3-9274-14a5ea51b8bd', 1, 'jane.smith13', 'jane.smith@school.com13', '$2y$10$eYhC0zT9CcQoB9U3Iu.L7OV4qBPgA3nDj3X2d3mQWIDrA51auGcfW', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:05', '2026-03-10 07:43:05', NULL, NULL),
+(247, 'bef75289-0a8f-42b3-966b-f7880c1b5640', 1, 'jane.smith14', 'jane.smith@school.com14', '$2y$10$sN2um49PwxpLqPwLrMx.4eDAjLXHgxWP0rJCJ/trNsPrAisn6YRHe', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL),
+(248, '60a1c60f-8ecb-4097-a425-2c404acef8aa', 1, 'jane.smith15', 'jane.smith@school.com15', '$2y$10$qqIEuNKdXBLKDm2dTkV6Ye/SO7JpcfBa60wkPJwGtPQJevNyszKBq', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL),
+(249, '616e5c71-b6b4-4479-b614-51015ba823ec', 1, 'jane.smith16', 'jane.smith@school.com16', '$2y$10$TLbQ/JePNF0yNiZiGcDZG.U3r.XSEHBxX8KSbrPAjVvCJMhYuYJYO', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL),
+(250, '21330c9d-10d9-426b-9eab-d62566b14979', 1, 'jane.smith18', 'jane.smith@school.com18', '$2y$10$pyeotKpujxaJSQ1FYs1rVen2cZpcVWap1oVmbqXhAwvQnprY1dVv2', 'Jane', 'Smith', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL),
+(251, 'ae1f52a5-71ed-4846-bf23-99219a03a027', 1, 'jane.smith19', 'jane.smith@school.com21', '$2y$10$8rFrr.g8rNmh/ZJw9tN6v./F1VPdW2jTCZYqy1tT2.4bSHsHoirIC', 'Jane', 'Smith', '1234567893', '126 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL),
+(252, 'a1d882e9-8d67-4437-b02b-612264e28a96', 1, 'jane.smith20', 'jane.smith@school.com23', '$2y$10$/uD/nIThhaUuBsFypXr8Yue3SpNQuwz5ckHLUGgJ.Hi.8tiEvtJKa', 'Jane', 'Smith', '1234567890', '123 Main St', NULL, NULL, NULL, NULL, NULL, 0, 1, '2026-03-10 07:43:06', '2026-03-10 07:43:06', NULL, NULL);
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `user_activity`
---
--- Creation: Mar 03, 2026 at 08:58 PM
--- Last update: Mar 10, 2026 at 10:07 PM
 --
 
 DROP TABLE IF EXISTS `user_activity`;
@@ -2725,7 +2548,7 @@ CREATE TABLE IF NOT EXISTS `user_activity` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_activity_type` (`activity_type`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=4920 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5783 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `user_activity`
@@ -6966,14 +6789,877 @@ INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activit
 (4916, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:02:15'),
 (4917, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:02:15'),
 (4918, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:07:15'),
-(4919, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:07:16');
+(4919, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:07:16'),
+(4920, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:12:15'),
+(4921, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:12:15'),
+(4922, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:17:37'),
+(4923, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:17:37'),
+(4924, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:18:38'),
+(4925, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:18:38'),
+(4926, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:31:34'),
+(4927, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:31:34'),
+(4928, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:31:41'),
+(4929, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:31:42'),
+(4930, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:03'),
+(4931, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:03'),
+(4932, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:03'),
+(4933, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:04'),
+(4934, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:04'),
+(4935, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:08'),
+(4936, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:08'),
+(4937, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:08'),
+(4938, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:08'),
+(4939, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:21'),
+(4940, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:21'),
+(4941, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:21'),
+(4942, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:21'),
+(4943, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:22'),
+(4944, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:26'),
+(4945, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:26'),
+(4946, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:27'),
+(4947, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:30'),
+(4948, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:30'),
+(4949, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:30'),
+(4950, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:32:30'),
+(4951, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:05'),
+(4952, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:06'),
+(4953, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:06'),
+(4954, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:11'),
+(4955, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/subjects\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:16'),
+(4956, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:33'),
+(4957, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:33'),
+(4958, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:33:33'),
+(4959, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:34:34'),
+(4960, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:34:35'),
+(4961, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:34:35'),
+(4962, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:34:35'),
+(4963, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:34:35'),
+(4964, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:54:34'),
+(4965, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:54:34'),
+(4966, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:59:35'),
+(4967, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 22:59:35'),
+(4968, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:03:35'),
+(4969, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:03:35'),
+(4970, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:03:36'),
+(4971, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:03:36'),
+(4972, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:03:36'),
+(4973, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:18:59'),
+(4974, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:18:59'),
+(4975, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:03'),
+(4976, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:04'),
+(4977, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:20'),
+(4978, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:20'),
+(4979, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:20'),
+(4980, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:21'),
+(4981, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:19:21'),
+(4982, 147, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:19:43'),
+(4983, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:20:32'),
+(4984, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:20:35'),
+(4985, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:20:36'),
+(4986, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:20:57'),
+(4987, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:20:57'),
+(4988, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?page=1&per_page=10&limit=10&include_all=1&include_admins=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:21:14'),
+(4989, 1, 'api_access', '{\"endpoint\":\"\\/api\\/roles\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:21:16'),
+(4990, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:21:17'),
+(4991, 1, 'api_access', '{\"endpoint\":\"\\/api\\/institutions?include_all=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:21:17'),
+(4992, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin\\/users?page=1&per_page=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:21:17'),
+(4993, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:25:35'),
+(4994, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:25:35'),
+(4995, 1, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:26:39'),
+(4996, 194, 'password_reset_requested', '{\"ip\":\"::1\",\"email\":\"benedictamankwa9@gmail.com\",\"email_sent\":true}', '::1', NULL, '2026-03-10 23:28:07'),
+(4997, 194, 'password_reset_completed', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:31:26'),
+(4998, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:32:10'),
+(4999, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:32:11'),
+(5000, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:32:11'),
+(5001, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:37:12'),
+(5002, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:37:12'),
+(5003, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:42:12'),
+(5004, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:42:12'),
+(5005, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:47:12'),
+(5006, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:47:12'),
+(5007, 1, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:48:23'),
+(5008, 147, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-10 23:48:35'),
+(5009, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:48:36'),
+(5010, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:48:36'),
+(5011, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:10'),
+(5012, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:10'),
+(5013, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:10'),
+(5014, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:10'),
+(5015, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:10'),
+(5016, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:20'),
+(5017, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:20'),
+(5018, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:20'),
+(5019, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:20'),
+(5020, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:23'),
+(5021, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:23'),
+(5022, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:23'),
+(5023, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:23'),
+(5024, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:23'),
+(5025, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/generate-id\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:36'),
+(5026, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:46'),
+(5027, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:46'),
+(5028, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:46'),
+(5029, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:48'),
+(5030, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:48'),
+(5031, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:48'),
+(5032, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:48'),
+(5033, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:51'),
+(5034, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:51'),
+(5035, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:51'),
+(5036, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:51'),
+(5037, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:51'),
+(5038, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/generate-id\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:49:56'),
+(5039, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20&program_id=27\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:17'),
+(5040, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:17'),
+(5041, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:17'),
+(5042, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20&program_id=24\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:20'),
+(5043, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:20'),
+(5044, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:20'),
+(5045, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:22'),
+(5046, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:22'),
+(5047, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:23'),
+(5048, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:52'),
+(5049, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:52'),
+(5050, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:53'),
+(5051, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:56'),
+(5052, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects\\/75\\/teachers\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:56'),
+(5053, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:59'),
+(5054, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects\\/79\\/teachers\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:50:59'),
+(5055, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:03'),
+(5056, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects\\/74\\/teachers\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:03'),
+(5057, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:09'),
+(5058, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20&program_id=26\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:32'),
+(5059, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20&program_id=25\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:35'),
+(5060, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20&program_id=23\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:39'),
+(5061, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:43'),
+(5062, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:51:53'),
+(5063, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:52:03'),
+(5064, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects\\/74\\/teachers\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:52:03'),
+(5065, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:53:16'),
+(5066, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/4a61a30f-259f-4dd1-b3fe-1129f679d852\\/subjects\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:53:18'),
+(5067, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:53:36'),
+(5068, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:53:36'),
+(5069, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:58:36'),
+(5070, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-10 23:58:36'),
+(5071, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/4a61a30f-259f-4dd1-b3fe-1129f679d852\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:01:35'),
+(5072, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/4a61a30f-259f-4dd1-b3fe-1129f679d852\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:01:35'),
+(5073, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/4a61a30f-259f-4dd1-b3fe-1129f679d852\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:01:35'),
+(5074, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:03:36'),
+(5075, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:03:36'),
+(5076, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:04'),
+(5077, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:04'),
+(5078, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:04'),
+(5079, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:04'),
+(5080, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:04'),
+(5081, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/generate-id\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:13'),
+(5082, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:58'),
+(5083, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:58'),
+(5084, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:05:58'),
+(5085, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:22'),
+(5086, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:22'),
+(5087, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:22'),
+(5088, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:43'),
+(5089, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:43'),
+(5090, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:06:43'),
+(5091, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:08:36'),
+(5092, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:08:36'),
+(5093, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:13:36'),
+(5094, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:13:36'),
+(5095, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:03'),
+(5096, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:03'),
+(5097, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:03'),
+(5098, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:03'),
+(5099, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:03'),
+(5100, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=58&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:38'),
+(5101, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=75&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:43'),
+(5102, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=79&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:18:59'),
+(5103, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teacher-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 00:19:30'),
+(5104, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/51\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:19:30'),
+(5105, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/62\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:19:30'),
+(5106, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=58&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:19:30'),
+(5107, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=79&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:19:30'),
+(5108, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=74&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:19:49'),
+(5109, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=89&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:19:57'),
+(5110, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=43&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:21:47'),
+(5111, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=75&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:21:53'),
+(5112, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?subject_id=84&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:21:59'),
+(5113, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:23:03'),
+(5114, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:23:03'),
+(5115, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:28:03'),
+(5116, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:28:03'),
+(5117, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:23'),
+(5118, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:23'),
+(5119, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:23'),
+(5120, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:23'),
+(5121, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:23'),
+(5122, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=52&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:29'),
+(5123, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:30'),
+(5124, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:53'),
+(5125, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:53'),
+(5126, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:53'),
+(5127, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:53'),
+(5128, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:31:53'),
+(5129, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:02'),
+(5130, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:02'),
+(5131, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:02'),
+(5132, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:02'),
+(5133, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:02'),
+(5134, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=43&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:08'),
+(5135, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:32:08'),
+(5136, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:33:58'),
+(5137, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:33:58'),
+(5138, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:33:58'),
+(5139, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:33:58'),
+(5140, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:33:58'),
+(5141, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:06'),
+(5142, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:06'),
+(5143, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:06'),
+(5144, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:06'),
+(5145, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:06'),
+(5146, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=43&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:11'),
+(5147, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:34:11'),
+(5148, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:28'),
+(5149, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:28'),
+(5150, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:28'),
+(5151, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:28'),
+(5152, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:28'),
+(5153, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:34'),
+(5154, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:35:34'),
+(5155, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/48\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:37:33'),
+(5156, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/49\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:37:33'),
+(5157, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:37:33'),
+(5158, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:37:33'),
+(5159, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/48\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:38:20'),
+(5160, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/49\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:38:20'),
+(5161, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/61\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:38:20'),
+(5162, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/52\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:38:20'),
+(5163, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/58\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:38:20');
+INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activity_details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(5164, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:38:20'),
+(5165, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:38:21'),
+(5166, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:09'),
+(5167, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=52&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:09'),
+(5168, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:11'),
+(5169, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=51&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:12'),
+(5170, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:17'),
+(5171, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=48&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:17'),
+(5172, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:18'),
+(5173, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=47&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:19'),
+(5174, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:20'),
+(5175, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=46&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:20'),
+(5176, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:22'),
+(5177, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=45&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:22'),
+(5178, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:24'),
+(5179, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=57&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:24'),
+(5180, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:25'),
+(5181, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=56&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:25'),
+(5182, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=56&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:31'),
+(5183, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:31'),
+(5184, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:33'),
+(5185, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=55&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:33'),
+(5186, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:35'),
+(5187, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:35'),
+(5188, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:39'),
+(5189, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:39:40'),
+(5190, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/48\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:01'),
+(5191, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/49\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:01'),
+(5192, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/61\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:01'),
+(5193, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/52\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:01'),
+(5194, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/55\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:01'),
+(5195, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/57\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:02'),
+(5196, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/58\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 00:40:02'),
+(5197, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:02'),
+(5198, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:02'),
+(5199, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=54&limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:08'),
+(5200, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:08'),
+(5201, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/0778918c-3865-4a52-b1ab-9b8aebdf9ff4\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:12'),
+(5202, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/0778918c-3865-4a52-b1ab-9b8aebdf9ff4\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:12'),
+(5203, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/0778918c-3865-4a52-b1ab-9b8aebdf9ff4\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:12'),
+(5204, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:27'),
+(5205, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:40:27'),
+(5206, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:41:31'),
+(5207, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:41:31'),
+(5208, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:41:31'),
+(5209, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:45:28'),
+(5210, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:45:28'),
+(5211, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:28'),
+(5212, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:28'),
+(5213, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:44'),
+(5214, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:44'),
+(5215, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:44'),
+(5216, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:44'),
+(5217, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:50:44'),
+(5218, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:51:17'),
+(5219, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:51:17'),
+(5220, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:51:18'),
+(5221, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:51:18'),
+(5222, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:51:18'),
+(5223, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:52:40'),
+(5224, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:52:40'),
+(5225, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:52:40'),
+(5226, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:52:40'),
+(5227, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:52:40'),
+(5228, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/2d0dd916-7f82-4620-ba1f-c2b2791517c7\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:29'),
+(5229, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/2d0dd916-7f82-4620-ba1f-c2b2791517c7\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:29'),
+(5230, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/2d0dd916-7f82-4620-ba1f-c2b2791517c7\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:29'),
+(5231, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:35'),
+(5232, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:35'),
+(5233, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:53:35'),
+(5234, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:54:38'),
+(5235, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:57:40'),
+(5236, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 00:57:40'),
+(5237, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:24'),
+(5238, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:24'),
+(5239, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:24'),
+(5240, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:24'),
+(5241, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:24'),
+(5242, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:00:27'),
+(5243, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes\\/f5685ff7-1746-11f1-8ccc-10653022c2a0\\/assign-teacher\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:01:08'),
+(5244, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes\\/f568a6ce-1746-11f1-8ccc-10653022c2a0\\/assign-teacher\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:01:08'),
+(5245, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes\\/f5689eed-1746-11f1-8ccc-10653022c2a0\\/assign-teacher\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:01:08'),
+(5246, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:01:08'),
+(5247, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=10000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:01:44'),
+(5248, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects\\/74\\/teachers\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:01:44'),
+(5249, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:01:48'),
+(5250, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:37'),
+(5251, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:37'),
+(5252, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:37'),
+(5253, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:37'),
+(5254, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:37'),
+(5255, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:41'),
+(5256, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:03:44'),
+(5257, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:37'),
+(5258, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:37'),
+(5259, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:54'),
+(5260, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:54'),
+(5261, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:54'),
+(5262, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:54'),
+(5263, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:08:54'),
+(5264, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:25'),
+(5265, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:25'),
+(5266, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:25'),
+(5267, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:25'),
+(5268, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:25'),
+(5269, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:32'),
+(5270, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:09:35'),
+(5271, 147, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 01:30:29'),
+(5272, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:31'),
+(5273, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:31'),
+(5274, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:34'),
+(5275, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:34'),
+(5276, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:34'),
+(5277, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:34'),
+(5278, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:34'),
+(5279, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:36'),
+(5280, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:36'),
+(5281, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:36'),
+(5282, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:40'),
+(5283, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:40'),
+(5284, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:40'),
+(5285, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:40'),
+(5286, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:40'),
+(5287, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:46'),
+(5288, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:50'),
+(5289, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:30:50'),
+(5290, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:31:46'),
+(5291, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:31:46'),
+(5292, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:31:46'),
+(5293, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:35:40'),
+(5294, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:35:40'),
+(5295, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:37:59'),
+(5296, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:37:59'),
+(5297, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:37:59'),
+(5298, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:12'),
+(5299, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:12'),
+(5300, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:12'),
+(5301, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:15'),
+(5302, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:15'),
+(5303, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:40'),
+(5304, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:40'),
+(5305, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:38:40'),
+(5306, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:40:40'),
+(5307, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:40:40'),
+(5308, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:40'),
+(5309, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:40'),
+(5310, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:41'),
+(5311, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:41'),
+(5312, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:52'),
+(5313, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:52'),
+(5314, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:52'),
+(5315, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:52'),
+(5316, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:52'),
+(5317, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:54'),
+(5318, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:54'),
+(5319, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:54'),
+(5320, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:45:59'),
+(5321, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:46:02'),
+(5322, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:46:02'),
+(5323, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:46:02'),
+(5324, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:46:02'),
+(5325, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:46:36'),
+(5326, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:46:36'),
+(5327, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 01:47:04'),
+(5328, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:47:04'),
+(5329, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:50:53'),
+(5330, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:50:53'),
+(5331, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:54:30'),
+(5332, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:54:30'),
+(5333, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:54:30'),
+(5334, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:54:30'),
+(5335, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:54:30'),
+(5336, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:56:23'),
+(5337, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:57:54'),
+(5338, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:57:54'),
+(5339, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:57:54'),
+(5340, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:57:54'),
+(5341, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:44'),
+(5342, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:44'),
+(5343, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:44'),
+(5344, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:44'),
+(5345, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:48'),
+(5346, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:48'),
+(5347, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:58:48'),
+(5348, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:27'),
+(5349, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:27'),
+(5350, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:27'),
+(5351, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:29'),
+(5352, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:29'),
+(5353, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:30'),
+(5354, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:30'),
+(5355, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:30'),
+(5356, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 01:59:30'),
+(5357, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:04:30'),
+(5358, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:04:30'),
+(5359, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:09:30'),
+(5360, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:09:30'),
+(5361, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:14:30'),
+(5362, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:14:30'),
+(5363, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:18:46'),
+(5364, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:18:46'),
+(5365, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:18:46'),
+(5366, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:18:46'),
+(5367, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:18:46'),
+(5368, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 02:19:06'),
+(5369, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:19:06'),
+(5370, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:19:06'),
+(5371, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:19:06'),
+(5372, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:19:30'),
+(5373, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:19:30'),
+(5374, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:37'),
+(5375, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/b1de86ab-4b48-48ab-ab12-5c4ac6f45619\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:37'),
+(5376, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:37'),
+(5377, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/119\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:37'),
+(5378, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:41'),
+(5379, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:41'),
+(5380, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:41'),
+(5381, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:44'),
+(5382, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:44'),
+(5383, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:44'),
+(5384, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:44'),
+(5385, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:58'),
+(5386, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:58'),
+(5387, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:58'),
+(5388, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:20:58'),
+(5389, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:15'),
+(5390, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:16'),
+(5391, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:16'),
+(5392, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:16'),
+(5393, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:16'),
+(5394, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:21'),
+(5395, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:28'),
+(5396, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:29'),
+(5397, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:29'),
+(5398, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:36'),
+(5399, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:36'),
+(5400, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:37'),
+(5401, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:56'),
+(5402, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:56'),
+(5403, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:57'),
+(5404, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:57'),
+(5405, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:22:57'),
+(5406, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:23:07'),
+(5407, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:23:10'),
+(5408, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:23:10'),
+(5409, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:23:11'),
+(5410, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:27:55'),
+(5411, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:27:55'),
+(5412, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:29:57'),
+(5413, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:29:57'),
+(5414, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:29:57'),
+(5415, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:01'),
+(5416, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:01'),
+(5417, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:01'),
+(5418, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:01'),
+(5419, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/63\",\"method\":\"DELETE\"}', '::1', NULL, '2026-03-11 02:30:37'),
+(5420, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:37'),
+(5421, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\\/64\",\"method\":\"DELETE\"}', '::1', NULL, '2026-03-11 02:30:46'),
+(5422, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:46'),
+(5423, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:50'),
+(5424, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:50'),
+(5425, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:30:50'),
+(5426, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:32:55'),
+(5427, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:32:55'),
+(5428, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:37:55'),
+(5429, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:37:55'),
+(5430, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:37'),
+(5431, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:37'),
+(5432, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:37'),
+(5433, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:38'),
+(5434, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:38'),
+(5435, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:41:38'),
+(5436, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:46:37'),
+(5437, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:46:37'),
+(5438, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:51:37'),
+(5439, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:51:37'),
+(5440, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5441, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5442, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5443, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5444, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5445, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:34'),
+(5446, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:56'),
+(5447, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:56'),
+(5448, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:56'),
+(5449, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:56'),
+(5450, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:53:56'),
+(5451, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/0d5995fd-221f-4be6-91f1-9245d08f17eb\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:54:01'),
+(5452, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/0d5995fd-221f-4be6-91f1-9245d08f17eb\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:54:01'),
+(5453, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/120\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:54:01'),
+(5454, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/120\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:54:01'),
+(5455, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:43'),
+(5456, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:43'),
+(5457, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:43'),
+(5458, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:44'),
+(5459, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:44'),
+(5460, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/ad7080e1-adf9-4a8c-b4ff-b9d62b5754d8\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:51'),
+(5461, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/ad7080e1-adf9-4a8c-b4ff-b9d62b5754d8\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:51'),
+(5462, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/113\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:51'),
+(5463, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/113\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:57:51'),
+(5464, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:58:33'),
+(5465, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 02:58:33'),
+(5466, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:05'),
+(5467, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:06'),
+(5468, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:06'),
+(5469, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:06'),
+(5470, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:06'),
+(5471, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:16'),
+(5472, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:16'),
+(5473, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:16'),
+(5474, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:25'),
+(5475, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:25'),
+(5476, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:25'),
+(5477, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:01:25'),
+(5478, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:02:54'),
+(5479, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:02:54'),
+(5480, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:02:54'),
+(5481, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:02:54'),
+(5482, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:02:54'),
+(5483, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:00'),
+(5484, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f58350f7-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:00'),
+(5485, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:00'),
+(5486, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/63\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:00'),
+(5487, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:21'),
+(5488, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:21'),
+(5489, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:21'),
+(5490, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:21'),
+(5491, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:21'),
+(5492, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:33'),
+(5493, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:34'),
+(5494, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f5836bbd-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:34'),
+(5495, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/f5836bbd-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:34'),
+(5496, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/64\\/attendance\\/stats\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:34'),
+(5497, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students\\/64\\/results\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:34'),
+(5498, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:47'),
+(5499, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:47'),
+(5500, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:47'),
+(5501, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:03:58'),
+(5502, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:00'),
+(5503, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:01'),
+(5504, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:01'),
+(5505, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:01'),
+(5506, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:33'),
+(5507, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:33'),
+(5508, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:33'),
+(5509, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:44'),
+(5510, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:44'),
+(5511, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:44');
+INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activity_details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(5512, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:44'),
+(5513, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:51'),
+(5514, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:51'),
+(5515, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:51'),
+(5516, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:53'),
+(5517, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:53'),
+(5518, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:53'),
+(5519, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:04:54'),
+(5520, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5521, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5522, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5523, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5524, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5525, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5526, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5527, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5528, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5529, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5530, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:23'),
+(5531, 147, 'api_access', '{\"endpoint\":\"\\/api\\/class-subjects?teacher_id=33&limit=500\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:29'),
+(5532, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:29'),
+(5533, 147, 'api_access', '{\"endpoint\":\"\\/api\\/academic-years\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:29'),
+(5534, 147, 'api_access', '{\"endpoint\":\"\\/api\\/semesters\\/current\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:29'),
+(5535, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:31'),
+(5536, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:32'),
+(5537, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:32'),
+(5538, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:05:32'),
+(5539, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:07:40'),
+(5540, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=2&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:07:41'),
+(5541, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:07:41'),
+(5542, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:07'),
+(5543, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/courses\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:07'),
+(5544, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/schedule\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:07'),
+(5545, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers\\/f563c306-1746-11f1-8ccc-10653022c2a0\\/performance\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:07'),
+(5546, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:33'),
+(5547, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:08:33'),
+(5548, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:13:34'),
+(5549, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:13:34'),
+(5550, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:18:34'),
+(5551, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:18:34'),
+(5552, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:23:34'),
+(5553, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:23:34'),
+(5554, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:25:59'),
+(5555, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:25:59'),
+(5556, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:25:59'),
+(5557, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:25:59'),
+(5558, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:25:59'),
+(5559, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:30:59'),
+(5560, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:30:59'),
+(5561, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:32:55'),
+(5562, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:32:56'),
+(5563, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:32:56'),
+(5564, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:32:56'),
+(5565, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:32:56'),
+(5566, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:37:55'),
+(5567, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:37:55'),
+(5568, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:19'),
+(5569, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:20'),
+(5570, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:20'),
+(5571, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:20'),
+(5572, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:20'),
+(5573, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:25'),
+(5574, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:25'),
+(5575, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:25'),
+(5576, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:26'),
+(5577, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:42:26'),
+(5578, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 03:43:40'),
+(5579, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:43:40'),
+(5580, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:44:58'),
+(5581, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:44:58'),
+(5582, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:45:03'),
+(5583, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:45:03'),
+(5584, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:45:03'),
+(5585, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:49:58'),
+(5586, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:49:58'),
+(5587, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:54:58'),
+(5588, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:54:58'),
+(5589, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:49'),
+(5590, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:49'),
+(5591, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:49'),
+(5592, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:49'),
+(5593, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:50'),
+(5594, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:59'),
+(5595, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:59'),
+(5596, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:59'),
+(5597, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:58:59'),
+(5598, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 03:59:00'),
+(5599, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:01:09'),
+(5600, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:01:10'),
+(5601, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:01:11'),
+(5602, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:01:11'),
+(5603, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:01:11'),
+(5604, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:51'),
+(5605, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:52'),
+(5606, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:52'),
+(5607, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:52'),
+(5608, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:52'),
+(5609, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:57'),
+(5610, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:57'),
+(5611, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:57'),
+(5612, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:57'),
+(5613, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:02:58'),
+(5614, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:03:57'),
+(5615, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:03:57'),
+(5616, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:03:57'),
+(5617, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:03:57'),
+(5618, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:03:57'),
+(5619, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:04:02'),
+(5620, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:04:03'),
+(5621, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:04:03'),
+(5622, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:04:03'),
+(5623, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:04:03'),
+(5624, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:09:01'),
+(5625, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:09:02'),
+(5626, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:11:35'),
+(5627, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:11:35'),
+(5628, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:11:35'),
+(5629, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:11:35'),
+(5630, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:11:35'),
+(5631, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:04'),
+(5632, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:04'),
+(5633, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:04'),
+(5634, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:05'),
+(5635, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:05'),
+(5636, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:09'),
+(5637, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:09'),
+(5638, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:09'),
+(5639, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:09'),
+(5640, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:09'),
+(5641, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:33'),
+(5642, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:33'),
+(5643, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:33'),
+(5644, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:34'),
+(5645, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:12:34'),
+(5646, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:07'),
+(5647, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:07'),
+(5648, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:07'),
+(5649, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:07'),
+(5650, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:07'),
+(5651, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:12'),
+(5652, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:12'),
+(5653, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:12'),
+(5654, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:12'),
+(5655, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:12'),
+(5656, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:37'),
+(5657, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:37'),
+(5658, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:37'),
+(5659, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:37'),
+(5660, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:13:37'),
+(5661, 147, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 04:20:20'),
+(5662, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:22'),
+(5663, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:22'),
+(5664, 147, 'api_access', '{\"endpoint\":\"\\/api\\/classes?limit=200\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:31'),
+(5665, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:31'),
+(5666, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:31'),
+(5667, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:31'),
+(5668, 147, 'api_access', '{\"endpoint\":\"\\/api\\/students?limit=1&status=inactive\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:31'),
+(5669, 147, 'api_access', '{\"endpoint\":\"\\/api\\/programs\\/active\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:32'),
+(5670, 147, 'api_access', '{\"endpoint\":\"\\/api\\/teachers?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:32'),
+(5671, 147, 'api_access', '{\"endpoint\":\"\\/api\\/subjects?limit=1000\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:32'),
+(5672, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:42'),
+(5673, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:42'),
+(5674, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:42'),
+(5675, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:57'),
+(5676, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:57'),
+(5677, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:57'),
+(5678, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:57'),
+(5679, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:20:57'),
+(5680, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:25:56'),
+(5681, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:25:56'),
+(5682, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:30:24'),
+(5683, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:30:24'),
+(5684, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:30:24'),
+(5685, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:30:24'),
+(5686, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:30:24'),
+(5687, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:33:49'),
+(5688, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:33:50'),
+(5689, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:33:50'),
+(5690, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:33:50'),
+(5691, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:33:50'),
+(5692, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:36:51'),
+(5693, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:36:51'),
+(5694, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:36:51'),
+(5695, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:36:51'),
+(5696, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:36:51'),
+(5697, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:05'),
+(5698, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:05'),
+(5699, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:05'),
+(5700, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:06'),
+(5701, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:06'),
+(5702, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:14'),
+(5703, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:14'),
+(5704, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:14'),
+(5705, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:14'),
+(5706, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:38:14'),
+(5707, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:43:13'),
+(5708, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:43:13'),
+(5709, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:47:43'),
+(5710, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:47:43'),
+(5711, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:47:43'),
+(5712, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:47:44'),
+(5713, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:47:44'),
+(5714, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:52:43'),
+(5715, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:52:43'),
+(5716, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:54:58'),
+(5717, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:54:58'),
+(5718, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:54:58'),
+(5719, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:54:58'),
+(5720, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:54:58'),
+(5721, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:56:37'),
+(5722, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:56:37'),
+(5723, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:56:37'),
+(5724, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:56:37'),
+(5725, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\\/activity\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 04:56:37'),
+(5726, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:01:37'),
+(5727, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:01:37'),
+(5728, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:06:37'),
+(5729, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:06:37'),
+(5730, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:27'),
+(5731, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:28'),
+(5732, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:28'),
+(5733, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:28'),
+(5734, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:28'),
+(5735, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=login\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:48'),
+(5736, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:51'),
+(5737, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=grades\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:54'),
+(5738, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:56'),
+(5739, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:07:58'),
+(5740, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:08:06'),
+(5741, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:09'),
+(5742, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:11'),
+(5743, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:16'),
+(5744, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:16'),
+(5745, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:17'),
+(5746, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:17'),
+(5747, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:17'),
+(5748, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=users\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:25'),
+(5749, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=grades\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:27'),
+(5750, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=settings\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:29'),
+(5751, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&activity_type=login\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:30'),
+(5752, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:10:31'),
+(5753, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:15:16'),
+(5754, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:15:16'),
+(5755, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/change-password\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 05:19:07'),
+(5756, 147, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 05:19:14'),
+(5757, 1, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 05:19:43'),
+(5758, 1, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/superadmin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:19:45'),
+(5759, 1, 'api_access', '{\"endpoint\":\"\\/api\\/superadmin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:19:45'),
+(5760, 1, 'logout', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 05:19:48'),
+(5761, 147, 'login', '{\"ip\":\"::1\"}', '::1', NULL, '2026-03-11 05:20:26'),
+(5762, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:20:27'),
+(5763, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:20:27'),
+(5764, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:20:37'),
+(5765, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:20:37'),
+(5766, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:20:37'),
+(5767, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/change-password\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 05:21:16'),
+(5768, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/change-password\",\"method\":\"POST\"}', '::1', NULL, '2026-03-11 05:21:56'),
+(5769, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&start_date=2026-03-01\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:22:41'),
+(5770, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&start_date=2026-03-01&end_date=2026-03-03\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:22:46'),
+(5771, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20&start_date=2026-03-01&end_date=2026-03-20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:22:50'),
+(5772, 147, 'api_access', '{\"endpoint\":\"\\/api\\/users\\/f55bd9f1-1746-11f1-8ccc-10653022c2a0\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-11 05:23:27'),
+(5773, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:23:27'),
+(5774, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:25:28'),
+(5775, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:25:28'),
+(5776, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:30:28'),
+(5777, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:30:28'),
+(5778, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin?institution_id=1\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:32:13'),
+(5779, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity\\/recent?limit=10\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:32:13'),
+(5780, 147, 'api_access', '{\"endpoint\":\"\\/api\\/auth\\/me\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:32:13'),
+(5781, 147, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/admin\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:32:14'),
+(5782, 147, 'api_access', '{\"endpoint\":\"\\/api\\/admin-activity?page=1&limit=20\",\"method\":\"GET\"}', '::1', NULL, '2026-03-11 05:32:14');
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `user_roles`
---
--- Creation: Mar 03, 2026 at 08:58 PM
 --
 
 DROP TABLE IF EXISTS `user_roles`;
@@ -7611,6 +8297,20 @@ ALTER TABLE `user_activity`
 ALTER TABLE `user_roles`
   ADD CONSTRAINT `FK_user_roles_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `FK_user_roles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+
+DELIMITER $$
+--
+-- Events
+--
+DROP EVENT IF EXISTS `evt_purge_activity_logs`$$
+CREATE DEFINER=`root`@`localhost` EVENT `evt_purge_activity_logs` ON SCHEDULE EVERY 1 DAY STARTS '2026-03-12 02:00:00' ON COMPLETION PRESERVE ENABLE COMMENT 'Deletes activity log records older than 90 days from all *_activ' DO BEGIN
+  DELETE FROM `admin_activity`   WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+  DELETE FROM `teacher_activity` WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+  DELETE FROM `student_activity` WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+  DELETE FROM `parent_activity`  WHERE `created_at` < (NOW() - INTERVAL 90 DAY);
+END$$
+
+DELIMITER ;
 SET FOREIGN_KEY_CHECKS=1;
 COMMIT;
 

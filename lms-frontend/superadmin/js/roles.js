@@ -326,6 +326,7 @@
             try{
                 await RoleAPI.create(payload);
                 showToast('Role created','success');
+                SuperadminActivityAPI.log({ activity_type: 'role_created', description: `Created role: ${payload.role_name}`, entity_type: 'role', severity: 'info' }).catch(() => {});
                 loadRoles();
             }catch(e){ console.error(e); showToast('Failed to create role','error'); }
         });
@@ -344,6 +345,7 @@
                 try{
                     await RoleAPI.update(id, payload);
                     showToast('Role updated','success');
+                    SuperadminActivityAPI.log({ activity_type: 'role_updated', description: `Updated role: ${payload.role_name}`, entity_type: 'role', entity_id: id, severity: 'info' }).catch(() => {});
                     loadRoles();
                 }catch(e){ console.error(e); showToast('Failed to update role','error'); }
             });
@@ -358,7 +360,7 @@
 
     function confirmDeleteRole(id){
         showModal('Confirm Delete', '<p>Are you sure you want to delete this role?</p>', async () => {
-            try{ await RoleAPI.delete(id); showToast('Role deleted','success'); loadRoles(); }catch(e){ console.error(e); showToast('Failed to delete role','error'); }
+            try{ await RoleAPI.delete(id); showToast('Role deleted','success'); SuperadminActivityAPI.log({ activity_type: 'role_deleted', description: `Deleted role #${id}`, entity_type: 'role', entity_id: id, severity: 'warning' }).catch(() => {}); loadRoles(); }catch(e){ console.error(e); showToast('Failed to delete role','error'); }
         });
     }
 

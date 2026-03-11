@@ -503,6 +503,12 @@
                 if (typeof showToast === 'function') {
                     showToast(S.editingUuid ? 'Student updated successfully' : 'Student added successfully', 'success');
                 }
+                AdminActivityAPI.log({
+                    activity_type: S.editingUuid ? 'student_updated' : 'student_created',
+                    description: (S.editingUuid ? 'Updated' : 'Added') + ` student: ${payload.first_name || ''} ${payload.last_name || ''}`.trim(),
+                    entity_type: 'student',
+                    severity: 'info'
+                }).catch(() => {});
                 closeStudentModal();
                 loadStudents();
             } else {
@@ -616,6 +622,7 @@
                     const res = await API.put(API_ENDPOINTS.STUDENT_STATUS(uuid), { status: newStatus });
                     if (res && res.success) {
                         showToast(`Student ${newStatus} successfully`, 'success');
+                        AdminActivityAPI.log({ activity_type: 'student_status_changed', description: `Student status set to ${newStatus}`, entity_type: 'student', severity: 'info' }).catch(() => {});
                         loadStudents();
                     } else {
                         showToast(res?.message || 'Failed to update status', 'error');
@@ -644,6 +651,7 @@
                     const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
                     if (res && res.success) {
                         showToast('Student removed successfully', 'success');
+                        AdminActivityAPI.log({ activity_type: 'student_deleted', description: `Removed student: ${name}`, entity_type: 'student', severity: 'warning' }).catch(() => {});
                         if (S.selectedUuids.has(uuid)) S.selectedUuids.delete(uuid);
                         loadStudents();
                     } else {

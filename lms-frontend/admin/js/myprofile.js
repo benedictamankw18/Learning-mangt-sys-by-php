@@ -153,11 +153,15 @@
     }
   }
 
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
   function populateForm(u) {
     if (!u) return;
 
     // Sidebar identity
-    const fullName = [u.title, u.first_name, u.last_name].filter(Boolean).join(' ');
+    const fullName = [u.title && capitalize(u.title), u.first_name, u.last_name].filter(Boolean).join(' ');
     const nameEl = document.getElementById('profileName');
     if (nameEl) nameEl.textContent = fullName || u.username || '—';
 
@@ -203,9 +207,16 @@
     setVal('city', u.city);
     setVal('region', u.region);
 
-    // Professional (read-only display from user record)
-    setVal('join-date', u.created_at ? u.created_at.substring(0, 10) : '');
-    setVal('staff-id', u.employee_id || u.username || '');
+    // Bio (admins table)
+    setVal('bio', u.bio || '');
+    setVal('alt-email', u.alternative_email || '');
+
+    // Professional details (admins table)
+    setVal('staff-id', u.employee_id || '');
+    setVal('department', u.department || '');
+    setVal('qualification', u.qualification || '');
+    setVal('specialization', u.specialization || '');
+    setVal('join-date', u.hire_date ? u.hire_date.substring(0, 10) : (u.created_at ? u.created_at.substring(0, 10) : ''));
   }
 
   // â”€â”€ Save Personal Info â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -215,15 +226,20 @@
     setBtnLoading(btn, true);
     try {
       const data = {
-        first_name:    val('first-name'),
-        last_name:     val('last-name'),
-        title:         val('title'),
-        gender:        val('gender'),
-        date_of_birth: val('dob') || null,
-        phone_number:  val('phone') || null,
-        address:       val('address') || null,
-        city:          val('city') || null,
-        region:        val('region') || null,
+        first_name:        val('first-name'),
+        last_name:         val('last-name'),
+        title:             val('title'),
+        gender:            val('gender'),
+        date_of_birth:     val('dob') || null,
+        phone_number:      val('phone') || null,
+        address:           val('address') || null,
+        city:              val('city') || null,
+        region:            val('region') || null,
+        bio:               val('bio') || null,
+        alternative_email: val('alt-email') || null,
+        department:        val('department') || null,
+        qualification:     val('qualification') || null,
+        specialization:    val('specialization') || null,
       };
       await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), data);
       // Refresh cached user

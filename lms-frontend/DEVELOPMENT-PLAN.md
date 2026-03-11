@@ -851,6 +851,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
     - Available from/to dates
     - Shuffle questions
     - Show results immediately
+    - Number of type to access
   - Question bank:
     - Multiple choice questions
     - True/False questions

@@ -293,7 +293,7 @@
             const norm = normalizeInstitutionPayload(payload);
             if (!norm.valid) { showToast('Please fix: ' + norm.errors.join('; '), 'error'); return; }
             payload = norm.payload;
-            try { await InstitutionAPI.create(payload); showToast('Institution created', 'success'); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to create institution', 'error'); }
+            try { await InstitutionAPI.create(payload); showToast('Institution created', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_created', description: `Created institution: ${payload.institution_name}`, entity_type: 'institution', severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to create institution', 'error'); }
         });
     }
 
@@ -310,7 +310,7 @@
                 const norm = normalizeInstitutionPayload(payload);
                 if (!norm.valid) { showToast('Please fix: ' + norm.errors.join('; '), 'error'); return; }
                 payload = norm.payload;
-                try { await InstitutionAPI.update(id, payload); showToast('Institution updated', 'success'); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to update institution', 'error'); }
+                try { await InstitutionAPI.update(id, payload); showToast('Institution updated', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_updated', description: `Updated institution: ${payload.institution_name}`, entity_type: 'institution', entity_id: id, severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to update institution', 'error'); }
             });
 
             // populate live form
@@ -334,7 +334,7 @@
 
     function confirmDeleteInstitution(id) {
         showModal('Confirm Delete', `<p>Are you sure you want to delete this institution?</p>`, async () => {
-            try { await InstitutionAPI.delete(id); showToast('Institution deleted', 'success'); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to delete institution', 'error'); }
+            try { await InstitutionAPI.delete(id); showToast('Institution deleted', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_deleted', description: `Deleted institution #${id}`, entity_type: 'institution', entity_id: id, severity: 'warning' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to delete institution', 'error'); }
         });
     }
 

@@ -66,13 +66,21 @@ class UserRepository
                         u.*,
                         i.institution_name AS institution_name,
                         GROUP_CONCAT(DISTINCT r.role_name) as roles,
-                        GROUP_CONCAT(DISTINCT p.permission_name) as permissions
+                        GROUP_CONCAT(DISTINCT p.permission_name) as permissions,
+                        a.employee_id,
+                        a.department,
+                        a.hire_date,
+                        a.qualification,
+                        a.specialization,
+                        a.bio,
+                        a.alternative_email
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
                 LEFT JOIN institutions i on i.institution_id = u.institution_id
                 LEFT JOIN permissions p ON rp.permission_id = p.permission_id
+                LEFT JOIN admins a ON a.user_id = u.user_id
                 WHERE u.user_id = :id AND u.deleted_at IS NULL
                 GROUP BY u.user_id
             ");
@@ -235,23 +243,49 @@ class UserRepository
                 unset($data['phone']);
             }
 
+            // Separate admin-specific fields from users table fields
+            $adminOnlyFields = ['employee_id', 'department', 'hire_date', 'qualification', 'specialization', 'bio', 'alternative_email'];
+            $adminData = [];
+            $userData  = [];
+            foreach ($data as $key => $value) {
+                if (in_array($key, $adminOnlyFields)) {
+                    $adminData[$key] = $value;
+                } else {
+                    $userData[$key] = $value;
+                }
+            }
+
+            // Update users table
             $fields = [];
             $params = ['id' => $id];
-
-            foreach ($data as $key => $value) {
+            foreach ($userData as $key => $value) {
                 if ($key !== 'user_id' && $key !== 'password') {
                     $fields[] = "{$key} = :{$key}";
                     $params[$key] = $value;
                 }
             }
 
-            if (empty($fields)) {
-                return false;
+            $userUpdated = true;
+            if (!empty($fields)) {
+                $sql  = "UPDATE users SET " . implode(', ', $fields) . " WHERE user_id = :id";
+                $stmt = $this->db->prepare($sql);
+                $userUpdated = $stmt->execute($params);
             }
 
-            $sql = "UPDATE users SET " . implode(', ', $fields) . " WHERE user_id = :id";
-            $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            // Update admins table for admin-specific fields
+            if (!empty($adminData)) {
+                $adminSets   = [];
+                $adminParams = ['user_id' => $id];
+                foreach ($adminData as $key => $value) {
+                    $adminSets[]       = "{$key} = :{$key}";
+                    $adminParams[$key] = $value;
+                }
+                $sql  = "UPDATE admins SET " . implode(', ', $adminSets) . " WHERE user_id = :user_id";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute($adminParams);
+            }
+
+            return $userUpdated || !empty($adminData);
 
         } catch (\PDOException $e) {
             error_log("User Update Error: " . $e->getMessage());

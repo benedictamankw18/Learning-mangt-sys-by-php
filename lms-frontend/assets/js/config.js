@@ -110,6 +110,36 @@ const API_ENDPOINTS = {
     ADMIN_ACTIVITY_BY_PERFORMER: (userId) => `/api/admin-activity/performer/${userId}`,
     ADMIN_ACTIVITY_CLEANUP: '/api/admin-activity/cleanup',
 
+    // Teacher Activity
+    TEACHER_ACTIVITY: '/api/teacher-activity',
+    TEACHER_ACTIVITY_BY_ID: (id) => `/api/teacher-activity/${id}`,
+    TEACHER_ACTIVITY_RECENT: '/api/teacher-activity/recent',
+    TEACHER_ACTIVITY_STATS: '/api/teacher-activity/stats',
+    TEACHER_ACTIVITY_BY_TYPE: (type) => `/api/teacher-activity/type/${type}`,
+    TEACHER_ACTIVITY_BY_SEVERITY: (severity) => `/api/teacher-activity/severity/${severity}`,
+    TEACHER_ACTIVITY_BY_PERFORMER: (userId) => `/api/teacher-activity/performer/${userId}`,
+    TEACHER_ACTIVITY_CLEANUP: '/api/teacher-activity/cleanup',
+
+    // Student Activity
+    STUDENT_ACTIVITY: '/api/student-activity',
+    STUDENT_ACTIVITY_BY_ID: (id) => `/api/student-activity/${id}`,
+    STUDENT_ACTIVITY_RECENT: '/api/student-activity/recent',
+    STUDENT_ACTIVITY_STATS: '/api/student-activity/stats',
+    STUDENT_ACTIVITY_BY_TYPE: (type) => `/api/student-activity/type/${type}`,
+    STUDENT_ACTIVITY_BY_SEVERITY: (severity) => `/api/student-activity/severity/${severity}`,
+    STUDENT_ACTIVITY_BY_PERFORMER: (userId) => `/api/student-activity/performer/${userId}`,
+    STUDENT_ACTIVITY_CLEANUP: '/api/student-activity/cleanup',
+
+    // Parent Activity
+    PARENT_ACTIVITY: '/api/parent-activity',
+    PARENT_ACTIVITY_BY_ID: (id) => `/api/parent-activity/${id}`,
+    PARENT_ACTIVITY_RECENT: '/api/parent-activity/recent',
+    PARENT_ACTIVITY_STATS: '/api/parent-activity/stats',
+    PARENT_ACTIVITY_BY_TYPE: (type) => `/api/parent-activity/type/${type}`,
+    PARENT_ACTIVITY_BY_SEVERITY: (severity) => `/api/parent-activity/severity/${severity}`,
+    PARENT_ACTIVITY_BY_PERFORMER: (userId) => `/api/parent-activity/performer/${userId}`,
+    PARENT_ACTIVITY_CLEANUP: '/api/parent-activity/cleanup',
+
     // Courses
     COURSES: '/api/courses',
     COURSE_BY_ID: (id) => `/api/courses/${id}`,

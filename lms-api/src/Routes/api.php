@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 return [
     // Auth routes (Public)
@@ -399,6 +399,39 @@ return [
     'GET /superadmin-activity/{id}' => ['controller' => 'SuperadminActivityController', 'method' => 'show', 'auth' => true],
     'POST /superadmin-activity' => ['controller' => 'SuperadminActivityController', 'method' => 'store', 'auth' => true],
     'DELETE /superadmin-activity/cleanup' => ['controller' => 'SuperadminActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Teacher Activity routes
+    'GET /teacher-activity' => ['controller' => 'TeacherActivityController', 'method' => 'index', 'auth' => true],
+    'GET /teacher-activity/recent' => ['controller' => 'TeacherActivityController', 'method' => 'recent', 'auth' => true],
+    'GET /teacher-activity/stats' => ['controller' => 'TeacherActivityController', 'method' => 'stats', 'auth' => true],
+    'GET /teacher-activity/type/{type}' => ['controller' => 'TeacherActivityController', 'method' => 'byType', 'auth' => true],
+    'GET /teacher-activity/severity/{severity}' => ['controller' => 'TeacherActivityController', 'method' => 'bySeverity', 'auth' => true],
+    'GET /teacher-activity/performer/{userId}' => ['controller' => 'TeacherActivityController', 'method' => 'byPerformer', 'auth' => true],
+    'GET /teacher-activity/{id}' => ['controller' => 'TeacherActivityController', 'method' => 'show', 'auth' => true],
+    'POST /teacher-activity' => ['controller' => 'TeacherActivityController', 'method' => 'store', 'auth' => true],
+    'DELETE /teacher-activity/cleanup' => ['controller' => 'TeacherActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Student Activity routes
+    'GET /student-activity' => ['controller' => 'StudentActivityController', 'method' => 'index', 'auth' => true],
+    'GET /student-activity/recent' => ['controller' => 'StudentActivityController', 'method' => 'recent', 'auth' => true],
+    'GET /student-activity/stats' => ['controller' => 'StudentActivityController', 'method' => 'stats', 'auth' => true],
+    'GET /student-activity/type/{type}' => ['controller' => 'StudentActivityController', 'method' => 'byType', 'auth' => true],
+    'GET /student-activity/severity/{severity}' => ['controller' => 'StudentActivityController', 'method' => 'bySeverity', 'auth' => true],
+    'GET /student-activity/performer/{userId}' => ['controller' => 'StudentActivityController', 'method' => 'byPerformer', 'auth' => true],
+    'GET /student-activity/{id}' => ['controller' => 'StudentActivityController', 'method' => 'show', 'auth' => true],
+    'POST /student-activity' => ['controller' => 'StudentActivityController', 'method' => 'store', 'auth' => true],
+    'DELETE /student-activity/cleanup' => ['controller' => 'StudentActivityController', 'method' => 'cleanup', 'auth' => true],
+
+    // Parent Activity routes
+    'GET /parent-activity' => ['controller' => 'ParentActivityController', 'method' => 'index', 'auth' => true],
+    'GET /parent-activity/recent' => ['controller' => 'ParentActivityController', 'method' => 'recent', 'auth' => true],
+    'GET /parent-activity/stats' => ['controller' => 'ParentActivityController', 'method' => 'stats', 'auth' => true],
+    'GET /parent-activity/type/{type}' => ['controller' => 'ParentActivityController', 'method' => 'byType', 'auth' => true],
+    'GET /parent-activity/severity/{severity}' => ['controller' => 'ParentActivityController', 'method' => 'bySeverity', 'auth' => true],
+    'GET /parent-activity/performer/{userId}' => ['controller' => 'ParentActivityController', 'method' => 'byPerformer', 'auth' => true],
+    'GET /parent-activity/{id}' => ['controller' => 'ParentActivityController', 'method' => 'show', 'auth' => true],
+    'POST /parent-activity' => ['controller' => 'ParentActivityController', 'method' => 'store', 'auth' => true],
+    'DELETE /parent-activity/cleanup' => ['controller' => 'ParentActivityController', 'method' => 'cleanup', 'auth' => true],
 
     // Course Content routes (Lesson Plans & Content Management)
     'GET /course-content' => ['controller' => 'CourseContentController', 'method' => 'index', 'auth' => true],

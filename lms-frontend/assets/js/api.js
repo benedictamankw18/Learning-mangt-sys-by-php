@@ -399,6 +399,51 @@ const AdminActivityAPI = {
 };
 
 /**
+ * Teacher Activity APIs
+ */
+const TeacherActivityAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY, params),
+    getById: (id) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_BY_ID(id)),
+    getRecent: (params) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_RECENT, params),
+    getStats: () => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_STATS),
+    getByType: (type, params) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_BY_TYPE(type), params),
+    getBySeverity: (severity, params) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_BY_SEVERITY(severity), params),
+    getByPerformer: (userId, params) => API.get(API_ENDPOINTS.TEACHER_ACTIVITY_BY_PERFORMER(userId), params),
+    log: (data) => API.post(API_ENDPOINTS.TEACHER_ACTIVITY, data),
+    cleanup: (params) => API.delete(API_ENDPOINTS.TEACHER_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
+};
+
+/**
+ * Student Activity APIs
+ */
+const StudentActivityAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY, params),
+    getById: (id) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_BY_ID(id)),
+    getRecent: (params) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_RECENT, params),
+    getStats: () => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_STATS),
+    getByType: (type, params) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_BY_TYPE(type), params),
+    getBySeverity: (severity, params) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_BY_SEVERITY(severity), params),
+    getByPerformer: (userId, params) => API.get(API_ENDPOINTS.STUDENT_ACTIVITY_BY_PERFORMER(userId), params),
+    log: (data) => API.post(API_ENDPOINTS.STUDENT_ACTIVITY, data),
+    cleanup: (params) => API.delete(API_ENDPOINTS.STUDENT_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
+};
+
+/**
+ * Parent Activity APIs
+ */
+const ParentActivityAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY, params),
+    getById: (id) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_BY_ID(id)),
+    getRecent: (params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_RECENT, params),
+    getStats: () => API.get(API_ENDPOINTS.PARENT_ACTIVITY_STATS),
+    getByType: (type, params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_BY_TYPE(type), params),
+    getBySeverity: (severity, params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_BY_SEVERITY(severity), params),
+    getByPerformer: (userId, params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_BY_PERFORMER(userId), params),
+    log: (data) => API.post(API_ENDPOINTS.PARENT_ACTIVITY, data),
+    cleanup: (params) => API.delete(API_ENDPOINTS.PARENT_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
+};
+
+/**
  * Announcement APIs
  */
 const AnnouncementAPI = {

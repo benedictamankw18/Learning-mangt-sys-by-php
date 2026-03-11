@@ -13,13 +13,32 @@ if (preg_match('#^/api/#', $uri)) {
     return true;
 }
 
-// For static files (css, js, images), serve them directly
-if (preg_match('/\.(?:css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot)$/', $uri)) {
-    return false; // Serve the file normally
+// For file uploads directory, serve files directly from lms-api/uploads/
+// Must be checked BEFORE the generic static-file extension check below
+if (preg_match('#^/uploads/#', $uri)) {
+    $filePath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $uri);
+    if (file_exists($filePath)) {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        header('Content-Type: ' . ($mimeMap[$ext] ?? 'application/octet-stream'));
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+        return true;
+    }
 }
 
-// For file uploads directory, serve files directly
-if (preg_match('#^/uploads/#', $uri) && file_exists(__DIR__ . $uri)) {
+// For static files (css, js, images), serve them directly from public/
+if (preg_match('/\.(?:css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot)$/', $uri)) {
     return false; // Serve the file normally
 }
 
