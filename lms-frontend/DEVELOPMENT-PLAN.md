@@ -355,16 +355,15 @@ Build the foundational data management pages for students, teachers, classes, an
 - [ ] **Enhance** `admin/classes.html` *(implemented as `admin/page/departments.html`)*
   - Class list with filtering
   - Create class → modal form
-  - Edit class
+  - Edit/delete class
+  - Assigned class rooms
   - View class roster
-  - Assign class teacher
   - Class capacity management
   - Student enrollment to class
 - [ ] **Create** `admin/class-details.html`
   - Class information
   - Student roster (with photos)
   - Assigned subjects
-  - Class teacher
   - Class schedule
   - Performance statistics
 
@@ -372,12 +371,12 @@ Build the foundational data management pages for students, teachers, classes, an
 
 - [ ] **Enhance** `admin/programs.html` *(combined in `admin/page/departments.html`)*
   - Programs list (General Science, Arts, Business, etc.)
-  - Create/edit programs
+  - Create/edit/delete programs
   - Program subjects (core and elective)
   - Active/inactive status
 - [ ] **Enhance** `admin/subjects.html` *(implemented as `admin/page/courses.html`)*
   - Subject list with DataTables
-  - Create/edit subjects
+  - Create/edit/Delete subjects
   - Subject codes (Ghana syllabus)
   - Assign subject to class sections (creates class-subject record per section)
   - Assign a teacher to a subject *for a specific class section* (not globally)
@@ -390,10 +389,10 @@ Build the foundational data management pages for students, teachers, classes, an
   - Class roster for each class
   - Student count per class
   - Class schedule link
-  - Quick actions (take attendance, grade submission)
+  - Quick actions (take attendance, grade submission, etc)
 - [ ] **Create** `teacher/my-subjects.html`
   - List of subjects teaching
-  - Subject information (syllabus, curriculum)
+  - Subject information (syllabus, curriculum, Image)
   - Classes assigned per subject
   - Learning objectives
   - Subject schedule
@@ -403,7 +402,6 @@ Build the foundational data management pages for students, teachers, classes, an
 - [ ] **Create** `student/my-classes.html`
   - List of enrolled classes/subjects
   - Class details (teacher, schedule)
-  - Classmates list
   - Subject progress indicator
 - [ ] **Create** `student/my-subjects.html`
   - Subject list with details
@@ -430,11 +428,11 @@ Build the foundational data management pages for students, teachers, classes, an
   - View user activity
 - [ ] **Enhance** `admin/roles.html`
   - Role list
-  - Create/edit roles
+  - Create/edit/delete roles
   - Permission assignment
   - Users with role count
   - Default permissions per role
-- [x] **Enhance** `superadmin/users.html`
+- [x] **Redesign** `superadmin/users.html`
   - Platform-wide user list
   - Filter by institution
   - Super admin management
@@ -451,17 +449,18 @@ Build the foundational data management pages for students, teachers, classes, an
   - Quick links (grades, attendance)
 - [ ] **Create** `admin/parents.html` (if not exists)
   - Parent list
-  - Add parent
+  - Add/edit/delete parent
   - Link parent to students
   - Parent contact information
   - Communication preferences
 
 **Day 4-5: Institution Management (Super Admin)**
 
-- [x] **Enhance** `superadmin/institutions.html`
+- [x] **Redesign** `superadmin/institutions.html`
   - Institution list with search/filter
   - Add institution → comprehensive form
   - Edit institution details
+  - Delete institution details
   - View institution dashboard
   - Activate/deactivate institution
   - Subscription management link

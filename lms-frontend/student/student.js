@@ -62,6 +62,16 @@ function setupEventListeners() {
         mobileMenuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
         });
+
+        // Close sidebar when clicking outside of it
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') &&
+                !sidebar.contains(e.target) &&
+                e.target !== mobileMenuToggle &&
+                !mobileMenuToggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
+        });
     }
 
     // Sidebar toggle
