@@ -20,3 +20,23 @@ Why: Track virtual class attendance, recorded sessions
 
 10. Resource Bookings
 Why: Manage shared resources (computer labs, science equipment)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ok seen the misunderstanding, here there is no enrollment here, this is how it works, if the student is assigned a class all the subjects(courses) assigned to that class the subject is automatically offer it no need the enroll in courses using this file

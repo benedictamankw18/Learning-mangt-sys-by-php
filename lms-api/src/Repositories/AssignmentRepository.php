@@ -379,11 +379,12 @@ class AssignmentRepository
             $stmt = $this->db->prepare("
                 SELECT COUNT(*) AS cnt
                 FROM assignments a
-                INNER JOIN course_enrollments ce ON a.course_id = ce.course_id
-                WHERE ce.student_id = :student_id
-                  AND ce.status     = 'active'
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                INNER JOIN students st ON cs.class_id = st.class_id
+                WHERE st.student_id = :student_id
+                  AND cs.status     = 'active'
                   AND a.status      = 'active'
-                  AND due_date > NOW()
+                  AND a.due_date    > NOW()
                   AND NOT EXISTS (
                       SELECT 1 FROM assignment_submissions asub
                       WHERE asub.assignment_id = a.assignment_id
@@ -413,11 +414,11 @@ class AssignmentRepository
                     s.subject_name,
                     s.subject_code
                 FROM assignments a
-                INNER JOIN course_enrollments ce ON a.course_id = ce.course_id
-                INNER JOIN class_subjects     cs ON a.course_id = cs.course_id
-                INNER JOIN subjects            s  ON cs.subject_id = s.subject_id
-                WHERE ce.student_id = :student_id
-                  AND ce.status     = 'active'
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                INNER JOIN students st        ON cs.class_id = st.class_id
+                INNER JOIN subjects s         ON cs.subject_id = s.subject_id
+                WHERE st.student_id = :student_id
+                  AND cs.status     = 'active'
                   AND a.status      = 'active'
                   AND a.due_date    > NOW()
                   AND NOT EXISTS (

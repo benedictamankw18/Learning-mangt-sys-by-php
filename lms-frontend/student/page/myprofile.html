@@ -1,0 +1,608 @@
+<div class="profile-page">
+
+  <!-- ═══════════════════════════════════════════════
+       LEFT SIDEBAR — Avatar, Stats, Quick Nav
+  ════════════════════════════════════════════════ -->
+  <aside class="profile-sidebar">
+
+    <!-- Cover + Avatar -->
+    <div class="profile-cover">
+      <div class="cover-gradient" style="background:linear-gradient(135deg,#059669,#10b981)"></div>
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar">
+          <img src="../../assets/img/Ghana-Coat-Of-Arms.jpg" alt="Profile Photo" id="profileImage">
+          <button class="avatar-edit-btn" id="changePhotoBtn" title="Change photo">
+            <i class="fas fa-camera"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Identity -->
+    <div class="profile-identity">
+      <h2 id="profileName">&mdash;</h2>
+      <p class="profile-role-badge" id="profileRole" style="background:linear-gradient(135deg,#059669,#10b981)">
+        <i class="fas fa-user-graduate"></i>
+        <span>Student</span>
+      </p>
+      <p class="profile-email-line" id="profileEmailLine">
+        <i class="fas fa-envelope"></i>
+        <span>&mdash;</span>
+      </p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="profile-stats-grid">
+      <div class="pstat-card">
+        <div class="pstat-icon" style="background:linear-gradient(135deg,#059669,#10b981)">
+          <i class="fas fa-book-open"></i>
+        </div>
+        <div class="pstat-body">
+          <span class="pstat-value quick-stat-courses">&mdash;</span>
+          <span class="pstat-label">Courses</span>
+        </div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="pstat-body">
+          <span class="pstat-value quick-stat-pending">&mdash;</span>
+          <span class="pstat-label">Pending</span>
+        </div>
+      </div>
+      <div class="pstat-card">
+        <div class="pstat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)">
+          <i class="fas fa-percentage"></i>
+        </div>
+        <div class="pstat-body">
+          <span class="pstat-value quick-stat-attendance">&mdash;</span>
+          <span class="pstat-label">Attendance</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Meta info -->
+    <ul class="profile-meta-list">
+      <li>
+        <i class="fas fa-calendar-alt"></i>
+        <span class="meta-enrolled">Enrolled &mdash;</span>
+      </li>
+      <li>
+        <i class="fas fa-clock"></i>
+        <span class="meta-last-login">Last login: &mdash;</span>
+      </li>
+      <li>
+        <i class="fas fa-id-card"></i>
+        <span class="meta-student-id">Student ID: &mdash;</span>
+      </li>
+    </ul>
+
+    <!-- Sidebar Nav -->
+    <nav class="profile-sidenav">
+      <button class="psnav-item active" data-tab="personal">
+        <i class="fas fa-user"></i> Personal Info
+      </button>
+      <button class="psnav-item" data-tab="courses">
+        <i class="fas fa-book-open"></i> My Courses
+      </button>
+      <button class="psnav-item" data-tab="account">
+        <i class="fas fa-lock"></i> Account Security
+      </button>
+      <button class="psnav-item" data-tab="preferences">
+        <i class="fas fa-sliders-h"></i> Preferences
+      </button>
+      <button class="psnav-item" data-tab="activity">
+        <i class="fas fa-history"></i> Activity Log
+      </button>
+    </nav>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN CONTENT — Tabbed panels
+  ════════════════════════════════════════════════ -->
+  <div class="profile-main">
+
+    <!-- Top tab bar -->
+    <div class="profile-topnav">
+      <button class="profile-tab active" data-tab="personal">
+        <i class="fas fa-user"></i> Personal Info
+      </button>
+      <button class="profile-tab" data-tab="courses">
+        <i class="fas fa-book-open"></i> Courses
+      </button>
+      <button class="profile-tab" data-tab="account">
+        <i class="fas fa-lock"></i> Security
+      </button>
+      <button class="profile-tab" data-tab="preferences">
+        <i class="fas fa-sliders-h"></i> Preferences
+      </button>
+      <button class="profile-tab" data-tab="activity">
+        <i class="fas fa-history"></i> Activity
+      </button>
+    </div>
+
+    <!-- ── Personal Info ─────────────────────────── -->
+    <div class="profile-panel active" id="personal-tab">
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#059669,#10b981)">
+            <i class="fas fa-id-card"></i>
+          </span>
+          <div>
+            <h3>Basic Information</h3>
+            <p>Your personal details</p>
+          </div>
+        </div>
+        <div class="pf-grid">
+          <div class="pf-group">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" value="" class="pf-input" placeholder="First name">
+          </div>
+          <div class="pf-group">
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" value="" class="pf-input" placeholder="Last name">
+          </div>
+          <div class="pf-group">
+            <label for="title">Title</label>
+            <select id="title" class="pf-input">
+              <option value="">— Select —</option>
+              <option value="mr">Mr.</option>
+              <option value="mrs">Mrs.</option>
+              <option value="ms">Ms.</option>
+            </select>
+          </div>
+          <div class="pf-group">
+            <label for="gender">Gender</label>
+            <select id="gender" class="pf-input">
+              <option value="">— Select —</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not_to_say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="pf-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" value="" class="pf-input">
+          </div>
+          <div class="pf-group">
+            <label for="phone">Phone Number</label>
+            <input type="tel" id="phone" value="" class="pf-input" placeholder="+233 XX XXX XXXX">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#3090cf,#1d6ea5)">
+            <i class="fas fa-map-marker-alt"></i>
+          </span>
+          <div>
+            <h3>Contact &amp; Location</h3>
+            <p>Your contact details and address</p>
+          </div>
+        </div>
+        <div class="pf-grid">
+          <div class="pf-group">
+            <label for="email">Email Address</label>
+            <div class="pf-input-icon">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="email" value="" class="pf-input" placeholder="you@school.edu.gh">
+            </div>
+            <span class="pf-hint">Used for system notifications</span>
+          </div>
+          <div class="pf-group">
+            <label for="alt-email">Alternative Email</label>
+            <div class="pf-input-icon">
+              <i class="fas fa-envelope-open"></i>
+              <input type="email" id="alt-email" value="" class="pf-input" placeholder="Personal email">
+            </div>
+            <span class="pf-hint">Backup contact</span>
+          </div>
+          <div class="pf-group pf-full">
+            <label for="address">Physical Address</label>
+            <textarea id="address" rows="2" class="pf-input" placeholder="Street address"></textarea>
+          </div>
+          <div class="pf-group">
+            <label for="city">City</label>
+            <input type="text" id="city" value="" class="pf-input" placeholder="City">
+          </div>
+          <div class="pf-group">
+            <label for="region">Region</label>
+            <select id="region" class="pf-input">
+              <option value="">— Select region —</option>
+              <option value="greater-accra">Greater Accra</option>
+              <option value="ashanti">Ashanti</option>
+              <option value="western">Western</option>
+              <option value="eastern">Eastern</option>
+              <option value="central">Central</option>
+              <option value="volta">Volta</option>
+              <option value="northern">Northern</option>
+              <option value="upper-east">Upper East</option>
+              <option value="upper-west">Upper West</option>
+              <option value="bono">Bono</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+            <i class="fas fa-graduation-cap"></i>
+          </span>
+          <div>
+            <h3>Academic Details</h3>
+            <p>Your enrolment and class information</p>
+          </div>
+        </div>
+        <div class="pf-grid">
+          <div class="pf-group">
+            <label for="student-id">Student ID</label>
+            <input type="text" id="student-id" value="" class="pf-input" readonly>
+            <span class="pf-hint">Cannot be changed</span>
+          </div>
+          <div class="pf-group">
+            <label for="enrollment-date">Enrollment Date</label>
+            <input type="text" id="enrollment-date" value="" class="pf-input" readonly>
+            <span class="pf-hint">Set by administration</span>
+          </div>
+          <div class="pf-group">
+            <label for="class-name">Class</label>
+            <input type="text" id="class-name" value="" class="pf-input" readonly>
+            <span class="pf-hint">Set by administration</span>
+          </div>
+          <div class="pf-group">
+            <label for="program-name">Programme</label>
+            <input type="text" id="program-name" value="" class="pf-input" readonly>
+            <span class="pf-hint">Set by administration</span>
+          </div>
+          <div class="pf-group">
+            <label for="student-status">Enrolment Status</label>
+            <input type="text" id="student-status" value="" class="pf-input" readonly>
+            <span class="pf-hint">Set by administration</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#d4af37,#b8992f)">
+            <i class="fas fa-users"></i>
+          </span>
+          <div>
+            <h3>Parent / Guardian Details</h3>
+            <p>Emergency contacts and guardian information</p>
+          </div>
+        </div>
+        <div class="pf-grid">
+          <div class="pf-group">
+            <label for="parent-name">Parent / Guardian Name</label>
+            <input type="text" id="parent-name" value="" class="pf-input" placeholder="Full name">
+          </div>
+          <div class="pf-group">
+            <label for="parent-phone">Guardian Phone</label>
+            <input type="tel" id="parent-phone" value="" class="pf-input" placeholder="+233 XX XXX XXXX">
+          </div>
+          <div class="pf-group pf-full">
+            <label for="parent-email">Guardian Email</label>
+            <div class="pf-input-icon">
+              <i class="fas fa-envelope"></i>
+              <input type="email" id="parent-email" value="" class="pf-input" placeholder="guardian@email.com">
+            </div>
+          </div>
+          <div class="pf-group pf-full">
+            <label for="emergency-contact">Emergency Contact</label>
+            <input type="text" id="emergency-contact" value="" class="pf-input" placeholder="Name and phone number of emergency contact">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-actions">
+        <button class="btn-save-profile">
+          <i class="fas fa-check"></i> Save Changes
+        </button>
+        <button class="btn-cancel">
+          <i class="fas fa-times"></i> Discard
+        </button>
+      </div>
+    </div>
+
+    <!-- ── My Courses ────────────────────────────── -->
+    <div class="profile-panel" id="courses-tab">
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#059669,#10b981)">
+            <i class="fas fa-book-open"></i>
+          </span>
+          <div>
+            <h3>Enrolled Courses</h3>
+            <p>Subjects you are studying this term</p>
+          </div>
+        </div>
+
+        <div id="subjects-loading" class="activity-loading">
+          <i class="fas fa-circle-notch fa-spin"></i>
+          <span>Loading courses&hellip;</span>
+        </div>
+        <div id="subjects-list" style="display:none">
+          <table class="data-table" style="width:100%">
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Code</th>
+                <th>Class</th>
+                <th>Teacher</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="subjects-tbody"></tbody>
+          </table>
+        </div>
+        <div id="subjects-empty" style="display:none" class="activity-loading">
+          <i class="fas fa-inbox"></i>
+          <span>No courses enrolled yet.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Account Security ──────────────────────── -->
+    <div class="profile-panel" id="account-tab">
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#059669,#10b981)">
+            <i class="fas fa-key"></i>
+          </span>
+          <div>
+            <h3>Change Password</h3>
+            <p>Keep your account secure with a strong password</p>
+          </div>
+        </div>
+        <div class="pf-grid pf-grid-narrow">
+          <div class="pf-group pf-full">
+            <label for="current-password">Current Password</label>
+            <div class="pf-password-wrap">
+              <input type="password" id="current-password" class="pf-input" placeholder="Enter current password">
+              <button class="btn-toggle-password" data-target="current-password" type="button">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="pf-group">
+            <label for="new-password">New Password</label>
+            <div class="pf-password-wrap">
+              <input type="password" id="new-password" class="pf-input" placeholder="Min. 8 characters">
+              <button class="btn-toggle-password" data-target="new-password" type="button">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <span class="pf-hint">Uppercase, number &amp; symbol required</span>
+          </div>
+          <div class="pf-group">
+            <label for="confirm-password">Confirm New Password</label>
+            <div class="pf-password-wrap">
+              <input type="password" id="confirm-password" class="pf-input" placeholder="Repeat new password">
+              <button class="btn-toggle-password" data-target="confirm-password" type="button">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="pf-group pf-full">
+            <button class="btn-update-password">
+              <i class="fas fa-shield-alt"></i> Update Password
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+            <i class="fas fa-laptop"></i>
+          </span>
+          <div>
+            <h3>Active Sessions</h3>
+            <p>Devices currently signed in to your account</p>
+          </div>
+        </div>
+        <div class="sessions-list">
+          <div class="session-item current">
+            <div class="session-icon"><i class="fas fa-desktop"></i></div>
+            <div class="session-details">
+              <h4>Current Session</h4>
+              <p>&mdash;</p>
+              <span class="session-time">Active now</span>
+            </div>
+            <span class="session-badge">Current</span>
+          </div>
+        </div>
+        <button class="btn-revoke-all">
+          <i class="fas fa-sign-out-alt"></i> Sign Out All Other Sessions
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Preferences ────────────────────────────── -->
+    <div class="profile-panel" id="preferences-tab">
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+            <i class="fas fa-bell"></i>
+          </span>
+          <div>
+            <h3>Notification Preferences</h3>
+            <p>Choose what alerts you want to receive</p>
+          </div>
+        </div>
+        <div class="pref-list">
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-envelope"></i></div>
+            <div class="pref-info">
+              <h4>Email Notifications</h4>
+              <p>Receive email alerts for important events</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="pref-info">
+              <h4>Assignment Reminders</h4>
+              <p>Alert when assignments are due soon</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-star"></i></div>
+            <div class="pref-info">
+              <h4>Grade Published</h4>
+              <p>Notify when your grades are released</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="pref-info">
+              <h4>Upcoming Assessments</h4>
+              <p>Remind me of tests and exams</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-bullhorn"></i></div>
+            <div class="pref-info">
+              <h4>Announcements</h4>
+              <p>School and class announcements</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="pref-item">
+            <div class="pref-icon"><i class="fas fa-desktop"></i></div>
+            <div class="pref-info">
+              <h4>Desktop Notifications</h4>
+              <p>Show browser pop-up notifications</p>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#3090cf,#1d6ea5)">
+            <i class="fas fa-palette"></i>
+          </span>
+          <div>
+            <h3>Display Preferences</h3>
+            <p>Customise your portal experience</p>
+          </div>
+        </div>
+        <div class="pf-grid">
+          <div class="pf-group">
+            <label for="language-pref">Language</label>
+            <select id="language-pref" class="pf-input">
+              <option value="en">English</option>
+              <option value="tw">Twi</option>
+              <option value="ga">Ga</option>
+              <option value="ee">Ewe</option>
+            </select>
+          </div>
+          <div class="pf-group">
+            <label for="timezone-pref">Timezone</label>
+            <select id="timezone-pref" class="pf-input">
+              <option value="Africa/Accra">Africa/Accra (GMT+0)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+          <div class="pf-group">
+            <label for="date-format">Date Format</label>
+            <select id="date-format" class="pf-input">
+              <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+              <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+              <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+            </select>
+          </div>
+          <div class="pf-group">
+            <label for="items-per-page">Items Per Page</label>
+            <select id="items-per-page" class="pf-input">
+              <option value="10">10</option>
+              <option value="20" selected>20</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-actions">
+        <button class="btn-save-profile">
+          <i class="fas fa-check"></i> Save Preferences
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Activity Log ───────────────────────────── -->
+    <div class="profile-panel" id="activity-tab">
+
+      <div class="panel-section">
+        <div class="panel-section-head">
+          <span class="section-icon" style="background:linear-gradient(135deg,#059669,#10b981)">
+            <i class="fas fa-history"></i>
+          </span>
+          <div>
+            <h3>Activity History</h3>
+            <p>A log of your recent actions on the portal</p>
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="activity-filters">
+          <select class="filter-select pf-input" style="max-width:180px">
+            <option value="all">All Activity</option>
+            <option value="login">Logins</option>
+            <option value="logout">Logouts</option>
+            <option value="assignment_submit">Assignment Submitted</option>
+            <option value="grade_view">Grade Viewed</option>
+            <option value="update">Profile Updated</option>
+            <option value="password_changed">Password Changed</option>
+          </select>
+          <div class="activity-date-range">
+            <input type="date" class="pf-input" placeholder="From">
+            <input type="date" class="pf-input" placeholder="To">
+          </div>
+        </div>
+
+        <div class="activity-timeline"></div>
+
+        <div style="text-align:center;margin-top:1rem">
+          <button class="btn-load-more" style="display:none">
+            <i class="fas fa-chevron-down"></i> Load More
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

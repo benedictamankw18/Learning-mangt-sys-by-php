@@ -493,20 +493,20 @@ class StudentRepository
                     s.subject_code,
                     cl.class_name,
                     sem.semester_name,
-                    ce.enrollment_date,
-                    ce.status as enrollment_status,
-                    ce.progress_percentage,
+                    st.enrollment_date,
+                    cs.status as enrollment_status,
+                    NULL as progress_percentage,
                     t.first_name as teacher_first_name,
                     t.last_name as teacher_last_name
-                FROM course_enrollments ce
-                INNER JOIN class_subjects cs ON ce.course_id = cs.course_id
+                FROM students st
+                INNER JOIN class_subjects cs ON cs.class_id = st.class_id
                 INNER JOIN subjects s ON cs.subject_id = s.subject_id
                 INNER JOIN classes cl ON cs.class_id = cl.class_id
                 LEFT JOIN semesters sem ON cs.semester_id = sem.semester_id
                 LEFT JOIN teachers teach ON cs.teacher_id = teach.teacher_id
                 LEFT JOIN users t ON teach.user_id = t.user_id
-                WHERE ce.student_id = :student_id -- AND ce.status = 'active'
-                ORDER BY ce.enrollment_date DESC
+                WHERE st.student_id = :student_id AND cs.status = 'active'
+                ORDER BY s.subject_name ASC
             ");
 
             $stmt->execute(['student_id' => $studentId]);

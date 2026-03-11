@@ -62,25 +62,47 @@ class UserRepository
     {
         try {
             $stmt = $this->db->prepare("
-                    SELECT 
+                   SELECT 
                         u.*,
                         i.institution_name AS institution_name,
                         GROUP_CONCAT(DISTINCT r.role_name) as roles,
                         GROUP_CONCAT(DISTINCT p.permission_name) as permissions,
-                        a.employee_id,
-                        a.department,
-                        a.hire_date,
-                        a.qualification,
-                        a.specialization,
-                        a.bio,
-                        a.alternative_email
+                        COALESCE(t2.employee_id, a.employee_id) AS employee_id,
+                        COALESCE(t2.alternative_email, a.alternative_email, s3.alternative_email) AS alternative_email,
+                        COALESCE(t2.specialization, a.specialization) AS specialization,
+                        COALESCE(t2.hire_date, a.hire_date) AS hire_date,
+                        COALESCE(a.department, pro.program_name) as department,
+                        COALESCE(t2.bio, a.bio) as bio,
+                        COALESCE(t2.qualification, a.qualification) as qualification,
+                        t2.years_of_experience,
+                        t2.employment_end_date,
+                        t2.uuid AS teacher_uuid,
+                        s3.student_id_number,
+                        s3.enrollment_date,
+                        s3.parent_name,
+                        s3.parent_phone,
+                        s3.parent_email,
+                        s3.emergency_contact,
+                        s3.status AS student_status,
+                        s3.uuid AS student_uuid,
+                        cs.class_name,
+                        cs.class_code,
+                        ps.program_name AS student_program,
+                        pr.occupation,
+                        pr.parent_id
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
                 LEFT JOIN institutions i on i.institution_id = u.institution_id
                 LEFT JOIN permissions p ON rp.permission_id = p.permission_id
+                LEFT JOIN teachers t2 ON t2.user_id = u.user_id
                 LEFT JOIN admins a ON a.user_id = u.user_id
+                LEFT JOIN programs pro ON pro.program_id = t2.program_id
+                LEFT JOIN students s3 ON s3.user_id = u.user_id
+                LEFT JOIN classes cs ON cs.class_id = s3.class_id
+                LEFT JOIN programs ps ON ps.program_id = cs.program_id
+                LEFT JOIN parents pr ON pr.user_id = u.user_id
                 WHERE u.user_id = :id AND u.deleted_at IS NULL
                 GROUP BY u.user_id
             ");
@@ -243,13 +265,29 @@ class UserRepository
                 unset($data['phone']);
             }
 
-            // Separate admin-specific fields from users table fields
-            $adminOnlyFields = ['employee_id', 'department', 'hire_date', 'qualification', 'specialization', 'bio', 'alternative_email'];
-            $adminData = [];
-            $userData  = [];
+            // Separate role-specific fields from users table fields.
+            // Admin fields (columns in the `admins` table)
+            $adminTableFields   = ['employee_id', 'department', 'hire_date', 'qualification', 'specialization', 'bio', 'alternative_email'];
+            // Teacher fields (columns in the `teachers` table)
+            $teacherTableFields = ['employee_id', 'specialization', 'hire_date', 'qualification', 'years_of_experience', 'employment_end_date', 'bio', 'alternative_email'];
+            // Student fields (columns in the `students` table, not in users)
+            $studentTableFields = ['parent_name', 'parent_phone', 'parent_email', 'emergency_contact', 'alternative_email'];
+            // Parent fields (columns in the `parents` table, not in users)
+            $parentTableFields  = ['occupation'];
+            // Combined set — anything in either role table should NOT go to users
+            $roleOnlyFields = array_unique(array_merge($adminTableFields, $teacherTableFields, $studentTableFields, $parentTableFields));
+
+            $adminData   = [];
+            $teacherData = [];
+            $studentData = [];
+            $parentData  = [];
+            $userData    = [];
             foreach ($data as $key => $value) {
-                if (in_array($key, $adminOnlyFields)) {
-                    $adminData[$key] = $value;
+                if (in_array($key, $roleOnlyFields)) {
+                    if (in_array($key, $adminTableFields))   $adminData[$key]   = $value;
+                    if (in_array($key, $teacherTableFields)) $teacherData[$key] = $value;
+                    if (in_array($key, $studentTableFields)) $studentData[$key] = $value;
+                    if (in_array($key, $parentTableFields))  $parentData[$key]  = $value;
                 } else {
                     $userData[$key] = $value;
                 }
@@ -272,7 +310,7 @@ class UserRepository
                 $userUpdated = $stmt->execute($params);
             }
 
-            // Update admins table for admin-specific fields
+            // Update admins table (silently no-ops if user is not an admin)
             if (!empty($adminData)) {
                 $adminSets   = [];
                 $adminParams = ['user_id' => $id];
@@ -280,12 +318,47 @@ class UserRepository
                     $adminSets[]       = "{$key} = :{$key}";
                     $adminParams[$key] = $value;
                 }
-                $sql  = "UPDATE admins SET " . implode(', ', $adminSets) . " WHERE user_id = :user_id";
-                $stmt = $this->db->prepare($sql);
-                $stmt->execute($adminParams);
+                $sql = "UPDATE admins SET " . implode(', ', $adminSets) . " WHERE user_id = :user_id";
+                $this->db->prepare($sql)->execute($adminParams);
             }
 
-            return $userUpdated || !empty($adminData);
+            // Update teachers table (silently no-ops if user is not a teacher)
+            if (!empty($teacherData)) {
+                $teacherSets   = [];
+                $teacherParams = ['user_id' => $id];
+                foreach ($teacherData as $key => $value) {
+                    $teacherSets[]       = "{$key} = :{$key}";
+                    $teacherParams[$key] = $value;
+                }
+                $sql = "UPDATE teachers SET " . implode(', ', $teacherSets) . " WHERE user_id = :user_id";
+                $this->db->prepare($sql)->execute($teacherParams);
+            }
+
+            // Update students table (silently no-ops if user is not a student)
+            if (!empty($studentData)) {
+                $studentSets   = [];
+                $studentParams = ['user_id' => $id];
+                foreach ($studentData as $key => $value) {
+                    $studentSets[]       = "{$key} = :{$key}";
+                    $studentParams[$key] = $value;
+                }
+                $sql = "UPDATE students SET " . implode(', ', $studentSets) . " WHERE user_id = :user_id";
+                $this->db->prepare($sql)->execute($studentParams);
+            }
+
+            // Update parents table (silently no-ops if user is not a parent)
+            if (!empty($parentData)) {
+                $parentSets   = [];
+                $parentParams = ['user_id' => $id];
+                foreach ($parentData as $key => $value) {
+                    $parentSets[]       = "{$key} = :{$key}";
+                    $parentParams[$key] = $value;
+                }
+                $sql = "UPDATE parents SET " . implode(', ', $parentSets) . " WHERE user_id = :user_id";
+                $this->db->prepare($sql)->execute($parentParams);
+            }
+
+            return $userUpdated || !empty($adminData) || !empty($teacherData) || !empty($studentData) || !empty($parentData);
 
         } catch (\PDOException $e) {
             error_log("User Update Error: " . $e->getMessage());

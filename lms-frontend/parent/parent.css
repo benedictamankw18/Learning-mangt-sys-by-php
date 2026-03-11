@@ -453,3 +453,231 @@
         text-align: left;
     }
 }
+
+/* ============================================
+   My Profile Page — Parent Theme Overrides
+============================================ */
+
+/* Sidebar nav active item */
+.parent-theme .psnav-item.active {
+    background: rgba(212, 175, 55, 0.12);
+    color: #b8941f;
+}
+
+/* Top tab active state — gradient for better contrast */
+.parent-theme .profile-tab.active {
+    background: linear-gradient(135deg, #b8941f, #d4af37);
+    color: #fff;
+}
+
+/* Input focus ring */
+.parent-theme .pf-input:focus {
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+/* Save / update button hover */
+.parent-theme .btn-save-profile:hover,
+.parent-theme .btn-update-password:hover {
+    background: #b8941f;
+}
+
+/* Avatar edit button hover */
+.parent-theme .avatar-edit-btn:hover {
+    background: #b8941f;
+}
+
+/* Password show/hide toggle hover */
+.parent-theme .pf-password-wrap .btn-toggle-password:hover {
+    color: #d4af37;
+}
+
+/* Load-more button hover */
+.parent-theme .btn-load-more:hover {
+    border-color: #d4af37;
+    color: #d4af37;
+    background: rgba(212, 175, 55, 0.04);
+}
+
+/* Current session highlight */
+.parent-theme .session-item.current-session {
+    border-color: #d4af37;
+    background: rgba(212, 175, 55, 0.04);
+}
+
+.parent-theme .session-badge {
+    background: rgba(212, 175, 55, 0.15);
+    color: #b8941f;
+}
+
+/* Activity spinner */
+.parent-theme .activity-loading i {
+    color: #d4af37;
+}
+
+/* ── Notification Preference Cards ── */
+.pf-notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.5rem;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.pf-notif-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: #fff;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    transition: background 0.15s;
+}
+
+.pf-notif-item:last-child {
+    border-bottom: none;
+}
+
+.pf-notif-item:hover {
+    background: var(--hover-bg, #fafaf7);
+}
+
+.pf-notif-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.pf-notif-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.pf-notif-info strong {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    margin-bottom: 2px;
+}
+
+.pf-notif-info span {
+    display: block;
+    font-size: 0.775rem;
+    color: var(--text-secondary, #64748b);
+    line-height: 1.4;
+}
+
+/* keep old pf-toggle-row for any other callers */
+.pf-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    font-size: 0.875rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid var(--border-color, #f3f4f6);
+}
+
+.pf-toggle-row:last-child {
+    border-bottom: none;
+}
+
+.pf-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.pf-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.pf-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #cbd5e0;
+    border-radius: 24px;
+    transition: background 0.25s;
+}
+
+.pf-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    left: 3px;
+    bottom: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.25s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.pf-toggle input:checked + .pf-slider {
+    background: #d4af37;
+}
+
+.pf-toggle input:checked + .pf-slider::before {
+    transform: translateX(20px);
+}
+
+.pf-toggle input:focus-visible + .pf-slider {
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+}
+
+/* ── Password Strength Bar ── */
+.pw-strength-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border-color, #e2e8f0);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.pw-strength-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 3px;
+    transition: width 0.3s ease, background 0.3s ease;
+}
+
+.pw-strength-label {
+    display: block;
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+/* ── Children Cards (rendered by JS into #children-list-wrap) ── */
+#children-list-wrap {
+    border-radius: 0 0 12px 12px;
+    overflow: hidden;
+}
+
+#children-list-wrap > div:last-child {
+    border-bottom: none !important;
+}
+
+@media (max-width: 640px) {
+    #children-list-wrap > div {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+}

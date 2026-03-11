@@ -332,14 +332,14 @@ Build the foundational data management pages for students, teachers, classes, an
   - Upload profile photo
   - Notification preferences
   - Session management
-- [ ] **Enhance** `teacher/myprofile.html`
+- [x] **Enhance** `teacher/myprofile.html`
   - Similar to admin profile
   - Professional details (qualifications, subjects)
-- [ ] **Enhance** `student/myprofile.html`
+- [x] **Enhance** `student/myprofile.html`
   - Personal information
   - Emergency contacts
   - Parent/guardian details
-- [ ] **Enhance** `parent/myprofile.html`
+- [x] **Enhance** `parent/myprofile.html`
   - Personal information
   - Linked children
   - Contact preferences

@@ -383,10 +383,12 @@ class TeacherRepository
                     s.subject_name,
                     s.subject_code,
                     c.class_name,
+                    p.program_name,
                     COUNT(DISTINCT ce.student_id) as enrolled_students
                 FROM class_subjects cs
                 INNER JOIN subjects s ON cs.subject_id = s.subject_id
                 INNER JOIN classes c ON cs.class_id = c.class_id
+                LEFT JOIN programs p ON p.program_id = c.program_id
                 LEFT JOIN students ce ON c.class_id = ce.class_id AND ce.status = 'active'
                 WHERE cs.teacher_id = :teacher_id
                 GROUP BY cs.course_id
