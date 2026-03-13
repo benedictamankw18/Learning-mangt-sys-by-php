@@ -54,6 +54,8 @@ return [
     'POST /users/{uuid}/roles' => ['controller' => 'UserController', 'method' => 'assignRole', 'auth' => true],
     'DELETE /users/{uuid}/roles/{roleId}' => ['controller' => 'UserController', 'method' => 'removeRole', 'auth' => true],
     'GET /users/{uuid}/activity' => ['controller' => 'UserController', 'method' => 'getActivity', 'auth' => true],
+    'POST /users/{uuid}/reset-password' => ['controller' => 'UserController', 'method' => 'resetPassword', 'auth' => true],
+    'POST /users/import' => ['controller' => 'UserController', 'method' => 'import', 'auth' => true],
 
     // Superadmin-prefixed user routes (used by frontend under /api/superadmin/users)
     'GET /superadmin/users' => ['controller' => 'UserController', 'method' => 'index', 'auth' => true],
@@ -62,6 +64,7 @@ return [
     'PUT /superadmin/users/{uuid}' => ['controller' => 'UserController', 'method' => 'update', 'auth' => true],
     'DELETE /superadmin/users/{uuid}' => ['controller' => 'UserController', 'method' => 'delete', 'auth' => true],
     'POST /superadmin/users/{uuid}/roles' => ['controller' => 'UserController', 'method' => 'assignRoles', 'auth' => true],
+    'POST /superadmin/users/{uuid}/reset-password' => ['controller' => 'UserController', 'method' => 'resetPassword', 'auth' => true],
     'POST /superadmin/users/bulk' => ['controller' => 'UserController', 'method' => 'bulk', 'auth' => true],
     'POST /superadmin/users/import' => ['controller' => 'UserController', 'method' => 'import', 'auth' => true],
 
@@ -147,6 +150,7 @@ return [
     'GET /classes/{uuid}/students' => ['controller' => 'ClassController', 'method' => 'getStudents', 'auth' => true],
     'GET /classes/{uuid}/class-subjects' => ['controller' => 'ClassController', 'method' => 'getClassSubjects', 'auth' => true],
     'GET /classes/{uuid}/schedule' => ['controller' => 'ClassController', 'method' => 'getSchedule', 'auth' => true],
+    'GET /classes/{uuid}/performance' => ['controller' => 'ClassController', 'method' => 'getPerformance', 'auth' => true],
     'POST /classes/{uuid}/assign-teacher' => ['controller' => 'ClassController', 'method' => 'assignTeacher', 'auth' => true],
 
     // Course routes (now Class Subjects in Ghana SHS terminology)

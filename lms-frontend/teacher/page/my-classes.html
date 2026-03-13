@@ -1,0 +1,130 @@
+<style>
+.tmc-wrap { display: grid; gap: 1rem; }
+.tmc-toolbar { display: flex; gap: .75rem; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.tmc-search { min-width: 240px; flex: 1; max-width: 380px; position: relative; }
+.tmc-search i { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .82rem; }
+.tmc-search input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: .55rem .75rem .55rem 2rem; font-size: .87rem; }
+.tmc-search input:focus { outline: none; border-color: #3090cf; box-shadow: 0 0 0 3px rgba(48,144,207,.15); }
+.tmc-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .75rem; }
+.tmc-stat { border: 1px solid #e2e8f0; border-radius: 12px; padding: .8rem .9rem; background: #fff; }
+.tmc-stat h4 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.tmc-stat p { margin: .18rem 0 0; color: #64748b; font-size: .78rem; }
+.tmc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .9rem; }
+.tmc-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
+.tmc-head { padding: .85rem .95rem; border-bottom: 1px solid #eef2f7; display: flex; justify-content: space-between; gap: .6rem; align-items: flex-start; }
+.tmc-head h4 { margin: 0; font-size: .95rem; color: #0f172a; }
+.tmc-head p { margin: .2rem 0 0; color: #64748b; font-size: .78rem; }
+.tmc-badge { font-size: .72rem; font-weight: 600; border-radius: 999px; padding: .2rem .55rem; white-space: nowrap; }
+.tmc-badge.ok { background: #dcfce7; color: #15803d; }
+.tmc-badge.warn { background: #fff7ed; color: #c2410c; }
+.tmc-body { padding: .85rem .95rem; display: grid; gap: .55rem; }
+.tmc-row { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: #334155; }
+.tmc-row strong { color: #0f172a; }
+.tmc-actions { display: flex; gap: .45rem; flex-wrap: wrap; padding: .85rem .95rem; border-top: 1px solid #eef2f7; background: #fafcff; }
+.tmc-roster { display: none; border-top: 1px dashed #dbe4ef; background: #fcfdff; padding: .75rem .95rem; }
+.tmc-roster.open { display: block; }
+.tmc-roster ul { margin: 0; padding-left: 1.05rem; }
+.tmc-roster li { margin: .2rem 0; color: #334155; font-size: .81rem; }
+.tmc-empty, .tmc-error { text-align: center; color: #64748b; padding: 1.4rem 1rem; font-size: .88rem; }
+.tmc-error { color: #b91c1c; }
+
+.tmc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 2200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.tmc-modal-overlay.open { display: flex; }
+.tmc-modal {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, .32);
+}
+.tmc-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem;
+  padding: .95rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.tmc-modal-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.tmc-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #dbe4ef;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+.tmc-modal-body { padding: 1rem; display: grid; gap: .8rem; }
+.tmc-modal-toolbar { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.tmc-modal-toolbar label { font-size: .8rem; color: #475569; font-weight: 600; }
+.tmc-input, .tmc-select {
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  padding: .45rem .65rem;
+  font-size: .84rem;
+  color: #0f172a;
+  background: #fff;
+}
+.tmc-table-wrap { border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; }
+.tmc-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.tmc-table th { background: #f8fafc; color: #475569; text-align: left; padding: .55rem .7rem; border-bottom: 1px solid #e2e8f0; }
+.tmc-table td { text-align: left; padding: .52rem .7rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.tmc-table tbody tr:last-child td { border-bottom: none; }
+.tmc-schedule-grid { display: grid; gap: .55rem; }
+.tmc-slot { border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .75rem; background: #fcfdff; }
+.tmc-slot h4 { margin: 0 0 .25rem; font-size: .85rem; color: #0f172a; }
+.tmc-slot p { margin: 0; font-size: .78rem; color: #64748b; }
+.tmc-slot .tmc-time { font-weight: 700; color: #0f766e; margin-right: .4rem; }
+.tmc-modal-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .85rem 1rem 1rem; }
+
+@media (max-width: 760px) { .tmc-stats { grid-template-columns: 1fr; } }
+</style>
+
+<div class="card" id="myClassesPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-chalkboard"></i> My Classes</h3>
+    <button class="btn btn-sm btn-outline" id="tmcRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div class="card-body tmc-wrap">
+    <div class="tmc-toolbar">
+      <div class="tmc-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="tmcSearchInput" placeholder="Search class or program...">
+      </div>
+    </div>
+
+    <div class="tmc-stats">
+      <div class="tmc-stat"><h4 id="tmcTotalClasses">0</h4><p>Classes Teaching</p></div>
+      <div class="tmc-stat"><h4 id="tmcTotalStudents">0</h4><p>Students Across Classes</p></div>
+      <div class="tmc-stat"><h4 id="tmcTotalSubjects">0</h4><p>Subjects Across Classes</p></div>
+    </div>
+
+    <div id="tmcList" class="tmc-grid"></div>
+  </div>
+</div>
+
+<div class="tmc-modal-overlay" id="tmcModalOverlay" aria-hidden="true">
+  <div class="tmc-modal" role="dialog" aria-modal="true" aria-labelledby="tmcModalTitle">
+    <div class="tmc-modal-head">
+      <h3 id="tmcModalTitle">Class Details</h3>
+      <button class="tmc-modal-close" id="tmcModalClose" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="tmc-modal-body" id="tmcModalBody"></div>
+    <div class="tmc-modal-foot" id="tmcModalFoot"></div>
+  </div>
+</div>

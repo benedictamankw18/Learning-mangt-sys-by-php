@@ -1,0 +1,104 @@
+<style>
+.tms-wrap { display: grid; gap: 1rem; }
+.tms-toolbar { display: flex; gap: .75rem; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.tms-search { min-width: 240px; flex: 1; max-width: 380px; position: relative; }
+.tms-search i { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .82rem; }
+.tms-search input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: .55rem .75rem .55rem 2rem; font-size: .87rem; }
+.tms-search input:focus { outline: none; border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.15); }
+.tms-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .75rem; }
+.tms-stat { border: 1px solid #e2e8f0; border-radius: 12px; padding: .8rem .9rem; background: #fff; }
+.tms-stat h4 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.tms-stat p { margin: .18rem 0 0; color: #64748b; font-size: .78rem; }
+.tms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .9rem; }
+.tms-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+.tms-head { padding: .85rem .95rem; border-bottom: 1px solid #eef2f7; }
+.tms-head-top { display: flex; justify-content: space-between; align-items: flex-start; gap: .5rem; margin-bottom: .35rem; }
+.tms-head h4 { margin: 0; font-size: .95rem; color: #0f172a; }
+.tms-head .tms-code { display: inline-block; margin: 0; color: #7c3aed; font-size: .76rem; font-family: monospace; font-weight: 600; letter-spacing: .04em; }
+.tms-badges { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .35rem; }
+.tms-badge { font-size: .72rem; font-weight: 600; border-radius: 999px; padding: .2rem .55rem; white-space: nowrap; }
+.tms-badge.core { background: #dbeafe; color: #1d4ed8; }
+.tms-badge.elective { background: #fef9c3; color: #92400e; }
+.tms-badge.active { background: #dcfce7; color: #15803d; }
+.tms-badge.warn { background: #fff7ed; color: #c2410c; }
+.tms-body { padding: .85rem .95rem; display: grid; gap: .55rem; flex: 1; }
+.tms-row { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: #334155; }
+.tms-row strong { color: #0f172a; }
+.tms-classes-pill { display: flex; gap: .28rem; flex-wrap: wrap; margin-top: .3rem; }
+.tms-class-chip { border: 1px solid #e2e8f0; border-radius: 6px; padding: .15rem .42rem; font-size: .74rem; color: #475569; background: #f8fafc; }
+.tms-actions { display: flex; gap: .45rem; flex-wrap: wrap; padding: .85rem .95rem; border-top: 1px solid #eef2f7; background: #fafcff; }
+.tms-empty, .tms-error { text-align: center; color: #64748b; padding: 1.4rem 1rem; font-size: .88rem; }
+.tms-empty i, .tms-error i{ color: #94a3b8; font-size: 4rem; margin-bottom: .6rem; display: block; }
+.tms-error { color: #b91c1c; }
+
+/* Modal */
+.tms-modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+  z-index: 2200; display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.tms-modal-overlay.open { display: flex; }
+.tms-modal {
+  width: min(860px, 100%); max-height: 92vh; overflow: auto;
+  background: #fff; border-radius: 14px; box-shadow: 0 22px 60px rgba(2, 6, 23, .32);
+}
+.tms-modal-head {
+  display: flex; align-items: center; justify-content: space-between; gap: .7rem;
+  padding: .95rem 1rem; border-bottom: 1px solid #e2e8f0;
+  position: sticky; top: 0; background: #fff; z-index: 1;
+}
+.tms-modal-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.tms-modal-close {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid #dbe4ef;
+  background: #fff; color: #475569; cursor: pointer;
+}
+.tms-modal-body { padding: 1rem; display: grid; gap: .8rem; }
+.tms-modal-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .85rem 1rem 1rem; }
+.tms-table-wrap { border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; }
+.tms-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.tms-table th { background: #f8fafc; color: #475569; text-align: left; padding: .55rem .7rem; border-bottom: 1px solid #e2e8f0; }
+.tms-table td { text-align: left; padding: .52rem .7rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.tms-table tbody tr:last-child td { border-bottom: none; }
+.tms-schedule-grid { display: grid; gap: .55rem; }
+.tms-slot { border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .75rem; background: #fcfdff; }
+.tms-slot h4 { margin: 0 0 .25rem; font-size: .85rem; color: #0f172a; }
+.tms-slot p { margin: 0; font-size: .78rem; color: #64748b; }
+.tms-slot .tms-time { font-weight: 700; color: #7c3aed; margin-right: .4rem; }
+
+@media (max-width: 760px) { .tms-stats { grid-template-columns: 1fr; } }
+</style>
+
+<div class="card" id="mySubjectsPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-book-open"></i> My Subjects</h3>
+    <button class="btn btn-sm btn-outline" id="tmsRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div class="card-body tms-wrap">
+
+    <div class="tms-toolbar">
+      <div class="tms-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="tmsSearchInput" placeholder="Search subject or code...">
+      </div>
+    </div>
+
+    <div class="tms-stats">
+      <div class="tms-stat"><h4 id="tmsTotalSubjects">0</h4><p>Subjects Teaching</p></div>
+      <div class="tms-stat"><h4 id="tmsTotalClasses">0</h4><p>Classes Assigned</p></div>
+      <div class="tms-stat"><h4 id="tmsTotalStudents">0</h4><p>Students Across Subjects</p></div>
+    </div>
+
+    <div id="tmsList" class="tms-grid"></div>
+  </div>
+</div>
+
+<!-- Modal overlay (subject popups) -->
+<div class="tms-modal-overlay" id="tmsModalOverlay" aria-hidden="true">
+  <div class="tms-modal" role="dialog" aria-modal="true" aria-labelledby="tmsModalTitle">
+    <div class="tms-modal-head">
+      <h3 id="tmsModalTitle">Subject Details</h3>
+      <button class="tms-modal-close" id="tmsModalClose" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="tms-modal-body" id="tmsModalBody"></div>
+    <div class="tms-modal-foot" id="tmsModalFoot"></div>
+  </div>
+</div>

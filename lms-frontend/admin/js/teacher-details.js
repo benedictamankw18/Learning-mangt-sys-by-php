@@ -117,7 +117,7 @@
         const metaEl = document.getElementById('tdMeta');
         if (metaEl) {
             metaEl.innerHTML = [
-                t.email      ? `<span><i class="fas fa-envelope"></i> ${escHtml(t.email)}</span>` : '',
+                t.email      ? `<a href="mailto:${escHtml(t.email)}" class="td-email"><i class="fas fa-envelope"></i> ${escHtml(t.email)}</a>` : '',
                 t.employee_id ? `<span><i class="fas fa-id-badge"></i> ${escHtml(t.employee_id)}</span>` : '',
                 t.phone_number ? `<span><i class="fas fa-phone"></i> ${escHtml(t.phone_number)}</span>` : '',
             ].filter(Boolean).join('');
@@ -150,6 +150,8 @@
         setText('tdProfileHireDate',      fmtDate(t.hire_date));
         setText('tdProfileYearsExp',      t.years_of_experience !== null && t.years_of_experience !== undefined
             ? `${t.years_of_experience} year(s)` : null);
+
+            document.getElementById('tdProfileEmail').href = `mailto:${t.email || ''}`;
     }
 
     // ─── Edit Button ──────────────────────────────────────────────────────────

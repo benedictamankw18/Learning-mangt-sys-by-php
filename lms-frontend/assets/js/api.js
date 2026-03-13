@@ -232,8 +232,10 @@ const UserAPI = {
     getById: (id) => API.get(API_ENDPOINTS.USER_BY_ID(id)),
     getProfile: () => API.get(API_ENDPOINTS.USER_PROFILE),
     create: (data) => API.post(API_ENDPOINTS.USERS, data),
+    import: (data) => API.post(API_ENDPOINTS.USER_IMPORT, data),
     update: (id, data) => API.put(API_ENDPOINTS.USER_BY_ID(id), data),
     delete: (id) => API.delete(API_ENDPOINTS.USER_BY_ID(id)),
+    resetPassword: (uuid, data) => API.post(API_ENDPOINTS.USER_RESET_PASSWORD(uuid), data),
 };
 
 /**

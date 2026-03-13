@@ -275,12 +275,30 @@
     border-top: 1px solid var(--border-color);
 }
 
+.tmc-empty{
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);   
+}
+
+.tmc-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+    display: block;
+}
+
 /* ============================================
    Badge in Nav
 ============================================ */
 .nav-item .badge {
     margin-left: auto;
     font-size: 0.625rem;
+}
+
+.page-content {
+    padding: 0rem;
+    flex: 0;
 }
 
 /* ============================================

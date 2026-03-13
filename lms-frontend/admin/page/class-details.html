@@ -1,0 +1,523 @@
+<!-- ===================================================
+     Class Details Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/class-details.js
+==================================================== -->
+<style>
+/* ── Class Details Page ────────────────────────────── */
+.cd-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: var(--white, #fff);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.07));
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.cd-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary, #006a3f);
+    font-size: .9rem;
+    cursor: pointer;
+    padding: .4rem .75rem;
+    border-radius: var(--border-radius, 8px);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    transition: background .2s;
+    flex-shrink: 0;
+    margin-top: .25rem;
+}
+.cd-back-btn:hover { background: var(--primary-light, #d1fae5); color: #fff; }
+.cd-icon-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary, #006a3f), #008c54);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+.cd-info { flex: 1; min-width: 0; }
+.cd-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900, #0f172a);
+    margin-bottom: .2rem;
+}
+.cd-meta {
+    font-size: .82rem;
+    color: var(--gray-500, #64748b);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem 1.4rem;
+    margin-bottom: .5rem;
+}
+.cd-meta span { display: flex; align-items: center; gap: .3rem; }
+.cd-badges { display: flex; gap: .5rem; flex-wrap: wrap; }
+.cd-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 600;
+    gap: .3rem;
+}
+.cd-badge-active   { background: #dcfce7; color: #16a34a; }
+.cd-badge-inactive { background: #fee2e2; color: #dc2626; }
+.cd-badge-program  { background: #ede9fe; color: #7c3aed; }
+.cd-badge-year     { background: #e0f2fe; color: #0369a1; }
+.cd-header-actions {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+/* Quick stats strip */
+.cd-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: .75rem;
+    margin-bottom: 1.5rem;
+}
+.cd-stat-mini {
+    background: var(--white, #fff);
+    border-radius: var(--border-radius, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.07));
+    padding: .9rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.cd-stat-mini-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.cd-stat-mini-icon.green  { background: #dcfce7; color: #16a34a; }
+.cd-stat-mini-icon.blue   { background: #dbeafe; color: #1d4ed8; }
+.cd-stat-mini-icon.purple { background: #ede9fe; color: #7c3aed; }
+.cd-stat-mini-icon.orange { background: #fef3c7; color: #d97706; }
+.cd-stat-mini-body h4 { font-size: 1.25rem; font-weight: 700; margin: 0; color: var(--gray-900, #0f172a); }
+.cd-stat-mini-body p  { font-size: .72rem; color: var(--gray-500, #64748b); margin: 0; }
+
+/* Tabs */
+.cd-tabs {
+    display: flex;
+    gap: .25rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    flex-wrap: wrap;
+    background: var(--white, #fff);
+    border-radius: var(--border-radius-lg, 12px) var(--border-radius-lg, 12px) 0 0;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.07));
+    padding: .25rem .5rem 0;
+}
+.cd-tab-btn {
+    padding: .65rem 1.2rem;
+    border: none;
+    background: none;
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--gray-500, #64748b);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+}
+.cd-tab-btn:hover  { color: var(--primary, #006a3f); }
+.cd-tab-btn.active { color: var(--primary, #006a3f); border-bottom-color: var(--primary, #006a3f); }
+.cd-tab-panel {
+    display: none;
+    background: var(--white, #fff);
+    border-radius: 0 0 var(--border-radius-lg, 12px) var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,.07));
+    padding: 1.5rem;
+}
+.cd-tab-panel.active { display: block; }
+
+/* Section headings inside tabs */
+.cd-section { margin-bottom: 1.5rem; }
+.cd-section-title {
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--gray-400, #94a3b8);
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--gray-100, #f1f5f9);
+}
+.cd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.cd-field label {
+    font-size: .75rem;
+    color: var(--gray-500, #64748b);
+    font-weight: 500;
+    display: block;
+    margin-bottom: .25rem;
+}
+.cd-field span {
+    font-size: .9rem;
+    color: var(--gray-900, #0f172a);
+    font-weight: 500;
+}
+
+/* Table shared */
+.cd-table-wrap { overflow-x: auto; }
+.cd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .84rem;
+}
+.cd-table th {
+    text-align: left;
+    padding: .65rem .75rem;
+    background: var(--gray-50, #f8fafc);
+    font-weight: 600;
+    color: var(--gray-600, #475569);
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.cd-table td {
+    padding: .65rem .75rem;
+    border-bottom: 1px solid var(--gray-100, #f1f5f9);
+    color: var(--gray-700, #334155);
+}
+.cd-table tbody tr:last-child td { border-bottom: none; }
+.cd-table tbody tr:hover td { background: var(--gray-50, #f8fafc); }
+
+/* Roster avatar */
+.cd-roster-cell { display: flex; align-items: center; gap: .6rem; }
+.cd-avatar-sm {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--primary, #006a3f);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Subject core/elective badge */
+.cd-core-badge   { background: #dcfce7; color: #16a34a; padding: .15rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 600; }
+.cd-elective-badge { background: #e0f2fe; color: #0369a1; padding: .15rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 600; }
+
+/* Schedule timetable */
+.cd-schedule-grid {
+    display: grid;
+    gap: 1rem;
+}
+.cd-day-block {
+    background: var(--gray-50, #f8fafc);
+    border-radius: var(--border-radius, 8px);
+    padding: 1rem;
+    border-left: 4px solid var(--primary, #006a3f);
+}
+.cd-day-title {
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--primary, #006a3f);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: .75rem;
+}
+.cd-period-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: .5rem 0;
+    border-bottom: 1px solid var(--gray-100, #f1f5f9);
+    font-size: .83rem;
+}
+.cd-period-row:last-child { border-bottom: none; }
+.cd-period-time {
+    min-width: 110px;
+    font-weight: 600;
+    color: var(--gray-700, #334155);
+    white-space: nowrap;
+}
+.cd-period-subject { font-weight: 600; color: var(--gray-900, #0f172a); flex: 1; }
+.cd-period-teacher { color: var(--gray-500, #64748b); font-size: .8rem; }
+.cd-period-room    { color: var(--gray-500, #64748b); font-size: .8rem; white-space: nowrap; }
+
+/* Performance placeholder */
+.cd-perf-placeholder {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--gray-400, #94a3b8);
+}
+.cd-perf-placeholder i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+
+/* Chart canvas */
+.cd-chart-wrap {
+    position: relative;
+    height: 280px;
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+/* Skeleton */
+.cd-skeleton {
+    background: linear-gradient(90deg, var(--gray-100, #f1f5f9) 25%, var(--gray-200, #e2e8f0) 50%, var(--gray-100, #f1f5f9) 75%);
+    background-size: 200% 100%;
+    animation: cd-shimmer 1.4s infinite;
+    border-radius: 4px;
+    display: inline-block;
+}
+@keyframes cd-shimmer { to { background-position: -200% 0; } }
+
+@media (max-width: 640px) {
+    .cd-header { flex-direction: column; }
+    .cd-header-actions { width: 100%; }
+    .cd-grid { grid-template-columns: 1fr 1fr; }
+    .cd-period-row { flex-wrap: wrap; gap: .3rem; }
+    .cd-period-time { min-width: auto; }
+}
+</style>
+
+<!-- Back nav + class header -->
+<div class="cd-header" id="cdHeader">
+    <button class="cd-back-btn" id="cdBackBtn"><i class="fas fa-arrow-left"></i> Back to Classes</button>
+    <div class="cd-icon-lg" id="cdIconLg"><i class="fas fa-school"></i></div>
+    <div class="cd-info">
+        <div class="cd-name" id="cdName"><span class="cd-skeleton" style="width:200px;height:1.2rem">&nbsp;</span></div>
+        <div class="cd-meta">
+            <span><i class="fas fa-code fa-fw"></i> <span id="cdCode">—</span></span>
+            <span><i class="fas fa-layer-group fa-fw"></i> <span id="cdSection">—</span></span>
+            <span><i class="fas fa-map-marker-alt fa-fw"></i> <span id="cdRoom">—</span></span>
+            <span><i class="fas fa-chalkboard-teacher fa-fw"></i> <span id="cdTeacher">—</span></span>
+            <span><i class="fas fa-calendar fa-fw"></i> <span id="cdYear">—</span></span>
+        </div>
+        <div class="cd-badges">
+            <span class="cd-badge" id="cdStatusBadge">—</span>
+            <span class="cd-badge cd-badge-program" id="cdProgramBadge" style="display:none;"></span>
+            <span class="cd-badge cd-badge-year" id="cdGradeBadge" style="display:none;"></span>
+        </div>
+    </div>
+    <div class="cd-header-actions">
+        <button class="btn btn-outline btn-sm" id="cdExportPdfBtn" title="Export class report as PDF">
+            <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+        <button class="btn btn-secondary btn-sm" id="cdEditBtn"><i class="fas fa-edit"></i> Edit</button>
+    </div>
+</div>
+
+<!-- Quick stats strip -->
+<div class="cd-stats-strip">
+    <div class="cd-stat-mini">
+        <div class="cd-stat-mini-icon green"><i class="fas fa-users"></i></div>
+        <div class="cd-stat-mini-body"><h4 id="cdStatStudents">—</h4><p>Students</p></div>
+    </div>
+    <div class="cd-stat-mini">
+        <div class="cd-stat-mini-icon purple"><i class="fas fa-book-open"></i></div>
+        <div class="cd-stat-mini-body"><h4 id="cdStatSubjects">—</h4><p>Subjects</p></div>
+    </div>
+    <div class="cd-stat-mini">
+        <div class="cd-stat-mini-icon blue"><i class="fas fa-user-check"></i></div>
+        <div class="cd-stat-mini-body"><h4 id="cdStatCapacity">—</h4><p>Capacity</p></div>
+    </div>
+    <div class="cd-stat-mini">
+        <div class="cd-stat-mini-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="cd-stat-mini-body"><h4 id="cdStatPeriods">—</h4><p>Periods / Week</p></div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="cd-tabs">
+    <button class="cd-tab-btn active" data-tab="info"><i class="fas fa-info-circle fa-fw"></i> Info</button>
+    <button class="cd-tab-btn" data-tab="roster"><i class="fas fa-users fa-fw"></i> Roster</button>
+    <button class="cd-tab-btn" data-tab="subjects"><i class="fas fa-book fa-fw"></i> Subjects</button>
+    <button class="cd-tab-btn" data-tab="schedule"><i class="fas fa-calendar-alt fa-fw"></i> Schedule</button>
+    <button class="cd-tab-btn" data-tab="performance"><i class="fas fa-chart-bar fa-fw"></i> Performance</button>
+</div>
+
+<!-- ── Info Tab ──────────────────────────────────────────────── -->
+<div class="cd-tab-panel active" id="cdTab-info">
+    <div class="cd-section">
+        <div class="cd-section-title">Class Details</div>
+        <div class="cd-grid">
+            <div class="cd-field"><label>Class Name</label><span id="infoClassName">—</span></div>
+            <div class="cd-field"><label>Class Code</label><span id="infoClassCode">—</span></div>
+            <div class="cd-field"><label>Section</label><span id="infoSection">—</span></div>
+            <div class="cd-field"><label>Status</label><span id="infoStatus">—</span></div>
+        </div>
+    </div>
+    <div class="cd-section">
+        <div class="cd-section-title">Program & Level</div>
+        <div class="cd-grid">
+            <div class="cd-field"><label>Program</label><span id="infoProgram">—</span></div>
+            <div class="cd-field"><label>Grade Level</label><span id="infoGradeLevel">—</span></div>
+            <div class="cd-field"><label>Academic Year</label><span id="infoAcademicYear">—</span></div>
+        </div>
+    </div>
+    <div class="cd-section">
+        <div class="cd-section-title">Capacity & Location</div>
+        <div class="cd-grid">
+            <div class="cd-field"><label>Max Students (Capacity)</label><span id="infoCapacity">—</span></div>
+            <div class="cd-field"><label>Current Enrolment</label><span id="infoEnrolled">—</span></div>
+            <div class="cd-field"><label>Room / Venue</label><span id="infoRoom">—</span></div>
+        </div>
+    </div>
+    <div class="cd-section">
+        <div class="cd-section-title">Class Teacher</div>
+        <div class="cd-grid">
+            <div class="cd-field"><label>Name</label><span id="infoTeacherName">—</span></div>
+            <div class="cd-field"><label>Email</label><span id="infoTeacherEmail">—</span></div>
+        </div>
+    </div>
+    <div class="cd-section">
+        <div class="cd-section-title">Record</div>
+        <div class="cd-grid">
+            <div class="cd-field"><label>Created</label><span id="infoCreated">—</span></div>
+            <div class="cd-field"><label>Last Updated</label><span id="infoUpdated">—</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Roster Tab ────────────────────────────────────────────── -->
+<div class="cd-tab-panel" id="cdTab-roster">
+    <div class="cd-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+            <div class="cd-section-title" style="margin-bottom:0;border-bottom:none;">
+                Enrolled Students (<span id="rosterCount">—</span>)
+            </div>
+            <div style="display:flex;gap:.5rem;">
+                <input type="text" id="rosterSearch" placeholder="Search students…"
+                    style="padding:.4rem .75rem;border:1px solid #e2e8f0;border-radius:8px;font-size:.84rem;outline:none;width:200px;">
+                <button id="exportRosterBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+        </div>
+        <div class="cd-table-wrap">
+            <table class="cd-table" id="rosterTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Student ID</th>
+                        <th>Gender</th>
+                        <th>Age</th>
+                        <th>Enrolled</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="rosterTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align:center;padding:3rem;color:var(--gray-400,#94a3b8);">
+                            <i class="fas fa-spinner fa-spin"></i> Loading roster…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── Subjects Tab ──────────────────────────────────────────── -->
+<div class="cd-tab-panel" id="cdTab-subjects">
+    <div class="cd-section">
+        <div class="cd-section-title">Assigned Subjects</div>
+        <div class="cd-table-wrap">
+            <table class="cd-table" id="subjectsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Code</th>
+                        <th>Type</th>
+                        <th>Credits</th>
+                        <th>Teacher</th>
+                        <th>Enrolled</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="subjectsTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align:center;padding:3rem;color:var(--gray-400,#94a3b8);">
+                            <i class="fas fa-spinner fa-spin"></i> Loading subjects…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ── Schedule Tab ──────────────────────────────────────────── -->
+<div class="cd-tab-panel" id="cdTab-schedule">
+    <div class="cd-section">
+        <div class="cd-section-title">Weekly Timetable</div>
+        <div id="scheduleContainer">
+            <div style="text-align:center;padding:3rem;color:var(--gray-400,#94a3b8);">
+                <i class="fas fa-spinner fa-spin"></i> Loading schedule…
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Performance Tab ───────────────────────────────────────── -->
+<div class="cd-tab-panel" id="cdTab-performance">
+    <div class="cd-section">
+        <div class="cd-section-title">Class Performance Overview</div>
+        <div id="performanceContainer">
+            <div class="cd-stats-strip" id="perfStatsStrip" style="margin-bottom:1.5rem;display:none;">
+                <div class="cd-stat-mini">
+                    <div class="cd-stat-mini-icon green"><i class="fas fa-percent"></i></div>
+                    <div class="cd-stat-mini-body"><h4 id="perfAvgScore">—</h4><p>Avg Score</p></div>
+                </div>
+                <div class="cd-stat-mini">
+                    <div class="cd-stat-mini-icon blue"><i class="fas fa-trophy"></i></div>
+                    <div class="cd-stat-mini-body"><h4 id="perfHighest">—</h4><p>Highest Score</p></div>
+                </div>
+                <div class="cd-stat-mini">
+                    <div class="cd-stat-mini-icon orange"><i class="fas fa-chart-line"></i></div>
+                    <div class="cd-stat-mini-body"><h4 id="perfLowest">—</h4><p>Lowest Score</p></div>
+                </div>
+                <div class="cd-stat-mini">
+                    <div class="cd-stat-mini-icon purple"><i class="fas fa-check-circle"></i></div>
+                    <div class="cd-stat-mini-body"><h4 id="perfPassRate">—</h4><p>Pass Rate</p></div>
+                </div>
+            </div>
+            <div class="cd-chart-wrap" id="perfChartWrap" style="display:none;">
+                <canvas id="perfChart"></canvas>
+            </div>
+            <div class="cd-perf-placeholder" id="perfPlaceholder">
+                <i class="fas fa-chart-bar"></i>
+                <h4 style="font-size:1rem;font-weight:600;color:var(--gray-600,#475569);margin-bottom:.5rem;">
+                    No performance data yet
+                </h4>
+                <p style="font-size:.85rem;">
+                    Performance statistics will appear here once assessment results are recorded for this class.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

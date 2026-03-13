@@ -23,15 +23,21 @@ class ProgramController
     {
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+        $search = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
+        $status = isset($_GET['status']) ? trim((string) $_GET['status']) : '';
         $institutionId = isset($_GET['institution_id']) ? (int) $_GET['institution_id'] : null;
+
+        if (!in_array($status, ['active', 'inactive'], true)) {
+            $status = '';
+        }
 
         // Super admin can view all institutions' programs
         if ($user['role'] !== 'super_admin' && !$institutionId) {
             $institutionId = $user['institution_id'];
         }
 
-        $programs = $this->repo->getAll($page, $limit, $institutionId);
-        $total = $this->repo->count($institutionId);
+        $programs = $this->repo->getAll($page, $limit, $institutionId, $search, $status);
+        $total = $this->repo->count($institutionId, $search, $status);
 
         Response::success([
             'data' => $programs,
@@ -111,7 +117,16 @@ class ProgramController
             return;
         }
 
-        $programId = $this->repo->create($data);
+        try {
+            $programId = $this->repo->create($data);
+        } catch (\RuntimeException $e) {
+            if ($e->getCode() === 409) {
+                Response::error($e->getMessage(), 409);
+                return;
+            }
+            Response::serverError('Failed to create program');
+            return;
+        }
 
         if ($programId) {
             Response::success([

@@ -166,7 +166,7 @@
     flex-shrink: 0;
 }
 .student-name  { font-weight: 600; color: var(--text-primary,#1e293b); line-height: 1.3; }
-.student-email { font-size: 0.78rem; color: var(--text-secondary,#64748b); }
+.student-email { font-size: 0.78rem; color: #1d4ed8; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 
 .students-badge {
     display: inline-block;
@@ -574,6 +574,7 @@
                         <select class="form-input" id="sfStatus">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
+                            <option value="withdrawn">Withdrawn</option>
                         </select>
                     </div>
 

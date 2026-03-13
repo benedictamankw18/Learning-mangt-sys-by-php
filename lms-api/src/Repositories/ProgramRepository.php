@@ -20,9 +20,17 @@ class ProgramRepository
      * @param int $page
      * @param int $limit
      * @param int|null $institutionId
+     * @param string $search
+     * @param string $status
      * @return array
      */
-    public function getAll(int $page = 1, int $limit = 20, ?int $institutionId = null): array
+    public function getAll(
+        int $page = 1,
+        int $limit = 20,
+        ?int $institutionId = null,
+        string $search = '',
+        string $status = ''
+    ): array
     {
         try {
             $offset = ($page - 1) * $limit;
@@ -37,8 +45,22 @@ class ProgramRepository
                 LEFT JOIN institutions i ON p.institution_id = i.institution_id
             ";
 
+            $conditions = [];
+
             if ($institutionId) {
-                $sql .= " WHERE p.institution_id = :institution_id";
+                $conditions[] = 'p.institution_id = :institution_id';
+            }
+
+            if ($search !== '') {
+                $conditions[] = '(p.program_name LIKE :search_name OR p.program_code LIKE :search_code)';
+            }
+
+            if (in_array($status, ['active', 'inactive'], true)) {
+                $conditions[] = 'p.status = :status';
+            }
+
+            if ($conditions) {
+                $sql .= ' WHERE ' . implode(' AND ', $conditions);
             }
 
             $sql .= " ORDER BY p.program_name ASC LIMIT :limit OFFSET :offset";
@@ -47,6 +69,16 @@ class ProgramRepository
 
             if ($institutionId) {
                 $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+            }
+
+            if ($search !== '') {
+                $searchTerm = '%' . $search . '%';
+                $stmt->bindValue(':search_name', $searchTerm, PDO::PARAM_STR);
+                $stmt->bindValue(':search_code', $searchTerm, PDO::PARAM_STR);
+            }
+
+            if (in_array($status, ['active', 'inactive'], true)) {
+                $stmt->bindValue(':status', $status, PDO::PARAM_STR);
             }
 
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -64,21 +96,46 @@ class ProgramRepository
      * Get total count of programs
      * 
      * @param int|null $institutionId
+     * @param string $search
+     * @param string $status
      * @return int
      */
-    public function count(?int $institutionId = null): int
+    public function count(?int $institutionId = null, string $search = '', string $status = ''): int
     {
         try {
             $sql = "SELECT COUNT(*) as total FROM programs";
+            $conditions = [];
 
             if ($institutionId) {
-                $sql .= " WHERE institution_id = :institution_id";
+                $conditions[] = 'institution_id = :institution_id';
+            }
+
+            if ($search !== '') {
+                $conditions[] = '(program_name LIKE :search_name OR program_code LIKE :search_code)';
+            }
+
+            if (in_array($status, ['active', 'inactive'], true)) {
+                $conditions[] = 'status = :status';
+            }
+
+            if ($conditions) {
+                $sql .= ' WHERE ' . implode(' AND ', $conditions);
             }
 
             $stmt = $this->db->prepare($sql);
 
             if ($institutionId) {
                 $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+            }
+
+            if ($search !== '') {
+                $searchTerm = '%' . $search . '%';
+                $stmt->bindValue(':search_name', $searchTerm, PDO::PARAM_STR);
+                $stmt->bindValue(':search_code', $searchTerm, PDO::PARAM_STR);
+            }
+
+            if (in_array($status, ['active', 'inactive'], true)) {
+                $stmt->bindValue(':status', $status, PDO::PARAM_STR);
             }
 
             $stmt->execute();
@@ -191,6 +248,9 @@ class ProgramRepository
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
             error_log("Create Program Error: " . $e->getMessage());
+            if ($e->errorInfo[1] === 1062) {
+                throw new \RuntimeException('Program code already exists', 409);
+            }
             return null;
         }
     }

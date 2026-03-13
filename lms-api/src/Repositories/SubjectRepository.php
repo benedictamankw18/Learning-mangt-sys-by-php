@@ -14,33 +14,85 @@ class SubjectRepository
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll(int $page = 1, int $limit = 20): array
-    {
+    public function getAll(
+        int $page = 1,
+        int $limit = 100,
+        ?int $institutionId = null,
+        ?string $search = null,
+        ?int $isCore = null
+    ): array {
         try {
             $offset = ($page - 1) * $limit;
+            $where  = '1=1';
+            $params = [];
+
+            if ($institutionId !== null) {
+                $where .= ' AND (s.institution_id = :institution_id OR s.institution_id IS NULL)';
+                $params['institution_id'] = $institutionId;
+            }
+            if ($search !== null) {
+                $where .= ' AND (s.subject_name LIKE :search_name OR s.subject_code LIKE :search_code)';
+                $params['search_name'] = '%' . $search . '%';
+                $params['search_code'] = '%' . $search . '%';
+            }
+            if ($isCore !== null) {
+                $where .= ' AND s.is_core = :is_core';
+                $params['is_core'] = $isCore;
+            }
+
             $stmt = $this->db->prepare("
-                SELECT * FROM subjects
-                ORDER BY subject_code ASC
+                SELECT s.*, COUNT(DISTINCT cs.course_id) AS assigned_classes
+                FROM subjects s
+                LEFT JOIN class_subjects cs ON cs.subject_id = s.subject_id
+                WHERE {$where}
+                GROUP BY s.subject_id
+                ORDER BY s.is_core DESC, s.subject_code ASC
                 LIMIT :limit OFFSET :offset
             ");
-            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+
+            foreach ($params as $k => $v) {
+                $t = is_int($v) ? \PDO::PARAM_INT : \PDO::PARAM_STR;
+                $stmt->bindValue(":$k", $v, $t);
+            }
+            $stmt->bindValue(':limit',  $limit,  \PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Subjects Error: " . $e->getMessage());
+            error_log('Get Subjects Error: ' . $e->getMessage());
             return [];
         }
     }
 
-    public function count(): int
+    public function count(?int $institutionId = null, ?string $search = null, ?int $isCore = null): int
     {
         try {
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM subjects");
-            $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-            return (int) $result['total'];
+            $where  = '1=1';
+            $params = [];
+
+            if ($institutionId !== null) {
+                $where .= ' AND (institution_id = :institution_id OR institution_id IS NULL)';
+                $params['institution_id'] = $institutionId;
+            }
+            if ($search !== null) {
+                $where .= ' AND (subject_name LIKE :search_name OR subject_code LIKE :search_code)';
+                $params['search_name'] = '%' . $search . '%';
+                $params['search_code'] = '%' . $search . '%';
+            }
+            if ($isCore !== null) {
+                $where .= ' AND is_core = :is_core';
+                $params['is_core'] = $isCore;
+            }
+
+            $stmt = $this->db->prepare("SELECT COUNT(*) AS total FROM subjects WHERE {$where}");
+            foreach ($params as $k => $v) {
+                $t = is_int($v) ? \PDO::PARAM_INT : \PDO::PARAM_STR;
+                $stmt->bindValue(":$k", $v, $t);
+            }
+            $stmt->execute();
+            return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Subjects Error: " . $e->getMessage());
+            error_log('Count Subjects Error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -106,6 +158,9 @@ class SubjectRepository
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
             error_log("Create Subject Error: " . $e->getMessage());
+            if ($e->errorInfo[1] === 1062) {
+                throw new \RuntimeException('Subject code already exists', 409);
+            }
             return null;
         }
     }

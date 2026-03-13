@@ -265,7 +265,7 @@
                         <div class="student-avatar">${escapeHtml(initials)}</div>
                         <div>
                             <div class="student-name">${escapeHtml(fullName)}</div>
-                            <div class="student-email">${escapeHtml(s.email || '')}</div>
+                            <a href="mailto:${escapeHtml(s.email || '')}" class="student-email">${escapeHtml(s.email || '')}</a>
                         </div>
                     </div>
                 </td>

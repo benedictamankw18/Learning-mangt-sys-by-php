@@ -842,9 +842,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 2px solid var(--gray-200);
+    margin-top: 0rem;
+    padding-top: 0rem;
+    /* border-top: 2px solid var(--gray-200); */
 }
 
 .pagination-info {

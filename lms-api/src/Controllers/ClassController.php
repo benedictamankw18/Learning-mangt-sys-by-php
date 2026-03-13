@@ -28,22 +28,28 @@ class ClassController
         $institutionId = isset($_GET['institution_id']) ? (int) $_GET['institution_id'] : null;
         $programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : null;
         $gradeLevelId = isset($_GET['grade_level_id']) ? (int) $_GET['grade_level_id'] : null;
+        $status = isset($_GET['status']) && in_array($_GET['status'], ['active', 'inactive'], true) ? $_GET['status'] : null;
+        $search = isset($_GET['search']) ? trim($_GET['search']) : null;
+        if ($search === '') $search = null;
 
         // Super admin can view all institutions' classes
         if ($user['role'] !== 'super_admin' && !$institutionId) {
             $institutionId = $user['institution_id'];
         }
 
-        $classes = $this->repo->getAll($page, $limit, $institutionId, $programId, $gradeLevelId);
-        $total = $this->repo->count($institutionId, $programId, $gradeLevelId);
+        $classes = $this->repo->getAll($page, $limit, $institutionId, $programId, $gradeLevelId, $status, $search);
+        $stats   = $this->repo->getStats($institutionId, $programId, $gradeLevelId, $status, $search);
 
         Response::success([
             'data' => $classes,
             'pagination' => [
-                'current_page' => $page,
-                'per_page' => $limit,
-                'total' => $total,
-                'total_pages' => ceil($total / $limit)
+                'current_page'   => $page,
+                'per_page'       => $limit,
+                'total'          => $stats['total'],
+                'total_pages'    => ceil($stats['total'] / $limit),
+                'active_count'   => $stats['active_count'],
+                'inactive_count' => $stats['inactive_count'],
+                'total_students' => $stats['total_students'],
             ]
         ]);
     }
@@ -111,15 +117,35 @@ class ClassController
             return;
         }
 
-        $classId = $this->repo->create($data);
+        try {
+            $classId = $this->repo->create($data);
 
-        if ($classId) {
-            Response::success([
-                'message' => 'Class created successfully',
-                'class_id' => $classId
-            ], 201);
-        } else {
-            Response::serverError('Failed to create class');
+            if ($classId) {
+                Response::success([
+                    'message' => 'Class created successfully',
+                    'class_id' => $classId
+                ], 201);
+            } else {
+                Response::serverError('Failed to create class');
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), '1062') !== false) {
+                if (strpos($e->getMessage(), 'unique_class_composition') !== false) {
+                    Response::error(
+                        'A class with section "' . ($data['section'] ?? '') . '" already exists for the selected program, grade level, and academic year.',
+                        409
+                    );
+                } else {
+                    // unique_class_code_institution or any other unique key
+                    Response::error(
+                        'A class with code "' . ($data['class_code'] ?? '') . '" already exists in this institution.',
+                        409
+                    );
+                }
+            } else {
+                error_log('Class create error: ' . $e->getMessage());
+                Response::serverError('Failed to create class');
+            }
         }
     }
 
@@ -254,7 +280,7 @@ class ClassController
 
         $students = $this->repo->getClassStudents($classId);
 
-        Response::success(['data' => $students]);
+        Response::success($students);
     }
 
     /**
@@ -285,7 +311,7 @@ class ClassController
 
         $classSubjects = $this->repo->getClassSubjects($classId);
 
-        Response::success(['data' => $classSubjects]);
+        Response::success($classSubjects);
     }
 
     /**
@@ -367,6 +393,37 @@ class ClassController
 
         $schedule = $this->repo->getClassSchedule($classId);
 
-        Response::success(['data' => $schedule]);
+        Response::success($schedule);
+    }
+
+    /**
+     * Get performance statistics for a class
+     */
+    public function getPerformance(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $class = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$class) {
+            Response::notFound('Class not found');
+            return;
+        }
+
+        $classId = $class['class_id'];
+
+        // Check authorization
+        $authz = new AuthorizationMiddleware($user);
+        if (!$authz->requireInstitutionAccess($class, 'You do not have access to this class')) {
+            return;
+        }
+
+        $performance = $this->repo->getClassPerformance($classId);
+
+        Response::success($performance);
     }
 }

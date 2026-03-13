@@ -1,0 +1,695 @@
+<!-- ===================================================
+     Classes Management Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/classes.js
+==================================================== -->
+<style>
+/* ============================================
+   Classes Management Page Styles
+============================================ */
+.classes-page { padding: 0; }
+
+.classes-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.classes-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+}
+.classes-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+}
+.classes-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+/* Stats */
+.classes-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 1024px) { .classes-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .classes-stats { grid-template-columns: 1fr; } }
+
+.classes-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+}
+.classes-stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.classes-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.classes-stat-icon i { font-size: 1.2rem; color: #fff; }
+.classes-stat-info h3 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0 0 0.2rem 0; }
+.classes-stat-info p  { font-size: 0.8rem; color: var(--text-secondary,#64748b); margin: 0; }
+
+/* Toolbar */
+.classes-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.classes-toolbar-left  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
+.classes-toolbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+.class-search-wrap {
+    position: relative;
+    min-width: 220px;
+}
+.class-search-wrap i {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+.class-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.class-search-wrap input:focus { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+
+.classes-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary, #1e293b);
+    min-width: 130px;
+}
+.classes-filter-select:focus { border-color: var(--primary, #006a3f); }
+
+/* Bulk actions bar */
+.classes-bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #15803d;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+}
+.classes-bulk-bar.active { display: flex; }
+.classes-bulk-bar span { flex: 1; }
+
+/* Table container */
+.classes-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+.classes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.classes-table thead tr { background: #f8fafc; }
+.classes-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.classes-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+.classes-table tbody tr:last-child td { border-bottom: none; }
+.classes-table tbody tr:hover { background: #f8fafc; }
+
+/* Class cell */
+.department-cell { display: flex; align-items: center; gap: 0.75rem; }
+.department-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #006a3f, #008c54);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; color: #fff;
+    flex-shrink: 0;
+}
+.department-details { min-width: 0; }
+.department-name { font-weight: 600; color: var(--text-primary,#1e293b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.department-code { font-size: 0.75rem; color: var(--text-secondary,#64748b); }
+
+/* Badges */
+.program-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: #ede9fe;
+    color: #6d28d9;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-active   { background: #dcfce7; color: #15803d; }
+.status-inactive { background: #fef9c3; color: #854d0e; }
+
+/* Row actions */
+.department-actions { display: flex; gap: 0.3rem; align-items: center; }
+.department-actions button {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #64748b);
+    transition: all 0.15s;
+}
+.department-actions button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.department-actions .btn-view:hover   { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
+.department-actions .btn-edit:hover   { color: #059669; border-color: #6ee7b7; background: #ecfdf5; }
+.department-actions .btn-delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+
+/* Table footer / pagination */
+.classes-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.classes-pagination { display: flex; gap: 0.25rem; align-items: center; }
+.classes-pagination button {
+    min-width: 32px; height: 32px; padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff; border-radius: 6px;
+    cursor: pointer; font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.classes-pagination button:hover  { background: #f1f5f9; border-color: #cbd5e1; }
+.classes-pagination button.active { background: var(--primary, #006a3f); border-color: var(--primary, #006a3f); color: #fff; font-weight: 600; }
+.classes-pagination button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* Modals */
+.class-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+    overflow-y: auto;
+}
+.class-modal-overlay.open { opacity: 1; pointer-events: all; }
+.class-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 660px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    transform: translateY(16px);
+    transition: transform 0.2s;
+    margin: auto;
+}
+.class-modal-overlay.open .class-modal { transform: translateY(0); }
+.class-modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+    border-radius: 16px 16px 0 0;
+}
+.class-modal-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0; }
+.class-modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: none; background: #f1f5f9; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary,#64748b); font-size: 0.9rem;
+    transition: all 0.15s;
+}
+.class-modal-close:hover { background: #e2e8f0; color: var(--text-primary,#1e293b); }
+.class-modal-body { padding: 1.5rem; }
+.class-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: flex-end; gap: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+    position: sticky; bottom: 0;
+}
+
+/* Form grid inside modal */
+.class-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 520px) { .class-form-grid { grid-template-columns: 1fr; } }
+.class-form-grid .span-2 { grid-column: span 2; }
+@media (max-width: 520px) { .class-form-grid .span-2 { grid-column: span 1; } }
+
+.cf-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.cf-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary,#64748b); }
+.cf-group label .req { color: #ef4444; margin-left: 2px; }
+.cf-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text-primary,#1e293b);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+}
+.cf-input:focus { border-color: var(--primary,#006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+
+.cf-section-title {
+    font-size: 0.78rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-secondary,#94a3b8);
+    grid-column: span 2;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+@media (max-width: 520px) { .cf-section-title { grid-column: span 1; } }
+
+.cf-error-banner {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.8rem;
+    grid-column: span 2;
+}
+@media (max-width: 520px) { .cf-error-banner { grid-column: span 1; } }
+
+/* Roster modal wider */
+.class-modal.wide { max-width: 860px; }
+
+/* Empty state */
+.classes-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--text-secondary, #94a3b8);
+}
+.classes-empty i  { font-size: 3rem; margin-bottom: 1rem; }
+.classes-empty h4 { margin: 0 0 0.5rem; color: var(--text-primary,#475569); }
+.classes-empty p  { margin: 0; font-size: 0.875rem; }
+
+/* Import drop zone */
+.class-import-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary,#64748b);
+    margin-bottom: 1rem;
+}
+.class-import-drop-zone:hover,
+.class-import-drop-zone.dragover { border-color: var(--primary,#006a3f); background: #f0fdf4; }
+.class-import-drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; }
+.class-import-drop-zone p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.class-import-preview { background: #f8fafc; border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; margin-top: 0.5rem; }
+
+@media (max-width: 768px) {
+    .classes-table th:nth-child(4),
+    .classes-table td:nth-child(4),
+    .classes-table th:nth-child(7),
+    .classes-table td:nth-child(7) { display: none; }
+}
+</style>
+
+<div class="classes-page">
+
+    <!-- Page Header -->
+    <div class="classes-page-header">
+        <div>
+            <h2><i class="fas fa-school" style="margin-right:.5rem;color:var(--primary,#006a3f)"></i>Classes &amp; Programs</h2>
+            <p>Manage academic classes, rosters, programs, and capacity across grade levels</p>
+        </div>
+        <div class="classes-header-actions">
+            <button class="btn btn-outline btn-sm" id="importClassesBtn" title="Import from CSV">
+                <i class="fas fa-file-upload"></i> Import CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportClassesBtn" title="Export to CSV">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportPdfClassesBtn" title="Export PDF">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="btn btn-primary btn-sm" id="addClassBtn" title="Add Class">
+                <i class="fas fa-plus"></i> Add Class
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="classes-stats">
+        <div class="classes-stat-card">
+            <div class="classes-stat-icon" style="background:linear-gradient(135deg,#006a3f,#008c54)">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="classes-stat-info">
+                <h3 id="statTotal">—</h3>
+                <p>Total Classes</p>
+            </div>
+        </div>
+        <div class="classes-stat-card">
+            <div class="classes-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="classes-stat-info">
+                <h3 id="statActive">—</h3>
+                <p>Active Classes</p>
+            </div>
+        </div>
+        <div class="classes-stat-card">
+            <div class="classes-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="classes-stat-info">
+                <h3 id="statStudents">—</h3>
+                <p>Total Students</p>
+            </div>
+        </div>
+        <div class="classes-stat-card">
+            <div class="classes-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+            <div class="classes-stat-info">
+                <h3 id="statInactive">—</h3>
+                <p>Inactive Classes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="classes-toolbar">
+        <div class="classes-toolbar-left">
+            <div class="class-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="classSearch" placeholder="Search by class name or code…">
+            </div>
+            <select class="classes-filter-select" id="filterProgram">
+                <option value="">All Programs</option>
+            </select>
+            <select class="classes-filter-select" id="filterGradeLevel">
+                <option value="">All Grade Levels</option>
+            </select>
+            <select class="classes-filter-select" id="filterStatus">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <div class="classes-toolbar-right">
+            <span id="classesCountLabel" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
+        </div>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="classes-bulk-bar" id="bulkActions">
+        <span><strong id="selectedCount">0</strong> classes selected</span>
+        <button class="btn btn-sm" style="background:#dcfce7;color:#15803d;border:none" id="bulkActivateBtn">
+            <i class="fas fa-check"></i> Activate
+        </button>
+        <button class="btn btn-sm" style="background:#fef9c3;color:#854d0e;border:none" id="bulkDeactivateBtn">
+            <i class="fas fa-pause"></i> Deactivate
+        </button>
+        <button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none" id="bulkDeleteBtn">
+            <i class="fas fa-trash"></i> Delete
+        </button>
+        <button class="btn btn-sm btn-outline" id="bulkClearClassesBtn">Clear</button>
+    </div>
+
+    <!-- Table -->
+    <div class="classes-table-wrap">
+        <table class="classes-table" id="classesTable">
+            <thead>
+                <tr>
+                    <th style="width:44px"><input type="checkbox" id="selectAll" title="Select all"></th>
+                    <th>Class</th>
+                    <th>Program</th>
+                    <th>Grade Level</th>
+                    <th>Class Teacher</th>
+                    <th>Students / Capacity</th>
+                    <th>Room</th>
+                    <th>Status</th>
+                    <th style="width:112px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="classesTableBody">
+                <tr>
+                    <td colspan="9" style="text-align:center;padding:3rem;color:var(--text-secondary,#94a3b8)">
+                        <i class="fas fa-spinner fa-spin" style="margin-right:.5rem"></i>Loading classes…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="classes-table-footer" id="classesPagination" style="display:none">
+            <span id="classesPaginationInfo" style="color:var(--text-secondary,#64748b)">—</span>
+            <div class="classes-pagination" id="classesPaginationControls"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================================================
+     Import Results Modal
+============================================================ -->
+<div class="class-modal-overlay" id="classImportResultsOverlay">
+    <div class="class-modal" style="max-width:600px">
+        <div class="class-modal-header">
+            <h3>Import Results</h3>
+            <button class="class-modal-close" id="classImportResultsClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="class-modal-body" style="padding-bottom:.5rem">
+            <div id="classImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+            <div style="max-height:380px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                    <thead>
+                        <tr style="background:#f8fafc;position:sticky;top:0;z-index:1">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">#</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Class</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classImportResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="class-modal-footer">
+            <button class="btn btn-primary" id="classImportResultsDoneBtn">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     Import CSV Modal
+============================================================ -->
+<div class="class-modal-overlay" id="classImportModalOverlay">
+    <div class="class-modal" style="max-width:480px">
+        <div class="class-modal-header">
+            <h3>Import Classes from CSV</h3>
+            <button class="class-modal-close" id="classImportModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="class-modal-body">
+            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
+                Upload a CSV file with class data. Download the
+                <a href="#" id="classImportTemplateLink" style="color:var(--primary,#006a3f)">template</a> to get started.
+                Use program, grade level, and academic year <strong>names</strong> exactly as they appear in the system — the template includes valid values for your institution.
+            </p>
+            <div class="class-import-drop-zone" id="classImportDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p style="font-size:.75rem;margin-top:.25rem">CSV files only &middot; Max 5MB</p>
+                <input type="file" id="classImportFileInput" accept=".csv" style="display:none">
+            </div>
+            <div class="class-import-preview" id="classImportPreview" style="display:none">
+                <strong id="classImportFileName"></strong>
+                <span id="classImportRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
+            </div>
+            <div id="classImportErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
+        </div>
+        <div class="class-modal-footer">
+            <button class="btn btn-outline" id="classImportCancelBtn">Cancel</button>
+            <button class="btn btn-primary" id="classImportConfirmBtn" disabled>
+                <span id="classImportConfirmText">Import</span>
+                <span id="classImportConfirmSpinner" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     Add / Edit Class Modal
+============================================================ -->
+<div class="class-modal-overlay" id="classModalOverlay">
+    <div class="class-modal">
+        <div class="class-modal-header">
+            <h3 id="classModalTitle">Add New Class</h3>
+            <button class="class-modal-close" id="classModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="class-modal-body">
+            <form id="classForm" novalidate>
+                <input type="hidden" id="classUuid">
+                <div class="class-form-grid">
+
+                    <div class="cf-section-title">Class Information</div>
+
+                    <div class="cf-group">
+                        <label>Class Name <span class="req">*</span></label>
+                        <input type="text" class="cf-input" id="fieldClassName" placeholder="e.g. SHS 1 Science A" required>
+                    </div>
+                    <div class="cf-group">
+                        <label>Class Code <span class="req">*</span></label>
+                        <input type="text" class="cf-input" id="fieldClassCode" placeholder="e.g. 1SCI-A" required>
+                    </div>
+
+                    <div class="cf-group">
+                        <label>Section <span class="req">*</span></label>
+                        <input type="text" class="cf-input" id="fieldSection" placeholder="e.g. A" required>
+                    </div>
+                    <div class="cf-group">
+                        <label>Room / Venue</label>
+                        <input type="text" class="cf-input" id="fieldRoomNumber" placeholder="e.g. Block A, Room 5">
+                    </div>
+
+                    <div class="cf-group">
+                        <label>Max Students (Capacity)</label>
+                        <input type="number" class="cf-input" id="fieldMaxStudents" min="1" placeholder="e.g. 50">
+                    </div>
+                    <div class="cf-group">
+                        <label>Status</label>
+                        <select class="cf-input" id="fieldStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="cf-section-title">Academic Details</div>
+
+                    <div class="cf-group">
+                        <label>Program <span class="req">*</span></label>
+                        <select class="cf-input" id="fieldProgramId" required>
+                            <option value="">Select Program</option>
+                        </select>
+                    </div>
+                    <div class="cf-group">
+                        <label>Grade Level <span class="req">*</span></label>
+                        <select class="cf-input" id="fieldGradeLevelId" required>
+                            <option value="">Select Grade Level</option>
+                        </select>
+                    </div>
+
+                    <div class="cf-group">
+                        <label>Academic Year <span class="req">*</span></label>
+                        <select class="cf-input" id="fieldAcademicYearId" required>
+                            <option value="">Select Academic Year</option>
+                        </select>
+                    </div>
+                    <div class="cf-group">
+                        <label>Class Teacher</label>
+                        <select class="cf-input" id="fieldClassTeacherId">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+
+                    <div class="cf-error-banner" id="classFormError"></div>
+                </div>
+            </form>
+        </div>
+        <div class="class-modal-footer">
+            <button class="btn btn-outline" id="classModalCancel">Cancel</button>
+            <button class="btn btn-primary" id="classModalSave">
+                <i class="fas fa-save"></i>
+                <span id="classModalSaveText">Save Class</span>
+                <span id="classModalSaveSpinner" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     Class Roster Modal
+============================================================ -->
+<div class="class-modal-overlay" id="rosterModalOverlay">
+    <div class="class-modal wide">
+        <div class="class-modal-header">
+            <h3 id="rosterModalTitle">Class Roster</h3>
+            <button class="class-modal-close" id="rosterModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="class-modal-body">
+            <div id="rosterBody">
+                <div style="text-align:center;padding:2.5rem;color:var(--text-secondary,#94a3b8)">
+                    <i class="fas fa-spinner fa-spin" style="margin-right:.5rem"></i>Loading students…
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

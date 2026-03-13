@@ -19,19 +19,28 @@ class SubjectController
 
     public function index(array $user): void
     {
-        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+        $page   = isset($_GET['page'])   ? (int) $_GET['page']   : 1;
+        $limit  = isset($_GET['limit'])  ? (int) $_GET['limit']  : 100;
+        $search = isset($_GET['search']) && $_GET['search'] !== '' ? trim($_GET['search']) : null;
+        $isCore = isset($_GET['is_core']) && $_GET['is_core'] !== '' ? (int) $_GET['is_core'] : null;
 
-        $subjects = $this->repo->getAll($page, $limit);
-        $total = $this->repo->count();
+        $institutionId = null;
+        if ($user['role'] !== 'super_admin') {
+            $institutionId = $user['institution_id'];
+        } elseif (isset($_GET['institution_id'])) {
+            $institutionId = (int) $_GET['institution_id'];
+        }
+
+        $subjects = $this->repo->getAll($page, $limit, $institutionId, $search, $isCore);
+        $total    = $this->repo->count($institutionId, $search, $isCore);
 
         Response::success([
             'data' => $subjects,
             'pagination' => [
                 'current_page' => $page,
-                'per_page' => $limit,
-                'total' => $total,
-                'total_pages' => ceil($total / $limit)
+                'per_page'     => $limit,
+                'total'        => $total,
+                'total_pages'  => ceil($total / max(1, $limit))
             ]
         ]);
     }
@@ -83,7 +92,16 @@ class SubjectController
             $data['institution_id'] = $user['institution_id'];
         }
 
-        $subjectId = $this->repo->create($data);
+        try {
+            $subjectId = $this->repo->create($data);
+        } catch (\RuntimeException $e) {
+            if ($e->getCode() === 409) {
+                Response::error($e->getMessage(), 409);
+                return;
+            }
+            Response::serverError('Failed to create subject');
+            return;
+        }
 
         if ($subjectId) {
             Response::success([

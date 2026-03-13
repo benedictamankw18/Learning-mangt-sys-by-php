@@ -2,6 +2,18 @@
 
 function initializeSettings() {
   console.log("Settings page initialized");
+
+  function showPopupMessage(message, title) {
+    if (typeof window.showModal === 'function') {
+      window.showModal(title || 'Notice', message, function () {});
+      return;
+    }
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, 'info');
+      return;
+    }
+    console.log(message);
+  }
   
   // Tab Navigation
   const tabButtons = document.querySelectorAll('.settings-tab');
@@ -35,7 +47,7 @@ function initializeSettings() {
       const tabName = activeTab ? activeTab.textContent.trim() : 'Settings';
       
       // Show success message (you can replace this with actual save logic)
-      alert(`${tabName} settings saved successfully!`);
+      showPopupMessage(`${tabName} settings saved successfully!`, 'Settings Saved');
       
       // TODO: Add actual API call to save settings
       // Example:
@@ -51,7 +63,7 @@ function initializeSettings() {
       const tabName = activeTab ? activeTab.textContent.trim() : 'Settings';
       
       if (confirm(`Are you sure you want to reset ${tabName} settings to default values?`)) {
-        alert('Settings reset to default values');
+        showPopupMessage('Settings reset to default values', 'Settings Reset');
         
         // TODO: Add actual reset logic
         // resetSettingsToDefault(tabName);
@@ -124,7 +136,7 @@ function initializeSettings() {
         if (file) {
           // Validate file size (max 5MB)
           if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB');
+            showPopupMessage('File size must be less than 5MB', 'Upload Error');
             return;
           }
           
@@ -154,7 +166,7 @@ function initializeSettings() {
       const actionName = this.querySelector('h4').textContent;
       
       if (confirm(`Are you sure you want to run: ${actionName}?`)) {
-        alert(`Running ${actionName}... This may take a few moments.`);
+        showPopupMessage(`Running ${actionName}... This may take a few moments.`, 'Maintenance');
         
         // TODO: Execute maintenance task
         // runMaintenanceTask(actionName);
@@ -167,7 +179,7 @@ function initializeSettings() {
   if (backupButton) {
     backupButton.addEventListener('click', function() {
       if (confirm('Create a backup now? This will back up all system data.')) {
-        alert('Backup started... You will be notified when complete.');
+        showPopupMessage('Backup started... You will be notified when complete.', 'Backup');
         
         // TODO: Trigger backup
         // createBackup();
@@ -187,7 +199,7 @@ function initializeSettings() {
         fileInput.addEventListener('change', function(e) {
           const file = e.target.files[0];
           if (file) {
-            alert(`Restoring from ${file.name}... System will restart after completion.`);
+            showPopupMessage(`Restoring from ${file.name}... System will restart after completion.`, 'Restore Backup');
             
             // TODO: Upload and restore backup
             // restoreBackup(file);
@@ -205,7 +217,7 @@ function initializeSettings() {
     button.addEventListener('click', function() {
       const integrationName = this.closest('.integration-item').querySelector('h4').textContent;
       
-      alert(`Connecting to ${integrationName}... You will be redirected to authorize.`);
+      showPopupMessage(`Connecting to ${integrationName}... You will be redirected to authorize.`, 'Integration');
       
       // TODO: Handle OAuth connection
       // connectIntegration(integrationName);
@@ -218,7 +230,7 @@ function initializeSettings() {
       const integrationName = this.closest('.integration-item').querySelector('h4').textContent;
       
       if (confirm(`Disconnect from ${integrationName}? This will disable all integration features.`)) {
-        alert(`Disconnected from ${integrationName}`);
+        showPopupMessage(`Disconnected from ${integrationName}`, 'Integration');
         
         // Change button state
         const integrationItem = this.closest('.integration-item');
@@ -244,7 +256,7 @@ function initializeSettings() {
     button.addEventListener('click', function() {
       const roleName = this.closest('.role-card').querySelector('h4').textContent;
       
-      alert(`Edit permissions for ${roleName} role (feature coming soon)`);
+      showPopupMessage(`Edit permissions for ${roleName} role (feature coming soon)`, 'Coming Soon');
       
       // TODO: Open role permissions modal
       // openRolePermissionsModal(roleName);
@@ -255,7 +267,7 @@ function initializeSettings() {
   const addProgramButton = document.querySelector('.btn-add-program');
   if (addProgramButton) {
     addProgramButton.addEventListener('click', function() {
-      alert('Add new program (feature coming soon)');
+      showPopupMessage('Add new program (feature coming soon)', 'Coming Soon');
       
       // TODO: Open add program modal
       // openAddProgramModal();
@@ -268,7 +280,7 @@ function initializeSettings() {
     button.addEventListener('click', function() {
       const programName = this.closest('.program-item').querySelector('span').textContent;
       
-      alert(`Edit ${programName} program (feature coming soon)`);
+      showPopupMessage(`Edit ${programName} program (feature coming soon)`, 'Coming Soon');
       
       // TODO: Open edit program modal
       // openEditProgramModal(programName);

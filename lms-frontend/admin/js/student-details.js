@@ -169,6 +169,8 @@
         setText('sdClass', s.class_name || '—');
         setText('sdProgram', s.program_name || '—');
 
+        document.getElementById('sdEmail').href = `mailto:${s.email || ''}`;
+
         const badge = document.querySelector('#sdStatusBadge');
         if (badge) {
             badge.textContent = capitalize(s.status || '—');
@@ -208,6 +210,7 @@
         setText('sdParentPhone', s.parent_phone || '—');
         setText('sdParentEmail', s.parent_email || '—');
         setText('sdEmergency',   s.emergency_contact || '—');
+        document.getElementById('sdParentEmail').href = `mailto:${s.parent_email || ''}`;
     }
 
     // ─── Actions ──────────────────────────────────────────────────────────────

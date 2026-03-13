@@ -394,12 +394,28 @@ class UserRepository
     public function assignRole(int $userId, int $roleId): bool
     {
         try {
-            $stmt = $this->db->prepare("
-                INSERT IGNORE INTO user_roles (user_id, role_id)
-                VALUES (:user_id, :role_id)
-            ");
-            return $stmt->execute(['user_id' => $userId, 'role_id' => $roleId]);
+                $this->db->beginTransaction();
+
+                $deleteStmt = $this->db->prepare("DELETE FROM user_roles WHERE user_id = :user_id");
+                $deleteStmt->execute(['user_id' => $userId]);
+
+                $insertStmt = $this->db->prepare("
+                    INSERT INTO user_roles (user_id, role_id)
+                    VALUES (:user_id, :role_id)
+                ");
+                $assigned = $insertStmt->execute(['user_id' => $userId, 'role_id' => $roleId]);
+
+                if (!$assigned) {
+                    $this->db->rollBack();
+                    return false;
+                }
+
+                $this->db->commit();
+                return true;
         } catch (\PDOException $e) {
+                if ($this->db->inTransaction()) {
+                    $this->db->rollBack();
+                }
             error_log("Assign Role Error: " . $e->getMessage());
             return false;
         }
@@ -488,6 +504,35 @@ class UserRepository
             return $users;
         } catch (\PDOException $e) {
             error_log("Get Users By Role Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get users by institution (paginated)
+     */
+    public function getByInstitution(int $institutionId, int $page = 1, int $limit = 20): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+
+            $stmt = $this->db->prepare("\n                SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles\n                FROM users u\n                LEFT JOIN user_roles ur ON u.user_id = ur.user_id\n                LEFT JOIN roles r ON ur.role_id = r.role_id\n                LEFT JOIN institutions i on i.institution_id = u.institution_id\n                WHERE u.deleted_at IS NULL AND u.institution_id = :institution_id\n                GROUP BY u.user_id\n                ORDER BY u.created_at DESC\n                LIMIT :limit OFFSET :offset\n            ");
+
+            $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($users as &$user) {
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
+                unset($user['password_hash']);
+            }
+
+            return $users;
+        } catch (\PDOException $e) {
+            error_log("Get Users By Institution Error: " . $e->getMessage());
             return [];
         }
     }
@@ -701,6 +746,18 @@ class UserRepository
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
             error_log("Get Role By Name Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getRoleById(int $roleId): ?array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT role_id, role_name FROM roles WHERE role_id = :role_id");
+            $stmt->execute(['role_id' => $roleId]);
+            return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (\PDOException $e) {
+            error_log("Get Role By ID Error: " . $e->getMessage());
             return null;
         }
     }

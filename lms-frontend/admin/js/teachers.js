@@ -359,7 +359,7 @@
                   <div class="teacher-initials">${init}</div>
                   <div>
                     <div class="teacher-name">${escHtml(fullName)}</div>
-                    <div class="teacher-email">${escHtml(t.email || '')}</div>
+                    <a href="mailto:${escHtml(t.email || '')}" class="teacher-email">${escHtml(t.email || '')}</a>
                   </div>
                 </div>
               </td>

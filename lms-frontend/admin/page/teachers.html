@@ -156,7 +156,7 @@
     flex-shrink: 0;
 }
 .teacher-name { font-weight: 600; color: var(--text-primary,#1e293b); }
-.teacher-email { font-size: 0.75rem; color: var(--text-secondary,#94a3b8); }
+.teacher-email { font-size: 0.75rem; color: #1d4ed8; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
 
 .badge {
     display: inline-flex;
@@ -462,7 +462,7 @@
 <div class="teachers-page">
   <div class="teachers-page-header">
     <div>
-      <h2>Teachers</h2>
+      <h2> <i class="fas fa-chalkboard-teacher" style="margin-right:.5rem;color:var(--primary,#3b82f6)"></i>Teachers</h2>
       <p>Manage your institution's teaching staff</p>
     </div>
     <div class="teachers-header-actions">

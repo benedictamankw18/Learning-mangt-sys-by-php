@@ -50,7 +50,12 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;
 }
-.prog-toolbar-left  { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
+.prog-toolbar-left  { display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    /* flex: 1; */
+    flex-direction: row; }
 .prog-toolbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
 .prog-search-wrap { position: relative; min-width: 220px; }
@@ -196,6 +201,65 @@
     background: #f8fafc; border-radius: 0 0 16px 16px; position: sticky; bottom: 0;
 }
 
+/* Import */
+.prog-import-drop {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    text-align: center;
+    background: #f8fafc;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+}
+.prog-import-drop:hover,
+.prog-import-drop.dragover { border-color: var(--primary,#006a3f); background: #f0fdf4; }
+.prog-import-drop i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; }
+.prog-import-drop p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.prog-import-preview { background: #f8fafc; border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; margin-top: 0.5rem; }
+.prog-import-preview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .6rem .8rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .8rem;
+}
+.prog-import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+.prog-import-preview-table th,
+.prog-import-preview-table td {
+    padding: .55rem .65rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+}
+.prog-import-errors {
+    display: none;
+    margin-top: .75rem;
+    padding: .65rem .8rem;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: .8rem;
+}
+.prog-import-results-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+.prog-import-results-chip {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .7rem .8rem;
+    background: #f8fafc;
+    font-size: .82rem;
+}
+
 /* Form */
 .prog-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 @media (max-width: 520px) { .prog-form-grid { grid-template-columns: 1fr; } }
@@ -242,6 +306,15 @@
             <p>Manage academic programs offered by your institution</p>
         </div>
         <div class="prog-header-actions">
+            <button class="btn btn-outline btn-sm" id="importProgramsBtn">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportProgramsCsvBtn">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportProgramsPdfBtn">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
             <button class="btn btn-primary btn-sm" id="addProgramBtn">
                 <i class="fas fa-plus"></i> Add Program
             </button>
@@ -301,9 +374,9 @@
                 <option value="inactive">Inactive</option>
             </select>
         </div>
-        <div class="prog-toolbar-right">
+        <!-- <div class="prog-toolbar-right">
             <span id="programsCountLabel" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
-        </div>
+        </div> -->
     </div>
 
     <!-- Table -->
@@ -379,6 +452,70 @@
                 <span id="programModalSaveText">Save Program</span>
                 <i class="fas fa-spinner fa-spin" id="programModalSaveSpinner" style="display:none;margin-left:.4rem"></i>
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Programs Modal -->
+<div class="prog-modal-overlay" id="programImportModalOverlay">
+    <div class="prog-modal">
+        <div class="prog-modal-header">
+            <h3>Import Programs</h3>
+            <button class="prog-modal-close" id="programImportModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="prog-modal-body">
+            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
+                Upload a CSV file with program data. Download the
+                <a href="#" id="programImportTemplateLink" style="color:var(--primary,#006a3f)">template</a> to get started.
+                Required columns: <strong>program_name</strong>, <strong>program_code</strong>. Optional: description, duration_years, status.
+            </p>
+            <div class="prog-import-drop" id="programImportDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p style="font-size:.75rem;margin-top:.25rem">CSV files only &middot; Max 5MB</p>
+                <input type="file" id="programImportFileInput" accept=".csv" style="display:none">
+            </div>
+            <div class="prog-import-preview" id="programImportPreview" style="display:none">
+                <strong id="programImportFileName"></strong>
+                <span id="programImportRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
+            </div>
+            <div id="programImportErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
+        </div>
+        <div class="prog-modal-footer">
+            <button class="btn btn-outline btn-sm" id="programImportCancelBtn">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="programImportConfirmBtn" disabled>
+                <span id="programImportConfirmText">Import</span>
+                <i class="fas fa-spinner fa-spin" id="programImportConfirmSpinner" style="display:none;margin-left:.4rem"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Programs Results -->
+<div class="prog-modal-overlay" id="programImportResultsOverlay">
+    <div class="prog-modal">
+        <div class="prog-modal-header">
+            <h3>Import Results</h3>
+            <button class="prog-modal-close" id="programImportResultsClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="prog-modal-body" style="padding-bottom:.5rem">
+            <div id="programImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+            <div style="max-height:380px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                    <thead>
+                        <tr style="background:#f8fafc;position:sticky;top:0;z-index:1">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">#</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Program</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programImportResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="prog-modal-footer">
+            <button class="btn btn-primary btn-sm" id="programImportResultsDoneBtn">Done</button>
         </div>
     </div>
 </div>

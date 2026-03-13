@@ -38,8 +38,14 @@ class UserController
             return;
         }
 
-        $users = $this->userRepo->getAll($page, $limit);
-        $total = $this->userRepo->count();
+        $institutionId = isset($user['institution_id']) ? (int) $user['institution_id'] : 0;
+        if ($institutionId <= 0) {
+            Response::forbidden('Admin institution context is required');
+            return;
+        }
+
+        $users = $this->userRepo->getByInstitution($institutionId, $page, $limit);
+        $total = $this->userRepo->countByInstitution($institutionId);
 
         // Use the paginated helper to emit a consistent shape
         Response::paginated($users, $total, $page, $limit);
@@ -277,7 +283,15 @@ class UserController
             return;
         }
 
-        if ($this->userRepo->assignRole($targetUserId, (int) $data['role_id'])) {
+        $requestedRoleId = (int) $data['role_id'];
+        $requestedRole = $this->userRepo->getRoleById($requestedRoleId);
+        $requestedRoleName = strtolower((string) ($requestedRole['role_name'] ?? ''));
+        if ($requestedRoleName === 'super_admin' || $requestedRoleName === 'superadmin') {
+            Response::forbidden('Superadmin role cannot be assigned here');
+            return;
+        }
+
+        if ($this->userRepo->assignRole($targetUserId, $requestedRoleId)) {
             Response::success(['message' => 'Role assigned successfully']);
         } else {
             Response::serverError('Failed to assign role');
@@ -285,8 +299,8 @@ class UserController
     }
 
     /**
-     * Assign multiple roles to a user (replace existing roles)
-     * Expects JSON: { roles: [<roleId>|<roleName>, ...] }
+        * Assign a single role to a user.
+        * Expects JSON: { roles: [<roleId>|<roleName>] }
      */
     public function assignRoles(array $user, string $uuid): void
     {
@@ -318,26 +332,51 @@ class UserController
             return;
         }
 
-        try {
-            $db = \App\Config\Database::getInstance()->getConnection();
-            // Remove existing roles
-            $stmt = $db->prepare("DELETE FROM user_roles WHERE user_id = :user_id");
-            $stmt->execute(['user_id' => $targetUserId]);
+        $roles = array_values(array_filter($data['roles'], function ($role) {
+            return $role !== null && $role !== '';
+        }));
 
-            // Assign provided roles (accept numeric ids or role names)
-            foreach ($data['roles'] as $r) {
-                if (is_numeric($r) || ctype_digit((string) $r)) {
-                    $this->userRepo->assignRole($targetUserId, (int) $r);
-                } else {
-                    // look up role by name
-                    $role = $this->userRepo->getRoleByName(strtolower((string) $r));
-                    if ($role && isset($role['role_id'])) {
-                        $this->userRepo->assignRole($targetUserId, (int) $role['role_id']);
-                    }
+        if (count($roles) !== 1) {
+            Response::validationError(['roles' => 'Exactly one role can be assigned to a user']);
+            return;
+        }
+
+        try {
+            $roleInput = $roles[0];
+            $roleId = null;
+
+            if (is_numeric($roleInput) || ctype_digit((string) $roleInput)) {
+                $roleId = (int) $roleInput;
+                $role = $this->userRepo->getRoleById($roleId);
+                $roleName = strtolower((string) ($role['role_name'] ?? ''));
+                if ($roleName === 'super_admin' || $roleName === 'superadmin') {
+                    Response::forbidden('Superadmin role cannot be assigned here');
+                    return;
+                }
+            } else {
+                $roleName = strtolower((string) $roleInput);
+                if ($roleName === 'super_admin' || $roleName === 'superadmin') {
+                    Response::forbidden('Superadmin role cannot be assigned here');
+                    return;
+                }
+
+                $role = $this->userRepo->getRoleByName($roleName);
+                if ($role && isset($role['role_id'])) {
+                    $roleId = (int) $role['role_id'];
                 }
             }
 
-            Response::success(['message' => 'Roles updated']);
+            if (!$roleId) {
+                Response::validationError(['roles' => 'Selected role does not exist']);
+                return;
+            }
+
+            if ($this->userRepo->assignRole($targetUserId, $roleId)) {
+                Response::success(['message' => 'Role updated']);
+                return;
+            }
+
+            Response::serverError('Failed to assign role');
         } catch (\Exception $e) {
             error_log('Assign Roles Error: ' . $e->getMessage());
             Response::serverError('Failed to assign roles');
@@ -468,6 +507,19 @@ class UserController
                 continue;
             }
 
+            $rowRoles = [];
+            if (!$isSuperAdmin && !empty($row['roles'])) {
+                $rowRoles = is_array($row['roles']) ? $row['roles'] : array_map('trim', explode(',', $row['roles']));
+                $rowRoles = array_values(array_filter($rowRoles, function ($role) {
+                    return $role !== null && trim((string) $role) !== '';
+                }));
+
+                if (count($rowRoles) > 1) {
+                    $errors[] = ['row' => $rowIndex, 'error' => 'Only one role can be assigned to a user'];
+                    continue;
+                }
+            }
+
             // Prepare payload for creation
             $payload = [];
             $payload['first_name'] = $row['first_name'] ?? null;
@@ -476,24 +528,46 @@ class UserController
             $payload['email'] = $email ?? null;
             // auto generate a password if not provided
             $payload['password'] = $row['password'] ?? bin2hex(random_bytes(6));
-            // attempt to resolve institution id by name if provided
-            if (!empty($row['institution_id'])) {
-                $payload['institution_id'] = (int) $row['institution_id'];
-            } elseif (!empty($row['institution_name'])) {
-                // try to find by name
-                $instRepo = new \App\Repositories\InstitutionRepository();
-                $inst = $instRepo->findByName($row['institution_name']);
-                if ($inst && isset($inst['institution_id']))
-                    $payload['institution_id'] = (int) $inst['institution_id'];
+            if ($isSuperAdmin) {
+                // attempt to resolve institution id by name if provided
+                if (!empty($row['institution_id'])) {
+                    $payload['institution_id'] = (int) $row['institution_id'];
+                } elseif (!empty($row['institution_name'])) {
+                    $instRepo = new \App\Repositories\InstitutionRepository();
+                    $inst = $instRepo->findByName($row['institution_name']);
+                    if ($inst && isset($inst['institution_id'])) {
+                        $payload['institution_id'] = (int) $inst['institution_id'];
+                    }
+                }
+            } elseif (!empty($user['institution_id'])) {
+                $payload['institution_id'] = (int) $user['institution_id'];
             }
 
             // default active flag
             $payload['is_active'] = isset($row['is_active']) ? (int) $row['is_active'] : 1;
 
+            // Skip duplicates before hitting DB unique constraints.
+            if (!empty($payload['username']) && $this->userRepo->isUsernameTaken((string) $payload['username'], $payload['institution_id'] ?? null)) {
+                $errors[] = ['row' => $rowIndex, 'error' => 'User already exists (username already used in this institution)'];
+                continue;
+            }
+
+            if (!empty($payload['email']) && $this->userRepo->isEmailTaken((string) $payload['email'])) {
+                $errors[] = ['row' => $rowIndex, 'error' => 'User already exists (email already used)'];
+                continue;
+            }
+
             // create user
             $userId = $this->userRepo->create($payload);
             if (!$userId) {
-                $errors[] = ['row' => $rowIndex, 'error' => 'Failed to create user'];
+                // Fallback classification in case a race condition still causes duplicate insert failure.
+                if (!empty($payload['username']) && $this->userRepo->isUsernameTaken((string) $payload['username'], $payload['institution_id'] ?? null)) {
+                    $errors[] = ['row' => $rowIndex, 'error' => 'User already exists (username already used in this institution)'];
+                } elseif (!empty($payload['email']) && $this->userRepo->isEmailTaken((string) $payload['email'])) {
+                    $errors[] = ['row' => $rowIndex, 'error' => 'User already exists (email already used)'];
+                } else {
+                    $errors[] = ['row' => $rowIndex, 'error' => 'Failed to create user'];
+                }
                 continue;
             }
 
@@ -506,17 +580,14 @@ class UserController
                     $this->userRepo->assignRole($userId, (int) $adminRole['role_id']);
                 }
             } else {
-                // Admins may provide roles (comma-separated or array)
-                if (!empty($row['roles'])) {
-                    $roles = is_array($row['roles']) ? $row['roles'] : array_map('trim', explode(',', $row['roles']));
-                    foreach ($roles as $r) {
-                        if (is_numeric($r) || ctype_digit((string) $r)) {
-                            $this->userRepo->assignRole($userId, (int) $r);
-                        } else {
-                            $role = $this->userRepo->getRoleByName(strtolower($r));
-                            if ($role && isset($role['role_id'])) {
-                                $this->userRepo->assignRole($userId, (int) $role['role_id']);
-                            }
+                if (!empty($rowRoles)) {
+                    $roleInput = $rowRoles[0];
+                    if (is_numeric($roleInput) || ctype_digit((string) $roleInput)) {
+                        $this->userRepo->assignRole($userId, (int) $roleInput);
+                    } else {
+                        $role = $this->userRepo->getRoleByName(strtolower((string) $roleInput));
+                        if ($role && isset($role['role_id'])) {
+                            $this->userRepo->assignRole($userId, (int) $role['role_id']);
                         }
                     }
                 }
@@ -560,6 +631,58 @@ class UserController
         } else {
             Response::serverError('Failed to remove role');
         }
+    }
+
+    public function resetPassword(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+        $isSuperAdmin = !empty($user['is_super_admin']);
+
+        if (!$roleMiddleware->isAdmin() && !$isSuperAdmin) {
+            Response::forbidden('Only admins can reset user passwords');
+            return;
+        }
+
+        $targetUser = $this->userRepo->findByUuid($sanitizedUuid);
+        if (!$targetUser) {
+            Response::notFound('User not found');
+            return;
+        }
+
+        // Super admins may reset passwords only for admin users.
+        if ($isSuperAdmin && !$roleMiddleware->isAdmin()) {
+            $roles = $targetUser['roles'] ?? [];
+            if (!in_array('admin', $roles)) {
+                Response::forbidden('Super admins can only reset admin user passwords');
+                return;
+            }
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        $validator = new Validator($data);
+        $validator->required(['new_password'])->min('new_password', 8);
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if ($this->userRepo->updatePassword((int) $targetUser['user_id'], (string) $data['new_password'])) {
+            $this->userRepo->logActivity((int) $user['user_id'], 'admin_password_reset', [
+                'target_user_uuid' => $sanitizedUuid,
+                'target_user_id' => (int) $targetUser['user_id'],
+            ]);
+            Response::success(['message' => 'Password reset successfully']);
+            return;
+        }
+
+        Response::serverError('Failed to reset password');
     }
 
     public function getActivity(array $user, string $uuid): void

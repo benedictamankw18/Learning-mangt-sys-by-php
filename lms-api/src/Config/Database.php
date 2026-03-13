@@ -45,6 +45,11 @@ class Database
         $migrations = [
             // Add profile photo URL storage to users table
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo VARCHAR(500) DEFAULT NULL",
+            // Drop any recursive trigger on admin_activity (error 1442 fix)
+            "DROP TRIGGER IF EXISTS after_admin_activity_insert",
+            "DROP TRIGGER IF EXISTS before_admin_activity_insert",
+            "DROP TRIGGER IF EXISTS after_admin_activity_update",
+            "DROP TRIGGER IF EXISTS before_admin_activity_update",
         ];
         foreach ($migrations as $sql) {
             try {
@@ -53,6 +58,21 @@ class Database
                 // Column already exists or DB version doesn't support IF NOT EXISTS — safe to ignore
                 error_log("Migration skipped: " . $e->getMessage());
             }
+        }
+
+        // Drop ALL triggers on admin_activity dynamically (error 1442: recursive trigger)
+        try {
+            $stmt = $this->connection->query(
+                "SELECT TRIGGER_NAME FROM information_schema.TRIGGERS
+                 WHERE EVENT_OBJECT_TABLE = 'admin_activity'
+                   AND TRIGGER_SCHEMA = DATABASE()"
+            );
+            foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $triggerName) {
+                $this->connection->exec("DROP TRIGGER IF EXISTS `" . str_replace('`', '', $triggerName) . "`");
+                error_log("Dropped recursive trigger on admin_activity: {$triggerName}");
+            }
+        } catch (PDOException $e) {
+            error_log("Trigger cleanup skipped: " . $e->getMessage());
         }
     }
 

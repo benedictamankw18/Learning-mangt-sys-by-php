@@ -38,6 +38,7 @@ const API_ENDPOINTS = {
 
     // Subjects
     SUBJECTS: '/api/subjects',
+    SUBJECT_BY_UUID: (uuid) => `/api/subjects/${uuid}`,
     SUBJECT_TEACHERS: (id) => `/api/subjects/${id}/teachers`,
 
     // Teacher-Subject assignments
@@ -64,9 +65,11 @@ const API_ENDPOINTS = {
 
     // Users
     USERS: '/api/users',
+    USER_IMPORT: '/api/users/import',
     USER_BY_ID: (id) => `/api/users/${id}`,
     USER_PROFILE: '/api/users/profile',
     USER_ACTIVITY: (uuid) => `/api/users/${uuid}/activity`,
+    USER_RESET_PASSWORD: (uuid) => `/api/users/${uuid}/reset-password`,
 
     // Auth actions
     AUTH_CHANGE_PASSWORD: '/api/auth/change-password',

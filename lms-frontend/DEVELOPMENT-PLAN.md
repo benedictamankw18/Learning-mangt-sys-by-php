@@ -352,7 +352,7 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 1-2: Classes**
 
-- [ ] **Enhance** `admin/classes.html` *(implemented as `admin/page/departments.html`)*
+- [x] **Enhance** `admin/classes.html` *(implemented as `admin/page/departments.html`)*
   - Class list with filtering
   - Create class → modal form
   - Edit/delete class
@@ -360,7 +360,7 @@ Build the foundational data management pages for students, teachers, classes, an
   - View class roster
   - Class capacity management
   - Student enrollment to class
-- [ ] **Create** `admin/class-details.html`
+- [x] **Create** `admin/class-details.html`
   - Class information
   - Student roster (with photos)
   - Assigned subjects
@@ -369,12 +369,12 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 2-3: Programs & Subjects**
 
-- [ ] **Enhance** `admin/programs.html` *(combined in `admin/page/departments.html`)*
+- [x] **Enhance** `admin/programs.html` *(combined in `admin/page/departments.html`)*
   - Programs list (General Science, Arts, Business, etc.)
   - Create/edit/delete programs
   - Program subjects (core and elective)
   - Active/inactive status
-- [ ] **Enhance** `admin/subjects.html` *(implemented as `admin/page/courses.html`)*
+- [x] **Enhance** `admin/subjects.html` *(implemented as `admin/page/courses.html`)*
   - Subject list with DataTables
   - Create/edit/Delete subjects
   - Subject codes (Ghana syllabus)
@@ -384,13 +384,13 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 4: Teacher Pages**
 
-- [ ] **Create** `teacher/my-classes.html`
+- [x] **Create** `teacher/my-classes.html`
   - List of classes teaching
   - Class roster for each class
   - Student count per class
   - Class schedule link
   - Quick actions (take attendance, grade submission, etc)
-- [ ] **Create** `teacher/my-subjects.html`
+- [x] **Create** `teacher/my-subjects.html`
   - List of subjects teaching
   - Subject information (syllabus, curriculum, Image)
   - Classes assigned per subject
@@ -399,11 +399,11 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 5: Student Pages**
 
-- [ ] **Create** `student/my-classes.html`
+- [x] **Create** `student/my-classes.html`
   - List of enrolled classes/subjects
   - Class details (teacher, schedule)
   - Subject progress indicator
-- [ ] **Create** `student/my-subjects.html`
+- [x] **Create** `student/my-subjects.html`
   - Subject list with details
   - Teacher information
   - Subject schedule
@@ -418,7 +418,7 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 1-2: User Management**
 
-- [ ] **Enhance** `admin/users.html`
+- [x] **Enhance** `admin/users.html`
   - User list with role filter
   - Create user → modal form
   - Edit user
@@ -426,6 +426,7 @@ Build the foundational data management pages for students, teachers, classes, an
   - Activate/deactivate users
   - Reset password
   - View user activity
+  - import users
 - [ ] **Enhance** `admin/roles.html`
   - Role list
   - Create/edit/delete roles
