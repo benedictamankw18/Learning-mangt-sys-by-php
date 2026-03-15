@@ -380,6 +380,11 @@ class DashboardController
                 $grades     = $this->assignmentRepo->getRecentGradesByStudent($sid, 3);
                 $upcoming   = $this->assessmentRepo->countUpcomingByStudent($sid, 7);
                 $gradeTrend = $this->assignmentRepo->getGradeTrendByStudent($sid);
+                $trendData  = (is_array($gradeTrend['data'] ?? null)) ? $gradeTrend['data'] : [];
+                $trendCount = count($trendData);
+                $currentAverage = $trendCount > 0
+                    ? round(array_sum(array_map('floatval', $trendData)) / $trendCount, 1)
+                    : null;
 
                 $childName = $child['first_name'] . ' ' . $child['last_name'];
                 $initials  = strtoupper(substr($child['first_name'], 0, 1) . substr($child['last_name'], 0, 1));
@@ -399,6 +404,9 @@ class DashboardController
                     'initials'             => $initials,
                     'relationship'         => $child['relationship'],
                     'is_primary'           => $child['is_primary'],
+                    'class_name'           => $child['class_name'] ?? null,
+                    'program_name'         => $child['program_name'] ?? null,
+                    'current_average'      => $currentAverage,
                     'enrolled_courses'     => count($courses),
                     'attendance_rate'      => round($attendance, 1),
                     'upcoming_assessments' => $upcoming,

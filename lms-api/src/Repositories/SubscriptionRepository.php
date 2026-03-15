@@ -227,7 +227,47 @@ class SubscriptionRepository extends BaseRepository
 
     public function getPlans()
     {
-        // Return predefined subscription plans
+        $sql = "SELECT plan_id, plan_name, amount, currency, duration_months, max_students, max_teachers, features_json
+                FROM subscription_plans
+                WHERE is_active = 1
+                ORDER BY sort_order ASC, amount ASC, plan_id ASC";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($rows)) {
+                return array_map(function ($row) {
+                    $features = [];
+                    if (!empty($row['features_json'])) {
+                        $decoded = json_decode($row['features_json'], true);
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                            $features = $decoded;
+                        }
+                    }
+
+                    return [
+                        'id' => (int) $row['plan_id'],
+                        'name' => $row['plan_name'],
+                        'amount' => (float) $row['amount'],
+                        'currency' => $row['currency'] ?: 'GHS',
+                        'duration' => ((int) $row['duration_months']) . ' months',
+                        'max_students' => (int) $row['max_students'],
+                        'max_teachers' => (int) $row['max_teachers'],
+                        'features' => $features
+                    ];
+                }, $rows);
+            }
+        } catch (\Throwable $e) {
+            // Fall back to defaults if migration/table is not available yet.
+        }
+
+        return $this->getDefaultPlans();
+    }
+
+    private function getDefaultPlans(): array
+    {
         return [
             [
                 'id' => 1,
@@ -342,34 +382,44 @@ class SubscriptionRepository extends BaseRepository
             return [
                 'status' => 'no_subscription',
                 'message' => 'No subscription found',
+                'subscription_plan' => null,
+                'subscription_expires_at' => null,
+                'max_students' => 0,
+                'max_teachers' => 0,
                 'days_remaining' => 0
             ];
         }
 
         $daysRemaining = $result['days_remaining'];
+        $base = [
+            'subscription_plan'      => $result['subscription_plan'],
+            'subscription_expires_at'=> $result['subscription_expires_at'],
+            'max_students'           => (int) $result['max_students'],
+            'max_teachers'           => (int) $result['max_teachers'],
+        ];
 
         if ($daysRemaining < 0) {
             // Update status to inactive/expired
             $this->update($institutionId, ['status' => 'inactive']);
 
-            return [
+            return array_merge($base, [
                 'status' => 'expired',
                 'message' => 'Subscription has expired',
                 'days_remaining' => 0,
                 'expired_days_ago' => abs($daysRemaining)
-            ];
+            ]);
         } elseif ($daysRemaining <= 30) {
-            return [
+            return array_merge($base, [
                 'status' => 'expiring_soon',
                 'message' => "Subscription expiring in {$daysRemaining} days",
                 'days_remaining' => $daysRemaining
-            ];
+            ]);
         } else {
-            return [
+            return array_merge($base, [
                 'status' => 'active',
                 'message' => 'Subscription is active',
                 'days_remaining' => $daysRemaining
-            ];
+            ]);
         }
     }
 }

@@ -37,12 +37,14 @@ class ParentStudentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT ps.*, p.first_name, p.last_name, p.email, p.phone_number,
-                       p.address, p.occupation
+                SELECT ps.*, pu.first_name, pu.last_name, pu.email, pu.phone_number,
+                       pu.address, p.occupation, p.guardian_id,
+                       p.prefers_email_notifications, p.prefers_sms_notifications
                 FROM parent_students ps
                 LEFT JOIN parents p ON ps.parent_id = p.parent_id
+                LEFT JOIN users pu ON p.user_id = pu.user_id
                 WHERE ps.student_id = :student_id
-                ORDER BY ps.is_primary_contact DESC, p.last_name, p.first_name
+                ORDER BY ps.is_primary_contact DESC, pu.last_name, pu.first_name
             ");
             $stmt->execute(['student_id' => $studentId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -57,11 +59,12 @@ class ParentStudentRepository
         try {
             $stmt = $this->db->prepare("
                 SELECT ps.*, 
-                       p.first_name as parent_first_name, p.last_name as parent_last_name,
+                       pu.first_name as parent_first_name, pu.last_name as parent_last_name,
                        st.student_id_number, stu.first_name as student_first_name, 
                        stu.last_name as student_last_name
                 FROM parent_students ps
                 LEFT JOIN parents p ON ps.parent_id = p.parent_id
+                LEFT JOIN users pu ON p.user_id = pu.user_id
                 LEFT JOIN students st ON ps.student_id = st.student_id
                 LEFT JOIN users stu ON st.user_id = stu.user_id
                 WHERE ps.parent_student_id = :id

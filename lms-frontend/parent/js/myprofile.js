@@ -56,6 +56,33 @@
 
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
+  function getApiBase() {
+    return (typeof API_BASE_URL !== 'undefined' ? String(API_BASE_URL || '') : '').replace(/\/$/, '');
+  }
+
+  function resolveMediaUrl(rawUrl) {
+    const input = String(rawUrl || '').trim();
+    if (!input) return '';
+
+    const apiBase = getApiBase();
+
+    if (/^https?:\/\//i.test(input)) {
+      // If an old absolute URL points to /uploads on another host (e.g. frontend host),
+      // rewrite it to the API host where uploads are served.
+      if (apiBase && /\/uploads\//i.test(input) && input.indexOf(apiBase) !== 0) {
+        const m = input.match(/\/uploads\/.+$/i);
+        if (m && m[0]) return apiBase + m[0];
+      }
+      return input;
+    }
+
+    if (input.charAt(0) === '/') {
+      return apiBase ? (apiBase + input) : input;
+    }
+
+    return apiBase ? (apiBase + '/' + input.replace(/^\/+/, '')) : input;
+  }
+
   // ── Toast / Confirm ──────────────────────────────────────────────────────────
   function showToast(message, type = 'success') {
     if (typeof window.showToast === 'function') { window.showToast(message, type); return; }
@@ -154,7 +181,7 @@
           if (url) {
             await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), { profile_photo: url });
             const img = document.getElementById('profileImage');
-            if (img) img.src = url;
+            if (img) img.src = resolveMediaUrl(url);
             showToast('Profile photo updated.');
           }
         } catch (err) {
@@ -231,8 +258,7 @@
     const img = document.getElementById('profileImage');
     if (img && u.profile_photo) {
       try {
-        const API_BASE = (typeof API_CONFIG !== 'undefined' && API_CONFIG.BASE_URL) ? API_CONFIG.BASE_URL.replace('/api', '') : '';
-        img.src = u.profile_photo.startsWith('http') ? u.profile_photo : API_BASE + u.profile_photo;
+        img.src = resolveMediaUrl(u.profile_photo);
       } catch (_) {}
     }
   }

@@ -146,6 +146,32 @@ class GradeReportRepository extends BaseRepository
         return $reportId;
     }
 
+    /**
+     * Find first grade report row by exact-match conditions.
+     */
+    private function findByConditions(array $conditions): ?array
+    {
+        if (empty($conditions)) {
+            return null;
+        }
+
+        $where = [];
+        $params = [];
+
+        foreach ($conditions as $field => $value) {
+            $param = ':cond_' . $field;
+            $where[] = "{$field} = {$param}";
+            $params[$param] = $value;
+        }
+
+        $sql = "SELECT * FROM {$this->table} WHERE " . implode(' AND ', $where) . " LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     private function generateReportDetails($reportId, $studentId, $semesterId)
     {
         // Get all results for this student in this semester

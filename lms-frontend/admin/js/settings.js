@@ -62,12 +62,12 @@ function initializeSettings() {
       const activeTab = document.querySelector('.settings-tab.active');
       const tabName = activeTab ? activeTab.textContent.trim() : 'Settings';
       
-      if (confirm(`Are you sure you want to reset ${tabName} settings to default values?`)) {
+      confirm_('Reset Settings', `Are you sure you want to reset ${tabName} settings to default values?`, () => {
         showPopupMessage('Settings reset to default values', 'Settings Reset');
         
         // TODO: Add actual reset logic
         // resetSettingsToDefault(tabName);
-      }
+      });
     });
   });
   

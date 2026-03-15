@@ -63,6 +63,13 @@ const API_ENDPOINTS = {
     PROGRAMS_ACTIVE: '/api/programs/active',
     PROGRAM_BY_ID: (id) => `/api/programs/${id}`,
 
+    // Parents
+    PARENTS: '/api/parents',
+    PARENT_BY_ID: (id) => `/api/parents/${id}`,
+    PARENT_STUDENTS: (parentId) => `/api/parents/${parentId}/students`,
+    PARENT_STUDENT_REL: '/api/parent-students',
+    PARENT_STUDENT_REL_BY_ID: (id) => `/api/parent-students/${id}`,
+
     // Users
     USERS: '/api/users',
     USER_IMPORT: '/api/users/import',

@@ -14,6 +14,360 @@ class UserRepository
     {
         $this->db = Database::getInstance()->getConnection();
     }
+    private function normalizeRoleName(string $roleName): string
+    {
+        return str_replace(['_', '-', ' '], '', strtolower(trim($roleName)));
+    }
+
+    private function isAdminLikeRoleName(string $roleName): bool
+    {
+        $normalized = $this->normalizeRoleName($roleName);
+        return strpos($normalized, 'admin') !== false && $normalized !== 'superadmin';
+    }
+
+    private function getNextAdminId(): int
+    {
+        $stmt = $this->db->query("SELECT COALESCE(MAX(admin_id), 0) + 1 AS next_id FROM admins");
+        $next = (int) ($stmt->fetch(PDO::FETCH_ASSOC)['next_id'] ?? 1);
+        return max(1, $next);
+    }
+
+    private function generateAdminEmployeeId(int $institutionId): string
+    {
+        $year = date('Y');
+        $prefix = "A-{$year}-";
+
+        $stmt = $this->db->prepare("
+            SELECT employee_id
+            FROM admins
+            WHERE institution_id = :institution_id
+              AND employee_id LIKE :prefix
+            ORDER BY employee_id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'institution_id' => $institutionId,
+            'prefix' => $prefix . '%'
+        ]);
+
+        $last = (string) ($stmt->fetch(PDO::FETCH_ASSOC)['employee_id'] ?? '');
+        $seq = 1;
+        if ($last !== '') {
+            $parts = explode('-', $last);
+            $tail = end($parts);
+            if (is_numeric($tail)) {
+                $seq = ((int) $tail) + 1;
+            }
+        }
+
+        return $prefix . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
+    }
+
+    private function ensureAdminRecordForUser(int $userId): bool
+    {
+        try {
+            $existsStmt = $this->db->prepare("SELECT admin_id FROM admins WHERE user_id = :user_id LIMIT 1");
+            $existsStmt->execute(['user_id' => $userId]);
+            if ($existsStmt->fetch(PDO::FETCH_ASSOC)) {
+                return true;
+            }
+
+            $userStmt = $this->db->prepare("
+                SELECT user_id, institution_id, email
+                FROM users
+                WHERE user_id = :user_id
+                LIMIT 1
+            ");
+            $userStmt->execute(['user_id' => $userId]);
+            $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$u || empty($u['institution_id'])) {
+                return false;
+            }
+
+            $institutionId = (int) $u['institution_id'];
+            $adminId = $this->getNextAdminId();
+            $employeeId = $this->generateAdminEmployeeId($institutionId);
+
+            $insertStmt = $this->db->prepare("
+                INSERT INTO admins (
+                    admin_id, uuid, institution_id, user_id, employee_id,
+                    department, hire_date, alternative_email, status
+                ) VALUES (
+                    :admin_id, :uuid, :institution_id, :user_id, :employee_id,
+                    :department, :hire_date, :alternative_email, :status
+                )
+            ");
+
+            return $insertStmt->execute([
+                'admin_id' => $adminId,
+                'uuid' => UuidHelper::generate(),
+                'institution_id' => $institutionId,
+                'user_id' => $userId,
+                'employee_id' => $employeeId,
+                'department' => 'Administration',
+                'hire_date' => date('Y-m-d'),
+                'alternative_email' => $u['email'] ?? null,
+                'status' => 'active'
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Ensure Admin Record Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Teacher role helpers
+    // ---------------------------------------------------------------
+
+    private function isTeacherLikeRoleName(string $roleName): bool
+    {
+        $normalized = $this->normalizeRoleName($roleName);
+        return strpos($normalized, 'teacher') !== false;
+    }
+
+    private function generateTeacherEmployeeId(int $institutionId): string
+    {
+        $year = date('Y');
+        $prefix = "T-{$year}-";
+
+        $stmt = $this->db->prepare("
+            SELECT employee_id
+            FROM teachers
+            WHERE institution_id = :institution_id
+              AND employee_id LIKE :prefix
+            ORDER BY employee_id DESC
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'institution_id' => $institutionId,
+            'prefix' => $prefix . '%'
+        ]);
+
+        $last = (string) ($stmt->fetch(PDO::FETCH_ASSOC)['employee_id'] ?? '');
+        $seq = 1;
+        if ($last !== '') {
+            $parts = explode('-', $last);
+            $tail = end($parts);
+            if (is_numeric($tail)) {
+                $seq = ((int) $tail) + 1;
+            }
+        }
+
+        return $prefix . str_pad((string) $seq, 3, '0', STR_PAD_LEFT);
+    }
+
+    private function ensureTeacherRecordForUser(int $userId): bool
+    {
+        try {
+            $existsStmt = $this->db->prepare("SELECT teacher_id FROM teachers WHERE user_id = :user_id LIMIT 1");
+            $existsStmt->execute(['user_id' => $userId]);
+            if ($existsStmt->fetch(PDO::FETCH_ASSOC)) {
+                return true;
+            }
+
+            $userStmt = $this->db->prepare("
+                SELECT user_id, institution_id, email
+                FROM users
+                WHERE user_id = :user_id
+                LIMIT 1
+            ");
+            $userStmt->execute(['user_id' => $userId]);
+            $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$u || empty($u['institution_id'])) {
+                return false;
+            }
+
+            $institutionId = (int) $u['institution_id'];
+            $employeeId = $this->generateTeacherEmployeeId($institutionId);
+
+            $insertStmt = $this->db->prepare("
+                INSERT INTO teachers (
+                    uuid, institution_id, user_id, employee_id,
+                    hire_date, alternative_email
+                ) VALUES (
+                    :uuid, :institution_id, :user_id, :employee_id,
+                    :hire_date, :alternative_email
+                )
+            ");
+
+            return $insertStmt->execute([
+                'uuid'              => UuidHelper::generate(),
+                'institution_id'    => $institutionId,
+                'user_id'           => $userId,
+                'employee_id'       => $employeeId,
+                'hire_date'         => date('Y-m-d'),
+                'alternative_email' => $u['email'] ?? null,
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Ensure Teacher Record Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Parent role helpers
+    // ---------------------------------------------------------------
+
+    private function isParentLikeRoleName(string $roleName): bool
+    {
+        $normalized = $this->normalizeRoleName($roleName);
+        return strpos($normalized, 'parent') !== false || strpos($normalized, 'guardian') !== false;
+    }
+
+    private function generateParentGuardianId(): string
+    {
+        $stmt = $this->db->query("
+            SELECT guardian_id FROM parents
+            WHERE guardian_id IS NOT NULL
+              AND guardian_id LIKE 'GDN-%'
+            ORDER BY guardian_id DESC
+            LIMIT 1
+        ");
+        $last = (string) ($stmt->fetch(PDO::FETCH_ASSOC)['guardian_id'] ?? '');
+        $seq = 1;
+        if ($last !== '') {
+            $parts = explode('-', $last);
+            $tail = end($parts);
+            if (is_numeric($tail)) {
+                $seq = ((int) $tail) + 1;
+            }
+        }
+
+        return 'GDN-' . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+    }
+
+    private function ensureParentRecordForUser(int $userId): bool
+    {
+        try {
+            $existsStmt = $this->db->prepare("SELECT parent_id FROM parents WHERE user_id = :user_id LIMIT 1");
+            $existsStmt->execute(['user_id' => $userId]);
+            if ($existsStmt->fetch(PDO::FETCH_ASSOC)) {
+                return true;
+            }
+
+            $userStmt = $this->db->prepare("
+                SELECT user_id, institution_id
+                FROM users
+                WHERE user_id = :user_id
+                LIMIT 1
+            ");
+            $userStmt->execute(['user_id' => $userId]);
+            $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$u || empty($u['institution_id'])) {
+                return false;
+            }
+
+            $institutionId = (int) $u['institution_id'];
+            $guardianId    = $this->generateParentGuardianId();
+
+            $insertStmt = $this->db->prepare("
+                INSERT INTO parents (institution_id, user_id, guardian_id)
+                VALUES (:institution_id, :user_id, :guardian_id)
+            ");
+
+            return $insertStmt->execute([
+                'institution_id' => $institutionId,
+                'user_id'        => $userId,
+                'guardian_id'    => $guardianId,
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Ensure Parent Record Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Student role helpers
+    // ---------------------------------------------------------------
+
+    private function isStudentLikeRoleName(string $roleName): bool
+    {
+        $normalized = $this->normalizeRoleName($roleName);
+        return strpos($normalized, 'student') !== false || strpos($normalized, 'learner') !== false;
+    }
+
+    private function generateStudentIdNumber(int $institutionId): string
+    {
+        $year = date('Y');
+        $prefix = "STU-{$year}-";
+
+        $stmt = $this->db->prepare("
+            SELECT student_id_number
+            FROM students
+            WHERE institution_id = :institution_id
+              AND student_id_number LIKE :prefix
+            ORDER BY student_id_number DESC
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'institution_id' => $institutionId,
+            'prefix' => $prefix . '%'
+        ]);
+
+        $last = (string) ($stmt->fetch(PDO::FETCH_ASSOC)['student_id_number'] ?? '');
+        $seq = 1;
+        if ($last !== '') {
+            $parts = explode('-', $last);
+            $tail = end($parts);
+            if (is_numeric($tail)) {
+                $seq = ((int) $tail) + 1;
+            }
+        }
+
+        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function ensureStudentRecordForUser(int $userId): bool
+    {
+        try {
+            $existsStmt = $this->db->prepare("SELECT student_id FROM students WHERE user_id = :user_id LIMIT 1");
+            $existsStmt->execute(['user_id' => $userId]);
+            if ($existsStmt->fetch(PDO::FETCH_ASSOC)) {
+                return true;
+            }
+
+            $userStmt = $this->db->prepare("
+                SELECT user_id, institution_id
+                FROM users
+                WHERE user_id = :user_id
+                LIMIT 1
+            ");
+            $userStmt->execute(['user_id' => $userId]);
+            $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$u || empty($u['institution_id'])) {
+                return false;
+            }
+
+            $institutionId    = (int) $u['institution_id'];
+            $studentIdNumber  = $this->generateStudentIdNumber($institutionId);
+
+            $insertStmt = $this->db->prepare("
+                INSERT INTO students (
+                    uuid, institution_id, user_id, student_id_number,
+                    enrollment_date, status
+                ) VALUES (
+                    :uuid, :institution_id, :user_id, :student_id_number,
+                    :enrollment_date, :status
+                )
+            ");
+
+            return $insertStmt->execute([
+                'uuid'            => UuidHelper::generate(),
+                'institution_id'  => $institutionId,
+                'user_id'         => $userId,
+                'student_id_number' => $studentIdNumber,
+                'enrollment_date' => date('Y-m-d'),
+                'status'          => 'active',
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Ensure Student Record Error: " . $e->getMessage());
+            return false;
+        }
+    }
 
     public function create(array $data): ?int
     {
@@ -65,7 +419,7 @@ class UserRepository
                    SELECT 
                         u.*,
                         i.institution_name AS institution_name,
-                        GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                            GROUP_CONCAT(DISTINCT r.role_name) as roles,
                         GROUP_CONCAT(DISTINCT p.permission_name) as permissions,
                         COALESCE(t2.employee_id, a.employee_id) AS employee_id,
                         COALESCE(t2.alternative_email, a.alternative_email, s3.alternative_email) AS alternative_email,
@@ -88,8 +442,11 @@ class UserRepository
                         cs.class_name,
                         cs.class_code,
                         ps.program_name AS student_program,
+                        pr.parent_id,
+                        pr.guardian_id,
                         pr.occupation,
-                        pr.parent_id
+                        pr.prefers_email_notifications,
+                        pr.prefers_sms_notifications
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
@@ -164,13 +521,20 @@ class UserRepository
     }
 
     /**
-     * Check if an email already exists (emails are globally unique).
+     * Check if an email already exists.
+     *
+     * If institutionId is provided, scope the check to that institution to align
+     * with the unique_email_institution constraint.
      */
-    public function isEmailTaken(string $email, ?int $excludeUserId = null): bool
+    public function isEmailTaken(string $email, ?int $excludeUserId = null, ?int $institutionId = null): bool
     {
         try {
             $sql = "SELECT user_id FROM users WHERE email = :email";
             $params = ['email' => $email];
+            if ($institutionId !== null) {
+                $sql .= " AND institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
             if ($excludeUserId !== null) {
                 $sql .= " AND user_id != :exclude_id";
                 $params['exclude_id'] = $excludeUserId;
@@ -215,7 +579,7 @@ class UserRepository
                     SELECT 
                         u.*,
                         i.institution_name AS institution_name,
-                        GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                    GROUP_CONCAT(DISTINCT r.role_name) as roles,
                         GROUP_CONCAT(DISTINCT p.permission_name) as permissions
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
@@ -223,11 +587,11 @@ class UserRepository
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
                 LEFT JOIN institutions i on i.institution_id = u.institution_id
                 LEFT JOIN permissions p ON rp.permission_id = p.permission_id
-                WHERE u.uuid = :uuid AND u.deleted_at IS NULL
+                WHERE LOWER(u.uuid) = :uuid AND u.deleted_at IS NULL
                 GROUP BY u.user_id
             ");
 
-            $stmt->execute(['uuid' => $uuid]);
+            $stmt->execute(['uuid' => strtolower($uuid)]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
@@ -273,7 +637,7 @@ class UserRepository
             // Student fields (columns in the `students` table, not in users)
             $studentTableFields = ['parent_name', 'parent_phone', 'parent_email', 'emergency_contact', 'alternative_email'];
             // Parent fields (columns in the `parents` table, not in users)
-            $parentTableFields  = ['occupation'];
+            $parentTableFields  = ['guardian_id', 'occupation', 'prefers_email_notifications', 'prefers_sms_notifications'];
             // Combined set — anything in either role table should NOT go to users
             $roleOnlyFields = array_unique(array_merge($adminTableFields, $teacherTableFields, $studentTableFields, $parentTableFields));
 
@@ -297,7 +661,7 @@ class UserRepository
             $fields = [];
             $params = ['id' => $id];
             foreach ($userData as $key => $value) {
-                if ($key !== 'user_id' && $key !== 'password') {
+                if ($key !== 'user_id' && $key !== 'password' && $key !== 'role_id') {
                     $fields[] = "{$key} = :{$key}";
                     $params[$key] = $value;
                 }
@@ -410,6 +774,34 @@ class UserRepository
                     return false;
                 }
 
+                $roleStmt = $this->db->prepare("SELECT role_name FROM roles WHERE role_id = :role_id LIMIT 1");
+                $roleStmt->execute(['role_id' => $roleId]);
+                $roleName = (string) ($roleStmt->fetch(PDO::FETCH_ASSOC)['role_name'] ?? '');
+
+                if ($roleName !== '') {
+                    if ($this->isAdminLikeRoleName($roleName)) {
+                        if (!$this->ensureAdminRecordForUser($userId)) {
+                            $this->db->rollBack();
+                            return false;
+                        }
+                    } elseif ($this->isTeacherLikeRoleName($roleName)) {
+                        if (!$this->ensureTeacherRecordForUser($userId)) {
+                            $this->db->rollBack();
+                            return false;
+                        }
+                    } elseif ($this->isParentLikeRoleName($roleName)) {
+                        if (!$this->ensureParentRecordForUser($userId)) {
+                            $this->db->rollBack();
+                            return false;
+                        }
+                    } elseif ($this->isStudentLikeRoleName($roleName)) {
+                        if (!$this->ensureStudentRecordForUser($userId)) {
+                            $this->db->rollBack();
+                            return false;
+                        }
+                    }
+                }
+
                 $this->db->commit();
                 return true;
         } catch (\PDOException $e) {
@@ -440,11 +832,13 @@ class UserRepository
             $offset = ($page - 1) * $limit;
 
             $stmt = $this->db->prepare("
-                    SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles
+                    SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                    MAX(CASE WHEN la.is_successful = 1 THEN la.login_time END) AS last_login
                 FROM users u
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
                 LEFT JOIN institutions i on i.institution_id = u.institution_id
+                LEFT JOIN login_activity la ON la.user_id = u.user_id
                 WHERE u.deleted_at IS NULL
                 GROUP BY u.user_id
                 ORDER BY u.created_at DESC
@@ -478,11 +872,13 @@ class UserRepository
             $offset = ($page - 1) * $limit;
 
             $stmt = $this->db->prepare("\n                 
-            SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles\n
+            SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(DISTINCT r.role_name) as roles,
+            MAX(CASE WHEN la.is_successful = 1 THEN la.login_time END) AS last_login\n
                             FROM users u\n                
                             INNER JOIN user_roles ur ON u.user_id = ur.user_id\n                
                             INNER JOIN roles r ON ur.role_id = r.role_id\n                
                             INNER JOIN institutions i ON i.institution_id = u.institution_id\n                
+                            LEFT JOIN login_activity la ON la.user_id = u.user_id\n                
                             WHERE u.deleted_at IS NULL AND r.role_name = :role_name\n                
                             GROUP BY u.user_id\n                
                             ORDER BY u.created_at DESC\n                
@@ -516,7 +912,8 @@ class UserRepository
         try {
             $offset = ($page - 1) * $limit;
 
-            $stmt = $this->db->prepare("\n                SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(r.role_name) as roles\n                FROM users u\n                LEFT JOIN user_roles ur ON u.user_id = ur.user_id\n                LEFT JOIN roles r ON ur.role_id = r.role_id\n                LEFT JOIN institutions i on i.institution_id = u.institution_id\n                WHERE u.deleted_at IS NULL AND u.institution_id = :institution_id\n                GROUP BY u.user_id\n                ORDER BY u.created_at DESC\n                LIMIT :limit OFFSET :offset\n            ");
+            $stmt = $this->db->prepare("\n                SELECT u.*, i.institution_name AS institution_name, GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                MAX(CASE WHEN la.is_successful = 1 THEN la.login_time END) AS last_login\n                FROM users u\n                LEFT JOIN user_roles ur ON u.user_id = ur.user_id\n                LEFT JOIN roles r ON ur.role_id = r.role_id\n                LEFT JOIN institutions i on i.institution_id = u.institution_id\n                LEFT JOIN login_activity la ON la.user_id = u.user_id\n                WHERE u.deleted_at IS NULL AND u.institution_id = :institution_id\n                GROUP BY u.user_id\n                ORDER BY u.created_at DESC\n                LIMIT :limit OFFSET :offset\n            ");
 
             $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -611,6 +1008,130 @@ class UserRepository
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Users By Role Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * Get users by role name with optional filters (paginated).
+     * Supported filters: search, institution_id, is_active
+     */
+    public function getByRoleFiltered(string $roleName, int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+
+            $where = [
+                'u.deleted_at IS NULL',
+                'LOWER(r.role_name) = :role_name'
+            ];
+            $params = ['role_name' => strtolower($roleName)];
+
+            if (!empty($filters['search'])) {
+                $where[] = '(LOWER(u.first_name) LIKE :search_first OR LOWER(u.last_name) LIKE :search_last OR LOWER(u.email) LIKE :search_email OR LOWER(u.username) LIKE :search_username)';
+                $search = '%' . strtolower(trim((string) $filters['search'])) . '%';
+                $params['search_first'] = $search;
+                $params['search_last'] = $search;
+                $params['search_email'] = $search;
+                $params['search_username'] = $search;
+            }
+
+            if (isset($filters['institution_id']) && $filters['institution_id'] !== '') {
+                $where[] = 'u.institution_id = :institution_id';
+                $params['institution_id'] = (int) $filters['institution_id'];
+            }
+
+            if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+                $where[] = 'u.is_active = :is_active';
+                $params['is_active'] = (int) $filters['is_active'];
+            }
+
+            $sql = "
+                SELECT 
+                    u.*, 
+                    i.institution_name AS institution_name, 
+                    GROUP_CONCAT(DISTINCT r.role_name) as roles,
+                    MAX(CASE WHEN la.is_successful = 1 THEN la.login_time END) AS last_login
+                FROM users u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                LEFT JOIN institutions i ON i.institution_id = u.institution_id
+                LEFT JOIN login_activity la ON la.user_id = u.user_id
+                WHERE " . implode(' AND ', $where) . "
+                GROUP BY u.user_id
+                ORDER BY u.created_at DESC
+                LIMIT :limit OFFSET :offset
+            ";
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(':' . $key, $value);
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($users as &$user) {
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
+                unset($user['password_hash']);
+            }
+
+            return $users;
+        } catch (\PDOException $e) {
+            error_log("Get Users By Role Filtered Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Count users by role with optional filters.
+     * Supported filters: search, institution_id, is_active
+     */
+    public function countByRoleFiltered(string $roleName, array $filters = []): int
+    {
+        try {
+            $where = [
+                'u.deleted_at IS NULL',
+                'LOWER(r.role_name) = :role_name'
+            ];
+            $params = ['role_name' => strtolower($roleName)];
+
+            if (!empty($filters['search'])) {
+                $where[] = '(LOWER(u.first_name) LIKE :search_first OR LOWER(u.last_name) LIKE :search_last OR LOWER(u.email) LIKE :search_email OR LOWER(u.username) LIKE :search_username)';
+                $search = '%' . strtolower(trim((string) $filters['search'])) . '%';
+                $params['search_first'] = $search;
+                $params['search_last'] = $search;
+                $params['search_email'] = $search;
+                $params['search_username'] = $search;
+            }
+
+            if (isset($filters['institution_id']) && $filters['institution_id'] !== '') {
+                $where[] = 'u.institution_id = :institution_id';
+                $params['institution_id'] = (int) $filters['institution_id'];
+            }
+
+            if (isset($filters['is_active']) && $filters['is_active'] !== '') {
+                $where[] = 'u.is_active = :is_active';
+                $params['is_active'] = (int) $filters['is_active'];
+            }
+
+            $sql = "
+                SELECT COUNT(DISTINCT u.user_id)
+                FROM users u
+                INNER JOIN user_roles ur ON u.user_id = ur.user_id
+                INNER JOIN roles r ON ur.role_id = r.role_id
+                WHERE " . implode(' AND ', $where);
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(':' . $key, $value);
+            }
+            $stmt->execute();
+
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Users By Role Filtered Error: " . $e->getMessage());
             return 0;
         }
     }

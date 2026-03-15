@@ -26,8 +26,24 @@ class RoleController
             return;
         }
 
-        $roles = $this->roleRepo->getAll();
-        Response::success($roles);
+        $page = (int) ($_GET['page'] ?? 1);
+        $limit = (int) ($_GET['limit'] ?? 20);
+        $search = $_GET['search'] ?? '';
+        $hasUsers = isset($_GET['has_users']) ? (int) $_GET['has_users'] : null;
+
+        $page = max(1, $page);
+        $limit = min(max(1, $limit), 100);
+
+        $result = $this->roleRepo->getAll($page, $limit, $search, $hasUsers);
+
+        Response::success($result['data'], 200, [
+            'pagination' => [
+                'current_page' => $result['page'],
+                'per_page' => $result['limit'],
+                'total' => $result['total'],
+                'total_pages' => $result['pages']
+            ]
+        ]);
     }
 
     public function show(array $user, int $id): void

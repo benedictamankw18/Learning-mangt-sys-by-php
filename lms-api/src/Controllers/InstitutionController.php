@@ -128,6 +128,17 @@ class InstitutionController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
+        if (!is_array($data)) {
+            Response::badRequest('Invalid JSON payload');
+            return;
+        }
+
+        foreach (['institution_code', 'institution_name', 'institution_type', 'email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
         $validator = new Validator($data);
         $validator->required(['institution_code', 'institution_name', 'institution_type'])
             ->maxLength('institution_code', 20)
@@ -140,6 +151,13 @@ class InstitutionController
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if ($this->repo->institutionCodeExists($data['institution_code'])) {
+            Response::validationError([
+                'institution_code' => 'Institution code already exists'
+            ]);
             return;
         }
 
@@ -190,6 +208,17 @@ class InstitutionController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
+        if (!is_array($data)) {
+            Response::badRequest('Invalid JSON payload');
+            return;
+        }
+
+        foreach (['institution_code', 'institution_name', 'institution_type', 'email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
         $validator = new Validator($data);
         if (isset($data['institution_code'])) {
             $validator->maxLength('institution_code', 20);
@@ -203,6 +232,13 @@ class InstitutionController
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if (!empty($data['institution_code']) && $this->repo->institutionCodeExists($data['institution_code'], (int) $institution['institution_id'])) {
+            Response::validationError([
+                'institution_code' => 'Institution code already exists'
+            ]);
             return;
         }
 

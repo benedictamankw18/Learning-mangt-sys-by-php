@@ -1,5 +1,5 @@
 (function () {
-    let state = { page: 1, per_page: 10, q: '' };
+    let state = { page: 1, per_page: 10, q: '', importPreviewEntries: [], importHeaders: [] };
 
     document.addEventListener('page:loaded', (e) => { if (e.detail && e.detail.page === 'institutions') initInstitutionsPage(); });
     document.addEventListener('DOMContentLoaded', () => { if (document.getElementById('institutionsPage')) initInstitutionsPage(); });
@@ -79,27 +79,39 @@
                 filterType.addEventListener('change', (e) => { state.type = e.target.value; state.page = 1; loadInstitutions(); });
             }
         }
-        if (btnImport && importInput) btnImport.addEventListener('click', () => {
-            const importHelpHtml = `
-                <p>Upload a CSV/Excel file with the following header columns (header row required):</p>
-                <ul>
-                    <li><strong>institution_code</strong> (required)</li>
-                    <li><strong>institution_name</strong> (required)</li>
-                    <li><strong>institution_type</strong> (optional, e.g. public, private)</li>
-                    <li><strong>email</strong> (optional, valid email format)</li>
-                    <li><strong>phone</strong> (optional)</li>
-                    <li><strong>address</strong> (optional)</li>
-                    <li><strong>website</strong> (optional)</li>
-                    <li><strong>status</strong> (optional: active or inactive)</li>
-                </ul>
-                <p>Sample layout:</p>
-                <table class="import-sample-table"><thead><tr><th>institution_code</th><th>institution_name</th><th>institution_type</th><th>email</th><th>phone</th><th>status</th></tr></thead>
-                <tbody><tr><td>CEN-001</td><td>Central School</td><td>private</td><td>info@central.edu</td><td>+233123456789</td><td>active</td></tr></tbody></table>
-                <p style="margin-top:0.5rem;">Press Confirm to choose a file and continue to the import preview.</p>
-            `;
-            showModal('Import Institutions', importHelpHtml, () => { importInput && importInput.click(); });
-        });
+        if (btnImport && importInput) btnImport.addEventListener('click', openImportModal);
         if (importInput) importInput.addEventListener('change', (ev) => handleImportFile(ev.target.files[0]));
+        const importDropZone = document.getElementById('institutionImportDropZone');
+        const importConfirmBtn = document.getElementById('institutionImportConfirmBtn');
+        const importCancelBtn = document.getElementById('institutionImportCancelBtn');
+        const importModalClose = document.getElementById('institutionImportModalClose');
+        const importModalOverlay = document.getElementById('institutionImportModalOverlay');
+        const importTemplateBtn = document.getElementById('institutionImportTemplateBtn');
+        if (importDropZone && importInput) {
+            importDropZone.addEventListener('click', () => importInput.click());
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((evt) => {
+                importDropZone.addEventListener(evt, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+            importDropZone.addEventListener('dragover', () => importDropZone.classList.add('dragover'));
+            importDropZone.addEventListener('dragleave', () => importDropZone.classList.remove('dragover'));
+            importDropZone.addEventListener('drop', (e) => {
+                importDropZone.classList.remove('dragover');
+                const files = e.dataTransfer && e.dataTransfer.files;
+                if (files && files[0]) handleImportFile(files[0]);
+            });
+        }
+        if (importConfirmBtn) importConfirmBtn.addEventListener('click', confirmImportInstitutions);
+        if (importCancelBtn) importCancelBtn.addEventListener('click', closeImportModal);
+        if (importModalClose) importModalClose.addEventListener('click', closeImportModal);
+        if (importTemplateBtn) importTemplateBtn.addEventListener('click', downloadInstitutionTemplate);
+        if (importModalOverlay) {
+            importModalOverlay.addEventListener('click', function (e) {
+                if (e.target === this) closeImportModal();
+            });
+        }
         if (btnExport) btnExport.addEventListener('click', openExportModal);
         let debounce;
         if (search) {
@@ -187,7 +199,7 @@
         tbody.innerHTML = '';
         if (!items.length) { tbody.innerHTML = '<tr><td colspan="10">No institutions found</td></tr>'; return; }
         items.forEach(i => {
-            const id = i.institution_id || i.id || '';
+            const id = i.uuid || i.institution_uuid || i.institution_id || i.id || '';
             const code = i.code || i.institution_code || '';
             const name = i.institution_name || i.name || '';
             const type = i.type || i.institution_type || '';
@@ -195,7 +207,8 @@
             const phone = i.phone || i.telephone || '';
             const address = i.address || '';
             const website = i.website || i.url || '';
-            const status = (i.is_active || i.active || i.status === 'active') ? 'Active' : 'Inactive';
+            const isActive = (i.is_active || i.active || i.status === 'active');
+            const status = isActive ? 'Active' : 'Inactive';
             const hasAdmin = (i.has_admin || i.hasAdmin || (i.admin_count && Number(i.admin_count) > 0)) ? 'Yes' : 'No';
 
             const tr = document.createElement('tr');
@@ -203,13 +216,17 @@
                 <td>${escapeHtml(String(code))}</td>
                 <td>${escapeHtml(name)}</td>
                 <td>${escapeHtml(type)}</td>
-                <td>${escapeHtml(email)}</td>
+                <td> <a href="mailto:${escapeHtml(email)}" style="color: #2563eb; text-decoration: underline;">${escapeHtml(email)}</a> </td>
                 <td>${escapeHtml(phone)}</td>
                 <td>${escapeHtml(address)}</td>
-                <td>${escapeHtml(website)}</td>
+                <td> <a href="${escapeHtml(website)}" target="_blank" style="color: #2563eb; text-decoration: underline;">${escapeHtml(website)}</a> </td>
                 <td>${escapeHtml(status)}</td>
                 <td>${escapeHtml(hasAdmin)}</td>
                 <td>
+                    <button class="btn-icon" data-action="view-stats" data-id="${id}" data-institution-id="${i.institution_id || i.id || ''}" data-name="${escapeHtml(name)}" title="View Details"><i class="fas fa-chart-line"></i></button>
+                    <button class="btn-icon" data-action="toggle-status" data-id="${id}" data-name="${escapeHtml(name)}" data-active="${isActive ? '1' : '0'}" title="${isActive ? 'Deactivate Institution' : 'Activate Institution'}"><i class="fas ${isActive ? 'fa-toggle-on' : 'fa-toggle-off'}"></i></button>
+                    <button class="btn-icon" data-action="subscriptions" data-id="${id}" data-institution-id="${i.institution_id || i.id || ''}" data-name="${escapeHtml(name)}" title="Manage Subscription"><i class="fas fa-credit-card"></i></button>
+                    <button class="btn-icon" data-action="assign-admin" data-id="${id}" data-institution-id="${i.institution_id || i.id || ''}" data-name="${escapeHtml(name)}" title="Assign Admin"><i class="fas fa-user-plus"></i></button>
                     <button class="btn-icon" data-action="edit" data-id="${id}"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon" data-action="delete" data-id="${id}"><i class="fas fa-trash"></i></button>
                 </td>
@@ -222,6 +239,10 @@
             btn.addEventListener('click', () => {
                 if (action === 'edit') openEditModal(id);
                 if (action === 'delete') confirmDeleteInstitution(id);
+                if (action === 'view-stats') openInstitutionDashboard(id, btn.getAttribute('data-name') || 'Institution', btn.getAttribute('data-institution-id'));
+                if (action === 'toggle-status') toggleInstitutionStatus(id, btn.getAttribute('data-active') === '1', btn.getAttribute('data-name') || 'Institution');
+                if (action === 'subscriptions') openSubscriptionPanel(btn.getAttribute('data-institution-id'), btn.getAttribute('data-name') || 'Institution');
+                if (action === 'assign-admin') openAdminAssignment(btn.getAttribute('data-institution-id'), btn.getAttribute('data-name') || 'Institution');
             });
         });
     }
@@ -293,7 +314,7 @@
             const norm = normalizeInstitutionPayload(payload);
             if (!norm.valid) { showToast('Please fix: ' + norm.errors.join('; '), 'error'); return; }
             payload = norm.payload;
-            try { await InstitutionAPI.create(payload); showToast('Institution created', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_created', description: `Created institution: ${payload.institution_name}`, entity_type: 'institution', severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to create institution', 'error'); }
+            try { await InstitutionAPI.create(payload); showToast('Institution created', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_created', description: `Created institution: ${payload.institution_name}`, entity_type: 'institution', severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast(err?.message || 'Failed to create institution', 'error'); }
         });
     }
 
@@ -310,7 +331,7 @@
                 const norm = normalizeInstitutionPayload(payload);
                 if (!norm.valid) { showToast('Please fix: ' + norm.errors.join('; '), 'error'); return; }
                 payload = norm.payload;
-                try { await InstitutionAPI.update(id, payload); showToast('Institution updated', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_updated', description: `Updated institution: ${payload.institution_name}`, entity_type: 'institution', entity_id: id, severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to update institution', 'error'); }
+                try { await InstitutionAPI.update(id, payload); showToast('Institution updated', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_updated', description: `Updated institution: ${payload.institution_name}`, entity_type: 'institution', entity_id: id, severity: 'info' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast(err?.message || 'Failed to update institution', 'error'); }
             });
 
             // populate live form
@@ -322,9 +343,15 @@
                     if (activeForm.elements['institution_code']) activeForm.elements['institution_code'].value = inst.institution_code || inst.code || '';
                     if (activeForm.elements['institution_type']) activeForm.elements['institution_type'].value = inst.institution_type || inst.type || '';
                     if (activeForm.elements['address']) activeForm.elements['address'].value = inst.address || '';
+                    if (activeForm.elements['city']) activeForm.elements['city'].value = inst.city || '';
+                    if (activeForm.elements['state']) activeForm.elements['state'].value = inst.state || '';
+                    if (activeForm.elements['country']) activeForm.elements['country'].value = inst.country || '';
+                    if (activeForm.elements['postal_code']) activeForm.elements['postal_code'].value = inst.postal_code || '';
                     if (activeForm.elements['phone']) activeForm.elements['phone'].value = inst.phone || inst.telephone || '';
                     if (activeForm.elements['email']) activeForm.elements['email'].value = inst.email || '';
                     if (activeForm.elements['website']) activeForm.elements['website'].value = inst.website || inst.url || '';
+                    if (activeForm.elements['max_students']) activeForm.elements['max_students'].value = inst.max_students || '';
+                    if (activeForm.elements['max_teachers']) activeForm.elements['max_teachers'].value = inst.max_teachers || '';
                     if (activeForm.elements['status']) activeForm.elements['status'].value = inst.status || (inst.is_active ? 'active' : 'inactive');
                     activeForm.dataset.editId = id;
                 }
@@ -336,6 +363,103 @@
         showModal('Confirm Delete', `<p>Are you sure you want to delete this institution?</p>`, async () => {
             try { await InstitutionAPI.delete(id); showToast('Institution deleted', 'success'); SuperadminActivityAPI.log({ activity_type: 'institution_deleted', description: `Deleted institution #${id}`, entity_type: 'institution', entity_id: id, severity: 'warning' }).catch(() => {}); loadInstitutions(); } catch (err) { console.error(err); showToast('Failed to delete institution', 'error'); }
         });
+    }
+
+    function openInstitutionDashboard(uuid, name, institutionId) {
+        try {
+            localStorage.setItem('superadmin.institutions.selectedUuid', String(uuid || ''));
+            localStorage.setItem('superadmin.institutions.selectedInstitutionId', String(institutionId || ''));
+            localStorage.setItem('superadmin.institutions.selectedName', String(name || 'Institution'));
+        } catch (_) {}
+
+        window.location.hash = '#institution-details';
+    }
+
+    function toggleInstitutionStatus(id, currentlyActive, name) {
+        const nextStatus = currentlyActive ? 'inactive' : 'active';
+        const actionLabel = currentlyActive ? 'Deactivate' : 'Activate';
+
+        showModal(
+            `${actionLabel} Institution`,
+            `<p>${actionLabel} <strong>${escapeHtml(name)}</strong>?</p>`,
+            async () => {
+                try {
+                    await InstitutionAPI.updateStatus(id, { status: nextStatus });
+                    showToast(`Institution ${nextStatus}`, 'success');
+                    SuperadminActivityAPI.log({
+                        activity_type: 'institution_status_updated',
+                        description: `${actionLabel}d institution: ${name}`,
+                        entity_type: 'institution',
+                        entity_id: id,
+                        severity: 'info',
+                    }).catch(() => {});
+                    loadInstitutions();
+                } catch (err) {
+                    console.error('Failed to update institution status', err);
+                    showToast('Failed to update institution status', 'error');
+                }
+            },
+        );
+    }
+
+    async function openSubscriptionPanel(institutionId, name) {
+        if (!institutionId) {
+            showToast('Institution identifier not available', 'error');
+            return;
+        }
+
+        try {
+            let status = null;
+
+            try {
+                const statusRes = await InstitutionAPI.getSubscriptionStatus(institutionId);
+                status = (statusRes && (statusRes.data || statusRes)) || null;
+            } catch (err) {
+                status = null;
+            }
+
+            const planValue = status?.subscription_plan || status?.plan_name || status?.plan || 'None';
+            const endDateValue = status?.subscription_expires_at || status?.end_date || status?.expires_at || 'N/A';
+
+            const html = `
+                <p style="margin:0 0 0.75rem 0;color:#334155;"><strong>${escapeHtml(name)}</strong></p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.6rem;">
+                    <div style="padding:0.75rem;border:1px solid var(--border-color);border-radius:8px;background:#fff;">
+                        <div style="font-size:0.8rem;color:#64748b;">Status</div>
+                        <div style="font-size:1rem;font-weight:600;">${escapeHtml(String(status?.status || 'Not Active'))}</div>
+                    </div>
+                    <div style="padding:0.75rem;border:1px solid var(--border-color);border-radius:8px;background:#fff;">
+                        <div style="font-size:0.8rem;color:#64748b;">Plan</div>
+                        <div style="font-size:1rem;font-weight:600;">${escapeHtml(String(planValue))}</div>
+                    </div>
+                    <div style="padding:0.75rem;border:1px solid var(--border-color);border-radius:8px;background:#fff;">
+                        <div style="font-size:0.8rem;color:#64748b;">Ends On</div>
+                        <div style="font-size:1rem;font-weight:600;">${escapeHtml(String(endDateValue))}</div>
+                    </div>
+                </div>
+                <p style="margin:0.75rem 0 0 0;color:#64748b;font-size:0.85rem;">Use the subscriptions API page to renew, update, or cancel this subscription.</p>
+            `;
+
+            showModal('Subscription Management', html, () => {});
+        } catch (err) {
+            console.error('Failed to load subscription details', err);
+            showToast('Failed to load subscription details', 'error');
+        }
+    }
+
+    function openAdminAssignment(institutionId, name) {
+        if (!institutionId) {
+            showToast('Institution identifier not available', 'error');
+            return;
+        }
+
+        try {
+            localStorage.setItem('superadmin.users.prefillInstitutionId', String(institutionId));
+            localStorage.setItem('superadmin.users.autoOpenCreateAdmin', '1');
+        } catch (_) {}
+
+        showToast(`Assign admin for ${name}: opening User Management`, 'info');
+        window.location.hash = '#users';
     }
 
     function openExportModal() {
@@ -357,6 +481,101 @@
                 });
             });
         }, 50);
+    }
+
+    function openImportModal() {
+        state.importPreviewEntries = [];
+        state.importHeaders = [];
+        const overlay = document.getElementById('institutionImportModalOverlay');
+        const preview = document.getElementById('institutionImportPreview');
+        const confirmBtn = document.getElementById('institutionImportConfirmBtn');
+        const inputEl = document.getElementById('importFileInput');
+        if (inputEl) inputEl.value = '';
+        if (preview) {
+            preview.style.display = 'none';
+            preview.innerHTML = '';
+        }
+        if (confirmBtn) confirmBtn.disabled = true;
+        if (overlay) overlay.classList.add('open');
+    }
+
+    function closeImportModal() {
+        const overlay = document.getElementById('institutionImportModalOverlay');
+        const inputEl = document.getElementById('importFileInput');
+        if (inputEl) inputEl.value = '';
+        if (overlay) overlay.classList.remove('open');
+    }
+
+    function renderImportPreview(fileName, headers, entries) {
+        const preview = document.getElementById('institutionImportPreview');
+        const confirmBtn = document.getElementById('institutionImportConfirmBtn');
+        if (!preview) return;
+
+        const maxPreview = 40;
+        const rows = entries.slice(0, maxPreview);
+        const validCount = entries.filter((e) => e.valid).length;
+        const invalidCount = entries.length - validCount;
+
+        let html = '';
+        html += '<div style="margin-bottom:0.5rem;"><strong>File:</strong> ' + escapeHtml(fileName) + '</div>';
+        html += '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;">' +
+            '<span style="background:#dcfce7;color:#15803d;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:600;">Valid: ' + validCount + '</span>' +
+            '<span style="background:#fee2e2;color:#b91c1c;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:600;">Invalid: ' + invalidCount + '</span>' +
+            '<span style="background:#e2e8f0;color:#334155;padding:0.2rem 0.6rem;border-radius:999px;font-size:0.75rem;font-weight:600;">Total: ' + entries.length + '</span>' +
+            '</div>';
+
+        html += '<div style="max-height:260px;overflow:auto;border:1px solid #e2e8f0;border-radius:8px;">';
+        html += '<table style="width:100%;border-collapse:collapse;font-size:0.78rem;">';
+        html += '<thead style="position:sticky;top:0;background:#f8fafc;"><tr>';
+        headers.forEach((h) => { html += '<th style="padding:0.5rem;border-bottom:1px solid #e2e8f0;text-align:left;">' + escapeHtml(String(h)) + '</th>'; });
+        html += '<th style="padding:0.5rem;border-bottom:1px solid #e2e8f0;text-align:left;">Import Status</th>';
+        html += '</tr></thead><tbody>';
+
+        rows.forEach((entry) => {
+            html += '<tr>';
+            headers.forEach((h) => {
+                const val = entry.originalRow && (h in entry.originalRow) ? entry.originalRow[h] : '';
+                html += '<td style="padding:0.45rem;border-bottom:1px solid #f1f5f9;">' + escapeHtml(String(val || '')) + '</td>';
+            });
+            const status = entry.valid
+                ? '<span style="color:#15803d;font-weight:600;">Valid</span>'
+                : '<span style="color:#b91c1c;font-weight:600;">Invalid: ' + escapeHtml(String((entry.errors || []).join('; '))) + '</span>';
+            html += '<td style="padding:0.45rem;border-bottom:1px solid #f1f5f9;">' + status + '</td>';
+            html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        html += '<p style="margin:0.5rem 0 0;color:#64748b;font-size:0.8rem;">Showing ' + rows.length + ' of ' + entries.length + ' row(s). Only valid rows will be imported.</p>';
+
+        preview.innerHTML = html;
+        preview.style.display = 'block';
+        if (confirmBtn) confirmBtn.disabled = validCount === 0;
+    }
+
+    async function confirmImportInstitutions() {
+        const confirmBtn = document.getElementById('institutionImportConfirmBtn');
+        const validRows = (state.importPreviewEntries || []).filter((e) => e.valid).map((e) => e.normalized);
+        if (!validRows.length) {
+            showToast('No valid rows to import', 'info');
+            return;
+        }
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Importing...';
+        }
+        try {
+            await performImport(validRows);
+            closeImportModal();
+            loadInstitutions();
+        } catch (e) {
+            console.error('Import failed', e);
+            showToast('Import operation failed', 'error');
+        } finally {
+            if (confirmBtn) {
+                confirmBtn.textContent = 'Import';
+                confirmBtn.disabled = false;
+            }
+        }
     }
 
     // Simple CSV export
@@ -382,6 +601,27 @@
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url; a.download = `institutions_${Date.now()}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    function downloadInstitutionTemplate() {
+        const rows = [
+            ['institution_code', 'institution_name', 'institution_type', 'email', 'phone', 'address', 'website', 'status'],
+            ['CEN-001', 'Central School', 'private', 'info@central.edu', '+233123456789', 'Accra, Greater Accra', 'https://central.edu.gh', 'active'],
+            ['PUB-002', 'Community Academy', 'public', 'office@community.edu', '+233201112233', 'Kumasi, Ashanti', 'https://community.edu.gh', 'inactive'],
+        ];
+        const csv = rows
+            .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'institutions_template.csv';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     }
 
     function exportXLSX() {
@@ -422,122 +662,113 @@
     }
 
     function exportPDF() {
-        // Try loading jsPDF + autotable and generate PDF; fallback to CSV
-        const jspdfLocal = '/assets/vendor/jspdf/jspdf.umd.min.js';
-        const autoTableLocal = '/assets/vendor/autotable/jspdf.plugin.autotable.min.js';
-        const jspdfCdn = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        const autoTableCdn = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js';
+        const items = state.lastInstitutions || [];
+        if (!items.length) {
+            showToast('No institutions to export', 'info');
+            return;
+        }
 
-        Promise.all([loadFirstAvailable([jspdfLocal, jspdfCdn]), loadFirstAvailable([autoTableLocal, autoTableCdn])]).then(() => {
-            try {
-                // Try to locate jsPDF class across UMD/CommonJS/Global builds
-                let jsPDFClass = null;
-                if (window.jspdf) jsPDFClass = window.jspdf.jsPDF || window.jspdf.default || window.jspdf;
-                if (!jsPDFClass && globalThis.jspdf) jsPDFClass = globalThis.jspdf.jsPDF || globalThis.jspdf.default || globalThis.jspdf;
-                if (!jsPDFClass && window.jsPDF) jsPDFClass = window.jsPDF;
-                if (!jsPDFClass && globalThis.jsPDF) jsPDFClass = globalThis.jsPDF;
-                if (!jsPDFClass) throw new Error('jsPDF not found after loading script');
+        showToast('Preparing PDF...', 'info');
 
-                const cols = ['Code','Name','Type','Email','Phone','Website','Status','Has Admin'];
-                const rows = (state.lastInstitutions || []).map(i => [
-                    i.institution_code || i.code || '',
-                    i.institution_name || i.name || '',
-                    i.institution_type || i.type || '',
-                    i.email || '',
-                    i.phone || i.telephone || '',
-                    i.website || i.url || '',
-                    (i.is_active || i.active || i.status === 'active') ? 'active' : 'inactive',
-                    (i.has_admin || i.hasAdmin || (i.admin_count && Number(i.admin_count) > 0)) ? 'yes' : 'no'
-                ]);
-
-                const doc = new jsPDFClass({ unit: 'pt', format: 'a4', orientation: 'landscape' });
-
-                // Draw header (title, date, count) and obtain starting Y for table
-                const title = 'Institutions';
-                const subtitle = `${new Date().toLocaleString()} — ${rows.length} rows`;
-                const startY = drawPdfHeader(doc, title, subtitle);
-
-                // Compute numeric column widths (more reliable) as percentages of usable width
-                const margin = 40;
-                const pageWidth = (doc.internal.pageSize.getWidth && doc.internal.pageSize.getWidth()) || doc.internal.pageSize.width;
-                const usable = pageWidth - margin * 2;
-                // percentage allocations (must sum roughly to 100)
-                // 8 columns: Code, Name, Type, Email, Phone, Website, Status, Has Admin
-                const pct = [8, 20, 8, 18, 10, 20, 8, 8];
-                // compute widths as integers and ensure the total equals usable by adjusting the last column
-                const rawWidths = pct.map(p => (p / 100) * usable);
-                const colWidths = rawWidths.map(w => Math.round(w));
-                // adjust last column to make sum exact (prevent autoTable width errors)
-                const sumWidths = colWidths.reduce((a,b)=>a+b,0);
-                if (sumWidths !== usable) {
-                    colWidths[colWidths.length - 1] += (usable - sumWidths);
-                }
-
-                // Use autoTable if available; otherwise use manual renderer
-                if (typeof doc.autoTable === 'function') {
-                    const columnStyles = {};
-                    colWidths.forEach((w, idx) => { columnStyles[idx] = { cellWidth: w }; });
-
-                    // header color custom (blue) with white text
-                    try {
-                        doc.autoTable({
-                        head: [cols],
-                        body: rows,
-                        startY: startY,
-                        margin: { left: margin, right: margin },
-                        tableWidth: usable,
-                        styles: { fontSize: 9, cellPadding: 4, overflow: 'linebreak' },
-                        columnStyles: columnStyles,
-                        headStyles: { fillColor: [33,150,243], textColor: [255,255,255], fontStyle: 'bold' },
-                        // color rows alternately (odd rows light gray, even rows white)
-                        willDrawCell: function (data) {
-                            try {
-                                if (data.section === 'body') {
-                                    const rowIndex = data.row.index;
-                                    const isOddRow = (rowIndex % 2) === 0; // 0-based: 0 -> first row
-                                    const rgb = isOddRow ? [243,243,243] : [255,255,255];
-                                    const x = data.row.cells[0].x || data.cell.x; // left-most x for the row
-                                    const y = data.cell.y;
-                                    // compute full row width by summing cells in this row (best effort)
-                                    let fullW = 0;
-                                    try {
-                                        for (const k in data.row.cells) fullW += data.row.cells[k].width || 0;
-                                    } catch (e) { fullW = data.cell.width; }
-                                    const h = data.cell.height;
-                                    doc.setFillColor(rgb[0], rgb[1], rgb[2]);
-                                    doc.rect(x, y - 10, fullW, h, 'F');
-                                }
-                            } catch (e) { /* ignore drawing errors */ }
-                        }
-                        });
-                    } catch (atErr) {
-                        console.warn('autoTable failed to layout table, falling back to manual renderer', atErr);
-                        manualPdfTable(doc, cols, rows, startY, colWidths);
-                    }
-                } else {
-                    // fallback to manual table rendering when plugin unavailable
-                    manualPdfTable(doc, cols, rows, startY, colWidths);
-                }
-                const name = `institutions_${Date.now()}.pdf`;
-                if (typeof doc.save === 'function') {
-                    doc.save(name);
-                } else if (typeof doc.output === 'function') {
-                    const blob = doc.output('blob');
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-                } else {
-                    throw new Error('Could not save PDF: unsupported jsPDF API');
-                }
-            } catch (e) {
-                console.error('PDF export failed', e);
-                showToast('PDF export failed, falling back to CSV', 'warn');
-                exportCSV();
-            }
-        }).catch((err) => {
-            console.warn('Failed to load PDF libs', err);
-            showToast('PDF libraries unavailable, exporting CSV', 'info');
-            exportCSV();
+        const date = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
         });
+
+        const esc = function (v) {
+            return String(v == null ? '-' : v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        };
+
+        const statusBadge = function (active) {
+            const colors = active
+                ? 'color:#15803d;background:#dcfce7'
+                : 'color:#64748b;background:#f1f5f9';
+            return '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;' + colors + '">' + (active ? 'Active' : 'Inactive') + '</span>';
+        };
+
+        const adminBadge = function (hasAdmin) {
+            const colors = hasAdmin
+                ? 'color:#1d4ed8;background:#dbeafe'
+                : 'color:#64748b;background:#f1f5f9';
+            return '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;' + colors + '">' + (hasAdmin ? 'Yes' : 'No') + '</span>';
+        };
+
+        const filters = [];
+        if (state.q) filters.push('Search: "' + state.q + '"');
+        if (state.status) filters.push('Status: ' + state.status);
+        if (state.has_admin) filters.push('Has Admin: ' + state.has_admin);
+        if (state.type) filters.push('Type: ' + state.type);
+        const filterLabel = filters.join(' | ');
+
+        const tableRows = items.map(function (i, idx) {
+            const code = i.institution_code || i.code || '-';
+            const name = i.institution_name || i.name || '-';
+            const type = i.institution_type || i.type || '-';
+            const email = i.email || '-';
+            const phone = i.phone || i.telephone || '-';
+            const website = i.website || i.url || '-';
+            const isActive = (i.is_active || i.active || i.status === 'active');
+            const hasAdmin = (i.has_admin || i.hasAdmin || (i.admin_count && Number(i.admin_count) > 0));
+
+            return '<tr style="background:' + (idx % 2 === 0 ? '#fff' : '#f8fafc') + '">' +
+                '<td>' + (idx + 1) + '</td>' +
+                '<td style="font-family:monospace;font-size:11px">' + esc(code) + '</td>' +
+                '<td><strong>' + esc(name) + '</strong></td>' +
+                '<td>' + esc(type) + '</td>' +
+                '<td>' + esc(email) + '</td>' +
+                '<td>' + esc(phone) + '</td>' +
+                '<td>' + esc(website) + '</td>' +
+                '<td>' + statusBadge(isActive) + '</td>' +
+                '<td>' + adminBadge(hasAdmin) + '</td>' +
+                '</tr>';
+        }).join('');
+
+        const html = '<!DOCTYPE html>\n' +
+            '<html lang="en">\n<head>\n<meta charset="UTF-8">\n' +
+            '<title>Institutions Export - ' + date + '</title>\n' +
+            '<style>\n' +
+            '  * { box-sizing: border-box; margin: 0; padding: 0; }\n' +
+            '  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; color: #1e293b; padding: 24px; }\n' +
+            '  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2px solid #006a3f; padding-bottom: 12px; }\n' +
+            '  .header h1 { font-size: 18px; color: #006a3f; }\n' +
+            '  .meta { text-align: right; color: #64748b; font-size: 11px; line-height: 1.6; }\n' +
+            '  .filter-bar { font-size: 11px; color: #64748b; margin-bottom: 12px; }\n' +
+            '  table { width: 100%; border-collapse: collapse; }\n' +
+            '  th { background: #006a3f; color: #fff; padding: 7px 8px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }\n' +
+            '  td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }\n' +
+            '  .footer { margin-top: 12px; font-size: 10px; color: #94a3b8; text-align: center; }\n' +
+            '  @media print { body { padding: 0; } @page { margin: 15mm; size: A4 landscape; } button { display: none !important; } }\n' +
+            '</style>\n</head>\n<body>\n' +
+            '  <div class="header">\n' +
+            '    <div>\n' +
+            '      <h1>Institution Report</h1>\n' +
+            '      <p style="color:#64748b;margin-top:2px">Total: <strong>' + items.length + '</strong> institution' + (items.length !== 1 ? 's' : '') + '</p>\n' +
+            '    </div>\n' +
+            '    <div class="meta">\n' +
+            '      <div>Exported: ' + date + '</div>\n' +
+            '      <button onclick="window.print()" style="margin-top:6px;padding:4px 12px;background:#006a3f;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px">Print / Save PDF</button>\n' +
+            '    </div>\n' +
+            '  </div>\n' +
+            (filterLabel ? '  <div class="filter-bar">Filters: ' + esc(filterLabel) + '</div>\n' : '') +
+            '  <table>\n    <thead>\n      <tr>\n' +
+            '        <th>#</th><th>Code</th><th>Name</th><th>Type</th><th>Email</th><th>Phone</th><th>Website</th><th>Status</th><th>Has Admin</th>\n' +
+            '      </tr>\n    </thead>\n    <tbody>' + tableRows + '</tbody>\n  </table>\n' +
+            '  <div class="footer">Generated by LMS - ' + date + '</div>\n</body>\n</html>';
+
+        const win = window.open('', '_blank', 'width=1200,height=750');
+        if (!win) {
+            showToast('Allow pop-ups to export PDF', 'warning');
+            return;
+        }
+
+        win.document.write(html);
+        win.document.close();
+        win.focus();
+        showToast('PDF ready - ' + items.length + ' institution' + (items.length !== 1 ? 's' : ''), 'success');
     }
 
     // Dynamic script loader
@@ -783,10 +1014,9 @@
                         return { originalRow, normalized: norm.payload, valid: norm.valid, errors: norm.errors };
                     });
 
-                    showImportPreview('Import Preview - CSV', originalHeader, previewEntries, async (toImport) => {
-                        await performImport(toImport);
-                        loadInstitutions();
-                    });
+                    state.importHeaders = originalHeader;
+                    state.importPreviewEntries = previewEntries;
+                    renderImportPreview(file.name || 'institutions.csv', originalHeader, previewEntries);
 
                 } catch (e) { console.error(e); showToast('Import failed', 'error'); }
                 finally { if (inputEl) inputEl.value = ''; }
@@ -832,10 +1062,9 @@
                             return { originalRow, normalized: norm.payload, valid: norm.valid, errors: norm.errors };
                         });
 
-                        showImportPreview('Import Preview - Excel', originalHeader, previewEntries, async (toImport) => {
-                            await performImport(toImport);
-                            loadInstitutions();
-                        });
+                        state.importHeaders = originalHeader;
+                        state.importPreviewEntries = previewEntries;
+                        renderImportPreview(file.name || 'institutions.xlsx', originalHeader, previewEntries);
                     } catch (e) { console.error(e); showToast('Excel import failed', 'error'); }
                     finally { if (inputEl) inputEl.value = ''; }
                 };
@@ -909,9 +1138,19 @@
         if (p.institution_type === undefined && p.type) p.institution_type = p.type;
 
         // trim string fields
-        ['institution_code','institution_name','institution_type','address','phone','email','website','status'].forEach(k => {
+        ['institution_code','institution_name','institution_type','address','city','state','country','postal_code','phone','email','website','status'].forEach(k => {
             if (k in p && typeof p[k] === 'string') p[k] = p[k].trim();
         });
+
+        // numeric quota normalization
+        if ('max_students' in p) {
+            if (String(p.max_students).trim() === '') delete p.max_students;
+            else p.max_students = Number.parseInt(p.max_students, 10);
+        }
+        if ('max_teachers' in p) {
+            if (String(p.max_teachers).trim() === '') delete p.max_teachers;
+            else p.max_teachers = Number.parseInt(p.max_teachers, 10);
+        }
 
         // status normalization: accept 'active'/'inactive' (case-insensitive)
         if (!p.status && (p.is_active !== undefined)) {
@@ -926,6 +1165,9 @@
         // basic validation
         if (!p.institution_name || !p.institution_name.length) errors.push('institution_name required');
         if (!p.institution_code || !p.institution_code.length) errors.push('institution_code required');
+        if (!p.institution_type || !p.institution_type.length) errors.push('institution_type required');
+        if ('max_students' in p && (!Number.isInteger(p.max_students) || p.max_students < 1)) errors.push('max_students must be a positive whole number');
+        if ('max_teachers' in p && (!Number.isInteger(p.max_teachers) || p.max_teachers < 1)) errors.push('max_teachers must be a positive whole number');
         if (p.email && !validateEmail(p.email)) errors.push('Invalid email');
         if (p.phone && !validatePhone(p.phone)) errors.push('Invalid phone');
 
@@ -955,6 +1197,11 @@
             'phone': 'phone',
             'telephone': 'phone',
             'address': 'address',
+            'city': 'city',
+            'state': 'state',
+            'country': 'country',
+            'postal_code': 'postal_code',
+            'postalcode': 'postal_code',
             'website': 'website',
             'url': 'website',
             'status': 'status',

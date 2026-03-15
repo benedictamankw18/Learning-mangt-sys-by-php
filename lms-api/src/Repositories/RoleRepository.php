@@ -14,25 +14,83 @@ class RoleRepository
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll(): array
+    public function getAll($page = 1, $limit = 20, $search = '', $hasUsers = null): array
     {
         try {
-            $stmt = $this->db->query("
-                SELECT r.*, 
+            $offset = ($page - 1) * $limit;
+            $whereConditions = ['(u.deleted_at IS NULL OR u.user_id IS NULL)'];
+            $havingClause = '';
+            $params = [];
+
+            if ($search) {
+                $whereConditions[] = "(r.role_name LIKE :search1 OR r.description LIKE :search2)";
+                $params['search1'] = "%$search%";
+                $params['search2'] = "%$search%";
+            }
+
+            $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
+
+            if ($hasUsers !== null) {
+                $operator = $hasUsers ? '>' : '=';
+                $havingClause = " HAVING COUNT(DISTINCT ur.user_id) $operator 0";
+            }
+
+            // Get total count
+            $countStmt = $this->db->prepare("
+                SELECT COUNT(*) as total
+                FROM (
+                    SELECT r.role_id
+                    FROM roles r
+                    LEFT JOIN user_roles ur ON r.role_id = ur.role_id
+                    LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
+                    LEFT JOIN users u ON u.user_id = ur.user_id
+                    $whereClause
+                    GROUP BY r.role_id
+                    $havingClause
+                ) as count_table
+            ");
+            $countStmt->execute($params);
+            $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
+            $total = (int) ($countResult['total'] ?? 0);
+
+            // Get paginated results
+            $stmt = $this->db->prepare("
+                SELECT r.role_id, r.role_name, r.description, r.created_at, r.updated_at,
                        COUNT(DISTINCT ur.user_id) as user_count,
-                       COUNT(DISTINCT rp.permission_id) as permission_count
+                       COUNT(DISTINCT rp.permission_id) as permission_count,
+                       GROUP_CONCAT(DISTINCT rp.permission_id) as permission_ids
                 FROM roles r
                 LEFT JOIN user_roles ur ON r.role_id = ur.role_id
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id
                 LEFT JOIN users u ON u.user_id = ur.user_id
-                WHERE u.deleted_at IS NULL
+                $whereClause
                 GROUP BY r.role_id
+                $havingClause
                 ORDER BY r.role_name
+                LIMIT :offset, :limit
             ");
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            
+            // Bind search and other params
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(":$key", $value);
+            }
+
+            $stmt->execute();
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            return [
+                'data' => $rows,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => ceil($total / $limit)
+            ];
         } catch (\PDOException $e) {
             error_log("Get All Roles Error: " . $e->getMessage());
-            return [];
+            return ['data' => [], 'total' => 0, 'page' => 1, 'limit' => $limit, 'pages' => 0];
         }
     }
 

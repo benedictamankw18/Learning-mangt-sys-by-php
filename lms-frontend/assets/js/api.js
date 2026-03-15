@@ -77,7 +77,22 @@ class APIService {
 
             // Extract error message
             const errorMessage = isJSON
-                ? (data.message || data.error || (data.errors ? JSON.stringify(data.errors) : 'An error occurred'))
+                ? (() => {
+                    const hasFieldErrors = data && data.errors && typeof data.errors === 'object';
+                    if (hasFieldErrors) {
+                        const details = Object.entries(data.errors)
+                            .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+                            .join('; ');
+
+                        if (data.message && data.message !== 'Validation failed') {
+                            return `${data.message}${details ? ` - ${details}` : ''}`;
+                        }
+
+                        return details || data.message || data.error || 'An error occurred';
+                    }
+
+                    return data.message || data.error || 'An error occurred';
+                })()
                 : data || 'An error occurred';
 
             const err = new Error(errorMessage);
@@ -262,6 +277,25 @@ const InstitutionAPI = {
     create: (data) => API.post(API_ENDPOINTS.INSTITUTIONS, data),
     update: (id, data) => API.put(`${API_ENDPOINTS.INSTITUTIONS}/${id}`, data),
     delete: (id) => API.delete(`${API_ENDPOINTS.INSTITUTIONS}/${id}`),
+    getStatistics: (id) => API.get(`${API_ENDPOINTS.INSTITUTIONS}/${id}/statistics`),
+    updateStatus: (id, data) => API.put(`${API_ENDPOINTS.INSTITUTIONS}/${id}/status`, data),
+    getUsers: (id, params) => API.get(`${API_ENDPOINTS.INSTITUTIONS}/${id}/users`, params),
+    getActiveSubscription: (institutionId) => API.get(`/api/subscriptions/institution/${institutionId}/active`),
+    getSubscriptionStatus: (institutionId) => API.get(`/api/subscriptions/check/${institutionId}`),
+};
+
+/**
+ * Parent APIs
+ */
+const ParentAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.PARENTS, params),
+    getById: (id) => API.get(API_ENDPOINTS.PARENT_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.PARENTS, data),
+    update: (id, data) => API.put(API_ENDPOINTS.PARENT_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.PARENT_BY_ID(id)),
+    getStudents: (parentId) => API.get(API_ENDPOINTS.PARENT_STUDENTS(parentId)),
+    linkStudent: (data) => API.post(API_ENDPOINTS.PARENT_STUDENT_REL, data),
+    unlinkStudent: (relationshipId) => API.delete(API_ENDPOINTS.PARENT_STUDENT_REL_BY_ID(relationshipId)),
 };
 
 /**

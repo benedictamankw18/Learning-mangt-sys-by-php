@@ -1,93 +1,1156 @@
-<section id="rolesPage" class="role-page card">
-  <div class="page-header">
-    <div class="toolbar-left">
-      <button id="btnCreateRole" class="btn-primary">Create Role</button>
-      <button id="btnImportRoles" class="btn-secondary">Import</button>
-      <!-- <button id="btnImportRoles" class="btn-secondary">Import Excel</button> -->
-      <input id="rolesImportInput" type="file" accept="text/csv,.xlsx" style="display:none;" />
-      <button id="btnExportRoles" class="btn-secondary">Export</button>
-    </div>
+<!-- ===================================================
+     Roles Management Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/roles.js
+==================================================== -->
+<style>
+  /* ============================================
+   Roles Management Page Styles
+============================================ */
+  .roles-page {
+    padding: 0;
+  }
 
-    <div class="toolbar-right page-filters">
-      <input id="roleSearch" placeholder="Search roles..." />
-      <select id="roleFilter">
-        <option value="">All</option>
-        <option value="has_users">Has users</option>
-        <option value="no_users">No users</option>
-      </select>
+  .roles-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .roles-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .roles-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .roles-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* Stats */
+  .roles-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 1024px) {
+    .roles-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .roles-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .roles-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+  }
+  .roles-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .roles-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .roles-stat-icon i {
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  .roles-stat-info h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .roles-stat-info p {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+  }
+
+  /* Toolbar */
+  .roles-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .roles-toolbar-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .roles-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .role-search-wrap {
+    position: relative;
+    min-width: 220px;
+  }
+  .role-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .role-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .role-search-wrap input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+
+  .roles-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary, #1e293b);
+    min-width: 130px;
+  }
+  .roles-filter-select:focus {
+    border-color: var(--primary, #006a3f);
+  }
+
+  /* Bulk actions bar */
+  .roles-bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #15803d;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+  .roles-bulk-bar.active {
+    display: flex;
+  }
+  .roles-bulk-bar span {
+    flex: 1;
+  }
+
+  /* Table container */
+  .roles-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .roles-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .roles-table thead tr {
+    background: #f8fafc;
+  }
+  .roles-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .roles-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .roles-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .roles-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  /* Role cell */
+  .role-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+  }
+  .role-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* Badges */
+  .permission-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: #c7d2fe;
+    color: #4f46e5;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-right: 0.25rem;
+  }
+
+  /* Row actions */
+  .role-actions {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .role-actions button {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #64748b);
+    transition: all 0.15s;
+  }
+  .role-actions button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .role-actions .btn-permissions:hover {
+    color: #2563eb;
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+  .role-actions .btn-edit:hover {
+    color: #059669;
+    border-color: #6ee7b7;
+    background: #ecfdf5;
+  }
+  .role-actions .btn-delete:hover {
+    color: #ef4444;
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+
+  /* Table footer / pagination */
+  .roles-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .roles-pagination {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .roles-pagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .roles-pagination button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .roles-pagination button.active {
+    background: var(--primary, #006a3f);
+    border-color: var(--primary, #006a3f);
+    color: #fff;
+    font-weight: 600;
+  }
+  .roles-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Modals */
+  .role-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    overflow-y: auto;
+  }
+  .role-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .role-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 660px;
+    max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(16px);
+    transition: transform 0.2s;
+    margin: auto;
+  }
+  .role-modal-overlay.open .role-modal {
+    transform: translateY(0);
+  }
+  .role-modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+    border-radius: 16px 16px 0 0;
+  }
+  .role-modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0;
+  }
+  .role-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.9rem;
+    transition: all 0.15s;
+  }
+  .role-modal-close:hover {
+    background: #e2e8f0;
+    color: var(--text-primary, #1e293b);
+  }
+  .role-modal-body {
+    padding: 1.5rem;
+  }
+  .role-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: #f8fafc;
+    border-radius: 0 0 16px 16px;
+    position: sticky;
+    bottom: 0;
+  }
+
+  /* Form grid inside modal */
+  .role-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  @media (max-width: 520px) {
+    .role-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .role-form-grid .span-2 {
+    grid-column: span 2;
+  }
+  @media (max-width: 520px) {
+    .role-form-grid .span-2 {
+      grid-column: span 1;
+    }
+  }
+
+  .rf-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .rf-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+  }
+  .rf-group label .req {
+    color: #ef4444;
+    margin-left: 2px;
+  }
+  .rf-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: var(--text-primary, #1e293b);
+    background: #fff;
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .rf-input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+
+  .rf-section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary, #94a3b8);
+    grid-column: span 2;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+  }
+  @media (max-width: 520px) {
+    .rf-section-title {
+      grid-column: span 1;
+    }
+  }
+
+  .rf-error-banner {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    font-size: 0.8rem;
+    grid-column: span 2;
+  }
+  @media (max-width: 520px) {
+    .rf-error-banner {
+      grid-column: span 1;
+    }
+  }
+
+  /* Permissions modal wider */
+  .role-modal.wide {
+    max-width: 860px;
+  }
+
+  /* Permissions grid in modal */
+  .permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 520px) {
+    .permissions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .permission-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .permission-item:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+  .permission-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+  .permission-item-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .permission-item-name {
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    font-size: 0.875rem;
+  }
+  .permission-item-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #64748b);
+    margin-top: 0.2rem;
+  }
+
+  /* Empty state */
+  .roles-empty {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--text-secondary, #94a3b8);
+  }
+  .roles-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .roles-empty h4 {
+    margin: 0 0 0.5rem;
+    color: var(--text-primary, #475569);
+  }
+  .roles-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  /* Import drop zone */
+  .role-import-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary, #64748b);
+    margin-bottom: 1rem;
+  }
+  .role-import-drop-zone:hover,
+  .role-import-drop-zone.dragover {
+    border-color: var(--primary, #006a3f);
+    background: #f0fdf4;
+  }
+  .role-import-drop-zone i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+  }
+  .role-import-drop-zone p {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+  }
+  .role-import-preview {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+</style>
+
+<div class="roles-page" id="rolesPage" style="padding: 1.5rem">
+  <!-- Page Header -->
+  <div class="roles-page-header">
+    <div>
+      <h2>
+        <i
+          class="fas fa-shield-alt"
+          style="margin-right: 0.5rem; color: var(--primary, #006a3f)"
+        ></i
+        >Roles &amp; Permissions
+      </h2>
+      <p>Manage system roles, permissions, and user role assignments</p>
+    </div>
+    <div class="roles-header-actions">
+      <button
+        class="btn btn-outline btn-sm"
+        id="importRolesBtn"
+        title="Import from CSV"
+      >
+        <i class="fas fa-upload"></i> Import
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        id="exportRolesBtn"
+        title="Export to CSV"
+      >
+        <i class="fas fa-download"></i> Export
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        id="addPermissionBtn"
+        title="Add Permission"
+      >
+        <i class="fas fa-plus"></i> New Permission
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        id="managePermissionsBtn"
+        title="View all permissions"
+      >
+        <i class="fas fa-list"></i> All Permissions
+      </button>
+      <button class="btn btn-primary btn-sm" id="addRoleBtn" title="Add Role">
+        <i class="fas fa-plus"></i> New Role
+      </button>
     </div>
   </div>
 
-  
+  <!-- Stats -->
+  <div class="roles-stats">
+    <div class="roles-stat-card">
+      <div
+        class="roles-stat-icon"
+        style="background: linear-gradient(135deg, #6366f1, #8b5cf6)"
+      >
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="roles-stat-info">
+        <h3 id="totalRoles">0</h3>
+        <p>Total Roles</p>
+      </div>
+    </div>
+    <div class="roles-stat-card">
+      <div
+        class="roles-stat-icon"
+        style="background: linear-gradient(135deg, #ec4899, #f43f5e)"
+      >
+        <i class="fas fa-key"></i>
+      </div>
+      <div class="roles-stat-info">
+        <h3 id="totalPermissions">0</h3>
+        <p>Permissions</p>
+      </div>
+    </div>
+    <div class="roles-stat-card">
+      <div
+        class="roles-stat-icon"
+        style="background: linear-gradient(135deg, #f59e0b, #d97706)"
+      >
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="roles-stat-info">
+        <h3 id="assignedUsers">0</h3>
+        <p>Users Assigned</p>
+      </div>
+    </div>
+  </div>
 
-  <div class="table-responsive">
-    <table id="rolesTable" class="table">
+  <!-- Toolbar -->
+  <div class="roles-toolbar">
+    <div class="roles-toolbar-left">
+      <div class="role-search-wrap">
+        <i class="fas fa-search"></i>
+        <input id="roleSearch" placeholder="Search roles..." />
+      </div>
+      <select class="roles-filter-select" id="filterRoles">
+        <option value="">All Roles</option>
+        <option value="has_users">Has Users</option>
+        <option value="no_users">No Users</option>
+      </select>
+    </div>
+    <div class="roles-toolbar-right">
+      <span
+        id="rolesCountLabel"
+        style="
+          font-size: 0.8rem;
+          color: var(--text-secondary, #64748b);
+          white-space: nowrap;
+        "
+      ></span>
+    </div>
+  </div>
+
+  <!-- Bulk Actions Bar -->
+  <div class="roles-bulk-bar" id="bulkActions">
+    <span><strong id="selectedCount">0</strong> roles selected</span>
+    <button
+      class="btn btn-sm"
+      style="background: #fee2e2; color: #b91c1c; border: none"
+      id="bulkDeleteBtn"
+    >
+      <i class="fas fa-trash"></i> Delete
+    </button>
+    <button class="btn btn-sm btn-outline" id="bulkClearRolesBtn">Clear</button>
+  </div>
+
+  <!-- Table -->
+  <div class="roles-table-wrap">
+    <table class="roles-table" id="rolesTable">
       <thead>
         <tr>
+          <th><input type="checkbox" id="selectAll" /></th>
           <th>Role</th>
-          <th>Description</th>
           <th>#Users</th>
-          <th>#Permissions</th>
+          <th>Permissions</th>
           <th>Actions</th>
         </tr>
       </thead>
-      <tbody>
-        <tr><td colspan="5">Loading...</td></tr>
+      <tbody id="rolesTableBody">
+        <tr>
+          <td
+            colspan="5"
+            style="
+              text-align: center;
+              padding: 2rem;
+              color: var(--text-secondary, #64748b);
+            "
+          >
+            Loading...
+          </td>
+        </tr>
       </tbody>
     </table>
-  </div>
-
-
-  <label style="display:flex;align-items:center;gap:0.5rem;  position: absolute; right: 6rem; ">
-    Per page
-    <select id="perPageSelect" class="users-control">
-      <option value="10">10</option>
-      <option value="25">25</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
-    </select>
-  </label>
-  <div id="rolesPagination" class="pagination"></div>
-
-
-  <!-- Permissions drawer -->
-  <div id="permissionsDrawer" class="drawer" style="display:none;">
-    <div class="drawer-header">
-      <h2 id="drawerTitle">Role Permissions</h2>
-      <button id="drawerClose" class="btn-icon">×</button>
+    <div class="roles-table-footer" id="rolesPagination" style="display: none">
+      <span
+        id="rolesPaginationInfo"
+        style="color: var(--text-secondary, #64748b)"
+        >—</span
+      >
+      <div class="roles-pagination" id="rolesPaginationControls"></div>
     </div>
-    <div class="drawer-body">
-      <div class="permissions-controls">
-        <input id="permSearch" placeholder="Search permissions..." />
-        <button id="btnAddPermission" class="btn-secondary">Add Permission</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     Import Results Modal
+============================================================ -->
+<div class="role-modal-overlay" id="roleImportResultsOverlay">
+  <div class="role-modal" style="max-width: 600px">
+    <div class="role-modal-header">
+      <h3>Import Results</h3>
+      <button
+        class="role-modal-close"
+        id="roleImportResultsClose"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="role-modal-body" style="padding-bottom: 0.5rem">
+      <div
+        id="roleImportResultsSummary"
+        style="
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          margin-bottom: 1rem;
+        "
+      ></div>
+      <div
+        style="
+          max-height: 380px;
+          overflow-y: auto;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+        "
+      >
+        <table
+          id="roleImportResultsTable"
+          style="width: 100%; border-collapse: collapse; font-size: 0.8rem"
+        >
+          <thead style="background: #f8fafc; position: sticky; top: 0">
+            <tr>
+              <th
+                style="
+                  padding: 0.5rem;
+                  text-align: left;
+                  font-weight: 600;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                Status
+              </th>
+              <th
+                style="
+                  padding: 0.5rem;
+                  text-align: left;
+                  font-weight: 600;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                Role / Error
+              </th>
+            </tr>
+          </thead>
+          <tbody id="roleImportResultsBody"></tbody>
+        </table>
       </div>
-      <div id="permissionsList" class="permissions-list"></div>
     </div>
-    <div class="drawer-footer">
-      <button id="btnSavePermissions" class="btn-primary">Save</button>
+    <div class="role-modal-footer">
+      <button class="btn btn-primary" id="roleImportResultsDoneBtn">
+        Done
+      </button>
     </div>
   </div>
-  
-  <!-- Role modal template -->
-  <template id="rolesModal">
-    <form id="roleForm">
-      <div class="form-row"><label>Name</label><input name="role_name" required /></div>
-      <div class="form-row"><label>Description</label><textarea name="description"></textarea></div>
-    </form>
-  </template>
+</div>
 
-
-  <!-- Modal template for choosing export type -->
-  <template id="exportModal">
-    <div style="display:flex;flex-direction:column;gap:0.5rem">
-      <button data-type="csv" class="btn-secondary">Export CSV</button>
-      <button data-type="xlsx" class="btn-secondary">Export Excel</button>
-      <button data-type="pdf" class="btn-secondary">Export PDF</button>
+<!-- ============================================================
+     Import CSV Modal
+============================================================ -->
+<div class="role-modal-overlay" id="roleImportModalOverlay">
+  <div class="role-modal" style="max-width: 480px">
+    <div class="role-modal-header">
+      <h3>Import Roles from CSV</h3>
+      <button class="role-modal-close" id="roleImportModalClose" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
-  </template>
+    <div class="role-modal-body">
+      <p
+        style="
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0 0 1rem;
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+        "
+      >
+        Upload a CSV file with columns: <code>role_name, description</code>
+        <button
+          type="button"
+          class="btn btn-sm btn-outline"
+          id="downloadRoleTemplate"
+          style="margin: 0"
+          title="Download CSV template"
+        >
+          <i class="fas fa-download"></i> Template
+        </button>
+      </p>
+      <div class="role-import-drop-zone" id="roleImportDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p><strong>Drop CSV file here</strong> or click to browse</p>
+        <input
+          type="file"
+          id="roleImportFileInput"
+          accept=".csv,.xlsx"
+          style="display: none"
+        />
+      </div>
+      <div
+        class="role-import-preview"
+        id="roleImportPreview"
+        style="display: none"
+      ></div>
+    </div>
+    <div class="role-modal-footer">
+      <button class="btn btn-outline" id="roleImportCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="roleImportConfirmBtn" disabled>
+        Import
+      </button>
+    </div>
+  </div>
+</div>
 
-  
-</section>
+<!-- ============================================================
+     Add / Edit Role Modal
+============================================================ -->
+<div class="role-modal-overlay" id="roleModalOverlay">
+  <div class="role-modal">
+    <div class="role-modal-header">
+      <h3 id="roleModalTitle">Add New Role</h3>
+      <button class="role-modal-close" id="roleModalClose" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="role-modal-body">
+      <form id="roleForm">
+        <input type="hidden" id="roleUuid" />
+        <div class="role-form-grid">
+          <div class="rf-group span-2">
+            <label for="fieldRoleName"
+              >Role Name <span class="req">*</span></label
+            >
+            <input
+              type="text"
+              id="fieldRoleName"
+              class="rf-input"
+              placeholder="e.g., Department Head"
+            />
+          </div>
 
+          <div class="rf-group span-2">
+            <label for="fieldRoleDescription">Description</label>
+            <textarea
+              id="fieldRoleDescription"
+              class="rf-input"
+              placeholder="Role description"
+              style="resize: vertical; min-height: 60px"
+            ></textarea>
+          </div>
 
-<script src="/js/roles.js"></script>
+          <div class="rf-error-banner" id="roleFormError"></div>
+        </div>
+      </form>
+    </div>
+    <div class="role-modal-footer">
+      <button class="btn btn-outline" id="roleModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="roleModalSave">Save Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Permissions Modal
+============================================================ -->
+<div class="role-modal-overlay" id="permissionsModalOverlay">
+  <div class="role-modal wide">
+    <div class="role-modal-header">
+      <h3 id="permissionsModalTitle">Assign Permissions</h3>
+      <button class="role-modal-close" id="permissionsModalClose" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="role-modal-body">
+      <div style="margin-bottom: 1rem">
+        <input
+          type="text"
+          id="permissionSearch"
+          placeholder="Search permissions..."
+          class="rf-input"
+        />
+      </div>
+      <div class="permissions-grid" id="permissionsGrid"></div>
+      <div
+        id="permissionsEmpty"
+        style="
+          text-align: center;
+          padding: 2rem;
+          color: var(--text-secondary, #64748b);
+          display: none;
+        "
+      >
+        <p><i class="fas fa-info-circle"></i> No permissions available</p>
+      </div>
+    </div>
+    <div class="role-modal-footer">
+      <button class="btn btn-outline" id="permissionsModalCancel">
+        Cancel
+      </button>
+      <button class="btn btn-primary" id="permissionsModalSave">
+        Save Permissions
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     Add/Edit Permission Modal
+============================================================ -->
+<div class="role-modal-overlay" id="permissionFormModalOverlay">
+  <div class="role-modal">
+    <div class="role-modal-header">
+      <h3 id="permissionFormModalTitle">Add New Permission</h3>
+      <button
+        class="role-modal-close"
+        id="permissionFormModalClose"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="role-modal-body">
+      <form id="permissionForm">
+        <input type="hidden" id="permissionIdField" />
+        <div class="role-form-grid">
+          <div class="rf-group span-2">
+            <label for="fieldPermissionName"
+              >Permission Name <span class="req">*</span></label
+            >
+            <input
+              type="text"
+              id="fieldPermissionName"
+              class="rf-input"
+              placeholder="e.g., view_students"
+            />
+          </div>
+
+          <div class="rf-group span-2">
+            <label for="fieldPermissionDescription">Description</label>
+            <textarea
+              id="fieldPermissionDescription"
+              class="rf-input"
+              placeholder="Permission description"
+              style="resize: vertical; min-height: 60px"
+            ></textarea>
+          </div>
+
+          <div class="rf-error-banner" id="permissionFormError"></div>
+        </div>
+      </form>
+    </div>
+    <div class="role-modal-footer">
+      <button
+        class="btn btn-danger"
+        id="permissionFormModalDelete"
+        style="margin-right: auto; display: none"
+        title="Delete this permission"
+      >
+        <i class="fas fa-trash"></i> Delete
+      </button>
+      <button class="btn btn-outline" id="permissionFormModalCancel">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        id="permissionFormModalSave"
+        data-action="create"
+      >
+        Save Permission
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- All Permissions Modal -->
+<div class="role-modal-overlay" id="allPermissionsModalOverlay">
+  <div
+    class="role-modal"
+    style="
+      width: 90%;
+      max-width: 900px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    "
+  >
+    <div class="role-modal-header">
+      <h3>All System Permissions</h3>
+      <button
+        class="role-modal-close"
+        id="allPermissionsModalClose"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="role-modal-body" style="overflow-y: auto; flex: 1">
+      <div style="margin-bottom: 1rem">
+        <input
+          type="text"
+          id="allPermSearchField"
+          class="rf-input"
+          placeholder="Search permissions..."
+          style="width: 100%; max-width: 300px"
+        />
+      </div>
+      <table
+        id="allPermissionsTable"
+        style="width: 100%; border-collapse: collapse"
+      >
+        <thead>
+          <tr style="background: #f3f4f6; border-bottom: 2px solid #d1d5db">
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600">
+              Permission Name
+            </th>
+            <th style="padding: 0.75rem; text-align: left; font-weight: 600">
+              Description
+            </th>
+            <th
+              style="
+                padding: 0.75rem;
+                text-align: center;
+                font-weight: 600;
+                width: 100px;
+              "
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody id="allPermissionsTableBody"></tbody>
+      </table>
+      <div
+        id="allPermissionsEmpty"
+        style="text-align: center; padding: 2rem; color: #9ca3af; display: none"
+      >
+        No permissions found
+      </div>
+    </div>
+    <div class="role-modal-footer">
+      <button class="btn btn-primary" id="allPermissionsNewBtn">
+        <i class="fas fa-plus"></i> New Permission
+      </button>
+      <button class="btn btn-outline" id="allPermissionsCloseBtn">Close</button>
+    </div>
+  </div>
+</div>

@@ -82,6 +82,9 @@
         on('closeUserFormModalBtn', 'click', closeUserFormModal);
         on('cancelUserFormBtn', 'click', closeUserFormModal);
         on('saveUserBtn', 'click', saveUser);
+        on('toggleUfPasswordBtn', 'click', function () {
+            togglePasswordVisibility('ufPassword', 'toggleUfPasswordBtn');
+        });
         on('userFormModal', 'click', function (e) {
             if (e.target && e.target.id === 'userFormModal') closeUserFormModal();
         });
@@ -96,6 +99,9 @@
         on('closeResetPasswordModalBtn', 'click', closeResetPasswordModal);
         on('cancelResetPasswordBtn', 'click', closeResetPasswordModal);
         on('confirmResetPasswordBtn', 'click', resetUserPassword);
+        on('toggleResetPasswordBtn', 'click', function () {
+            togglePasswordVisibility('resetPasswordInput', 'toggleResetPasswordBtn');
+        });
         on('resetPasswordModal', 'click', function (e) {
             if (e.target && e.target.id === 'resetPasswordModal') closeResetPasswordModal();
         });
@@ -456,6 +462,7 @@
 
     function closeUserFormModal() {
         S.editingUuid = null;
+        setPasswordVisibility('ufPassword', 'toggleUfPasswordBtn', false);
         hideModal('userFormModal');
     }
 
@@ -483,6 +490,11 @@
 
         if (!payload.username || !payload.email) {
             showError('userFormError', 'Username and email are required.');
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) {
+            showError('userFormError', 'Please enter a valid email address.');
             return;
         }
 
@@ -515,7 +527,12 @@
             applyFilters();
         } catch (err) {
             console.error('Save user error:', err);
-            showError('userFormError', err.message || 'Failed to save user');
+            let msg = err.message || 'Failed to save user';
+            if (err.body && err.body.errors) {
+                const fieldErrors = Object.values(err.body.errors).flat().join('. ');
+                if (fieldErrors) msg = fieldErrors;
+            }
+            showError('userFormError', msg);
         }
     }
 
@@ -590,6 +607,7 @@
     function openResetPasswordModal(user) {
         S.activeUser = user;
         setValue('resetPasswordInput', randomPassword(12));
+        setPasswordVisibility('resetPasswordInput', 'toggleResetPasswordBtn', false);
         hideError('resetPasswordError');
 
         const target = document.getElementById('resetPasswordTarget');
@@ -1342,5 +1360,28 @@
     function hideEl(id) {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
+    }
+
+    function togglePasswordVisibility(inputId, buttonId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const nextVisible = input.type === 'password';
+        setPasswordVisibility(inputId, buttonId, nextVisible);
+    }
+
+    function setPasswordVisibility(inputId, buttonId, visible) {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(buttonId);
+        if (!input || !btn) return;
+
+        input.type = visible ? 'text' : 'password';
+        btn.title = visible ? 'Hide password' : 'Show password';
+        btn.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.classList.remove('fa-eye', 'fa-eye-slash');
+            icon.classList.add(visible ? 'fa-eye-slash' : 'fa-eye');
+        }
     }
 })();

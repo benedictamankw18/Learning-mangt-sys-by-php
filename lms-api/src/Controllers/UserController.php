@@ -12,6 +12,32 @@ class UserController
 {
     private UserRepository $userRepo;
 
+    private function normalizeRoleName(string $roleName): string
+    {
+        return str_replace(['_', '-', ' '], '', strtolower(trim($roleName)));
+    }
+
+    private function isSuperAdminRoleName(string $roleName): bool
+    {
+        return $this->normalizeRoleName($roleName) === 'superadmin';
+    }
+
+    private function isAdminLikeRoleName(string $roleName): bool
+    {
+        $normalized = $this->normalizeRoleName($roleName);
+        return strpos($normalized, 'admin') !== false && $normalized !== 'superadmin';
+    }
+
+    private function hasAdminLikeRole(array $roles): bool
+    {
+        foreach ($roles as $roleName) {
+            if ($this->isAdminLikeRoleName((string) $roleName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function __construct()
     {
         $this->userRepo = new UserRepository();
@@ -26,8 +52,22 @@ class UserController
 
         // Super admins may only view admin users (paginated)
         if (!empty($user['is_super_admin'])) {
-            $users = $this->userRepo->getByRole('admin', $page, $limit);
-            $total = $this->userRepo->countByRole('admin');
+            $filters = [];
+            if (isset($_GET['search']) && trim((string) $_GET['search']) !== '') {
+                $filters['search'] = trim((string) $_GET['search']);
+            }
+            if (isset($_GET['institution_id']) && (string) $_GET['institution_id'] !== '') {
+                $filters['institution_id'] = (int) $_GET['institution_id'];
+            } elseif (!empty($user['institution_id'])) {
+                // Keep /api/users institution-scoped by default, even for super admins.
+                $filters['institution_id'] = (int) $user['institution_id'];
+            }
+            if (isset($_GET['is_active']) && (string) $_GET['is_active'] !== '') {
+                $filters['is_active'] = (int) $_GET['is_active'];
+            }
+
+            $users = $this->userRepo->getByRoleFiltered('admin', $page, $limit, $filters);
+            $total = $this->userRepo->countByRoleFiltered('admin', $filters);
             Response::paginated($users, $total, $page, $limit);
             return;
         }
@@ -83,7 +123,7 @@ class UserController
                 return;
             }
             $roles = $targetUser['roles'] ?? [];
-            if (in_array('admin', $roles)) {
+            if ($this->hasAdminLikeRole($roles)) {
                 Response::success($targetUser);
                 return;
             }
@@ -185,7 +225,7 @@ class UserController
         } elseif (!empty($user['is_super_admin'])) {
             // super_admin may only update users who have the 'admin' role
             $roles = $targetUser['roles'] ?? [];
-            if (!in_array('admin', $roles)) {
+            if (!$this->hasAdminLikeRole($roles)) {
                 Response::forbidden('Super admins can only update admin users');
                 return;
             }
@@ -196,7 +236,30 @@ class UserController
 
         $data = json_decode(file_get_contents('php://input'), true);
 
+        $requestedRoleId = null;
+        if (is_array($data) && array_key_exists('role_id', $data) && $data['role_id'] !== '' && $data['role_id'] !== null) {
+            $requestedRoleId = (int) $data['role_id'];
+            unset($data['role_id']);
+        }
+
+        // Super admins can only assign admin role
+        if (!empty($user['is_super_admin']) && $requestedRoleId !== null) {
+            $requestedRole = $this->userRepo->getRoleById($requestedRoleId);
+            $requestedRoleName = strtolower((string) ($requestedRole['role_name'] ?? ''));
+            if (!$this->isAdminLikeRoleName($requestedRoleName)) {
+                Response::forbidden('Super admins can only assign admin role');
+                return;
+            }
+        }
+
         if ($this->userRepo->update($targetUserId, $data)) {
+            if ($requestedRoleId !== null) {
+                if (!$this->userRepo->assignRole($targetUserId, $requestedRoleId)) {
+                    Response::serverError('Failed to update user role');
+                    return;
+                }
+            }
+
             $updatedUser = $this->userRepo->findByUuid($sanitizedUuid);
             Response::success($updatedUser);
         } else {
@@ -236,7 +299,7 @@ class UserController
         // user has the 'admin' role before allowing deletion.
         if ($isSuperAdmin && !$roleMiddleware->isAdmin()) {
             $roles = $targetUser['roles'] ?? [];
-            if (!in_array('admin', $roles)) {
+            if (!$this->hasAdminLikeRole($roles)) {
                 Response::forbidden('Super admins can only delete admin users');
                 return;
             }
@@ -286,7 +349,7 @@ class UserController
         $requestedRoleId = (int) $data['role_id'];
         $requestedRole = $this->userRepo->getRoleById($requestedRoleId);
         $requestedRoleName = strtolower((string) ($requestedRole['role_name'] ?? ''));
-        if ($requestedRoleName === 'super_admin' || $requestedRoleName === 'superadmin') {
+        if ($this->isSuperAdminRoleName($requestedRoleName)) {
             Response::forbidden('Superadmin role cannot be assigned here');
             return;
         }
@@ -349,13 +412,13 @@ class UserController
                 $roleId = (int) $roleInput;
                 $role = $this->userRepo->getRoleById($roleId);
                 $roleName = strtolower((string) ($role['role_name'] ?? ''));
-                if ($roleName === 'super_admin' || $roleName === 'superadmin') {
+                if ($this->isSuperAdminRoleName($roleName)) {
                     Response::forbidden('Superadmin role cannot be assigned here');
                     return;
                 }
             } else {
                 $roleName = strtolower((string) $roleInput);
-                if ($roleName === 'super_admin' || $roleName === 'superadmin') {
+                if ($this->isSuperAdminRoleName($roleName)) {
                     Response::forbidden('Superadmin role cannot be assigned here');
                     return;
                 }
@@ -417,7 +480,7 @@ class UserController
                 $t = $this->userRepo->findById($iid);
                 if ($t) {
                     $roles = $t['roles'] ?? [];
-                    if (in_array('admin', $roles)) {
+                    if ($this->hasAdminLikeRole($roles)) {
                         $allowed[] = $iid;
                     }
                 }
@@ -658,7 +721,7 @@ class UserController
         // Super admins may reset passwords only for admin users.
         if ($isSuperAdmin && !$roleMiddleware->isAdmin()) {
             $roles = $targetUser['roles'] ?? [];
-            if (!in_array('admin', $roles)) {
+            if (!$this->hasAdminLikeRole($roles)) {
                 Response::forbidden('Super admins can only reset admin user passwords');
                 return;
             }

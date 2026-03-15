@@ -78,8 +78,8 @@ class InstitutionRepository
 
             // Wrap with where and optional having via outer select if has_admin filter used
             if ($havingAdminFilter !== null) {
-                // Need to filter by admin_count - use outer select
-                $sql = "SELECT * FROM (" . $sql . ") t " . $whereSql . " WHERE t.admin_count " . $havingAdminFilter . " ORDER BY t.institution_name ASC LIMIT :limit OFFSET :offset";
+                // Inner query carries the regular WHERE filters; outer query filters by admin_count
+                $sql = "SELECT * FROM (" . $sql . $whereSql . ") t WHERE t.admin_count " . $havingAdminFilter . " ORDER BY t.institution_name ASC LIMIT :limit OFFSET :offset";
                 $stmt = $this->db->prepare($sql);
             } else {
                 $sql .= $whereSql . " ORDER BY i.institution_name ASC LIMIT :limit OFFSET :offset";
@@ -595,17 +595,7 @@ class InstitutionRepository
                 'subscription_plan',
                 'subscription_expires_at',
                 'max_students',
-                'max_teachers',
-                '(SELECT COUNT(DISTINCT u.user_id)
-                                FROM users u
-                                INNER JOIN user_roles ur ON ur.user_id = u.user_id
-                                INNER JOIN roles r ON r.role_id = ur.role_id AND r.role_name = \'admin\'
-                                WHERE u.institution_id = i.institution_id) as admin_count,
-                                (CASE WHEN (
-                                    SELECT COUNT(*) FROM user_roles ur2
-                                    INNER JOIN users u2 ON u2.user_id = ur2.user_id AND u2.institution_id = i.institution_id
-                                    INNER JOIN roles r2 ON r2.role_id = ur2.role_id AND r2.role_name = \'admin\'
-                                ) > 0 THEN 1 ELSE 0 END) as has_admin'
+                'max_teachers'
             ];
 
             $updates = [];
@@ -627,6 +617,47 @@ class InstitutionRepository
             return $stmt->execute($params);
         } catch (\PDOException $e) {
             error_log("Update Institution Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Find institution by institution_code (case-insensitive)
+     */
+    public function findByInstitutionCode(string $code): ?array
+    {
+        try {
+            $stmt = $this->db->prepare("SELECT * FROM institutions WHERE LOWER(institution_code) = LOWER(:code) LIMIT 1");
+            $stmt->execute(['code' => trim($code)]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $row ?: null;
+        } catch (\PDOException $e) {
+            error_log("Find Institution By Code Error: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Check if institution_code already exists, with optional institution_id exclusion.
+     */
+    public function institutionCodeExists(string $code, ?int $excludeInstitutionId = null): bool
+    {
+        try {
+            $sql = "SELECT institution_id FROM institutions WHERE LOWER(institution_code) = LOWER(:code)";
+            $params = ['code' => trim($code)];
+
+            if ($excludeInstitutionId !== null) {
+                $sql .= " AND institution_id <> :exclude_id";
+                $params['exclude_id'] = $excludeInstitutionId;
+            }
+
+            $sql .= " LIMIT 1";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+
+            return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Institution Code Exists Check Error: " . $e->getMessage());
             return false;
         }
     }

@@ -1,94 +1,726 @@
-<section id="institutionsPage" class="card institutions-card">
+<style>
+  .institutions-page {
+    padding: 0;
+  }
 
-  <div class="card-header">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">
-      <div style="display:flex;gap:0.5rem;align-items:center;">
-        <input id="instSearch" list="instSuggestions" placeholder="Search institutions" style="padding:0.5rem;border:1px solid var(--border-color);border-radius:4px;width:260px">
-        <datalist id="instSuggestions"></datalist>
+  .institutions-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .institutions-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .institutions-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .institutions-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .institutions-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 1024px) {
+    .institutions-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .institutions-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .institutions-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+  }
+  .institutions-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .institutions-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .institutions-stat-icon i {
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  .institutions-stat-info h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .institutions-stat-info p {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+  }
+
+  .institutions-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .institutions-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .institutions-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .inst-search-wrap {
+    position: relative;
+    min-width: 240px;
+    flex: 1;
+    max-width: 360px;
+  }
+  .inst-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .inst-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .inst-search-wrap input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+
+  .institutions-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary, #1e293b);
+    min-width: 135px;
+    max-width: 250px;
+  }
+  .institutions-filter-select:focus {
+    border-color: var(--primary, #006a3f);
+  }
+
+  .institutions-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .institutions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .institutions-table thead tr {
+    background: #f8fafc;
+  }
+  .institutions-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .institutions-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .institutions-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .institutions-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .institutions-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .institutions-per-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+  }
+
+  #institutionsPagination {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  #institutionsPagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #institutionsPagination button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  .institution-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .institution-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .institution-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(12px);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .institution-modal-overlay.open .institution-modal {
+    transform: translateY(0);
+  }
+  .institution-modal-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .institution-modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary, #1e293b);
+  }
+  .institution-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .institution-modal-close:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+  .institution-modal-body {
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+  }
+  .institution-modal-footer {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .institution-import-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-secondary, #64748b);
+    transition: all 0.2s;
+    margin-bottom: 0.75rem;
+  }
+  .institution-import-drop-zone:hover,
+  .institution-import-drop-zone.dragover {
+    border-color: var(--primary, #006a3f);
+    background: #f0fdf4;
+  }
+  .institution-import-drop-zone i {
+    font-size: 1.8rem;
+    margin-bottom: 0.35rem;
+    color: #94a3b8;
+  }
+  .institution-import-drop-zone p {
+    margin: 0.15rem 0;
+    font-size: 0.875rem;
+  }
+  .institution-import-preview {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  .modal-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: scroll;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    z-index: 2200;
+  }
+  /* .modal-footer {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  } */
+</style>
+
+<section
+  id="institutionsPage"
+  class="institutions-page"
+  style="padding: 1.5rem"
+>
+  <div class="institutions-page-header">
+    <div>
+      <h2>
+        <i
+          class="fas fa-building"
+          style="margin-right: 0.5rem; color: var(--primary, #006a3f)"
+        ></i>
+        Institution Management
+      </h2>
+      <p>
+        Manage institutions, subscriptions, activation status, and admin
+        assignment.
+      </p>
+    </div>
+    <div class="institutions-header-actions">
+      <input
+        type="file"
+        id="importFileInput"
+        accept=".csv,.xlsx"
+        style="display: none"
+      />
+      <button
+        id="btnImport"
+        class="btn btn-outline btn-sm"
+        title="Import institutions"
+      >
+        <i class="fas fa-upload"></i> Import
+      </button>
+      <button
+        id="btnExport"
+        class="btn btn-outline btn-sm"
+        title="Export institutions"
+      >
+        <i class="fas fa-download"></i> Export
+      </button>
+      <button
+        id="btnCreateInstitution"
+        class="btn btn-primary btn-sm"
+        title="Add institution"
+      >
+        <i class="fas fa-plus"></i> New Institution
+      </button>
+    </div>
+  </div>
+
+  <div class="institutions-stats">
+    <div class="institutions-stat-card">
+      <div
+        class="institutions-stat-icon"
+        style="background: linear-gradient(135deg, #059669, #10b981)"
+      >
+        <i class="fas fa-building"></i>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center;">
-        <select id="filterStatus" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
-          <option value="">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>   
-        <select id="filterHasAdmin" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
-          <option value="">Has Admin</option>
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-        </select>
-        <select id="filterType" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
-            <option value="">All Types</option>
-            <option value="public">Public</option>
-            <option value="private">Private</option>
-            <option value="other">Other</option>
-        </select>
+      <div class="institutions-stat-info">
+        <h3>Directory</h3>
+        <p>All registered institutions</p>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center;">
-        <input type="file" id="importFileInput" accept=".csv,.xlsx" style="display:none">
-        <button id="btnImport" class="btn-secondary">Import</button>
-        <button id="btnExport" class="btn-secondary">Export</button>
+    </div>
+    <div class="institutions-stat-card">
+      <div
+        class="institutions-stat-icon"
+        style="background: linear-gradient(135deg, #2563eb, #3b82f6)"
+      >
+        <i class="fas fa-toggle-on"></i>
       </div>
-      <div style="display:flex;gap:0.5rem;align-items:center;">
-        <button id="btnCreateInstitution" class="btn-primary">New Institution</button>
+      <div class="institutions-stat-info">
+        <h3>Status</h3>
+        <p>Quick activate/deactivate controls</p>
+      </div>
+    </div>
+    <div class="institutions-stat-card">
+      <div
+        class="institutions-stat-icon"
+        style="background: linear-gradient(135deg, #d97706, #f59e0b)"
+      >
+        <i class="fas fa-credit-card"></i>
+      </div>
+      <div class="institutions-stat-info">
+        <h3>Subscriptions</h3>
+        <p>View plan and active status</p>
       </div>
     </div>
   </div>
-  <div class="card-body">
-    <div style="overflow:auto">
-      <table id="institutionsTable" class="table" style="width:100%;border-collapse:collapse">
+
+  <div class="institutions-toolbar">
+    <div class="institutions-toolbar-left">
+      <div class="inst-search-wrap">
+        <i class="fas fa-search"></i>
+        <input
+          id="instSearch"
+          list="instSuggestions"
+          placeholder="Search institutions by name or code"
+        />
+        <datalist id="instSuggestions"></datalist>
+      </div>
+
+      <select id="filterStatus" class="institutions-filter-select">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+
+      <select id="filterHasAdmin" class="institutions-filter-select">
+        <option value="">Has Admin</option>
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+
+      <select id="filterType" class="institutions-filter-select">
+        <option value="">All Types</option>
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="institutions-toolbar-right"></div>
+  </div>
+
+  <div class="institutions-table-wrap">
+    <div style="overflow: auto">
+      <table id="institutionsTable" class="institutions-table">
         <thead>
           <tr>
-            <th style="text-align:left">code</th>
-            <th style="text-align:left">Name</th>
-            <th style="text-align:left">Type</th>
-            <th style="text-align:left">Email</th>
-            <th style="text-align:left">Phone</th>
-            <th style="text-align:left">Address</th>
-            <th style="text-align:left">Website</th>
-            <th style="text-align:left">Status</th>
-            <th style="text-align:left">Has Admin</th>
-            <th style="text-align:left">Actions</th>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Website</th>
+            <th>Status</th>
+            <th>Has Admin</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td colspan="10">Loading...</td></tr>
+          <tr>
+            <td
+              colspan="10"
+              style="
+                text-align: center;
+                padding: 2rem;
+                color: var(--text-secondary, #64748b);
+              "
+            >
+              Loading...
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
-    <label style="display:flex;align-items:center;gap:0.5rem;  position: absolute; right: 6rem; ">
-      Per page
-      <select id="perPageSelect" style="padding:0.25rem;border:1px solid var(--border-color);border-radius:4px;">
-        <option value="10">10</option>
-        <option value="25">25</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
-    </label>
-    <div id="institutionsPagination"></div>  
-    
+
+    <div class="institutions-table-footer">
+      <label class="institutions-per-page">
+        Per page
+        <select
+          id="perPageSelect"
+          class="institutions-filter-select"
+          style="min-width: 80px; padding: 0.35rem 0.5rem"
+        >
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
+      <div id="institutionsPagination"></div>
+    </div>
   </div>
 
   <!-- Modal template for create/edit -->
   <template id="institutionsModal">
     <form id="institutionForm">
-      <div style="display:flex;flex-direction:column;gap:0.5rem">
-        <label>Institution name <input name="institution_name" required style="width:100%;padding:0.5rem;border:1px solid var(--border-color)"></label>
-        <label>Institution code <input name="institution_code" required style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="JSHS"></label>
-        <label>Type
-          <select name="institution_type" style="padding:0.4rem;border:1px solid var(--border-color);width:100%">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem">
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Institution name *</span>
+          <input
+            name="institution_name"
+            required
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Institution code *</span>
+          <input
+            name="institution_code"
+            required
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="JSHS"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Type *</span>
+          <select
+            name="institution_type"
+            required
+            style="
+              padding: 0.4rem;
+              border: 1px solid var(--border-color);
+              width: 100%;
+            "
+          >
             <option value="">Select type</option>
             <option value="public">Public</option>
             <option value="private">Private</option>
             <option value="other">Other</option>
           </select>
         </label>
-        <label>Address <input name="address" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="Accra, Greater Accra Region"></label>
-        <label>Phone <input name="phone" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="+233-20-123-4567"></label>
-        <label>Email <input name="email" type="email" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="info@example.edu"></label>
-        <label>Website <input name="website" style="width:100%;padding:0.5rem;border:1px solid var(--border-color)" placeholder="https://example.edu.gh"></label>
-        <label>Status
-          <select name="status" style="padding:0.4rem;border:1px solid var(--border-color);width:100%">
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Phone</span>
+          <input
+            name="phone"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="+233-20-123-4567"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Email *</span>
+          <input
+            name="email"
+            type="email"
+            required
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="info@example.edu"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Website</span>
+          <input
+            name="website"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="https://example.edu.gh"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Max Students</span>
+          <input
+            name="max_students"
+            type="number"
+            min="1"
+            step="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="500"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Max Teachers</span>
+          <input
+            name="max_teachers"
+            type="number"
+            min="1"
+            step="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="50"
+        /></label>
+        <label
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            grid-column: 1/-1;
+          "
+          ><span style="text-align: left; width: 100%">Address</span>
+          <input
+            name="address"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="Accra, Greater Accra Region"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">City</span>
+          <input
+            name="city"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="Accra"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">State / Region</span>
+          <input
+            name="state"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="Greater Accra"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Country</span>
+          <input
+            name="country"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="Ghana"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Postal Code</span>
+          <input
+            name="postal_code"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border-color);
+            "
+            placeholder="GA-123-4567"
+        /></label>
+        <label style="display: flex; flex-direction: column; gap: 0.25rem"
+          ><span style="text-align: left; width: 100%">Status</span>
+          <select
+            required
+            name="status"
+            style="
+              padding: 0.4rem;
+              border: 1px solid var(--border-color);
+              width: 100%;
+            "
+          >
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
@@ -98,18 +730,82 @@
   </template>
 
   <!-- Modal template for choosing export type -->
-    <template id="exportModal">
-        <div style="display:flex;flex-direction:column;gap:0.5rem">
-        <button data-type="csv" class="btn-secondary">Export CSV</button>
-        <button data-type="xlsx" class="btn-secondary">Export Excel</button>
-        <button data-type="pdf" class="btn-secondary">Export PDF</button>
+  <template id="exportModal">
+    <div style="display: flex; flex-direction: column; gap: 0.5rem">
+      <button data-type="csv" class="btn-secondary">Export CSV</button>
+      <button data-type="xlsx" class="btn-secondary">Export Excel</button>
+      <button data-type="pdf" class="btn-secondary">Export PDF</button>
+    </div>
+  </template>
+
+  <div class="institution-modal-overlay" id="institutionImportModalOverlay">
+    <div class="institution-modal">
+      <div class="institution-modal-header">
+        <h3>Import Institutions</h3>
+        <button
+          class="institution-modal-close"
+          id="institutionImportModalClose"
+          title="Close"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="institution-modal-body">
+        <p
+          style="
+            margin: 0 0 0.75rem;
+            color: var(--text-secondary, #64748b);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+          "
+        >
+          Upload a CSV or Excel file with columns:
+          <strong>institution_code</strong>, <strong>institution_name</strong>,
+          <strong>institution_type</strong>, <strong>email</strong>,
+          <strong>phone</strong>, <strong>address</strong>,
+          <strong>website</strong>, <strong>status</strong>.
+          <button
+            type="button"
+            class="btn btn-sm btn-outline"
+            id="institutionImportTemplateBtn"
+            title="Download template"
+          >
+            <i class="fas fa-download"></i> Template
+          </button>
+        </p>
+
+        <div
+          class="institution-import-drop-zone"
+          id="institutionImportDropZone"
+        >
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p><strong>Drop CSV/Excel file here</strong> or click to browse</p>
+          <p style="font-size: 0.78rem">Supported: .csv, .xlsx, .xls</p>
         </div>
-    </template>
 
-
+        <div
+          class="institution-import-preview"
+          id="institutionImportPreview"
+        ></div>
+      </div>
+      <div class="institution-modal-footer">
+        <button class="btn btn-outline" id="institutionImportCancelBtn">
+          Cancel
+        </button>
+        <button
+          class="btn btn-primary"
+          id="institutionImportConfirmBtn"
+          disabled
+        >
+          Import
+        </button>
+      </div>
+    </div>
+  </div>
 </section>
 
-<script src="./js/institutions.js"></script>
 <script src="../assets/vendor/xlsx/xlsx.full.min.js"></script>
 <script src="../assets/vendor/jspdf/jspdf.umd.min.js"></script>
 <script src="../assets/vendor/autotable/jspdf.plugin.autotable.min.js"></script>

@@ -308,7 +308,7 @@ Build the foundational data management pages for students, teachers, classes, an
   - [x] Export teacher list
 - [x] **Create** `admin/teacher-details.html`
   - [x] Personal information tab
-  - [x] Class-subject assignments tab *(e.g. "SHS 1 Gen Art A — English", "SHS 2 Gen Science B — English & French")*
+  - [x] Class-subject assignments tab _(e.g. "SHS 1 Gen Art A — English", "SHS 2 Gen Science B — English & French")_
     - List all (class section, subject) pairs assigned to this teacher
     - Add new assignment: pick subject → pick class section(s)
     - Remove individual class-subject assignment
@@ -352,7 +352,7 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 1-2: Classes**
 
-- [x] **Enhance** `admin/classes.html` *(implemented as `admin/page/departments.html`)*
+- [x] **Enhance** `admin/classes.html` _(implemented as `admin/page/departments.html`)_
   - Class list with filtering
   - Create class → modal form
   - Edit/delete class
@@ -369,17 +369,17 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Day 2-3: Programs & Subjects**
 
-- [x] **Enhance** `admin/programs.html` *(combined in `admin/page/departments.html`)*
+- [x] **Enhance** `admin/programs.html` _(combined in `admin/page/departments.html`)_
   - Programs list (General Science, Arts, Business, etc.)
   - Create/edit/delete programs
   - Program subjects (core and elective)
   - Active/inactive status
-- [x] **Enhance** `admin/subjects.html` *(implemented as `admin/page/courses.html`)*
+- [x] **Enhance** `admin/subjects.html` _(implemented as `admin/page/courses.html`)_
   - Subject list with DataTables
   - Create/edit/Delete subjects
   - Subject codes (Ghana syllabus)
   - Assign subject to class sections (creates class-subject record per section)
-  - Assign a teacher to a subject *for a specific class section* (not globally)
+  - Assign a teacher to a subject _for a specific class section_ (not globally)
   - Core vs elective marking
 
 **Day 4: Teacher Pages**
@@ -427,28 +427,30 @@ Build the foundational data management pages for students, teachers, classes, an
   - Reset password
   - View user activity
   - import users
-- [ ] **Enhance** `admin/roles.html`
-  - Role list
-  - Create/edit/delete roles
-  - Permission assignment
-  - Users with role count
-  - Default permissions per role
+- [x] **Enhance** `superadmin/roles.html`
+  - [x] Role list
+  - [x] import roles
+  - [x] Create/edit/delete roles
+  - [x] Permission assignment
+  - [x] Users with role count
+  - [x] Default permissions per role
+  - [x] Create/edit role permissions → modal form with permission checkboxes
 - [x] **Redesign** `superadmin/users.html`
-  - Platform-wide user list
+  - Platform-wide user list (list only admins from all institutions)
   - Filter by institution
   - Super admin management
   - Bulk operations
 
 **Day 3: Parent Management**
 
-- [ ] **Create** `parent/my-children.html`
+- [x] **Create** `parent/my-children.html`
   - List of linked children/wards
   - Child selector/switcher
   - Child profile overview
   - Current class and program
   - Academic standing
   - Quick links (grades, attendance)
-- [ ] **Create** `admin/parents.html` (if not exists)
+- [x] **Create** `admin/parents.html` (if not exists)
   - Parent list
   - Add/edit/delete parent
   - Link parent to students
@@ -466,7 +468,7 @@ Build the foundational data management pages for students, teachers, classes, an
   - Activate/deactivate institution
   - Subscription management link
   - Admin assignment
-- [ ] **Create** `superadmin/institution-details.html`
+- [x] **Create** `superadmin/institution-details.html`
   - Institution profile
   - Statistics (students, teachers, classes)
   - Active subscription
@@ -480,31 +482,31 @@ Build the foundational data management pages for students, teachers, classes, an
 
 **Functional Requirements:**
 
-- [ ] Can create, read, update, delete students
-- [ ] Can create, read, update, delete teachers
-- [ ] Can create and manage classes
-- [ ] Can assign teachers to classes/subjects
-- [ ] Can enroll students in classes
-- [ ] Bulk import works for students (CSV)
-- [ ] Export to Excel/PDF works
-- [ ] Parents can view linked children
-- [ ] User roles and permissions enforced
+- [x] Can create, read, update, delete students
+- [x] Can create, read, update, delete teachers
+- [x] Can create and manage classes
+- [x] Can assign teachers to classes/subjects
+- [x] Can enroll students in classes
+- [x] Bulk import works for students (CSV)
+- [x] Export to Excel/PDF works
+- [x] Parents can view linked children
+- [x] User roles and permissions enforced
 
 **Technical Requirements:**
 
-- [ ] All forms validate input
-- [ ] DataTables work with pagination, search, sort
-- [ ] Modal forms open and close properly
-- [ ] File uploads work (CSV, profile photos)
-- [ ] Success/error messages show appropriately
-- [ ] No data loss on page refresh
+- [x] All forms validate input
+- [x] DataTables work with pagination, search, sort
+- [x] Modal forms open and close properly
+- [x] File uploads work (CSV, profile photos)
+- [x] Success/error messages show appropriately
+- [x] No data loss on page refresh
 
 **Testing:**
 
-- [ ] CRUD operations for all entities
-- [ ] Role-based access (teacher can't access admin pages)
-- [ ] Data integrity (cascading deletes, relationships)
-- [ ] Bulk operations (import/export)
+- [x] CRUD operations for all entities
+- [x] Role-based access (teacher can't access admin pages)
+- [x] Data integrity (cascading deletes, relationships)
+- [x] Bulk operations (import/export)
 
 ---
 
@@ -1180,13 +1182,13 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Subscription analytics
   - System usage reports
   - Export reports
-- [ ] **Create** `superadmin/activity-logs.html` *(implemented as `superadmin/page/logs.html`)*
+- [ ] **Create** `superadmin/activity-logs.html` _(implemented as `superadmin/page/logs.html`)_
   - User login activity (all institutions)
   - System activity logs
   - Security events
   - Filter by institution, user, date, action
   - Export logs
-- [ ] **Create** `superadmin/api-management.html` 🔒 *(implemented as `superadmin/page/api.html`)*
+- [ ] **Create** `superadmin/api-management.html` 🔒 _(implemented as `superadmin/page/api.html`)_
   - API keys management
   - Create/revoke API keys
   - Third-party integrations

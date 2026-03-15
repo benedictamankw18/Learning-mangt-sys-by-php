@@ -8,22 +8,58 @@ class ParentRepository
 {
     private $db;
 
+    private const SELECT_COLUMNS = "
+        p.parent_id,
+        p.institution_id,
+        p.user_id,
+        p.guardian_id,
+        p.occupation,
+        p.prefers_email_notifications,
+        p.prefers_sms_notifications,
+        p.created_at,
+        p.updated_at,
+        u.uuid,
+        u.username,
+        u.email,
+        u.first_name,
+        u.last_name,
+        u.phone_number,
+        u.address,
+        u.is_active,
+        u.profile_photo
+    ";
+
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll(int $page = 1, int $limit = 20): array
+    public function getAll(int $page = 1, int $limit = 20, ?int $institutionId = null): array
     {
         try {
             $offset = ($page - 1) * $limit;
-            $stmt = $this->db->prepare("
-                SELECT p.*, u.username, u.is_active
+            $sql = "
+                SELECT " . self::SELECT_COLUMNS . ",
+                       COALESCE(ps_counts.linked_students_count, 0) AS linked_students_count
                 FROM parents p
                 LEFT JOIN users u ON p.user_id = u.user_id
-                ORDER BY p.last_name, p.first_name
-                LIMIT :limit OFFSET :offset
-            ");
+                LEFT JOIN (
+                    SELECT parent_id, COUNT(*) AS linked_students_count
+                    FROM parent_students
+                    GROUP BY parent_id
+                ) ps_counts ON ps_counts.parent_id = p.parent_id
+            ";
+
+            if ($institutionId !== null) {
+                $sql .= " WHERE p.institution_id = u.institution_id AND p.institution_id = :institution_id";
+            }
+
+            $sql .= " ORDER BY COALESCE(u.last_name, ''), COALESCE(u.first_name, ''), p.parent_id LIMIT :limit OFFSET :offset";
+
+            $stmt = $this->db->prepare($sql);
+            if ($institutionId !== null) {
+                $stmt->bindValue(':institution_id', $institutionId, \PDO::PARAM_INT);
+            }
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
             $stmt->execute();
@@ -34,10 +70,22 @@ class ParentRepository
         }
     }
 
-    public function count(): int
+    public function count(?int $institutionId = null): int
     {
         try {
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM parents");
+            if ($institutionId === null) {
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM parents");
+            } else {
+                $stmt = $this->db->prepare("
+                    SELECT COUNT(*) as total
+                    FROM parents p
+                    LEFT JOIN users u ON p.user_id = u.user_id
+                    WHERE p.institution_id = u.institution_id
+                      AND p.institution_id = :institution_id
+                ");
+                $stmt->bindValue(':institution_id', $institutionId, \PDO::PARAM_INT);
+                $stmt->execute();
+            }
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
@@ -50,7 +98,7 @@ class ParentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT p.*, u.username, u.is_active
+                SELECT " . self::SELECT_COLUMNS . "
                 FROM parents p
                 LEFT JOIN users u ON p.user_id = u.user_id
                 WHERE p.parent_id = :id
@@ -67,21 +115,45 @@ class ParentRepository
     public function create(array $data): ?int
     {
         try {
+            $guardianId = isset($data['guardian_id']) ? trim((string) $data['guardian_id']) : '';
             $stmt = $this->db->prepare("
-                INSERT INTO parents (institution_id, user_id, first_name, last_name, phone_number, email, occupation, address)
-                VALUES (:institution_id, :user_id, :first_name, :last_name, :phone_number, :email, :occupation, :address)
+                INSERT INTO parents (
+                    institution_id,
+                    user_id,
+                    guardian_id,
+                    occupation,
+                    prefers_email_notifications,
+                    prefers_sms_notifications
+                )
+                VALUES (
+                    :institution_id,
+                    :user_id,
+                    :guardian_id,
+                    :occupation,
+                    :prefers_email_notifications,
+                    :prefers_sms_notifications
+                )
             ");
             $stmt->execute([
                 'institution_id' => $data['institution_id'],
                 'user_id' => $data['user_id'] ?? null,
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'phone_number' => $data['phone_number'] ?? null,
-                'email' => $data['email'] ?? null,
+                'guardian_id' => $guardianId !== '' ? $guardianId : null,
                 'occupation' => $data['occupation'] ?? null,
-                'address' => $data['address'] ?? null
+                'prefers_email_notifications' => !empty($data['prefers_email_notifications']) ? 1 : 0,
+                'prefers_sms_notifications' => !empty($data['prefers_sms_notifications']) ? 1 : 0
             ]);
-            return (int) $this->db->lastInsertId();
+
+            $parentId = (int) $this->db->lastInsertId();
+
+            if ($parentId > 0 && $guardianId === '') {
+                $updateStmt = $this->db->prepare("UPDATE parents SET guardian_id = :guardian_id WHERE parent_id = :parent_id");
+                $updateStmt->execute([
+                    'guardian_id' => $this->generateGuardianId($parentId),
+                    'parent_id' => $parentId
+                ]);
+            }
+
+            return $parentId;
         } catch (\PDOException $e) {
             error_log("Create Parent Error: " . $e->getMessage());
             return null;
@@ -91,7 +163,13 @@ class ParentRepository
     public function update(int $id, array $data): bool
     {
         try {
-            $allowedFields = ['institution_id', 'user_id', 'first_name', 'last_name', 'phone_number', 'email', 'occupation', 'address'];
+            $allowedFields = [
+                'institution_id',
+                'guardian_id',
+                'occupation',
+                'prefers_email_notifications',
+                'prefers_sms_notifications'
+            ];
             $updates = [];
             $params = ['id' => $id];
 
@@ -130,7 +208,7 @@ class ParentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT p.*, u.username, u.is_active
+                SELECT " . self::SELECT_COLUMNS . "
                 FROM parents p
                 LEFT JOIN users u ON p.user_id = u.user_id
                 WHERE p.user_id = :user_id
@@ -148,12 +226,24 @@ class ParentRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT s.*, u.first_name, u.last_name, u.email, 
-                       ps.relationship_type as relationship, 
+                SELECT s.*,
+                       ps.parent_student_id,
+                       ps.parent_id,
+                       ps.student_id,
+                       ps.relationship_type,
+                       ps.is_primary_contact,
+                       ps.can_pickup,
+                       u.first_name, u.last_name, u.email,
+                       c.class_name,
+                       c.class_code,
+                       p.program_name,
+                       ps.relationship_type as relationship,
                        ps.is_primary_contact as is_primary
                 FROM parent_students ps
                 INNER JOIN students s ON ps.student_id = s.student_id
                 INNER JOIN users u ON s.user_id = u.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN programs p ON c.program_id = p.program_id
                 WHERE ps.parent_id = :parent_id
                 ORDER BY ps.is_primary_contact DESC, u.last_name, u.first_name
             ");
@@ -163,5 +253,10 @@ class ParentRepository
             error_log("Get Parent Students Error: " . $e->getMessage());
             return [];
         }
+    }
+
+    private function generateGuardianId(int $parentId): string
+    {
+        return 'GDN-' . str_pad((string) $parentId, 5, '0', STR_PAD_LEFT);
     }
 }

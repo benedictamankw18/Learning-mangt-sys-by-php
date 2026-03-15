@@ -4,85 +4,132 @@
      JS handled by admin/js/users.js
 ==================================================== -->
 <style>
-/* ============================================
+  /* ============================================
    Users Management Page Styles
 ============================================ */
-.users-page { padding: 0; }
+  .users-page {
+    padding: 0;
+  }
 
-.users-page-header {
+  .users-page-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
-}
-.users-page-header h2 {
+  }
+  .users-page-header h2 {
     font-size: 1.4rem;
     font-weight: 700;
     color: var(--text-primary, #1e293b);
     margin: 0 0 0.25rem 0;
-}
-.users-page-header p {
+  }
+  .users-page-header p {
     color: var(--text-secondary, #64748b);
     font-size: 0.875rem;
     margin: 0;
-}
-.users-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+  }
+  .users-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
 
-/* Stats */
-.users-stats {
+  /* Stats */
+  .users-stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
     margin-bottom: 1.5rem;
-}
-@media (max-width: 1024px) { .users-stats { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px)  { .users-stats { grid-template-columns: 1fr; } }
+  }
+  @media (max-width: 1024px) {
+    .users-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .users-stats {
+      grid-template-columns: 1fr;
+    }
+  }
 
-.users-stat-card {
+  .users-stat-card {
     background: #fff;
     border-radius: 12px;
     padding: 1.2rem 1.4rem;
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
     border: 1px solid #e2e8f0;
     transition: box-shadow 0.2s;
-}
-.users-stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.users-stat-icon {
-    width: 48px; height: 48px;
+  }
+  .users-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .users-stat-icon {
+    width: 48px;
+    height: 48px;
     border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-}
-.users-stat-icon i { font-size: 1.2rem; color: #fff; }
-.users-stat-info h3 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0 0 0.2rem 0; }
-.users-stat-info p  { font-size: 0.8rem; color: var(--text-secondary,#64748b); margin: 0; }
+  }
+  .users-stat-icon i {
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  .users-stat-info h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .users-stat-info p {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+  }
 
-/* Toolbar */
-.users-toolbar {
+  /* Toolbar */
+  .users-toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 1rem;
     flex-wrap: wrap;
-}
-.users-toolbar-left  { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; gap: 0.5rem; flex: 1; }
-.users-toolbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  }
+  .users-toolbar-left {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+  }
+  .users-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
 
-.user-search-wrap { position: relative; }
-.user-search-wrap i {
-    position: absolute; left: 0.75rem; top: 50%;
+  .user-search-wrap {
+    position: relative;
+  }
+  .user-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
     transform: translateY(-50%);
     color: var(--text-secondary, #94a3b8);
     font-size: 0.85rem;
     pointer-events: none;
-}
-.user-search-wrap input {
+  }
+  .user-search-wrap input {
     width: 100%;
     padding: 0.5rem 0.75rem 0.5rem 2.1rem;
     border: 1px solid #e2e8f0;
@@ -91,12 +138,17 @@
     background: #fff;
     outline: none;
     color: var(--text-primary, #1e293b);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
     box-sizing: border-box;
-}
-.user-search-wrap input:focus { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+  }
+  .user-search-wrap input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
 
-.users-filter-select {
+  .users-filter-select {
     padding: 0.5rem 0.75rem;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -107,24 +159,28 @@
     color: var(--text-primary, #1e293b);
     width: 100%;
     box-sizing: border-box;
-}
-.users-filter-select:focus { border-color: var(--primary, #006a3f); }
+  }
+  .users-filter-select:focus {
+    border-color: var(--primary, #006a3f);
+  }
 
-/* Table container */
-.users-table-wrap {
+  /* Table container */
+  .users-table-wrap {
     background: #fff;
     border-radius: 12px;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     overflow: hidden;
-}
-.users-table {
+  }
+  .users-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
-}
-.users-table thead tr { background: #f8fafc; }
-.users-table th {
+  }
+  .users-table thead tr {
+    background: #f8fafc;
+  }
+  .users-table th {
     padding: 0.75rem 1rem;
     text-align: left;
     font-weight: 600;
@@ -134,33 +190,63 @@
     letter-spacing: 0.05em;
     border-bottom: 1px solid #e2e8f0;
     white-space: nowrap;
-}
-.users-table td {
+  }
+  .users-table td {
     padding: 0.85rem 1rem;
     color: var(--text-primary, #1e293b);
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
-}
-.users-table tbody tr:last-child td { border-bottom: none; }
-.users-table tbody tr:hover { background: #f8fafc; }
+  }
+  .users-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .users-table tbody tr:hover {
+    background: #f8fafc;
+  }
 
-/* User name cell */
-.user-cell { display: flex; align-items: center; gap: 0.75rem; }
-.user-avatar {
-    width: 38px; height: 38px;
+  /* User name cell */
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .user-avatar {
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; font-weight: 700; color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
     flex-shrink: 0;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-}
-.user-cell-details { min-width: 0; }
-.user-cell-name  { font-weight: 600; color: var(--text-primary,#1e293b); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-.user-cell-email { font-size: 0.75rem; color: #2563eb; text-decoration: underline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  }
+  .user-cell-details {
+    min-width: 0;
+  }
+  .user-cell-name {
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+  .user-cell-email {
+    font-size: 0.75rem;
+    color: #2563eb;
+    text-decoration: underline;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
 
-/* Badges */
-.role-badge {
+  /* Badges */
+  .role-badge {
     display: inline-block;
     padding: 0.2rem 0.6rem;
     background: #ede9fe;
@@ -169,52 +255,91 @@
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
-}
-.role-badge-unassigned { background: #f1f5f9; color: #94a3b8; }
+  }
+  .role-badge-unassigned {
+    background: #f1f5f9;
+    color: #94a3b8;
+  }
 
-.status-badge {
+  .status-badge {
     display: inline-block;
     padding: 0.25rem 0.625rem;
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
     white-space: nowrap;
-}
-.status-active   { background: #dcfce7; color: #15803d; }
-.status-inactive { background: #fef9c3; color: #854d0e; }
+  }
+  .status-active {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .status-inactive {
+    background: #fef9c3;
+    color: #854d0e;
+  }
 
-/* Code badge */
-.id-number {
+  /* Code badge */
+  .id-number {
     font-family: monospace;
     font-size: 0.8rem;
     background: #f1f5f9;
     padding: 0.15rem 0.45rem;
     border-radius: 4px;
     color: #475569;
-}
+  }
 
-/* Row actions */
-.user-actions { display: flex; gap: 0.3rem; align-items: center; }
-.user-actions button {
-    width: 30px; height: 30px;
+  /* Row actions */
+  .user-actions {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .user-actions button {
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
     background: transparent;
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.78rem;
     color: var(--text-secondary, #64748b);
     transition: all 0.15s;
-}
-.user-actions button:hover        { background: #f1f5f9; border-color: #cbd5e1; }
-.user-actions .btn-edit:hover     { color: #059669; border-color: #6ee7b7; background: #ecfdf5; }
-.user-actions .btn-role:hover     { color: #7c3aed; border-color: #c4b5fd; background: #f5f3ff; }
-.user-actions .btn-toggle:hover   { color: #d97706; border-color: #fcd34d; background: #fffbeb; }
-.user-actions .btn-pw:hover       { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
-.user-actions .btn-activity:hover { color: #0891b2; border-color: #67e8f9; background: #ecfeff; }
+  }
+  .user-actions button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .user-actions .btn-edit:hover {
+    color: #059669;
+    border-color: #6ee7b7;
+    background: #ecfdf5;
+  }
+  .user-actions .btn-role:hover {
+    color: #7c3aed;
+    border-color: #c4b5fd;
+    background: #f5f3ff;
+  }
+  .user-actions .btn-toggle:hover {
+    color: #d97706;
+    border-color: #fcd34d;
+    background: #fffbeb;
+  }
+  .user-actions .btn-pw:hover {
+    color: #2563eb;
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+  .user-actions .btn-activity:hover {
+    color: #0891b2;
+    border-color: #67e8f9;
+    background: #ecfeff;
+  }
 
-/* Table footer / pagination */
-.users-table-footer {
+  /* Table footer / pagination */
+  .users-table-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -225,111 +350,229 @@
     color: var(--text-secondary, #64748b);
     flex-wrap: wrap;
     gap: 0.5rem;
-}
-.users-pagination { display: flex; gap: 0.25rem; align-items: center; }
-.users-pagination button {
-    min-width: 32px; height: 32px; padding: 0 0.5rem;
+  }
+  .users-pagination {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .users-pagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
     border: 1px solid #e2e8f0;
-    background: #fff; border-radius: 6px;
-    cursor: pointer; font-size: 0.8rem;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
     color: var(--text-secondary, #64748b);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.15s;
-}
-.users-pagination button:hover  { background: #f1f5f9; border-color: #cbd5e1; }
-.users-pagination button.active { background: var(--primary, #006a3f); border-color: var(--primary, #006a3f); color: #fff; font-weight: 600; }
-.users-pagination button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  }
+  .users-pagination button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .users-pagination button.active {
+    background: var(--primary, #006a3f);
+    border-color: var(--primary, #006a3f);
+    color: #fff;
+    font-weight: 600;
+  }
+  .users-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 
-/* Modals */
-.user-modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.45);
+  /* Modals */
+  .user-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
     z-index: 2000;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 1rem;
-    opacity: 0; pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
     transition: opacity 0.2s;
     overflow-y: auto;
-}
-.user-modal-overlay.open { opacity: 1; pointer-events: all; }
-.user-modal {
+  }
+  .user-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .user-modal {
     background: #fff;
     border-radius: 16px;
     width: 100%;
     max-width: 660px;
     max-height: 92vh;
     overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
     transform: translateY(16px);
     transition: transform 0.2s;
     margin: auto;
-}
-.user-modal-overlay.open .user-modal { transform: translateY(0); }
-.user-modal-header {
+  }
+  .user-modal-overlay.open .user-modal {
+    transform: translateY(0);
+  }
+  .user-modal-header {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid #e2e8f0;
-    display: flex; align-items: center; justify-content: space-between;
-    position: sticky; top: 0; background: #fff; z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
     border-radius: 16px 16px 0 0;
-}
-.user-modal-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0; }
-.user-modal-close {
-    width: 32px; height: 32px; border-radius: 8px;
-    border: none; background: #f1f5f9; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary,#64748b); font-size: 0.9rem;
+  }
+  .user-modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0;
+  }
+  .user-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.9rem;
     transition: all 0.15s;
-}
-.user-modal-close:hover { background: #e2e8f0; color: var(--text-primary,#1e293b); }
-.user-modal-body { padding: 1.5rem; }
-.user-modal-footer {
+  }
+  .user-modal-close:hover {
+    background: #e2e8f0;
+    color: var(--text-primary, #1e293b);
+  }
+  .user-modal-body {
+    padding: 1.5rem;
+  }
+  .user-modal-footer {
     padding: 1rem 1.5rem;
     border-top: 1px solid #e2e8f0;
-    display: flex; justify-content: flex-end; gap: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
     background: #f8fafc;
     border-radius: 0 0 16px 16px;
-    position: sticky; bottom: 0;
-}
+    position: sticky;
+    bottom: 0;
+  }
 
-/* Form grid */
-.uf-grid {
+  /* Form grid */
+  .uf-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
-}
-@media (max-width: 520px) { .uf-grid { grid-template-columns: 1fr; } }
-.uf-grid .span-2 { grid-column: span 2; }
-@media (max-width: 520px) { .uf-grid .span-2 { grid-column: span 1; } }
+  }
+  @media (max-width: 520px) {
+    .uf-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .uf-grid .span-2 {
+    grid-column: span 2;
+  }
+  @media (max-width: 520px) {
+    .uf-grid .span-2 {
+      grid-column: span 1;
+    }
+  }
 
-.uf-group { display: flex; flex-direction: column; gap: 0.35rem; }
-.uf-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary,#64748b); }
-.uf-group label .req { color: #ef4444; margin-left: 2px; }
-.uf-input {
+  .uf-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .uf-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+  }
+  .uf-group label .req {
+    color: #ef4444;
+    margin-left: 2px;
+  }
+  .uf-input {
     padding: 0.5rem 0.75rem;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 0.875rem;
-    color: var(--text-primary,#1e293b);
+    color: var(--text-primary, #1e293b);
     background: #fff;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
     width: 100%;
     box-sizing: border-box;
-}
-.uf-input:focus { border-color: var(--primary,#006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+  }
+  .uf-input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
 
-.uf-section-title {
-    font-size: 0.78rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--text-secondary,#94a3b8);
+  .uf-password-wrap {
+    position: relative;
+  }
+  .uf-password-wrap .uf-input {
+    padding-right: 2.75rem;
+  }
+  .uf-password-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+  .uf-password-toggle:hover {
+    background: #f1f5f9;
+    color: var(--text-primary, #1e293b);
+  }
+
+  .uf-section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary, #94a3b8);
     grid-column: span 2;
     padding-bottom: 0.25rem;
     border-bottom: 1px solid #e2e8f0;
     margin-top: 0.5rem;
-}
-@media (max-width: 520px) { .uf-section-title { grid-column: span 1; } }
+  }
+  @media (max-width: 520px) {
+    .uf-section-title {
+      grid-column: span 1;
+    }
+  }
 
-.uf-error {
+  .uf-error {
     display: none;
     padding: 0.65rem 0.9rem;
     background: #fef2f2;
@@ -338,360 +581,664 @@
     color: #dc2626;
     font-size: 0.8rem;
     margin-top: 0.25rem;
-}
+  }
 
-/* Empty state */
-.users-empty {
+  /* Empty state */
+  .users-empty {
     padding: 3rem 1.5rem;
     text-align: center;
     color: var(--text-secondary, #94a3b8);
-}
-.users-empty i  { font-size: 3rem; margin-bottom: 1rem; display: block; }
-.users-empty h4 { margin: 0 0 0.5rem; color: var(--text-primary,#475569); }
-.users-empty p  { margin: 0; font-size: 0.875rem; }
+  }
+  .users-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .users-empty h4 {
+    margin: 0 0 0.5rem;
+    color: var(--text-primary, #475569);
+  }
+  .users-empty p {
+    margin: 0;
+    font-size: 0.875rem;
+  }
 
-/* Import drop zone */
-.user-import-drop-zone {
+  /* Import drop zone */
+  .user-import-drop-zone {
     border: 2px dashed #cbd5e1;
     border-radius: 12px;
     padding: 2rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
-    color: var(--text-secondary,#64748b);
+    color: var(--text-secondary, #64748b);
     margin-bottom: 1rem;
-}
-.user-import-drop-zone:hover,
-.user-import-drop-zone.dragover { border-color: var(--primary,#006a3f); background: #f0fdf4; }
-.user-import-drop-zone i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; display: block; }
-.user-import-drop-zone p { margin: 0.25rem 0 0; font-size: 0.875rem; }
-.user-import-preview {
+  }
+  .user-import-drop-zone:hover,
+  .user-import-drop-zone.dragover {
+    border-color: var(--primary, #006a3f);
+    background: #f0fdf4;
+  }
+  .user-import-drop-zone i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #94a3b8;
+    display: block;
+  }
+  .user-import-drop-zone p {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+  }
+  .user-import-preview {
     background: #f8fafc;
     border-radius: 8px;
     padding: 0.75rem;
     font-size: 0.8rem;
     margin-top: 0.5rem;
-}
+  }
 
-@media (max-width: 768px) {
+  @media (max-width: 768px) {
     .users-table th:nth-child(4),
-    .users-table td:nth-child(4) { display: none; }
-    .users-toolbar-left { grid-template-columns: 1fr 1fr; }
-    .users-toolbar-left .user-search-wrap { grid-column: span 2; }
-}
+    .users-table td:nth-child(4) {
+      display: none;
+    }
+    .users-toolbar-left {
+      grid-template-columns: 1fr 1fr;
+    }
+    .users-toolbar-left .user-search-wrap {
+      grid-column: span 2;
+    }
+  }
 </style>
 
 <div class="users-page">
-
-    <!-- Page Header -->
-    <div class="users-page-header">
-        <div>
-            <h2><i class="fas fa-users" style="margin-right:.5rem;color:var(--primary,#006a3f)"></i>User Management</h2>
-            <p>Manage platform users, roles, and account state across your institution</p>
-        </div>
-        <div class="users-header-actions">
-            <button class="btn btn-outline btn-sm" id="importUsersBtn" title="Import from CSV">
-                <i class="fas fa-file-upload"></i> Import CSV
-            </button>
-            <button class="btn btn-outline btn-sm" id="exportUsersCsvBtn" title="Export to CSV">
-                <i class="fas fa-file-csv"></i> Export CSV
-            </button>
-            <button class="btn btn-outline btn-sm" id="exportUsersPdfBtn" title="Export PDF">
-                <i class="fas fa-file-pdf"></i> Export PDF
-            </button>
-            <button class="btn btn-primary btn-sm" id="addUserBtn" title="Add User">
-                <i class="fas fa-plus"></i> Add User
-            </button>
-        </div>
+  <!-- Page Header -->
+  <div class="users-page-header">
+    <div>
+      <h2>
+        <i
+          class="fas fa-users"
+          style="margin-right: 0.5rem; color: var(--primary, #006a3f)"
+        ></i
+        >User Management
+      </h2>
+      <p>
+        Manage platform users, roles, and account state across your institution
+      </p>
     </div>
-
-    <!-- Stats -->
-    <div class="users-stats">
-        <div class="users-stat-card">
-            <div class="users-stat-icon" style="background:linear-gradient(135deg,#006a3f,#008c54)">
-                <i class="fas fa-users"></i>
-            </div>
-            <div class="users-stat-info">
-                <h3 id="statTotalUsers">—</h3>
-                <p>Total Users</p>
-            </div>
-        </div>
-        <div class="users-stat-card">
-            <div class="users-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="users-stat-info">
-                <h3 id="statActiveUsers">—</h3>
-                <p>Active Users</p>
-            </div>
-        </div>
-        <div class="users-stat-card">
-            <div class="users-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                <i class="fas fa-user-shield"></i>
-            </div>
-            <div class="users-stat-info">
-                <h3 id="statAdminUsers">—</h3>
-                <p>Admins</p>
-            </div>
-        </div>
-        <div class="users-stat-card">
-            <div class="users-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                <i class="fas fa-user-slash"></i>
-            </div>
-            <div class="users-stat-info">
-                <h3 id="statInactiveUsers">—</h3>
-                <p>Inactive Users</p>
-            </div>
-        </div>
+    <div class="users-header-actions">
+      <button
+        class="btn btn-outline btn-sm"
+        id="importUsersBtn"
+        title="Import from CSV"
+      >
+        <i class="fas fa-file-upload"></i> Import CSV
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        id="exportUsersCsvBtn"
+        title="Export to CSV"
+      >
+        <i class="fas fa-file-csv"></i> Export CSV
+      </button>
+      <button
+        class="btn btn-outline btn-sm"
+        id="exportUsersPdfBtn"
+        title="Export PDF"
+      >
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+      <button class="btn btn-primary btn-sm" id="addUserBtn" title="Add User">
+        <i class="fas fa-plus"></i> Add User
+      </button>
     </div>
+  </div>
 
-    <!-- Toolbar -->
-    <div class="users-toolbar">
-        <div class="users-toolbar-left">
-            <div class="user-search-wrap">
-                <i class="fas fa-search"></i>
-                <input type="text" id="usersSearchInput" placeholder="Search by name, email, or username…">
-            </div>
-            <select class="users-filter-select" id="usersRoleFilter">
-                <option value="">All Roles</option>
-            </select>
-            <select class="users-filter-select" id="usersStatusFilter">
-                <option value="">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
-        </div>
-        <div class="users-toolbar-right">
-            <span id="usersCountLabel" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
-            <button class="btn btn-outline btn-sm" id="refreshUsersBtn" title="Refresh">
-                <i class="fas fa-rotate-right"></i>
-            </button>
-        </div>
+  <!-- Stats -->
+  <div class="users-stats">
+    <div class="users-stat-card">
+      <div
+        class="users-stat-icon"
+        style="background: linear-gradient(135deg, #006a3f, #008c54)"
+      >
+        <i class="fas fa-users"></i>
+      </div>
+      <div class="users-stat-info">
+        <h3 id="statTotalUsers">—</h3>
+        <p>Total Users</p>
+      </div>
     </div>
-
-    <!-- Table -->
-    <div class="users-table-wrap">
-        <table class="users-table" id="usersTable">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Username</th>
-                    <th>Date Joined</th>
-                    <th>Status</th>
-                    <th style="width:160px">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-                <tr>
-                    <td colspan="6" style="text-align:center;padding:3rem;color:var(--text-secondary,#94a3b8)">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:.5rem"></i>Loading users…
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <div class="users-table-footer" id="usersPagination" style="display:none">
-            <span id="usersPaginationInfo" style="color:var(--text-secondary,#64748b)">—</span>
-            <div class="users-pagination" id="usersPaginationControls"></div>
-        </div>
+    <div class="users-stat-card">
+      <div
+        class="users-stat-icon"
+        style="background: linear-gradient(135deg, #10b981, #059669)"
+      >
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="users-stat-info">
+        <h3 id="statActiveUsers">—</h3>
+        <p>Active Users</p>
+      </div>
     </div>
+    <div class="users-stat-card">
+      <div
+        class="users-stat-icon"
+        style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)"
+      >
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <div class="users-stat-info">
+        <h3 id="statAdminUsers">—</h3>
+        <p>Admins</p>
+      </div>
+    </div>
+    <div class="users-stat-card">
+      <div
+        class="users-stat-icon"
+        style="background: linear-gradient(135deg, #f59e0b, #d97706)"
+      >
+        <i class="fas fa-user-slash"></i>
+      </div>
+      <div class="users-stat-info">
+        <h3 id="statInactiveUsers">—</h3>
+        <p>Inactive Users</p>
+      </div>
+    </div>
+  </div>
 
+  <!-- Toolbar -->
+  <div class="users-toolbar">
+    <div class="users-toolbar-left">
+      <div class="user-search-wrap">
+        <i class="fas fa-search"></i>
+        <input
+          type="text"
+          id="usersSearchInput"
+          placeholder="Search by name, email, or username…"
+        />
+      </div>
+      <select class="users-filter-select" id="usersRoleFilter">
+        <option value="">All Roles</option>
+      </select>
+      <select class="users-filter-select" id="usersStatusFilter">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="users-toolbar-right">
+      <span
+        id="usersCountLabel"
+        style="
+          font-size: 0.8rem;
+          color: var(--text-secondary, #64748b);
+          white-space: nowrap;
+        "
+      ></span>
+      <button
+        class="btn btn-outline btn-sm"
+        id="refreshUsersBtn"
+        title="Refresh"
+      >
+        <i class="fas fa-rotate-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="users-table-wrap">
+    <table class="users-table" id="usersTable">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Username</th>
+          <th>Date Joined</th>
+          <th>Status</th>
+          <th style="width: 160px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <tr>
+          <td
+            colspan="6"
+            style="
+              text-align: center;
+              padding: 3rem;
+              color: var(--text-secondary, #94a3b8);
+            "
+          >
+            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem"></i
+            >Loading users…
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="users-table-footer" id="usersPagination" style="display: none">
+      <span
+        id="usersPaginationInfo"
+        style="color: var(--text-secondary, #64748b)"
+        >—</span
+      >
+      <div class="users-pagination" id="usersPaginationControls"></div>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      Add / Edit User Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="userFormModal">
-    <div class="user-modal">
-        <div class="user-modal-header">
-            <h3 id="userFormModalTitle">Create User</h3>
-            <button class="user-modal-close" id="closeUserFormModalBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body">
-            <form id="userForm" novalidate>
-                <div class="uf-grid">
-                    <div class="uf-section-title">Personal Information</div>
-                    <div class="uf-group">
-                        <label>First Name <span class="req">*</span></label>
-                        <input id="ufFirstName" type="text" class="uf-input" autocomplete="given-name" placeholder="First name">
-                    </div>
-                    <div class="uf-group">
-                        <label>Last Name <span class="req">*</span></label>
-                        <input id="ufLastName" type="text" class="uf-input" autocomplete="family-name" placeholder="Last name">
-                    </div>
-                    <div class="uf-group">
-                        <label>Email <span class="req">*</span></label>
-                        <input id="ufEmail" type="email" class="uf-input" autocomplete="email" placeholder="user@example.com">
-                    </div>
-                    <div class="uf-group">
-                        <label>Username <span class="req">*</span></label>
-                        <input id="ufUsername" type="text" class="uf-input" autocomplete="username" placeholder="username">
-                    </div>
-                    <div class="uf-section-title">Account Settings</div>
-                    <div class="uf-group">
-                        <label>Role</label>
-                        <select id="ufRole" class="uf-input">
-                            <option value="">Select role</option>
-                        </select>
-                    </div>
-                    <div class="uf-group">
-                        <label>Status</label>
-                        <select id="ufStatus" class="uf-input">
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                    </div>
-                    <div class="uf-group span-2">
-                        <label>Password</label>
-                        <input id="ufPassword" type="password" class="uf-input" autocomplete="new-password" placeholder="Required for new users; leave blank to keep current when editing">
-                    </div>
-                    <div class="uf-error span-2" id="userFormError"></div>
-                </div>
-            </form>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-outline" id="cancelUserFormBtn" type="button">Cancel</button>
-            <button class="btn btn-primary" id="saveUserBtn" type="button">
-                <i class="fas fa-save"></i> Save User
-            </button>
-        </div>
+  <div class="user-modal">
+    <div class="user-modal-header">
+      <h3 id="userFormModalTitle">Create User</h3>
+      <button class="user-modal-close" id="closeUserFormModalBtn" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body">
+      <form id="userForm" novalidate>
+        <div class="uf-grid">
+          <div class="uf-section-title">Personal Information</div>
+          <div class="uf-group">
+            <label>First Name <span class="req">*</span></label>
+            <input
+              id="ufFirstName"
+              type="text"
+              class="uf-input"
+              autocomplete="given-name"
+              placeholder="First name"
+            />
+          </div>
+          <div class="uf-group">
+            <label>Last Name <span class="req">*</span></label>
+            <input
+              id="ufLastName"
+              type="text"
+              class="uf-input"
+              autocomplete="family-name"
+              placeholder="Last name"
+            />
+          </div>
+          <div class="uf-group">
+            <label>Email <span class="req">*</span></label>
+            <input
+              id="ufEmail"
+              type="email"
+              class="uf-input"
+              autocomplete="email"
+              placeholder="user@example.com"
+            />
+          </div>
+          <div class="uf-group">
+            <label>Username <span class="req">*</span></label>
+            <input
+              id="ufUsername"
+              type="text"
+              class="uf-input"
+              autocomplete="username"
+              placeholder="username"
+            />
+          </div>
+          <div class="uf-section-title">Account Settings</div>
+          <div class="uf-group">
+            <label>Role</label>
+            <select id="ufRole" class="uf-input">
+              <option value="">Select role</option>
+            </select>
+          </div>
+          <div class="uf-group">
+            <label>Status</label>
+            <select id="ufStatus" class="uf-input">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+          <div class="uf-group span-2">
+            <label>Password</label>
+            <div class="uf-password-wrap">
+              <input
+                id="ufPassword"
+                type="password"
+                class="uf-input"
+                autocomplete="new-password"
+                placeholder="Required for new users; leave blank to keep current when editing"
+              />
+              <button
+                id="toggleUfPasswordBtn"
+                type="button"
+                class="uf-password-toggle"
+                title="Show password"
+                aria-label="Show password"
+              >
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+          <div class="uf-error span-2" id="userFormError"></div>
+        </div>
+      </form>
+    </div>
+    <div class="user-modal-footer">
+      <button class="btn btn-outline" id="cancelUserFormBtn" type="button">
+        Cancel
+      </button>
+      <button class="btn btn-primary" id="saveUserBtn" type="button">
+        <i class="fas fa-save"></i> Save User
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      Assign Role Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="roleModal">
-    <div class="user-modal" style="max-width:420px">
-        <div class="user-modal-header">
-            <h3>Assign Role</h3>
-            <button class="user-modal-close" id="closeRoleModalBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body">
-            <div class="uf-group" style="margin-bottom:.75rem">
-                <label>Role <span class="req">*</span></label>
-                <select id="assignRoleSelect" class="uf-input"></select>
-            </div>
-            <p id="assignRoleTarget" style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0"></p>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-outline" id="cancelRoleAssignBtn" type="button">Cancel</button>
-            <button class="btn btn-primary" id="confirmRoleAssignBtn" type="button">
-                <i class="fas fa-user-shield"></i> Assign Role
-            </button>
-        </div>
+  <div class="user-modal" style="max-width: 420px">
+    <div class="user-modal-header">
+      <h3>Assign Role</h3>
+      <button class="user-modal-close" id="closeRoleModalBtn" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body">
+      <div class="uf-group" style="margin-bottom: 0.75rem">
+        <label>Role <span class="req">*</span></label>
+        <select id="assignRoleSelect" class="uf-input"></select>
+      </div>
+      <p
+        id="assignRoleTarget"
+        style="
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0;
+        "
+      ></p>
+    </div>
+    <div class="user-modal-footer">
+      <button class="btn btn-outline" id="cancelRoleAssignBtn" type="button">
+        Cancel
+      </button>
+      <button class="btn btn-primary" id="confirmRoleAssignBtn" type="button">
+        <i class="fas fa-user-shield"></i> Assign Role
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      Reset Password Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="resetPasswordModal">
-    <div class="user-modal" style="max-width:420px">
-        <div class="user-modal-header">
-            <h3>Reset User Password</h3>
-            <button class="user-modal-close" id="closeResetPasswordModalBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body">
-            <div class="uf-group" style="margin-bottom:.75rem">
-                <label>New Password <span class="req">*</span></label>
-                <input id="resetPasswordInput" type="text" class="uf-input" minlength="8" placeholder="Minimum 8 characters">
-            </div>
-            <p id="resetPasswordTarget" style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 .5rem"></p>
-            <div class="uf-error" id="resetPasswordError"></div>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-outline" id="cancelResetPasswordBtn" type="button">Cancel</button>
-            <button class="btn btn-primary" id="confirmResetPasswordBtn" type="button">
-                <i class="fas fa-key"></i> Reset Password
-            </button>
-        </div>
+  <div class="user-modal" style="max-width: 420px">
+    <div class="user-modal-header">
+      <h3>Reset User Password</h3>
+      <button
+        class="user-modal-close"
+        id="closeResetPasswordModalBtn"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body">
+      <div class="uf-group" style="margin-bottom: 0.75rem">
+        <label>New Password <span class="req">*</span></label>
+        <div class="uf-password-wrap">
+          <input
+            id="resetPasswordInput"
+            type="password"
+            class="uf-input"
+            minlength="8"
+            placeholder="Minimum 8 characters"
+          />
+          <button
+            id="toggleResetPasswordBtn"
+            type="button"
+            class="uf-password-toggle"
+            title="Show password"
+            aria-label="Show password"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <p
+        id="resetPasswordTarget"
+        style="
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0 0 0.5rem;
+        "
+      ></p>
+      <div class="uf-error" id="resetPasswordError"></div>
+    </div>
+    <div class="user-modal-footer">
+      <button class="btn btn-outline" id="cancelResetPasswordBtn" type="button">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        id="confirmResetPasswordBtn"
+        type="button"
+      >
+        <i class="fas fa-key"></i> Reset Password
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      User Activity Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="activityModal">
-    <div class="user-modal" style="max-width:720px">
-        <div class="user-modal-header">
-            <h3>User Activity</h3>
-            <button class="user-modal-close" id="closeActivityModalBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body">
-            <p id="activityTarget" style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem"></p>
-            <div id="activityList" style="max-height:360px;overflow:auto;"></div>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-primary" id="closeActivityDoneBtn" type="button">Close</button>
-        </div>
+  <div class="user-modal" style="max-width: 720px">
+    <div class="user-modal-header">
+      <h3>User Activity</h3>
+      <button class="user-modal-close" id="closeActivityModalBtn" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body">
+      <p
+        id="activityTarget"
+        style="
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0 0 1rem;
+        "
+      ></p>
+      <div id="activityList" style="max-height: 360px; overflow: auto"></div>
+    </div>
+    <div class="user-modal-footer">
+      <button class="btn btn-primary" id="closeActivityDoneBtn" type="button">
+        Close
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      Import CSV Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="userImportModal">
-    <div class="user-modal" style="max-width:480px">
-        <div class="user-modal-header">
-            <h3>Import Users from CSV</h3>
-            <button class="user-modal-close" id="closeUserImportModalBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body">
-            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
-                Upload a CSV file with user data. Download the
-                <a href="#" id="userImportTemplateLink" style="color:var(--primary,#006a3f)">template</a> to get started.
-                <strong>One role per row only.</strong>
-            </p>
-            <div class="user-import-drop-zone" id="userImportDropZone">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p><strong>Click to upload</strong> or drag &amp; drop</p>
-                <p style="font-size:.75rem;margin-top:.25rem">CSV files only &middot; Max 5MB</p>
-                <input id="userImportFileInput" type="file" accept=".csv" style="display:none">
-            </div>
-            <div class="user-import-preview" id="userImportPreview" style="display:none">
-                <strong id="userImportFileName"></strong>
-                <span id="userImportRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
-            </div>
-            <div id="userImportErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-outline" id="cancelUserImportBtn" type="button">Cancel</button>
-            <button class="btn btn-primary" id="confirmUserImportBtn" type="button" disabled>
-                <span id="confirmUserImportText">Import</span>
-                <i id="userImportSpinner" class="fas fa-spinner fa-spin" style="display:none;margin-left:.4rem"></i>
-            </button>
-        </div>
+  <div class="user-modal" style="max-width: 480px">
+    <div class="user-modal-header">
+      <h3>Import Users from CSV</h3>
+      <button
+        class="user-modal-close"
+        id="closeUserImportModalBtn"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body">
+      <p
+        style="
+          font-size: 0.875rem;
+          color: var(--text-secondary, #64748b);
+          margin: 0 0 1rem;
+        "
+      >
+        Upload a CSV file with user data. Download the
+        <a
+          href="#"
+          id="userImportTemplateLink"
+          style="color: var(--primary, #006a3f)"
+          >template</a
+        >
+        to get started.
+        <strong>One role per row only.</strong>
+      </p>
+      <div class="user-import-drop-zone" id="userImportDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p><strong>Click to upload</strong> or drag &amp; drop</p>
+        <p style="font-size: 0.75rem; margin-top: 0.25rem">
+          CSV files only &middot; Max 5MB
+        </p>
+        <input
+          id="userImportFileInput"
+          type="file"
+          accept=".csv"
+          style="display: none"
+        />
+      </div>
+      <div
+        class="user-import-preview"
+        id="userImportPreview"
+        style="display: none"
+      >
+        <strong id="userImportFileName"></strong>
+        <span
+          id="userImportRowCount"
+          style="color: var(--text-secondary, #64748b); margin-left: 0.5rem"
+        ></span>
+      </div>
+      <div
+        id="userImportErrors"
+        style="
+          display: none;
+          background: #fef2f2;
+          border-radius: 8px;
+          padding: 0.75rem;
+          font-size: 0.8rem;
+          color: #b91c1c;
+          margin-top: 0.5rem;
+        "
+      ></div>
+    </div>
+    <div class="user-modal-footer">
+      <button class="btn btn-outline" id="cancelUserImportBtn" type="button">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        id="confirmUserImportBtn"
+        type="button"
+        disabled
+      >
+        <span id="confirmUserImportText">Import</span>
+        <i
+          id="userImportSpinner"
+          class="fas fa-spinner fa-spin"
+          style="display: none; margin-left: 0.4rem"
+        ></i>
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ============================================================
      Import Results Modal
 ============================================================ -->
 <div class="user-modal-overlay" id="userImportResultsModal">
-    <div class="user-modal" style="max-width:620px">
-        <div class="user-modal-header">
-            <h3>Import Results</h3>
-            <button class="user-modal-close" id="closeUserImportResultsBtn" title="Close"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="user-modal-body" style="padding-bottom:.5rem">
-            <div id="userImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
-            <div style="max-height:360px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
-                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
-                    <thead>
-                        <tr style="background:#f8fafc;position:sticky;top:0;z-index:1">
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">#</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">User</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Status</th>
-                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userImportResultsBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div class="user-modal-footer">
-            <button class="btn btn-primary" id="closeUserImportResultsDoneBtn" type="button">Done</button>
-        </div>
+  <div class="user-modal" style="max-width: 620px">
+    <div class="user-modal-header">
+      <h3>Import Results</h3>
+      <button
+        class="user-modal-close"
+        id="closeUserImportResultsBtn"
+        title="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
     </div>
+    <div class="user-modal-body" style="padding-bottom: 0.5rem">
+      <div
+        id="userImportResultsSummary"
+        style="
+          display: flex;
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          margin-bottom: 1rem;
+        "
+      ></div>
+      <div
+        style="
+          max-height: 360px;
+          overflow-y: auto;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+        "
+      >
+        <table
+          style="width: 100%; border-collapse: collapse; font-size: 0.8rem"
+        >
+          <thead>
+            <tr
+              style="background: #f8fafc; position: sticky; top: 0; z-index: 1"
+            >
+              <th
+                style="
+                  padding: 0.5rem 0.75rem;
+                  text-align: left;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                #
+              </th>
+              <th
+                style="
+                  padding: 0.5rem 0.75rem;
+                  text-align: left;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                User
+              </th>
+              <th
+                style="
+                  padding: 0.5rem 0.75rem;
+                  text-align: left;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                Status
+              </th>
+              <th
+                style="
+                  padding: 0.5rem 0.75rem;
+                  text-align: left;
+                  border-bottom: 1px solid #e2e8f0;
+                "
+              >
+                Details
+              </th>
+            </tr>
+          </thead>
+          <tbody id="userImportResultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="user-modal-footer">
+      <button
+        class="btn btn-primary"
+        id="closeUserImportResultsDoneBtn"
+        type="button"
+      >
+        Done
+      </button>
+    </div>
+  </div>
 </div>
