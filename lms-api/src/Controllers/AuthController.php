@@ -352,6 +352,16 @@ class AuthController
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
             ]);
 
+            $userName = trim(((string) ($tokenData['first_name'] ?? '')) . ' ' . ((string) ($tokenData['last_name'] ?? '')));
+            if ($userName === '') {
+                $userName = (string) ($tokenData['username'] ?? 'User');
+            }
+
+            $this->emailService->sendPasswordChangedConfirmationEmail(
+                (string) $tokenData['email'],
+                $userName
+            );
+
             Response::success(['message' => 'Password reset successful. You can now login with your new password']);
         } else {
             Response::serverError('Failed to reset password');
@@ -378,6 +388,16 @@ class AuthController
         }
 
         if ($this->userRepo->updatePassword($user['user_id'], $data['new_password'])) {
+            $userName = trim(((string) ($user['first_name'] ?? '')) . ' ' . ((string) ($user['last_name'] ?? '')));
+            if ($userName === '') {
+                $userName = (string) ($user['username'] ?? 'User');
+            }
+
+            $email = trim((string) ($user['email'] ?? ''));
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->emailService->sendPasswordChangedConfirmationEmail($email, $userName);
+            }
+
             Response::success(['message' => 'Password changed successfully']);
         } else {
             Response::serverError('Failed to change password');

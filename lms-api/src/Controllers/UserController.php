@@ -7,10 +7,94 @@ use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\UserRepository;
 use App\Middleware\RoleMiddleware;
+use App\Services\EmailService;
 
 class UserController
 {
     private UserRepository $userRepo;
+
+    private function getDisplayName(array $user): string
+    {
+        $first = trim((string) ($user['first_name'] ?? ''));
+        $last = trim((string) ($user['last_name'] ?? ''));
+        $full = trim($first . ' ' . $last);
+
+        if ($full !== '') {
+            return $full;
+        }
+
+        return (string) ($user['username'] ?? 'User');
+    }
+
+    private function sendUserCreatedNotification(array $recipient, array $performedBy): void
+    {
+        try {
+            $email = trim((string) ($recipient['email'] ?? ''));
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return;
+            }
+
+            $emailService = new EmailService();
+            if (!$emailService->isEnabled()) {
+                return;
+            }
+
+            $recipientName = $this->getDisplayName($recipient);
+            $actorName = $this->getDisplayName($performedBy);
+            $username = (string) ($recipient['username'] ?? '');
+            $frontendUrl = rtrim((string) ($_ENV['FRONTEND_URL'] ?? 'http://localhost:8080'), '/');
+            $loginUrl = $frontendUrl . '/auth/login.html';
+
+            $subject = 'Your LMS account has been created';
+            $body = "
+                <p>Hi <strong>{$recipientName}</strong>,</p>
+                <p>Your LMS user account has been created successfully.</p>
+                <p><strong>Username:</strong> {$username}<br><strong>Email:</strong> {$email}</p>
+                <p>You can sign in here: <a href=\"{$loginUrl}\">{$loginUrl}</a></p>
+                <p>Created by: {$actorName}</p>
+                <p>Regards,<br>LMS Team</p>
+            ";
+
+            $altBody = "Hi {$recipientName},\n\n"
+                . "Your LMS user account has been created successfully.\n"
+                . "Username: {$username}\n"
+                . "Email: {$email}\n"
+                . "Sign in: {$loginUrl}\n"
+                . "Created by: {$actorName}\n\n"
+                . "Regards,\nLMS Team";
+
+            $emailService->send($email, $subject, $body, $recipientName, $altBody);
+        } catch (\Throwable $e) {
+            error_log('User created email notification failed: ' . $e->getMessage());
+        }
+    }
+
+    private function sendUserUpdatedNotification(array $recipient, array $performedBy, array $changedFields = []): void
+    {
+        try {
+            $email = trim((string) ($recipient['email'] ?? ''));
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return;
+            }
+
+            $emailService = new EmailService();
+            if (!$emailService->isEnabled()) {
+                return;
+            }
+
+            $recipientName = $this->getDisplayName($recipient);
+            $actorName     = $this->getDisplayName($performedBy);
+
+            $hidden = ['password', 'new_password', 'old_password'];
+            $fields = array_values(array_filter($changedFields, function ($field) use ($hidden) {
+                return !in_array((string) $field, $hidden, true);
+            }));
+
+            $emailService->sendAccountUpdatedEmail($email, $recipientName, $fields, $actorName);
+        } catch (\Throwable $e) {
+            error_log('User updated email notification failed: ' . $e->getMessage());
+        }
+    }
 
     private function normalizeRoleName(string $roleName): string
     {
@@ -190,6 +274,9 @@ class UserController
             }
 
             $newUser = $this->userRepo->findById($userId);
+            if (is_array($newUser)) {
+                $this->sendUserCreatedNotification($newUser, $user);
+            }
             Response::success($newUser, 201);
         } else {
             Response::serverError('Failed to create user');
@@ -261,6 +348,9 @@ class UserController
             }
 
             $updatedUser = $this->userRepo->findByUuid($sanitizedUuid);
+            if (is_array($updatedUser)) {
+                $this->sendUserUpdatedNotification($updatedUser, $user, array_keys($data));
+            }
             Response::success($updatedUser);
         } else {
             Response::serverError('Failed to update user');
@@ -655,6 +745,11 @@ class UserController
                     }
                 }
             }
+
+            $createdUser = $this->userRepo->findById((int) $userId);
+            if (is_array($createdUser)) {
+                $this->sendUserCreatedNotification($createdUser, $user);
+            }
         }
 
         // Provide a list of skipped row numbers for the client UI to display.
@@ -741,6 +836,19 @@ class UserController
                 'target_user_uuid' => $sanitizedUuid,
                 'target_user_id' => (int) $targetUser['user_id'],
             ]);
+
+            $email = trim((string) ($targetUser['email'] ?? ''));
+            if ($email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $emailService = new EmailService();
+                if ($emailService->isEnabled()) {
+                    $emailService->sendPasswordChangedConfirmationEmail(
+                        $email,
+                        $this->getDisplayName($targetUser),
+                        $this->getDisplayName($user)
+                    );
+                }
+            }
+
             Response::success(['message' => 'Password reset successfully']);
             return;
         }
