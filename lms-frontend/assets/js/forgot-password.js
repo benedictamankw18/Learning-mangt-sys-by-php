@@ -102,7 +102,7 @@ async function handleForgotPassword(e) {
             );
         }
     } catch (error) {
-        console.error('Forgot password error:', error);
+        console.warn('Forgot password issue:', error);
         showAlert(
             'An error occurred. Please try again later.',
             'error'

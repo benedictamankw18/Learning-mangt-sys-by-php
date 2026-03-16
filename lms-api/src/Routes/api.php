@@ -215,6 +215,7 @@ return [
     // Attendance routes
     'GET /students/{studentId}/attendance' => ['controller' => 'AttendanceController', 'method' => 'getStudentAttendance', 'auth' => true],
     'GET /courses/{courseId}/attendance' => ['controller' => 'AttendanceController', 'method' => 'getCourseAttendance', 'auth' => true],
+    'GET /attendance/summary' => ['controller' => 'AttendanceController', 'method' => 'getInstitutionSummary', 'auth' => true],
     'GET /students/{studentId}/attendance/stats' => ['controller' => 'AttendanceController', 'method' => 'getAttendanceStats', 'auth' => true],
     'POST /attendance' => ['controller' => 'AttendanceController', 'method' => 'markAttendance', 'auth' => true],
     'POST /attendance/bulk' => ['controller' => 'AttendanceController', 'method' => 'bulkMarkAttendance', 'auth' => true],

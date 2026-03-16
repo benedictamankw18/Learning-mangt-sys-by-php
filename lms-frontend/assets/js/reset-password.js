@@ -283,7 +283,7 @@ async function handleResetPassword(e, updatePasswordBtn, newPasswordInput, confi
             }
         }
     } catch (error) {
-        console.error('Reset password error:', error);
+        console.warn('Reset password issue:', error);
         showAlert(
             'A network error occurred. Please check your connection and try again.',
             'error'

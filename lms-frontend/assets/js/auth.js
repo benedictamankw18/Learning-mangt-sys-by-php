@@ -17,11 +17,11 @@ class AuthService {
 
     _initFromStorage() {
         try {
-            this._inMemoryRemember = localStorage.getItem(STORAGE_KEYS.REMEMBER_ME) === 'true';
-            const tokenStorage = this._inMemoryRemember ? localStorage : sessionStorage;
-            this._inMemoryToken   = tokenStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || null;
-            this._inMemoryRefresh = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || null;
-            const rawUser = tokenStorage.getItem(STORAGE_KEYS.USER_DATA);
+            // Security hardening: keep auth artifacts session-scoped only.
+            this._inMemoryRemember = false;
+            this._inMemoryToken   = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || null;
+            this._inMemoryRefresh = sessionStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || null;
+            const rawUser = sessionStorage.getItem(STORAGE_KEYS.USER_DATA);
             try { this._inMemoryUser = rawUser ? JSON.parse(rawUser) : null; } catch (_) {}
         } catch (_) {
             // Storage fully blocked (Tracking Prevention) — session works in-memory only
@@ -33,11 +33,9 @@ class AuthService {
      */
     saveToken(token, remember = false) {
         this._inMemoryToken = token;
-        if (remember) this._inMemoryRemember = true;
+        this._inMemoryRemember = !!remember;
         try {
-            const storage = remember ? localStorage : sessionStorage;
-            storage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
-            if (remember) localStorage.setItem(STORAGE_KEYS.REMEMBER_ME, 'true');
+            sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
         } catch (e) {
             console.warn('Storage unavailable, using in-memory token', e);
         }
@@ -56,7 +54,6 @@ class AuthService {
     clearToken() {
         this._inMemoryToken = null;
         try {
-            localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
             sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         } catch (e) {
             console.warn('Storage unavailable when clearing token', e);
@@ -69,7 +66,7 @@ class AuthService {
     saveRefreshToken(token) {
         this._inMemoryRefresh = token;
         try {
-            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
+            sessionStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, token);
         } catch (e) {
             console.warn('Storage unavailable when saving refresh token', e);
         }
@@ -88,7 +85,7 @@ class AuthService {
     clearRefreshToken() {
         this._inMemoryRefresh = null;
         try {
-            localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+            sessionStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
         } catch (e) {
             console.warn('Storage unavailable when clearing refresh token', e);
         }
@@ -100,8 +97,7 @@ class AuthService {
     saveUser(userData, remember = false) {
         this._inMemoryUser = userData;
         try {
-            const storage = remember ? localStorage : sessionStorage;
-            storage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+            sessionStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
         } catch (e) {
             console.warn('Storage unavailable when saving user data', e);
         }
@@ -120,7 +116,6 @@ class AuthService {
     clearUser() {
         this._inMemoryUser = null;
         try {
-            localStorage.removeItem(STORAGE_KEYS.USER_DATA);
             sessionStorage.removeItem(STORAGE_KEYS.USER_DATA);
         } catch (e) {
             console.warn('Storage unavailable when clearing user data', e);
@@ -175,20 +170,18 @@ class AuthService {
 
             if (response.success && response.data) {
                 // Save tokens
-                const tokenStorage = remember ? 'localStorage' : 'sessionStorage';
-                logger.storage(`Saving access token to ${tokenStorage}`);
+                logger.storage('Saving access token to sessionStorage');
                 this.saveToken(response.data.access_token, remember);
                 
                 if (response.data.refresh_token) {
-                    logger.storage('Saving refresh token to localStorage');
+                    logger.storage('Saving refresh token to sessionStorage');
                     this.saveRefreshToken(response.data.refresh_token);
                 } else {
                     logger.warning('AUTH', 'No refresh token provided by API');
                 }
 
                 // Save user data
-                const userStorage = remember ? 'localStorage' : 'sessionStorage';
-                logger.storage(`Saving user data to ${userStorage}`, response.data.user);
+                logger.storage('Saving user data to sessionStorage', response.data.user);
                 this.saveUser(response.data.user, remember);
 
                 // Verify via in-memory state (no extra storage reads needed)
@@ -247,14 +240,7 @@ class AuthService {
             this.clearToken();
             this.clearRefreshToken();
             this.clearUser();
-            
-            // Clear ALL localStorage and sessionStorage
-            try {
-                localStorage.clear();
-                sessionStorage.clear();
-            } catch (e) {
-                console.warn('Storage unavailable when clearing on logout', e);
-            }
+            try { sessionStorage.removeItem(STORAGE_KEYS.REMEMBER_ME); } catch (e) {}
             
             // Clear in-memory fallbacks
             this._inMemoryToken = null;
@@ -292,7 +278,7 @@ class AuthService {
 
             return false;
         } catch (error) {
-            console.error('Token refresh failed:', error);
+            console.warn('Token refresh issue:', error);
             return false;
         }
     }
@@ -468,10 +454,12 @@ function startTokenRefresh() {
         if (Auth.isAuthenticated()) {
             const refreshed = await Auth.refreshToken();
             if (!refreshed) {
-                console.warn('Token refresh failed - logging out');
-                // Auto logout when token expires
-                stopTokenRefresh();
-                await Auth.logout();
+                // Refresh failed (API not available or token rejected).
+                // Do NOT force-logout here — the user may be actively working.
+                // The next authenticated API call will receive a 401 and the
+                // api.js 401-handler will then redirect to login with the
+                // "session expired" banner.
+                console.warn('Token refresh failed — will retry on next interval or expire on next API call.');
             }
         } else {
             // No longer authenticated, stop refresh interval

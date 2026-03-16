@@ -1,500 +1,649 @@
+<!-- ===================================================
+     Attendance Management Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/attendance.js
+==================================================== -->
+<style>
+  .attendance-page {
+    padding: 0;
+  }
+
+  .attendance-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .attendance-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .attendance-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .attendance-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .attendance-notify-select-hidden {
+    display: none;
+  }
+  .attendance-notify-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 36px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    background: #fff;
+  }
+  .attendance-notify-switch .mode-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: color 0.2s;
+    user-select: none;
+  }
+  .attendance-notify-switch .mode-label.active {
+    color: #0f172a;
+  }
+  .attendance-switch {
+    position: relative;
+    width: 46px;
+    height: 24px;
+    display: inline-block;
+  }
+  .attendance-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .attendance-switch-slider {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.2s ease;
+  }
+  .attendance-switch-slider::before {
+    content: "";
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+  }
+  .attendance-switch input:checked + .attendance-switch-slider {
+    background: var(--primary, #006a3f);
+  }
+  .attendance-switch input:checked + .attendance-switch-slider::before {
+    transform: translateX(22px);
+  }
+  .attendance-switch input:focus-visible + .attendance-switch-slider {
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.16);
+  }
+
+  .attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 1024px) {
+    .attendance-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .attendance-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .attendance-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+  }
+  .attendance-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+    font-size: 1.1rem;
+  }
+  .attendance-stat-info h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .attendance-stat-info p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+  }
+
+  .attendance-period-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 1024px) {
+    .attendance-period-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+  .attendance-period-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(160deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+    padding: 0.95rem 1rem;
+  }
+  .attendance-period-card::after {
+    content: "";
+    position: absolute;
+    right: -22px;
+    top: -22px;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    opacity: 0.16;
+  }
+  .attendance-period-card.today::after {
+    background: #10b981;
+  }
+  .attendance-period-card.week::after {
+    background: #3b82f6;
+  }
+  .attendance-period-card.month::after {
+    background: #f59e0b;
+  }
+  .attendance-period-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: 0.45rem;
+  }
+  .attendance-period-title {
+    margin: 0;
+    font-size: 0.79rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+  .attendance-period-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    color: #fff;
+  }
+  .attendance-period-card.today .attendance-period-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  .attendance-period-card.week .attendance-period-icon {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  }
+  .attendance-period-card.month .attendance-period-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+  .attendance-period-rate {
+    margin-top: 0.15rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-primary, #1e293b);
+    position: relative;
+    z-index: 1;
+  }
+  .attendance-period-meta {
+    margin-top: 0.16rem;
+    font-size: 0.76rem;
+    color: #64748b;
+    position: relative;
+    z-index: 1;
+  }
+
+  .attendance-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .attendance-toolbar-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    gap: 0.5rem;
+    flex: 1;
+  }
+  @media (max-width: 1100px) {
+    .attendance-toolbar-left {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    .attendance-toolbar-left {
+      grid-template-columns: 1fr;
+    }
+  }
+  .attendance-toolbar-right {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .attendance-input,
+  .attendance-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+  }
+  .attendance-input:focus,
+  .attendance-select:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+
+  .attendance-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 1150px) {
+    .attendance-insights-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .attendance-insight-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    min-height: 220px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .attendance-insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .attendance-insight-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+  }
+  .badge-pill {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #ecfdf3;
+    color: #065f46;
+  }
+
+  .attendance-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .attendance-table thead tr {
+    background: #f8fafc;
+  }
+  .attendance-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .attendance-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: var(--text-primary, #1e293b);
+    vertical-align: middle;
+  }
+
+  .attendance-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .attendance-pagination {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  .attendance-pagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .attendance-pagination button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .attendance-pagination button.active {
+    background: var(--primary, #006a3f);
+    border-color: var(--primary, #006a3f);
+    color: #fff;
+    font-weight: 600;
+  }
+  .attendance-pagination button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+</style>
+
 <div class="attendance-page">
-  <div class="attendance-card">
-    <div class="attendance-card-header">
-      <h2>Attendance Management</h2>
-      <p>Monitor and manage student attendance across all classes</p>
+  <div class="attendance-page-header">
+    <div>
+      <h2>
+        <i
+          class="fas fa-calendar-check"
+          style="margin-right: 0.5rem; color: var(--primary, #006a3f)"
+        ></i
+        >Attendance Management
+      </h2>
+      <p>Live attendance status across classes, teachers, and date ranges</p>
     </div>
-    
-    <div class="attendance-card-body">
-      
-      <!-- Stats Cards -->
-      <div class="attendance-stats">
-        <div class="attendance-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <i class="fas fa-user-check"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">94.3%</div>
-            <div class="stat-label">Today's Attendance</div>
-            <div class="stat-sublabel">1,741 / 1,847 students</div>
-          </div>
-        </div>
-        
-        <div class="attendance-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-            <i class="fas fa-user-clock"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">68</div>
-            <div class="stat-label">Late Arrivals</div>
-            <div class="stat-sublabel">3.7% of present students</div>
-          </div>
-        </div>
-        
-        <div class="attendance-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
-            <i class="fas fa-user-times"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">106</div>
-            <div class="stat-label">Absent Today</div>
-            <div class="stat-sublabel">5.7% absence rate</div>
-          </div>
-        </div>
-        
-        <div class="attendance-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-            <i class="fas fa-clipboard-check"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">42 / 48</div>
-            <div class="stat-label">Classes Marked</div>
-            <div class="stat-sublabel">87.5% completion</div>
-          </div>
-        </div>
+    <div class="attendance-header-actions">
+      <select id="attendanceNotifyMode" class="attendance-notify-select-hidden">
+        <option value="manual">Manual</option>
+        <option value="auto">Auto</option>
+      </select>
+      <div class="attendance-notify-switch" title="Parent notification mode">
+        <span id="attendanceNotifyManualLabel" class="mode-label active"
+          >Manual</span
+        >
+        <label
+          class="attendance-switch"
+          for="attendanceNotifyModeSwitch"
+          aria-label="Parent notification mode"
+        >
+          <input id="attendanceNotifyModeSwitch" type="checkbox" />
+          <span class="attendance-switch-slider"></span>
+        </label>
+        <span id="attendanceNotifyAutoLabel" class="mode-label">Auto</span>
       </div>
-      
-      <!-- Toolbar -->
-      <div class="attendance-toolbar">
-        <div class="attendance-toolbar-left">
-          <div class="date-selector">
-            <i class="fas fa-calendar"></i>
-            <input type="date" value="2026-03-02">
-          </div>
-          
-          <div class="attendance-filter">
-            <select>
-              <option value="">All Programs</option>
-              <option value="general-science">General Science</option>
-              <option value="general-arts">General Arts</option>
-              <option value="business">Business</option>
-              <option value="visual-arts">Visual Arts</option>
-            </select>
-            
-            <select>
-              <option value="">All Grade Levels</option>
-              <option value="shs1">SHS 1</option>
-              <option value="shs2">SHS 2</option>
-              <option value="shs3">SHS 3</option>
-            </select>
-            
-            <select>
-              <option value="">All Status</option>
-              <option value="marked">Marked</option>
-              <option value="unmarked">Not Marked</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="attendance-toolbar-right">
-          <button class="btn-generate-report">
-            <i class="fas fa-file-pdf"></i>
-            Generate Report
-          </button>
-          <button class="btn-export">
-            <i class="fas fa-download"></i>
-            Export
-          </button>
-        </div>
+      <button
+        id="attendanceExportCsvBtn"
+        class="btn btn-outline btn-sm"
+        type="button"
+      >
+        <i class="fas fa-file-csv"></i> Export CSV
+      </button>
+      <button
+        id="attendanceGeneratePdfBtn"
+        class="btn btn-outline btn-sm"
+        type="button"
+      >
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+      <button
+        id="attendanceNotifyParentsBtn"
+        class="btn btn-primary btn-sm"
+        type="button"
+      >
+        <i class="fas fa-bell"></i> Notify Parents
+      </button>
+    </div>
+  </div>
+
+  <div class="attendance-stats">
+    <div class="attendance-stat-card">
+      <div
+        class="attendance-stat-icon"
+        style="background: linear-gradient(135deg, #10b981, #059669)"
+      >
+        <i class="fas fa-user-check"></i>
       </div>
-      
-      <!-- Attendance Table -->
-      <div class="attendance-table-container">
-        <table class="attendance-table">
-          <thead>
-            <tr>
-              <th>Class</th>
-              <th>Program</th>
-              <th>Form Teacher</th>
-              <th>Total Students</th>
-              <th>Present</th>
-              <th>Absent</th>
-              <th>Late</th>
-              <th>Rate</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- SHS 1 Science 2 -->
-            <tr>
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-flask"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 1 Science 2</span>
-                    <span class="class-code">1SCI2</span>
-                  </div>
-                </div>
-              </td>
-              <td>General Science</td>
-              <td>Mr. Kofi Asante</td>
-              <td><span class="student-total">42</span></td>
-              <td><span class="present-count">40</span></td>
-              <td><span class="absent-count">2</span></td>
-              <td><span class="late-count">3</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill" style="width: 95.2%"></div>
-                  </div>
-                  <span class="rate-text">95.2%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 1 Art 1 -->
-            <tr>
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-book"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 1 Art 1</span>
-                    <span class="class-code">1ART1</span>
-                  </div>
-                </div>
-              </td>
-              <td>General Arts</td>
-              <td>Mrs. Akua Boateng</td>
-              <td><span class="student-total">38</span></td>
-              <td><span class="present-count">36</span></td>
-              <td><span class="absent-count">2</span></td>
-              <td><span class="late-count">1</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill" style="width: 94.7%"></div>
-                  </div>
-                  <span class="rate-text">94.7%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 2 Science 1 -->
-            <tr>
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-flask"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 2 Science 1</span>
-                    <span class="class-code">2SCI1</span>
-                  </div>
-                </div>
-              </td>
-              <td>General Science</td>
-              <td>Dr. Ama Adjei</td>
-              <td><span class="student-total">45</span></td>
-              <td><span class="present-count">43</span></td>
-              <td><span class="absent-count">2</span></td>
-              <td><span class="late-count">2</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill" style="width: 95.6%"></div>
-                  </div>
-                  <span class="rate-text">95.6%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 3 Business 1 - Not Marked -->
-            <tr class="unmarked-row">
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-briefcase"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 3 Business 1</span>
-                    <span class="class-code">3BUS1</span>
-                  </div>
-                </div>
-              </td>
-              <td>Business</td>
-              <td>Mr. Kwabena Ansah</td>
-              <td><span class="student-total">40</span></td>
-              <td><span class="present-count">-</span></td>
-              <td><span class="absent-count">-</span></td>
-              <td><span class="late-count">-</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill empty"></div>
-                  </div>
-                  <span class="rate-text">-</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-unmarked">Not Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-mark-now" title="Mark Now">
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 2 Art 2 -->
-            <tr>
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-book"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 2 Art 2</span>
-                    <span class="class-code">2ART2</span>
-                  </div>
-                </div>
-              </td>
-              <td>General Arts</td>
-              <td>Mrs. Efua Agyeman</td>
-              <td><span class="student-total">35</span></td>
-              <td><span class="present-count">32</span></td>
-              <td><span class="absent-count">3</span></td>
-              <td><span class="late-count">2</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill" style="width: 91.4%"></div>
-                  </div>
-                  <span class="rate-text">91.4%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 1 Business 1 - Low Attendance -->
-            <tr class="low-attendance-row">
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-briefcase"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 1 Business 1</span>
-                    <span class="class-code">1BUS1</span>
-                  </div>
-                </div>
-              </td>
-              <td>Business</td>
-              <td>Mr. Samuel Nkrumah</td>
-              <td><span class="student-total">39</span></td>
-              <td><span class="present-count">32</span></td>
-              <td><span class="absent-count">7</span></td>
-              <td><span class="late-count">4</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill warning" style="width: 82.1%"></div>
-                  </div>
-                  <span class="rate-text warning">82.1%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 3 Science 1 - Not Marked -->
-            <tr class="unmarked-row">
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-flask"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 3 Science 1</span>
-                    <span class="class-code">3SCI1</span>
-                  </div>
-                </div>
-              </td>
-              <td>General Science</td>
-              <td>Dr. Yaw Mensah</td>
-              <td><span class="student-total">44</span></td>
-              <td><span class="present-count">-</span></td>
-              <td><span class="absent-count">-</span></td>
-              <td><span class="late-count">-</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill empty"></div>
-                  </div>
-                  <span class="rate-text">-</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-unmarked">Not Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-mark-now" title="Mark Now">
-                    <i class="fas fa-plus"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            
-            <!-- SHS 2 Visual Arts 1 -->
-            <tr>
-              <td>
-                <div class="class-cell">
-                  <div class="class-icon">
-                    <i class="fas fa-palette"></i>
-                  </div>
-                  <div class="class-details">
-                    <span class="class-name">SHS 2 Visual Arts 1</span>
-                    <span class="class-code">2VA1</span>
-                  </div>
-                </div>
-              </td>
-              <td>Visual Arts</td>
-              <td>Mr. Kojo Mensah</td>
-              <td><span class="student-total">28</span></td>
-              <td><span class="present-count">27</span></td>
-              <td><span class="absent-count">1</span></td>
-              <td><span class="late-count">1</span></td>
-              <td>
-                <div class="attendance-rate">
-                  <div class="rate-bar">
-                    <div class="rate-fill" style="width: 96.4%"></div>
-                  </div>
-                  <span class="rate-text">96.4%</span>
-                </div>
-              </td>
-              <td>
-                <span class="status-badge status-marked">Marked</span>
-              </td>
-              <td>
-                <div class="attendance-actions">
-                  <button class="btn-view" title="View Details">
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button class="btn-edit" title="Edit Attendance">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="attendance-stat-info">
+        <h3 id="attendanceTodayRate">-</h3>
+        <p id="attendanceTodaySummary">Attendance rate</p>
       </div>
-      
-      <!-- Pagination -->
-      <div class="attendance-pagination">
-        <div class="pagination-info">
-          Showing 1-8 of 48 classes
-        </div>
-        <div class="pagination-controls">
-          <button disabled>
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <button class="active">1</button>
-          <button>2</button>
-          <button>3</button>
-          <button>4</button>
-          <button>5</button>
-          <button>6</button>
-          <button>
-            <i class="fas fa-chevron-right"></i>
-          </button>
-        </div>
+    </div>
+    <div class="attendance-stat-card">
+      <div
+        class="attendance-stat-icon"
+        style="background: linear-gradient(135deg, #f59e0b, #d97706)"
+      >
+        <i class="fas fa-user-clock"></i>
       </div>
-      
+      <div class="attendance-stat-info">
+        <h3 id="attendanceLateCount">-</h3>
+        <p id="attendanceLateSummary">Late arrivals</p>
+      </div>
+    </div>
+    <div class="attendance-stat-card">
+      <div
+        class="attendance-stat-icon"
+        style="background: linear-gradient(135deg, #ef4444, #dc2626)"
+      >
+        <i class="fas fa-user-times"></i>
+      </div>
+      <div class="attendance-stat-info">
+        <h3 id="attendanceAbsentCount">-</h3>
+        <p id="attendanceAbsentSummary">Absent records</p>
+      </div>
+    </div>
+    <div class="attendance-stat-card">
+      <div
+        class="attendance-stat-icon"
+        style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)"
+      >
+        <i class="fas fa-clipboard-check"></i>
+      </div>
+      <div class="attendance-stat-info">
+        <h3 id="attendanceClassesMarked">-</h3>
+        <p id="attendanceClassesSummary">Classes marked</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="attendance-period-stats">
+    <div class="attendance-period-card today">
+      <div class="attendance-period-head">
+        <h4 class="attendance-period-title">Today</h4>
+        <span class="attendance-period-icon"
+          ><i class="fas fa-calendar-day"></i
+        ></span>
+      </div>
+      <div class="attendance-period-rate" id="attendanceTodayPeriodRate">-</div>
+      <div class="attendance-period-meta" id="attendanceTodayPeriodMeta">
+        No data yet
+      </div>
+    </div>
+    <div class="attendance-period-card week">
+      <div class="attendance-period-head">
+        <h4 class="attendance-period-title">This Week</h4>
+        <span class="attendance-period-icon"
+          ><i class="fas fa-calendar-week"></i
+        ></span>
+      </div>
+      <div class="attendance-period-rate" id="attendanceWeekPeriodRate">-</div>
+      <div class="attendance-period-meta" id="attendanceWeekPeriodMeta">
+        No data yet
+      </div>
+    </div>
+    <div class="attendance-period-card month">
+      <div class="attendance-period-head">
+        <h4 class="attendance-period-title">This Month</h4>
+        <span class="attendance-period-icon"
+          ><i class="fas fa-calendar-alt"></i
+        ></span>
+      </div>
+      <div class="attendance-period-rate" id="attendanceMonthPeriodRate">-</div>
+      <div class="attendance-period-meta" id="attendanceMonthPeriodMeta">
+        No data yet
+      </div>
+    </div>
+  </div>
+
+  <div class="attendance-toolbar">
+    <div class="attendance-toolbar-left">
+      <input id="attendanceDateFrom" class="attendance-input" type="date" />
+      <input id="attendanceDateTo" class="attendance-input" type="date" />
+      <select id="attendanceProgramFilter" class="attendance-select">
+        <option value="">All Programs</option>
+      </select>
+      <select id="attendanceGradeFilter" class="attendance-select">
+        <option value="">All Grade Levels</option>
+      </select>
+      <select id="attendanceClassFilter" class="attendance-select">
+        <option value="">All Classes</option>
+      </select>
+      <select id="attendanceStatusFilter" class="attendance-select">
+        <option value="">All Status</option>
+        <option value="marked">Marked</option>
+        <option value="unmarked">Not Marked</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="attendance-insights-grid">
+    <div class="attendance-insight-card">
+      <div class="attendance-insight-header">
+        <h3>Attendance Trends</h3>
+        <span class="badge-pill" id="attendanceTrendRangeLabel"
+          >Current range</span
+        >
+      </div>
+      <div
+        class="attendance-trend-bars"
+        id="attendanceTrendBars"
+        aria-label="Attendance trend chart"
+      ></div>
+    </div>
+    <div class="attendance-insight-card">
+      <div class="attendance-insight-header">
+        <h3>Absent Students</h3>
+        <span class="badge-pill" id="attendanceAbsentTotalBadge">0</span>
+      </div>
+      <ul class="attendance-list" id="attendanceAbsentList"></ul>
+    </div>
+    <div class="attendance-insight-card">
+      <div class="attendance-insight-header">
+        <h3>Late Arrivals</h3>
+        <span class="badge-pill" id="attendanceLateTotalBadge">0</span>
+      </div>
+      <ul class="attendance-list" id="attendanceLateList"></ul>
+    </div>
+  </div>
+
+  <div class="attendance-table-wrap">
+    <table class="attendance-table">
+      <thead>
+        <tr>
+          <th>Class</th>
+          <th>Program</th>
+          <th>Subject Teacher</th>
+          <th>Total Students</th>
+          <th>Present</th>
+          <th>Absent</th>
+          <th>Late</th>
+          <th>Rate</th>
+          <th>Status</th>
+          <th style="width: 112px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceTableBody">
+        <tr>
+          <td
+            colspan="10"
+            style="
+              text-align: center;
+              padding: 3rem;
+              color: var(--text-secondary, #94a3b8);
+            "
+          >
+            <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem"></i
+            >Loading attendance...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="attendance-table-footer" id="attendancePagination">
+      <span id="attendancePaginationInfo">Loading...</span>
+      <div
+        class="attendance-pagination"
+        id="attendancePaginationControls"
+      ></div>
     </div>
   </div>
 </div>
-
-<script>
-// Attendance page functionality
-(function() {
-    // Date selector
-    const dateInput = document.querySelector('.date-selector input[type="date"]');
-    if (dateInput) {
-        dateInput.addEventListener('change', function() {
-            console.log('Loading attendance for:', this.value);
-            // Add API call to fetch attendance for selected date
-        });
-    }
-    
-    // Mark now buttons
-    const markNowButtons = document.querySelectorAll('.btn-mark-now');
-    markNowButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const className = row.querySelector('.class-name').textContent;
-            console.log('Mark attendance for:', className);
-            // Add modal or redirect to attendance marking page
-        });
-    });
-})();
-</script>

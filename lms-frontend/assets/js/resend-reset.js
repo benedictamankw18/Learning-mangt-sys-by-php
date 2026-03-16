@@ -148,7 +148,7 @@ async function handleResendReset(e) {
             }
         }
     } catch (error) {
-        console.error('Resend reset error:', error);
+        console.warn('Resend reset issue:', error);
         showAlert(
             'A network error occurred. Please check your connection and try again.',
             'error'

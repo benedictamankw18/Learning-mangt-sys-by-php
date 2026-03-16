@@ -44,10 +44,11 @@ class AttendanceRepository
             $sql = "
                 SELECT 
                     a.*,
-                    c.course_name,
-                    c.course_code
+                    sub.subject_name AS course_name,
+                    sub.subject_code AS course_code
                 FROM attendance a
-                INNER JOIN courses c ON a.course_id = c.course_id
+                JOIN class_subjects cs ON a.course_id = cs.course_id
+                JOIN subjects sub ON cs.subject_id = sub.subject_id
                 WHERE a.student_id = :student_id
             ";
 
@@ -179,11 +180,12 @@ class AttendanceRepository
             $stmt = $this->db->prepare("
                 SELECT a.*, 
                        u.first_name, u.last_name,
-                       c.course_name, c.course_code
+                       sub.subject_name AS course_name, sub.subject_code AS course_code
                 FROM attendance a
                 JOIN students s ON a.student_id = s.student_id
                 JOIN users u ON s.user_id = u.user_id
-                JOIN courses c ON a.course_id = c.course_id
+                JOIN class_subjects cs ON a.course_id = cs.course_id
+                JOIN subjects sub ON cs.subject_id = sub.subject_id
                 WHERE a.attendance_id = :attendance_id
             ");
             $stmt->execute(['attendance_id' => $attendanceId]);
@@ -297,6 +299,84 @@ class AttendanceRepository
         } catch (\PDOException $e) {
             error_log("Weekly Attendance Rate Error: " . $e->getMessage());
             return 0.0;
+        }
+    }
+
+    /**
+     * Attendance summary for a date range, scoped to an institution and optionally filtered by course ids.
+     * Rate = present / total marked records in range (×100).
+     *
+     * @param int $institutionId
+     * @param string $startDate
+     * @param string $endDate
+     * @param array<int> $courseIds
+     * @return array<string, int|float|string>
+     */
+    public function getSummaryByInstitution(int $institutionId, string $startDate, string $endDate, array $courseIds = []): array
+    {
+        try {
+            $params = [
+                'institution_id' => $institutionId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ];
+
+            $courseFilterSql = '';
+            if (!empty($courseIds)) {
+                $placeholders = [];
+                foreach (array_values($courseIds) as $index => $courseId) {
+                    $key = 'course_id_' . $index;
+                    $placeholders[] = ':' . $key;
+                    $params[$key] = (int) $courseId;
+                }
+                $courseFilterSql = ' AND a.course_id IN (' . implode(', ', $placeholders) . ')';
+            }
+
+            $stmt = $this->db->prepare(" 
+                SELECT
+                    COUNT(*) AS total_records,
+                    COALESCE(SUM(a.status = 'present'), 0) AS present_records,
+                    COALESCE(SUM(a.status = 'absent'), 0) AS absent_records,
+                    COALESCE(SUM(a.status = 'late'), 0) AS late_records,
+                    COALESCE(SUM(a.status = 'excused'), 0) AS excused_records,
+                    COUNT(DISTINCT CONCAT(a.course_id, '|', a.attendance_date)) AS marked_class_days
+                FROM attendance a
+                INNER JOIN students s ON a.student_id = s.student_id
+                WHERE s.institution_id = :institution_id
+                  AND a.attendance_date BETWEEN :start_date AND :end_date"
+                . $courseFilterSql);
+
+            $stmt->execute($params);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            $totalRecords = (int) ($row['total_records'] ?? 0);
+            $presentRecords = (int) ($row['present_records'] ?? 0);
+            $rate = $totalRecords > 0 ? round(($presentRecords / $totalRecords) * 100, 1) : 0.0;
+
+            return [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'total_records' => $totalRecords,
+                'present_records' => $presentRecords,
+                'absent_records' => (int) ($row['absent_records'] ?? 0),
+                'late_records' => (int) ($row['late_records'] ?? 0),
+                'excused_records' => (int) ($row['excused_records'] ?? 0),
+                'marked_class_days' => (int) ($row['marked_class_days'] ?? 0),
+                'rate' => $rate,
+            ];
+        } catch (\PDOException $e) {
+            error_log("Attendance Summary Error: " . $e->getMessage());
+            return [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'total_records' => 0,
+                'present_records' => 0,
+                'absent_records' => 0,
+                'late_records' => 0,
+                'excused_records' => 0,
+                'marked_class_days' => 0,
+                'rate' => 0.0,
+            ];
         }
     }
 

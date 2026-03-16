@@ -304,7 +304,23 @@
 /* ============================================
    Responsive Design
 ============================================ */
+@media (max-width: 1024px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .welcome-illustration {
+        font-size: 3.5rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .page-content {
+        padding: 0rem;
+    }
+
     .welcome-banner {
         flex-direction: column;
         text-align: center;

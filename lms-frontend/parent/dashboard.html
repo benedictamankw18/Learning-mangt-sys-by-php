@@ -214,6 +214,20 @@
                 <p>Total Enrolled Courses</p>
               </div>
             </div>
+
+            <div class="stat-card fade-in stagger-5">
+              <div class="stat-icon bg-secondary">
+                <i class="fas fa-receipt"></i>
+              </div>
+              <div class="stat-details">
+                <h3 id="pendingFeeStatus">N/A</h3>
+                <p>Pending Fee Status</p>
+                <div class="stat-change neutral" id="pendingFeeDetail">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Fee tracking not configured</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Children Overview + Recent Grades -->
@@ -377,6 +391,10 @@
     <script src="parent.js"></script>
     <script src="./js/myprofile.js"></script>
     <script src="./js/my-children.js"></script>
+    <script src="./js/attendance.js"></script>
+    <!-- jsPDF and autoTable for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
     <script>
       // Dynamic section loader with hash routing (loads pages from ./page/)
       (function () {

@@ -108,7 +108,7 @@ async function handleLogin(event) {
         }, 800);
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.warn('Login issue:', error);
         showAlert(error.message || 'Login failed. Please try again.', ALERT_TYPES.ERROR);
         setLoginButtonLoading(false);
     }
@@ -165,7 +165,7 @@ async function handleQuickLogin(role) {
         }, 800);
 
     } catch (error) {
-        console.error('Quick login error:', error);
+        console.warn('Quick login issue:', error);
         showAlert(error.message || 'Quick login failed. Please try again.', ALERT_TYPES.ERROR);
         setLoginButtonLoading(false);
     }

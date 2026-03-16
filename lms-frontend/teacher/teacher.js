@@ -194,7 +194,7 @@ async function handleLogout(e) {
             try {
                 await Auth.logout();
             } catch (error) {
-                console.error('Logout error:', error);
+                console.warn('Logout issue:', error);
                 showToast('Logout failed. Please try again.', 'error');
             }
         }
@@ -214,7 +214,7 @@ async function loadDashboardData() {
             updateStatistics(response.data);
         }
     } catch (error) {
-        console.error('Error loading dashboard data:', error);
+        console.warn('Dashboard data load issue:', error);
         showToast('Failed to load dashboard data. Please refresh.', 'error');
     } finally {
         if (statsGrid) statsGrid.classList.remove('stats-loading');

@@ -1,0 +1,456 @@
+<!-- ===================================================
+     Attendance Details Page Fragment
+     Loaded into admin dashboard via hash routing.
+     JS handled by admin/js/attendance-details.js
+==================================================== -->
+<style>
+  .attd-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: var(--white, #fff);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.07));
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .attd-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary, #006a3f);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--border-radius, 8px);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+  }
+  .attd-back-btn:hover {
+    background: var(--primary-light, #d1fae5);
+    color: #fff;
+  }
+  .attd-icon-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary, #006a3f), #008c54);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+  .attd-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .attd-title {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900, #0f172a);
+  }
+  .attd-subtitle {
+    margin: 0.35rem 0 0;
+    font-size: 0.83rem;
+    color: var(--gray-500, #64748b);
+    line-height: 1.45;
+  }
+  .attd-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  .attd-mode-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.72rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+  .attd-mode-badge.is-edit {
+    background: #ffedd5;
+    color: #9a3412;
+    border-color: #fed7aa;
+  }
+  .attd-mode-badge.is-mark {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+  }
+
+  .attd-toolbar-card {
+    background: var(--white, #fff);
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.07));
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .attd-section-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-400, #94a3b8);
+    margin-bottom: 0.8rem;
+  }
+  .attd-toolbar {
+    display: grid;
+    grid-template-columns: 220px 200px 1fr;
+    gap: 0.6rem;
+  }
+  .attd-input,
+  .attd-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.52rem 0.72rem;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #0f172a;
+  }
+  .attd-input:focus,
+  .attd-select:focus {
+    outline: none;
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.12);
+  }
+
+  .attd-editbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    padding: 0.8rem 1rem;
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #f8fafc;
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+  }
+  .attd-editbar[hidden] {
+    display: none;
+  }
+  .attd-edit-summary {
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 500;
+  }
+  .attd-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .attd-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+  .attd-btn-primary {
+    border-color: var(--primary, #006a3f);
+    background: var(--primary, #006a3f);
+    color: #fff;
+  }
+  .attd-btn-primary:hover {
+    filter: brightness(1.05);
+    border-color: var(--primary, #006a3f);
+    color: #006a3f;
+  }
+
+  .attd-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .attd-stat {
+    background: var(--white, #fff);
+    border-radius: var(--border-radius, 8px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.07));
+    padding: 0.9rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.72rem;
+  }
+  .attd-stat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .attd-stat-icon.total {
+    background: #e2e8f0;
+    color: #334155;
+  }
+  .attd-stat-icon.present {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  .attd-stat-icon.absent {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .attd-stat-icon.late {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  .attd-stat h4 {
+    margin: 0;
+    font-size: 1.22rem;
+    font-weight: 700;
+    color: var(--gray-900, #0f172a);
+    line-height: 1.05;
+  }
+  .attd-stat p {
+    margin: 0.12rem 0 0;
+    font-size: 0.74rem;
+    color: var(--gray-500, #64748b);
+  }
+
+  .attd-table-shell {
+    background: var(--white, #fff);
+    border-radius: var(--border-radius-lg, 12px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.07));
+    overflow: hidden;
+  }
+  .attd-table-wrap {
+    overflow-x: auto;
+  }
+  .attd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+  .attd-table th {
+    text-align: left;
+    padding: 0.65rem 0.75rem;
+    background: var(--gray-50, #f8fafc);
+    font-weight: 600;
+    color: var(--gray-600, #475569);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .attd-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid var(--gray-100, #f1f5f9);
+    color: var(--gray-700, #334155);
+    vertical-align: middle;
+  }
+  .attd-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .attd-table tbody tr:hover td {
+    background: var(--gray-50, #f8fafc);
+  }
+
+  .attd-pill {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.62rem;
+    font-size: 0.73rem;
+    font-weight: 600;
+  }
+  .attd-pill-present {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .attd-pill-absent {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .attd-pill-late {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .attd-pill-excused {
+    background: #dbeafe;
+    color: #1e3a8a;
+  }
+  .attd-pill-unknown,
+  .attd-pill-unmarked {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .attd-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 2rem 1rem;
+  }
+
+  .attd-cell-input,
+  .attd-cell-select {
+    width: 100%;
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+    padding: 0.35rem 0.45rem;
+    font-size: 0.82rem;
+    background: #fff;
+    color: #0f172a;
+  }
+  .attd-cell-select:focus,
+  .attd-cell-input:focus {
+    outline: none;
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 2px rgba(0, 106, 63, 0.12);
+  }
+  .attd-row-dirty td {
+    background: #fffbeb;
+  }
+
+  @media (max-width: 900px) {
+    .attd-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .attd-header {
+      flex-direction: column;
+    }
+    .attd-header-actions {
+      width: 100%;
+      margin-left: 0;
+      justify-content: space-between;
+    }
+  }
+</style>
+
+<div class="attendance-details-page">
+  <div class="attd-header">
+    <button id="attdBackBtn" class="attd-back-btn" type="button">
+      <i class="fas fa-arrow-left"></i>
+      Back to Attendance
+    </button>
+
+    <div class="attd-icon-lg">
+      <i class="fas fa-calendar-check"></i>
+    </div>
+
+    <div class="attd-info">
+      <h2 class="attd-title">Attendance Details</h2>
+      <p class="attd-subtitle" id="attdSubtitle">
+        Open a class from Attendance Management to view detailed student
+        records.
+      </p>
+    </div>
+
+    <div class="attd-header-actions">
+      <span id="attdModeBadge" class="attd-mode-badge">View</span>
+    </div>
+  </div>
+
+  <div class="attd-toolbar-card">
+    <div class="attd-section-title">Filters</div>
+    <div class="attd-toolbar">
+      <input id="attdDate" class="attd-input" type="date" />
+      <select id="attdStatusFilter" class="attd-select">
+        <option value="">All Status</option>
+        <option value="unmarked">Unmarked</option>
+        <option value="present">Present</option>
+        <option value="absent">Absent</option>
+        <option value="late">Late</option>
+        <option value="excused">Excused</option>
+      </select>
+      <input
+        id="attdSearch"
+        class="attd-input"
+        type="search"
+        placeholder="Search by student name or ID"
+      />
+    </div>
+  </div>
+
+  <div id="attdEditBar" class="attd-editbar" hidden>
+    <div id="attdEditSummary" class="attd-edit-summary">No unsaved changes</div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+      <button id="attdMarkAllPresentBtn" class="attd-btn" type="button">
+        Mark All Present
+      </button>
+      <button id="attdDiscardBtn" class="attd-btn" type="button">
+        Discard Changes
+      </button>
+      <button id="attdSaveBtn" class="attd-btn attd-btn-primary" type="button">
+        Save Changes
+      </button>
+    </div>
+  </div>
+
+  <div class="attd-stats">
+    <div class="attd-stat">
+      <div class="attd-stat-icon total"><i class="fas fa-users"></i></div>
+      <div>
+        <h4 id="attdTotal">0</h4>
+        <p>Total Records</p>
+      </div>
+    </div>
+    <div class="attd-stat">
+      <div class="attd-stat-icon present">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div>
+        <h4 id="attdPresent">0</h4>
+        <p>Present</p>
+      </div>
+    </div>
+    <div class="attd-stat">
+      <div class="attd-stat-icon absent"><i class="fas fa-user-times"></i></div>
+      <div>
+        <h4 id="attdAbsent">0</h4>
+        <p>Absent</p>
+      </div>
+    </div>
+    <div class="attd-stat">
+      <div class="attd-stat-icon late"><i class="fas fa-clock"></i></div>
+      <div>
+        <h4 id="attdLate">0</h4>
+        <p>Late</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="attd-table-shell">
+    <div class="attd-table-wrap">
+      <table class="attd-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>ID Number</th>
+            <th>Status</th>
+            <th>Marked At</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody id="attdTableBody">
+          <tr>
+            <td colspan="5" class="attd-empty">
+              Loading attendance details...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

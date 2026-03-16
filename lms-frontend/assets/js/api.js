@@ -55,24 +55,29 @@ class APIService {
         if (!response.ok) {
             // Handle authentication errors
             if (response.status === 401) {
-                // Clear auth state DIRECTLY — do NOT call Auth.logout() here because
-                // Auth.logout() makes another API call (POST /auth/logout) which would
-                // also get a 401, triggering this handler again → infinite loop.
-                try {
-                    if (typeof Auth !== 'undefined') {
-                        Auth.clearToken();
-                        Auth.clearRefreshToken();
-                        Auth.clearUser();
-                    }
-                    if (typeof stopTokenRefresh === 'function') stopTokenRefresh();
-                    localStorage.clear();
-                    sessionStorage.clear();
-                } catch (_) {}
-                window.location.href = '/auth/login.html';
-                const e = new Error('Session expired. Please login again.');
-                e.status = response.status;
-                e.body = data;
-                throw e;
+                // A 401 from the login endpoint means wrong credentials, not an expired session.
+                // Skip the session-expired flow so the server's error message is shown instead.
+                const isLoginEndpoint = response.url && response.url.includes('/api/auth/login');
+                if (!isLoginEndpoint) {
+                    // Clear auth state DIRECTLY — do NOT call Auth.logout() here because
+                    // Auth.logout() makes another API call (POST /auth/logout) which would
+                    // also get a 401, triggering this handler again → infinite loop.
+                    try {
+                        if (typeof Auth !== 'undefined') {
+                            Auth.clearToken();
+                            Auth.clearRefreshToken();
+                            Auth.clearUser();
+                        }
+                        if (typeof stopTokenRefresh === 'function') stopTokenRefresh();
+                    } catch (_) {}
+                    try { sessionStorage.setItem('lms_session_expired', '1'); } catch (_) {}
+                    window.location.href = '/auth/login.html';
+                    const e = new Error('Session expired. Please login again.');
+                    e.status = response.status;
+                    e.body = data;
+                    throw e;
+                }
+                // Login endpoint 401 — fall through to normal error message extraction below
             }
 
             // Extract error message

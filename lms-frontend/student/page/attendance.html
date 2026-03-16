@@ -1,6 +1,596 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-calendar-check"></i> Attendance</h3></div>
-  <div class="card-body">
-    <p>Attendance records and monthly summaries.</p>
+<style>
+  /* ── Student Attendance Page Styles ─────────────────────────── */
+  .sat-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+  .sat-toolbar {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sat-toolbar select {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.87rem;
+    background: #fff;
+  }
+  .sat-toolbar select:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+
+  /* stat cards */
+  .sat-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .sat-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+  .sat-stat h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+  .sat-stat p {
+    margin: 0.18rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  .sat-stat.highlight {
+    border-color: #bae6fd;
+    background: #f0f9ff;
+  }
+  .sat-stat.highlight h4 {
+    color: #0369a1;
+  }
+  .sat-stat.present h4 {
+    color: #15803d;
+  }
+  .sat-stat.absent h4 {
+    color: #b91c1c;
+  }
+  .sat-stat.late h4 {
+    color: #c2410c;
+  }
+  .sat-stat.excused h4 {
+    color: #7c3aed;
+  }
+
+  /* section cards */
+  .sat-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .sat-section-head {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .sat-section-head i {
+    color: #0ea5e9;
+  }
+  .sat-section-body {
+    padding: 0.85rem 1rem;
+  }
+
+  /* two-column layout */
+  .sat-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* calendar */
+  .sat-cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .sat-cal-nav button {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: #334155;
+  }
+  .sat-cal-nav button:hover {
+    border-color: #0ea5e9;
+    color: #0369a1;
+  }
+  .sat-cal-nav span {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .sat-cal {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    text-align: center;
+  }
+  .sat-cal-wd {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .sat-day {
+    border-radius: 7px;
+    padding: 0.3rem 0;
+    font-size: 0.78rem;
+    cursor: default;
+  }
+  .sat-day.empty {
+    background: transparent;
+  }
+  .sat-day.present {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+  }
+  .sat-day.absent {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 600;
+  }
+  .sat-day.late {
+    background: #ffedd5;
+    color: #c2410c;
+    font-weight: 600;
+  }
+  .sat-day.excused {
+    background: #ede9fe;
+    color: #7c3aed;
+    font-weight: 600;
+  }
+  .sat-day.today {
+    outline: 2px solid #0ea5e9;
+    outline-offset: -2px;
+  }
+  .sat-day.other-month {
+    opacity: 0.3;
+  }
+
+  /* subject breakdown table */
+  .sat-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: auto;
+  }
+  .sat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .sat-table th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .sat-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+  }
+  .sat-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .sat-pct-bar {
+    height: 6px;
+    border-radius: 99px;
+    background: #e2e8f0;
+    overflow: hidden;
+    width: 80px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .sat-pct-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #0ea5e9;
+  }
+  .sat-pct-fill.good {
+    background: #22c55e;
+  }
+  .sat-pct-fill.warn {
+    background: #f59e0b;
+  }
+  .sat-pct-fill.bad {
+    background: #ef4444;
+  }
+
+  /* chart */
+  .sat-chart-wrap {
+    position: relative;
+    height: 220px;
+  }
+
+  /* monthly summary */
+  .sat-monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.55rem;
+  }
+  .sat-month-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    background: #fafcff;
+  }
+  .sat-month-card h5 {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+    color: #0369a1;
+  }
+  .sat-month-card .sat-mc-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #334155;
+  }
+
+  /* history table */
+  .sat-history-toolbar {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .sat-history-toolbar input,
+  .sat-history-toolbar select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.82rem;
+  }
+  .sat-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
+  }
+  .sat-badge.present {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .sat-badge.absent {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .sat-badge.late {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+  .sat-badge.excused {
+    background: #ede9fe;
+    color: #7c3aed;
+  }
+
+  .sat-empty,
+  .sat-error {
+    text-align: center;
+    color: #64748b;
+    padding: 1.2rem 1rem;
+    font-size: 0.9rem;
+  }
+  .sat-empty i,
+  .sat-error i {
+    color: #94a3b8;
+    font-size: 2.6rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .sat-error {
+    color: #b91c1c;
+  }
+
+  @media (max-width: 1100px) {
+    .sat-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 900px) {
+    .sat-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sat-cols {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .sat-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="card" id="studentAttendancePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-calendar-check"></i> My Attendance</h3>
+    <button class="btn btn-sm btn-outline" id="satRefreshBtn">
+      <i class="fas fa-rotate"></i> Refresh
+    </button>
   </div>
+  <div class="card-body sat-wrap" id="satContent">
+    <!-- Filters toolbar -->
+    <div class="sat-toolbar">
+      <select id="satSubjectFilter">
+        <option value="">All Subjects</option>
+      </select>
+      <select id="satYearFilter">
+        <option value="">All Time</option>
+      </select>
+    </div>
+
+    <!-- Overview stat cards -->
+    <div class="sat-stats">
+      <div class="sat-stat highlight">
+        <h4 id="satPct">—%</h4>
+        <p>Attendance Rate</p>
+      </div>
+      <div class="sat-stat present">
+        <h4 id="satPresent">—</h4>
+        <p>Present Days</p>
+      </div>
+      <div class="sat-stat absent">
+        <h4 id="satAbsent">—</h4>
+        <p>Absent Days</p>
+      </div>
+      <div class="sat-stat late">
+        <h4 id="satLate">—</h4>
+        <p>Late / Tardy</p>
+      </div>
+      <div class="sat-stat excused">
+        <h4 id="satExcused">—</h4>
+        <p>Excused</p>
+      </div>
+    </div>
+
+    <!-- Calendar + Subject Breakdown (side by side on wide screens) -->
+    <div class="sat-cols">
+      <!-- Attendance Calendar -->
+      <div class="sat-section">
+        <div class="sat-section-head">
+          <i class="fas fa-calendar-days"></i> Attendance Calendar
+        </div>
+        <div class="sat-section-body">
+          <div class="sat-cal-nav">
+            <button id="satCalPrev"><i class="fas fa-chevron-left"></i></button>
+            <span id="satCalMonthLabel">—</span>
+            <button id="satCalNext">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="sat-cal" id="satCal">
+            <div class="sat-cal-wd">Su</div>
+            <div class="sat-cal-wd">Mo</div>
+            <div class="sat-cal-wd">Tu</div>
+            <div class="sat-cal-wd">We</div>
+            <div class="sat-cal-wd">Th</div>
+            <div class="sat-cal-wd">Fr</div>
+            <div class="sat-cal-wd">Sa</div>
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 0.75rem;
+              flex-wrap: wrap;
+              margin-top: 0.6rem;
+              font-size: 0.75rem;
+              color: #475569;
+            "
+          >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #dcfce7;
+                  margin-right: 3px;
+                "
+              ></span
+              >Present</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #fee2e2;
+                  margin-right: 3px;
+                "
+              ></span
+              >Absent</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #ffedd5;
+                  margin-right: 3px;
+                "
+              ></span
+              >Late</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #ede9fe;
+                  margin-right: 3px;
+                "
+              ></span
+              >Excused</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject Breakdown -->
+      <div class="sat-section">
+        <div class="sat-section-head">
+          <i class="fas fa-book-open"></i> Attendance by Subject
+        </div>
+        <div class="sat-section-body">
+          <div class="sat-table-wrap">
+            <table class="sat-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Total</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Rate</th>
+                </tr>
+              </thead>
+              <tbody id="satSubjectTable">
+                <tr>
+                  <td colspan="5" class="sat-empty">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trends chart + Monthly Summary (side by side on wide screens) -->
+    <div class="sat-cols">
+      <!-- Attendance Trend Chart -->
+      <div class="sat-section">
+        <div class="sat-section-head">
+          <i class="fas fa-chart-line"></i> Monthly Attendance Trend
+        </div>
+        <div class="sat-section-body">
+          <div class="sat-chart-wrap"><canvas id="satTrendChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Monthly Summary -->
+      <div class="sat-section">
+        <div class="sat-section-head">
+          <i class="fas fa-table-cells"></i> Monthly Summary
+        </div>
+        <div class="sat-section-body">
+          <div class="sat-monthly-grid" id="satMonthlySummary">
+            <div class="sat-empty"><i class="fas fa-spinner fa-spin"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Absence Reasons -->
+    <div class="sat-section" id="satReasonsSection" style="display: none">
+      <div class="sat-section-head">
+        <i class="fas fa-note-sticky"></i> Absence / Remarks
+      </div>
+      <div class="sat-section-body">
+        <div class="sat-table-wrap">
+          <table class="sat-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="satReasonsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed History -->
+    <div class="sat-section">
+      <div class="sat-section-head">
+        <i class="fas fa-list-ul"></i> Attendance History
+      </div>
+      <div class="sat-section-body">
+        <div class="sat-history-toolbar">
+          <input type="date" id="satHistStart" title="From" />
+          <input type="date" id="satHistEnd" title="To" />
+          <select id="satHistStatus">
+            <option value="">All Statuses</option>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="late">Late</option>
+            <option value="excused">Excused</option>
+          </select>
+          <button class="btn btn-sm btn-outline" id="satHistFilterBtn">
+            <i class="fas fa-filter"></i> Filter
+          </button>
+          <button
+            class="btn btn-sm btn-outline"
+            id="satExportBtn"
+            style="margin-left: auto"
+          >
+            <i class="fas fa-file-pdf"></i> Export PDF
+          </button>
+        </div>
+        <div class="sat-table-wrap">
+          <table class="sat-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="satHistoryTable">
+              <tr>
+                <td colspan="4" class="sat-empty">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /sat-wrap -->
 </div>
+<!-- /card -->
+
+<!-- jsPDF and autoTable for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>

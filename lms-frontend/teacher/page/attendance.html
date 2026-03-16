@@ -1,6 +1,746 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-user-check"></i> Attendance</h3></div>
-  <div class="card-body">
-    <p>Take attendance and view attendance history.</p>
+<!-- =======================================================
+     Teacher Attendance Page Fragment
+     Loaded into teacher dashboard via hash routing (#attendance).
+     JS: teacher/js/attendance.js
+======================================================= -->
+<style>
+  /* ---- page shell (aligned with my-classes visual language) ---- */
+  .ta-shell {
+    display: grid;
+    gap: 1rem;
+  }
+  .ta-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+  .ta-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .ta-title h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  .ta-title p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+  .ta-header-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ---- mode tabs ---- */
+  .ta-mode-tabs {
+    display: flex;
+    gap: 0;
+    background: #f4f7fb;
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 1rem;
+    width: fit-content;
+    border: 1px solid #e2e8f0;
+  }
+  .ta-mode-tab {
+    padding: 0.45rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.2s;
+  }
+  .ta-mode-tab.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  }
+
+  /* ---- filter row ---- */
+  .ta-filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+  .ta-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .ta-filter-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ta-select,
+  .ta-date {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    min-width: 160px;
+    cursor: pointer;
+  }
+  .ta-select:focus,
+  .ta-date:focus {
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  /* ---- stats strip ---- */
+  .ta-stats-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .ta-stat-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    text-align: center;
+  }
+  .ta-stat-card .stat-val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    line-height: 1;
+  }
+  .ta-stat-card .stat-lbl {
+    font-size: 0.72rem;
+    color: #64748b;
+    margin-top: 0.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ta-stat-card.present .stat-val {
+    color: #16a34a;
+  }
+  .ta-stat-card.absent .stat-val {
+    color: #dc2626;
+  }
+  .ta-stat-card.late .stat-val {
+    color: #d97706;
+  }
+  .ta-stat-card.excused .stat-val {
+    color: #0284c7;
+  }
+
+  /* ---- bulk bar ---- */
+  .ta-bulk-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0.9rem;
+  }
+  .ta-bulk-btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: #1e293b;
+    transition: all 0.15s;
+  }
+  .ta-bulk-btn:hover {
+    background: #f8fafc;
+  }
+  .ta-bulk-btn.present {
+    border-color: #bbf7d0;
+    color: #16a34a;
+    background: #f0fdf4;
+  }
+  .ta-bulk-btn.absent {
+    border-color: #fecaca;
+    color: #dc2626;
+    background: #fef2f2;
+  }
+
+  /* ---- table ---- */
+  .ta-table-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .ta-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .ta-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    white-space: nowrap;
+  }
+  .ta-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+    vertical-align: middle;
+  }
+  .ta-table tr:last-child td {
+    border-bottom: none;
+  }
+  .ta-table tr:hover td {
+    background: #f8fafc;
+  }
+
+  /* ---- status buttons ---- */
+  .ta-status-group {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+  .ta-status-btn {
+    min-width: 72px;
+    padding: 0.28rem 0.6rem;
+    border-radius: 6px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #64748b;
+  }
+  .ta-status-btn.active.present {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #16a34a;
+  }
+  .ta-status-btn.active.absent {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+  .ta-status-btn.active.late {
+    background: #fef9c3;
+    border-color: #fde047;
+    color: #a16207;
+  }
+  .ta-status-btn.active.excused {
+    background: #e0f2fe;
+    border-color: #7dd3fc;
+    color: #0369a1;
+  }
+
+  /* ---- past attendance view ---- */
+  .ta-history-table-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: auto;
+  }
+  .ta-history-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+  }
+  .ta-history-table th {
+    padding: 0.65rem 1rem;
+    background: #f8fafc;
+    text-align: left;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .ta-history-table td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.85rem;
+  }
+  .ta-history-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* ---- badge ---- */
+  .ta-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+  .ta-badge.present {
+    background: #dcfce7;
+    color: #16a34a;
+  }
+  .ta-badge.absent {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+  .ta-badge.late {
+    background: #fef9c3;
+    color: #a16207;
+  }
+  .ta-badge.excused {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  /* ---- empty / loading ---- */
+  .ta-empty {
+    padding: 3rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .ta-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0.4;
+  }
+  .ta-loading {
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+  }
+
+  /* ---- submit footer ---- */
+  .ta-submit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    background: #fafcff;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .ta-unsaved-note {
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+  .ta-unsaved-note span {
+    font-weight: 700;
+    color: #d97706;
+  }
+
+  /* ---- import modal (roles-style) ---- */
+  .ta-import-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .ta-import-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .ta-import-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(14px);
+    transition: transform 0.2s;
+  }
+  .ta-import-overlay.open .ta-import-modal {
+    transform: translateY(0);
+  }
+  .ta-import-head {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ta-import-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+  .ta-import-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .ta-import-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .ta-import-body {
+    padding: 1rem 1.2rem;
+  }
+  .ta-import-hint {
+    font-size: 0.84rem;
+    color: #64748b;
+    margin: 0 0 0.9rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .ta-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.7rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #64748b;
+  }
+  .ta-drop-zone:hover,
+  .ta-drop-zone.dragover {
+    border-color: #3090cf;
+    background: #f0f9ff;
+  }
+  .ta-drop-zone i {
+    font-size: 1.9rem;
+    margin-bottom: 0.45rem;
+    color: #94a3b8;
+  }
+  .ta-drop-zone p {
+    margin: 0.2rem 0 0;
+    font-size: 0.84rem;
+  }
+  .ta-import-preview {
+    margin-top: 0.8rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    color: #334155;
+    display: none;
+  }
+  .ta-import-foot {
+    padding: 0.85rem 1.2rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border-radius: 0 0 14px 14px;
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 768px) {
+    .ta-filters {
+      flex-direction: column;
+    }
+    .ta-select,
+    .ta-date {
+      min-width: 100%;
+      width: 100%;
+    }
+    .ta-stats-strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ta-status-group {
+      gap: 0.2rem;
+    }
+    .ta-status-btn {
+      min-width: 58px;
+      font-size: 0.7rem;
+    }
+  }
+</style>
+
+<div class="card" id="teacherAttendancePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-user-check"></i> Attendance</h3>
+  </div>
+  <div class="card-body ta-shell">
+    <div class="ta-toolbar">
+      <div class="ta-title">
+        <h3>Daily Attendance Workspace</h3>
+        <p>
+          Track attendance, import offline sheets, and review attendance
+          history.
+        </p>
+      </div>
+      <div class="ta-header-actions">
+        <button class="btn btn-outline btn-sm" id="taImportCsvBtn">
+          <i class="fas fa-file-import"></i> Import CSV
+        </button>
+        <button class="btn btn-outline btn-sm" id="taExportCsvBtn">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+        <button class="btn btn-outline btn-sm" id="taExportPdfBtn">
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- MODE TABS -->
+    <div class="ta-mode-tabs">
+      <button class="ta-mode-tab active" data-mode="mark" id="taModeMarkBtn">
+        <i class="fas fa-edit"></i> Mark Attendance
+      </button>
+      <button class="ta-mode-tab" data-mode="history" id="taModeHistoryBtn">
+        <i class="fas fa-history"></i> Past Attendance
+      </button>
+    </div>
+
+    <!-- ==================== MARK ATTENDANCE PANEL ==================== -->
+    <div id="taMarkPanel">
+      <!-- Filters -->
+      <div class="ta-filters">
+        <div class="ta-filter-group">
+          <label>Class</label>
+          <select class="ta-select" id="taClassFilter">
+            <option value="">— Select Class —</option>
+          </select>
+        </div>
+        <div class="ta-filter-group">
+          <label>Subject</label>
+          <select class="ta-select" id="taSubjectFilter">
+            <option value="">— Select Subject —</option>
+          </select>
+        </div>
+        <div class="ta-filter-group">
+          <label>Date</label>
+          <input type="date" class="ta-date" id="taMarkDate" />
+        </div>
+        <div class="ta-filter-group" style="justify-content: flex-end">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary btn-sm" id="taLoadStudentsBtn">
+            <i class="fas fa-users"></i> Load Students
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats strip (shown after students load) -->
+      <div class="ta-stats-strip" id="taStatsStrip" style="display: none">
+        <div class="ta-stat-card">
+          <div class="stat-val" id="taStatTotal">0</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+        <div class="ta-stat-card present">
+          <div class="stat-val" id="taStatPresent">0</div>
+          <div class="stat-lbl">Present</div>
+        </div>
+        <div class="ta-stat-card absent">
+          <div class="stat-val" id="taStatAbsent">0</div>
+          <div class="stat-lbl">Absent</div>
+        </div>
+        <div class="ta-stat-card late">
+          <div class="stat-val" id="taStatLate">0</div>
+          <div class="stat-lbl">Late</div>
+        </div>
+        <div class="ta-stat-card excused">
+          <div class="stat-val" id="taStatExcused">0</div>
+          <div class="stat-lbl">Excused</div>
+        </div>
+        <div class="ta-stat-card" style="border-color: #d1fae5">
+          <div
+            class="stat-val"
+            id="taStatRate"
+            style="color: var(--primary, #006a3f)"
+          >
+            —
+          </div>
+          <div class="stat-lbl">Attendance %</div>
+        </div>
+      </div>
+
+      <!-- Bulk actions -->
+      <div class="ta-bulk-bar" id="taBulkBar" style="display: none">
+        <span
+          style="
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary, #64748b);
+            margin-right: 0.25rem;
+          "
+          >Bulk:</span
+        >
+        <button class="ta-bulk-btn present" id="taBulkPresent">
+          <i class="fas fa-check"></i> All Present
+        </button>
+        <button class="ta-bulk-btn absent" id="taBulkAbsent">
+          <i class="fas fa-times"></i> All Absent
+        </button>
+        <button class="ta-bulk-btn" id="taBulkClear">
+          <i class="fas fa-eraser"></i> Clear All
+        </button>
+      </div>
+
+      <!-- Student attendance table -->
+      <div class="ta-table-wrap" id="taStudentTableWrap">
+        <div class="ta-empty" id="taEmptyMsg">
+          <i class="fas fa-users"></i>
+          <p>
+            Select a class and date then click <strong>Load Students</strong> to
+            begin.
+          </p>
+        </div>
+        <table class="ta-table" id="taStudentTable" style="display: none">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Student</th>
+              <th>Student ID</th>
+              <th>Status</th>
+              <th>Note (optional)</th>
+            </tr>
+          </thead>
+          <tbody id="taStudentTbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Submit footer -->
+      <div class="ta-submit-footer" id="taSubmitFooter" style="display: none">
+        <div class="ta-unsaved-note">
+          <span id="taUnmarkedCount">0</span> student(s) not yet marked
+        </div>
+        <button class="btn btn-primary" id="taSubmitBtn">
+          <i class="fas fa-paper-plane"></i> Submit Attendance
+        </button>
+      </div>
+    </div>
+    <!-- /taMarkPanel -->
+
+    <!-- ==================== HISTORY PANEL ==================== -->
+    <div id="taHistoryPanel" style="display: none">
+      <!-- History filters -->
+      <div class="ta-filters">
+        <div class="ta-filter-group">
+          <label>Class</label>
+          <select class="ta-select" id="taHistClassFilter">
+            <option value="">— All Classes —</option>
+          </select>
+        </div>
+        <div class="ta-filter-group">
+          <label>Subject</label>
+          <select class="ta-select" id="taHistSubjectFilter">
+            <option value="">— All Subjects —</option>
+          </select>
+        </div>
+        <div class="ta-filter-group">
+          <label>From</label>
+          <input type="date" class="ta-date" id="taHistFrom" />
+        </div>
+        <div class="ta-filter-group">
+          <label>To</label>
+          <input type="date" class="ta-date" id="taHistTo" />
+        </div>
+        <div class="ta-filter-group" style="justify-content: flex-end">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary btn-sm" id="taHistLoadBtn">
+            <i class="fas fa-search"></i> Search
+          </button>
+        </div>
+      </div>
+
+      <!-- History table -->
+      <div class="ta-history-table-wrap">
+        <div class="ta-empty" id="taHistEmptyMsg">
+          <i class="fas fa-calendar-alt"></i>
+          <p>
+            Select filters and click <strong>Search</strong> to view past
+            attendance records.
+          </p>
+        </div>
+        <table class="ta-history-table" id="taHistTable" style="display: none">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Class</th>
+              <th>Subject</th>
+              <th>Student</th>
+              <th>Status</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="taHistTbody"></tbody>
+        </table>
+        <div class="ta-loading" id="taHistLoading" style="display: none">
+          <i class="fas fa-spinner fa-spin"></i> Loading…
+        </div>
+      </div>
+    </div>
+    <!-- /taHistoryPanel -->
+  </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="ta-import-overlay" id="taImportModalOverlay">
+  <div class="ta-import-modal">
+    <div class="ta-import-head">
+      <h3>Import Attendance from CSV</h3>
+      <button class="ta-import-close" id="taImportModalClose" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="ta-import-body">
+      <p class="ta-import-hint">
+        Use columns <code>student_id,status,remarks</code> (or
+        <code>student_name,status,remarks</code>).
+        <button
+          type="button"
+          class="btn btn-sm btn-outline"
+          id="taDownloadImportTemplateBtn"
+        >
+          <i class="fas fa-download"></i> Template
+        </button>
+      </p>
+
+      <div class="ta-drop-zone" id="taImportDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p><strong>Drop CSV file here</strong> or click to browse</p>
+        <input
+          type="file"
+          id="taImportCsvInput"
+          accept=".csv,text/csv"
+          style="display: none"
+        />
+      </div>
+
+      <div class="ta-import-preview" id="taImportPreview"></div>
+    </div>
+    <div class="ta-import-foot">
+      <button class="btn btn-outline" id="taImportCancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="taImportConfirmBtn" disabled>
+        Import
+      </button>
+    </div>
   </div>
 </div>

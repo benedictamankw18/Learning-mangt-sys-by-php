@@ -89,6 +89,47 @@ class AttendanceController
         Response::success($attendance);
     }
 
+    public function getInstitutionSummary(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->hasRole(['admin'])) {
+            Response::forbidden('Only admins can view attendance summary');
+            return;
+        }
+
+        $institutionId = isset($user['institution_id']) ? (int) $user['institution_id'] : 0;
+        if ($institutionId <= 0) {
+            Response::badRequest('Institution context is required');
+            return;
+        }
+
+        $startDate = isset($_GET['start_date']) ? trim((string) $_GET['start_date']) : '';
+        $endDate = isset($_GET['end_date']) ? trim((string) $_GET['end_date']) : '';
+
+        if (!$this->isValidDate($startDate) || !$this->isValidDate($endDate)) {
+            Response::badRequest('Valid start_date and end_date are required in Y-m-d format');
+            return;
+        }
+
+        if ($startDate > $endDate) {
+            Response::badRequest('start_date cannot be after end_date');
+            return;
+        }
+
+        $courseIds = [];
+        if (isset($_GET['course_ids']) && trim((string) $_GET['course_ids']) !== '') {
+            $courseIds = array_values(array_filter(array_map(function ($value) {
+                return (int) trim((string) $value);
+            }, explode(',', (string) $_GET['course_ids'])), function ($value) {
+                return $value > 0;
+            }));
+        }
+
+        $summary = $this->attendanceRepo->getSummaryByInstitution($institutionId, $startDate, $endDate, $courseIds);
+        Response::success($summary);
+    }
+
     public function markAttendance(array $user): void
     {
         $roleMiddleware = new RoleMiddleware($user);
@@ -284,5 +325,15 @@ class AttendanceController
         } else {
             Response::serverError('Failed to delete attendance');
         }
+    }
+
+    private function isValidDate(string $value): bool
+    {
+        if ($value === '') {
+            return false;
+        }
+
+        $date = \DateTime::createFromFormat('Y-m-d', $value);
+        return $date && $date->format('Y-m-d') === $value;
     }
 }

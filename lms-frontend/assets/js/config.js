@@ -166,7 +166,7 @@ const API_ENDPOINTS = {
 
     // Attendance
     ATTENDANCE: '/api/attendance',
-    STUDENT_ATTENDANCE: (studentId) => `/api/attendance/student/${studentId}`,
+    STUDENT_ATTENDANCE: (studentId) => `/api/students/${studentId}/attendance`,
 
     // Announcements
     ANNOUNCEMENTS: '/api/announcements',
@@ -226,23 +226,23 @@ const DEFAULT_PAGE_SIZE = 20;
 const DEMO_CREDENTIALS = {
     [USER_ROLES.SUPER_ADMIN]: {
         login: 'superadmin',
-        password: 'password',
+        password: 'Password@123',
     },
     [USER_ROLES.ADMIN]: {
         login: 'admin',
-        password: 'password',
+        password: 'Password@123',
     },
     [USER_ROLES.TEACHER]: {
         login: 'kofi.mensah',
-        password: 'password',
+        password: 'Password@123',
     },
     [USER_ROLES.STUDENT]: {
         login: 'kwame.osei',
-        password: 'password',
+        password: 'Password@123',
     },
     [USER_ROLES.PARENT]: {
         login: 'yaw.osei',
-        password: 'password',
+        password: 'Password@123',
     },
 };
 

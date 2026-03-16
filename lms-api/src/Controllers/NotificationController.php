@@ -19,6 +19,20 @@ class NotificationController
         $this->messageRepo = new MessageRepository();
     }
 
+    private function isAdminUser(array $user): bool
+    {
+        $roleName = strtolower((string) ($user['role'] ?? ''));
+        if ($roleName === 'admin' || $roleName === 'super_admin' || $roleName === 'superadmin') {
+            return true;
+        }
+
+        if (isset($user['role_id']) && (int) $user['role_id'] === 1) {
+            return true;
+        }
+
+        return !empty($user['is_super_admin']);
+    }
+
     /**
      * Get notifications for the authenticated user
      * GET /api/notifications
@@ -81,10 +95,8 @@ class NotificationController
      */
     public function create(array $user): void
     {
-        $roleId = $user['role_id'];
-
         // Only admins can create notifications
-        if ($roleId !== 1) {
+        if (!$this->isAdminUser($user)) {
             Response::error('Unauthorized. Admin access required.', 403);
             return;
         }

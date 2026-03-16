@@ -1,6 +1,664 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-calendar-check"></i> Attendance</h3></div>
-  <div class="card-body">
-    <p>Attendance records and summaries for children.</p>
+<style>
+  /* ── Parent Attendance Page Styles ─────────────────────────── */
+  .pat-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  /* child selector bar */
+  .pat-toolbar {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pat-toolbar select,
+  .pat-toolbar input {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.87rem;
+    background: #fff;
+  }
+  .pat-toolbar select:focus,
+  .pat-toolbar input:focus {
+    outline: none;
+    border-color: #a855f7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+  }
+
+  /* stat cards */
+  .pat-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .pat-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+  .pat-stat h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+  .pat-stat p {
+    margin: 0.18rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  .pat-stat.highlight {
+    border-color: #e9d5ff;
+    background: #faf5ff;
+  }
+  .pat-stat.highlight h4 {
+    color: #7e22ce;
+  }
+  .pat-stat.present h4 {
+    color: #15803d;
+  }
+  .pat-stat.absent h4 {
+    color: #b91c1c;
+  }
+  .pat-stat.late h4 {
+    color: #c2410c;
+  }
+  .pat-stat.excused h4 {
+    color: #7c3aed;
+  }
+
+  /* alerts strip */
+  .pat-alerts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .pat-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.83rem;
+    border: 1px solid #fee2e2;
+    background: #fff5f5;
+    color: #7f1d1d;
+  }
+  .pat-alert i {
+    margin-top: 2px;
+    color: #ef4444;
+    flex-shrink: 0;
+  }
+  .pat-alert.late {
+    border-color: #ffedd5;
+    background: #fff7ed;
+    color: #7c2d12;
+  }
+  .pat-alert.late i {
+    color: #f97316;
+  }
+
+  /* section cards */
+  .pat-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .pat-section-head {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .pat-section-head i {
+    color: #a855f7;
+  }
+  .pat-section-body {
+    padding: 0.85rem 1rem;
+  }
+
+  /* two-col layout */
+  .pat-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* calendar */
+  .pat-cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .pat-cal-nav button {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: #334155;
+  }
+  .pat-cal-nav button:hover {
+    border-color: #a855f7;
+    color: #7e22ce;
+  }
+  .pat-cal-nav span {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .pat-cal {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    text-align: center;
+  }
+  .pat-cal-wd {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 600;
+    padding: 0.25rem 0;
+  }
+  .pat-day {
+    border-radius: 7px;
+    padding: 0.3rem 0;
+    font-size: 0.78rem;
+    cursor: default;
+  }
+  .pat-day.empty {
+    background: transparent;
+  }
+  .pat-day.present {
+    background: #dcfce7;
+    color: #15803d;
+    font-weight: 600;
+  }
+  .pat-day.absent {
+    background: #fee2e2;
+    color: #b91c1c;
+    font-weight: 600;
+  }
+  .pat-day.late {
+    background: #ffedd5;
+    color: #c2410c;
+    font-weight: 600;
+  }
+  .pat-day.excused {
+    background: #ede9fe;
+    color: #7c3aed;
+    font-weight: 600;
+  }
+  .pat-day.today {
+    outline: 2px solid #a855f7;
+    outline-offset: -2px;
+  }
+
+  /* tables */
+  .pat-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: auto;
+  }
+  .pat-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .pat-table th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .pat-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+  }
+  .pat-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* progress bars */
+  .pat-pct-bar {
+    height: 6px;
+    border-radius: 99px;
+    background: #e2e8f0;
+    overflow: hidden;
+    width: 80px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  .pat-pct-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #a855f7;
+  }
+  .pat-pct-fill.good {
+    background: #22c55e;
+  }
+  .pat-pct-fill.warn {
+    background: #f59e0b;
+  }
+  .pat-pct-fill.bad {
+    background: #ef4444;
+  }
+
+  /* badges */
+  .pat-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    white-space: nowrap;
+  }
+  .pat-badge.present {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .pat-badge.absent {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .pat-badge.late {
+    background: #ffedd5;
+    color: #c2410c;
+  }
+  .pat-badge.excused {
+    background: #ede9fe;
+    color: #7c3aed;
+  }
+
+  /* chart */
+  .pat-chart-wrap {
+    position: relative;
+    height: 220px;
+  }
+
+  /* monthly summary */
+  .pat-monthly-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.55rem;
+  }
+  .pat-month-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    background: #fdfaff;
+  }
+  .pat-month-card h5 {
+    margin: 0 0 0.35rem;
+    font-size: 0.82rem;
+    color: #7e22ce;
+  }
+  .pat-month-card .pat-mc-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #334155;
+  }
+
+  /* compare bar */
+  .pat-compare-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    margin-bottom: 0.5rem;
+  }
+  .pat-compare-label {
+    width: 90px;
+    color: #475569;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .pat-compare-bar-bg {
+    flex: 1;
+    height: 10px;
+    border-radius: 99px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .pat-compare-fill {
+    height: 100%;
+    border-radius: 99px;
+  }
+  .pat-compare-val {
+    width: 38px;
+    text-align: right;
+    font-weight: 600;
+  }
+
+  /* history toolbar */
+  .pat-hist-toolbar {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+  .pat-hist-toolbar input,
+  .pat-hist-toolbar select {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.82rem;
+  }
+
+  .pat-empty,
+  .pat-error {
+    text-align: center;
+    color: #64748b;
+    padding: 1.2rem 1rem;
+    font-size: 0.9rem;
+  }
+  .pat-empty i,
+  .pat-error i {
+    color: #94a3b8;
+    font-size: 2.6rem;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .pat-error {
+    color: #b91c1c;
+  }
+
+  @media (max-width: 1100px) {
+    .pat-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 900px) {
+    .pat-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pat-cols {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .pat-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="card" id="parentAttendancePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-calendar-check"></i> Child Attendance</h3>
+    <button class="btn btn-sm btn-outline" id="patRefreshBtn">
+      <i class="fas fa-rotate"></i> Refresh
+    </button>
   </div>
+  <div class="card-body pat-wrap">
+    <!-- Child selector + filters -->
+    <div class="pat-toolbar">
+      <select id="patChildSelector">
+        <option value="">Loading children…</option>
+      </select>
+      <select id="patSubjectFilter">
+        <option value="">All Subjects</option>
+      </select>
+      <select id="patYearFilter">
+        <option value="">All Time</option>
+      </select>
+    </div>
+
+    <!-- Stat strip -->
+    <div class="pat-stats">
+      <div class="pat-stat highlight">
+        <h4 id="patPct">—%</h4>
+        <p>Attendance Rate</p>
+      </div>
+      <div class="pat-stat present">
+        <h4 id="patPresent">—</h4>
+        <p>Present Days</p>
+      </div>
+      <div class="pat-stat absent">
+        <h4 id="patAbsent">—</h4>
+        <p>Absent Days</p>
+      </div>
+      <div class="pat-stat late">
+        <h4 id="patLate">—</h4>
+        <p>Late / Tardy</p>
+      </div>
+      <div class="pat-stat excused">
+        <h4 id="patExcused">—</h4>
+        <p>Excused</p>
+      </div>
+    </div>
+
+    <!-- Absence alerts -->
+    <div class="pat-section" id="patAlertsSection">
+      <div class="pat-section-head">
+        <i class="fas fa-triangle-exclamation"></i> Absence Alerts
+      </div>
+      <div class="pat-section-body">
+        <div id="patAlertsList">
+          <div class="pat-empty"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar + Subject Breakdown -->
+    <div class="pat-cols">
+      <!-- Calendar -->
+      <div class="pat-section">
+        <div class="pat-section-head">
+          <i class="fas fa-calendar-days"></i> Attendance Calendar
+        </div>
+        <div class="pat-section-body">
+          <div class="pat-cal-nav">
+            <button id="patCalPrev"><i class="fas fa-chevron-left"></i></button>
+            <span id="patCalMonthLabel">—</span>
+            <button id="patCalNext">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+          <div class="pat-cal" id="patCal">
+            <div class="pat-cal-wd">Su</div>
+            <div class="pat-cal-wd">Mo</div>
+            <div class="pat-cal-wd">Tu</div>
+            <div class="pat-cal-wd">We</div>
+            <div class="pat-cal-wd">Th</div>
+            <div class="pat-cal-wd">Fr</div>
+            <div class="pat-cal-wd">Sa</div>
+          </div>
+          <div
+            style="
+              display: flex;
+              gap: 0.75rem;
+              flex-wrap: wrap;
+              margin-top: 0.6rem;
+              font-size: 0.75rem;
+              color: #475569;
+            "
+          >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #dcfce7;
+                  margin-right: 3px;
+                "
+              ></span
+              >Present</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #fee2e2;
+                  margin-right: 3px;
+                "
+              ></span
+              >Absent</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #ffedd5;
+                  margin-right: 3px;
+                "
+              ></span
+              >Late</span
+            >
+            <span
+              ><span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  border-radius: 3px;
+                  background: #ede9fe;
+                  margin-right: 3px;
+                "
+              ></span
+              >Excused</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Subject breakdown -->
+      <div class="pat-section">
+        <div class="pat-section-head">
+          <i class="fas fa-book-open"></i> Attendance by Subject
+        </div>
+        <div class="pat-section-body">
+          <div class="pat-table-wrap">
+            <table class="pat-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Total</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>Rate</th>
+                </tr>
+              </thead>
+              <tbody id="patSubjectTable">
+                <tr>
+                  <td colspan="5" class="pat-empty">
+                    <i class="fas fa-spinner fa-spin"></i>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trend + Compare with class average -->
+    <div class="pat-cols">
+      <div class="pat-section">
+        <div class="pat-section-head">
+          <i class="fas fa-chart-line"></i> Monthly Attendance Trend
+        </div>
+        <div class="pat-section-body">
+          <div class="pat-chart-wrap"><canvas id="patTrendChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="pat-section">
+        <div class="pat-section-head">
+          <i class="fas fa-users-viewfinder"></i> Compare with Class Average
+        </div>
+        <div class="pat-section-body" id="patCompareBody">
+          <div class="pat-empty"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly summary -->
+    <div class="pat-section">
+      <div class="pat-section-head">
+        <i class="fas fa-table-cells"></i> Monthly Summary
+      </div>
+      <div class="pat-section-body">
+        <div class="pat-monthly-grid" id="patMonthlySummary">
+          <div class="pat-empty"><i class="fas fa-spinner fa-spin"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attendance History -->
+    <div class="pat-section">
+      <div class="pat-section-head">
+        <i class="fas fa-list-ul"></i> Detailed History
+      </div>
+      <div class="pat-section-body">
+        <div class="pat-hist-toolbar">
+          <input type="date" id="patHistStart" title="From" />
+          <input type="date" id="patHistEnd" title="To" />
+          <select id="patHistStatus">
+            <option value="">All Statuses</option>
+            <option value="present">Present</option>
+            <option value="absent">Absent</option>
+            <option value="late">Late</option>
+            <option value="excused">Excused</option>
+          </select>
+          <button class="btn btn-sm btn-outline" id="patHistFilterBtn">
+            <i class="fas fa-filter"></i> Filter
+          </button>
+          <button
+            class="btn btn-sm btn-outline"
+            id="patExportBtn"
+            style="margin-left: auto"
+          >
+            <i class="fas fa-file-pdf"></i> Export PDF
+          </button>
+        </div>
+        <div class="pat-table-wrap">
+          <table class="pat-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="patHistoryTable">
+              <tr>
+                <td colspan="4" class="pat-empty">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /pat-wrap -->
 </div>
+<!-- /card -->
+
+<!-- jsPDF and autoTable for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>

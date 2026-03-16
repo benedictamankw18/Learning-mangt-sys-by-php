@@ -431,6 +431,7 @@ class UserRepository
                         t2.years_of_experience,
                         t2.employment_end_date,
                         t2.uuid AS teacher_uuid,
+                        s3.student_id,
                         s3.student_id_number,
                         s3.enrollment_date,
                         s3.parent_name,

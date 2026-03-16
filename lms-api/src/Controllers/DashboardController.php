@@ -423,6 +423,7 @@ class DashboardController
                 'avg_attendance'  => $childCount > 0 ? round($totalAttendance / $childCount, 1) : 0,
                 'recent_grades'   => array_slice($allGrades, 0, 5),
                 'upcoming_events' => $this->announcementRepo->getRecentForStudent(5),
+                'pending_fee_status' => $this->buildPendingFeeStatus($childrenData),
             ];
 
             Response::success($stats);
@@ -430,5 +431,33 @@ class DashboardController
             error_log("Parent Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
+    }
+
+    /**
+     * Build pending fee status payload for parent dashboard.
+     *
+     * The LMS currently has a parent fees page but no stable fee ledger API
+     * contract in this dashboard controller yet, so return a safe, explicit
+     * status payload that the UI can render when fee tracking is not configured.
+     */
+    private function buildPendingFeeStatus(array $childrenData): array
+    {
+        if (empty($childrenData)) {
+            return [
+                'applicable' => false,
+                'status' => 'not_applicable',
+                'label' => 'N/A',
+                'detail' => 'No linked children',
+                'pending_count' => 0,
+            ];
+        }
+
+        return [
+            'applicable' => false,
+            'status' => 'not_configured',
+            'label' => 'N/A',
+            'detail' => 'Fee tracking not configured',
+            'pending_count' => 0,
+        ];
     }
 }

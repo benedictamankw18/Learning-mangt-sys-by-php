@@ -44,7 +44,7 @@ async function initializeDashboard() {
         
         // Notifications are handled by global `assets/js/main.js`
     } catch (error) {
-        console.error('Failed to initialize dashboard:', error);
+        console.warn('Dashboard initialization issue:', error);
         showToast('Failed to load dashboard data', 'error');
     }
 }
@@ -84,7 +84,7 @@ async function loadDashboardStats() {
         }
 
     } catch (error) {
-        console.error('Failed to load stats:', error);
+        console.warn('Dashboard stats load issue:', error);
         showToast('Failed to load dashboard statistics', 'error');
         throw error;
     }
@@ -370,7 +370,7 @@ async function loadRecentActivities(limit = 10) {
         const activities = response?.data ?? [];
         renderRecentActivities(activities);
     } catch (error) {
-        console.error('Failed to load recent activities:', error);
+        console.warn('Recent activities load issue:', error);
         renderRecentActivities([]);
     }
 }
@@ -588,7 +588,7 @@ async function handleLogout() {
             try {
                 await auth.logout();
             } catch (error) {
-                console.error('Logout error:', error);
+                console.warn('Logout issue:', error);
                 showToast('Logout failed. Please try again.', 'error');
             }
         }
@@ -604,7 +604,7 @@ setInterval(async () => {
         await Promise.all([loadDashboardStats(), loadRecentActivities()]);
         console.log('Dashboard data refreshed');
     } catch (error) {
-        console.error('Auto-refresh failed:', error);
+        console.warn('Auto-refresh issue:', error);
     }
 }, 5 * 60 * 1000);
 

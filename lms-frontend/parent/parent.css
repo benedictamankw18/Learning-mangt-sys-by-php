@@ -29,8 +29,8 @@
 }
 
 .card-body{
-    overflow-y: scroll;
-    max-height: 350px;
+    overflow-y: auto;
+    max-height: min(55vh, 420px);
 }
 
 /* ============================================
@@ -584,7 +584,32 @@
 /* ============================================
    Responsive Design
 ============================================ */
+@media (max-width: 1024px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .welcome-illustration {
+        font-size: 3.5rem;
+    }
+
+    .event-item {
+        gap: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
+    .page-content {
+        padding: 0rem;
+    }
+
+    .card-body {
+        max-height: none;
+        overflow-y: visible;
+    }
+
     .welcome-banner {
         flex-direction: column;
         text-align: center;

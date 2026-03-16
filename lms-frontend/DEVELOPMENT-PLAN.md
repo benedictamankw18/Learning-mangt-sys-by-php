@@ -136,7 +136,7 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 5: Common Components**
 
-- [ ] **Create Reusable Components**
+- [x] **Create Reusable Components**
   - Navigation sidebar template
   - Header with user menu
   - Breadcrumb component
@@ -144,7 +144,7 @@ Build a solid foundation with working authentication and basic dashboards for al
   - Toast notifications (success/error/warning)
   - Modal dialog template
   - Data table template
-- [ ] **Build Utility Functions** (`assets/js/utils.js`)
+- [x] **Build Utility Functions** (`assets/js/utils.js`)
   - Date formatting
   - Number formatting
   - Form validation helpers
@@ -159,41 +159,41 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 1: Super Admin Dashboard**
 
-- [ ] **Complete** `superadmin/dashboard.html`
-  - [ ] Total institutions widget
-  - [ ] Total users by role widget
-  - [ ] Active subscriptions widget
-  - [ ] System health indicators
-  - [ ] Recent activities list
-  - [ ] Quick action buttons
-  - [ ] Charts: User growth, Institution growth
+- [x] **Complete** `superadmin/dashboard.html`
+  - [x] Total institutions widget
+  - [x] Total users by role widget
+  - [x] Active subscriptions widget
+  - [x] System health indicators
+  - [x] Recent activities list
+  - [x] Quick action buttons
+  - [x] Charts: User growth, Institution growth
 
 **Day 2: Admin Dashboard**
 
-- [ ] **Complete** `admin/dashboard.html`
-  - [ ] Total students widget (with growth % badge)
-  - [ ] Total teachers widget (with growth % badge)
-  - [ ] Total classes widget (with growth % badge)
-  - [ ] Attendance rate (today/week) — `AttendanceRepository::getDailyRateByInstitution()` + `getWeeklyRateByInstitution()`, wired to `DashboardController::adminStats()`
-  - [ ] Upcoming exams widget — `AssessmentRepository::countUpcomingByInstitution()` (published exams due within 7 days)
-  - [ ] Pending tasks widget — `UserRepository::countInactiveByInstitution()` (accounts awaiting activation)
-  - [ ] Recent activities (stacked list via `AdminActivityAPI`)
-  - [ ] Charts: Enrollment trend (rolling 12-month), Student distribution by program
+- [x] **Complete** `admin/dashboard.html`
+  - [x] Total students widget (with growth % badge)
+  - [x] Total teachers widget (with growth % badge)
+  - [x] Total classes widget (with growth % badge)
+  - [x] Attendance rate (today/week) — `AttendanceRepository::getDailyRateByInstitution()` + `getWeeklyRateByInstitution()`, wired to `DashboardController::adminStats()`
+  - [x] Upcoming exams widget — `AssessmentRepository::countUpcomingByInstitution()` (published exams due within 7 days)
+  - [x] Pending tasks widget — `UserRepository::countInactiveByInstitution()` (accounts awaiting activation)
+  - [x] Recent activities (stacked list via `AdminActivityAPI`)
+  - [x] Charts: Enrollment trend (rolling 12-month), Student distribution by program
 
 **Day 3: Teacher Dashboard**
 
-- [ ] **Complete** `teacher/dashboard.html`
-  - [ ] Today's classes widget — `AttendanceRepository::countTodayScheduleByTeacher()` via `course_schedules`
-  - [ ] Pending assignments to grade — `AssignmentRepository::countPendingGradesByTeacher()` (status='submitted')
-  - [ ] Attendance summary — `AttendanceRepository::getDailyRateByTeacher()` + `getWeeklyRateByTeacher()`
-  - [ ] Upcoming assessments — `AssessmentRepository::countUpcomingByTeacher()` (next 7 days)
-  - [ ] Recent student submissions — `AssignmentRepository::getRecentSubmissionsByTeacher()` (5 most recent ungraded)
-  - [ ] Quick actions (take attendance, grade assignment, create assignment, view schedule)
-  - [ ] Charts: Class performance (bar, avg score per course), Attendance trends (rolling 12-month line)
+- [x] **Complete** `teacher/dashboard.html`
+  - [x] Today's classes widget — `AttendanceRepository::countTodayScheduleByTeacher()` via `course_schedules`
+  - [x] Pending assignments to grade — `AssignmentRepository::countPendingGradesByTeacher()` (status='submitted')
+  - [x] Attendance summary — `AttendanceRepository::getDailyRateByTeacher()` + `getWeeklyRateByTeacher()`
+  - [x] Upcoming assessments — `AssessmentRepository::countUpcomingByTeacher()` (next 7 days)
+  - [x] Recent student submissions — `AssignmentRepository::getRecentSubmissionsByTeacher()` (5 most recent ungraded)
+  - [x] Quick actions (take attendance, grade assignment, create assignment, view schedule)
+  - [x] Charts: Class performance (bar, avg score per course), Attendance trends (rolling 12-month line)
 
 **Day 4: Student Dashboard**
 
-- [ ] **Complete** `student/dashboard.html`
+- [x] **Complete** `student/dashboard.html`
   - Today's classes widget
   - Pending assignments widget
   - Recent grades widget
@@ -204,14 +204,15 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Day 5: Parent Dashboard**
 
-- [ ] **Complete** `parent/dashboard.html`
-  - Children selector (if multiple)
-  - Selected child's overview
-  - Recent grades widget
-  - Attendance summary
-  - Upcoming events for child
-  - Pending fee status (if applicable)
-  - Charts: Child's performance trends
+[x] **Complete** `parent/dashboard.html`
+
+- Children selector (if multiple)
+- Selected child's overview
+- Recent grades widget
+- Attendance summary
+- Upcoming events for child
+- Pending fee status (if applicable, with fallback when not configured)
+- Charts: Child's performance trends
 
 ---
 
@@ -219,31 +220,31 @@ Build a solid foundation with working authentication and basic dashboards for al
 
 **Functional Requirements:**
 
-- [ ] Users can log in with correct credentials
-- [ ] Invalid login shows appropriate error
-- [ ] Users are redirected to correct dashboard based on role
-- [ ] All dashboards load with live data from API
-- [ ] Widgets display accurate real-time statistics
-- [ ] Charts render correctly with proper data
-- [ ] Logout works and clears session
-- [ ] Session timeout redirects to login
+- [x] Users can log in with correct credentials
+- [x] Invalid login shows appropriate error
+- [x] Users are redirected to correct dashboard based on role
+- [x] All dashboards load with live data from API
+- [x] Widgets display accurate real-time statistics
+- [x] Charts render correctly with proper data
+- [x] Logout works and clears session
+- [x] Session timeout redirects to login
 
 **Technical Requirements:**
 
-- [ ] No console errors on any page
-- [ ] All API calls use proper authentication
-- [ ] Token is stored securely
-- [ ] Loading indicators show during API calls
-- [ ] Error messages display user-friendly text
-- [ ] Responsive design works on mobile/tablet/desktop
+- [x] No console errors on any page
+- [x] All API calls use proper authentication
+- [x] Token is stored securely
+- [x] Loading indicators show during API calls
+- [x] Error messages display user-friendly text
+- [x] Responsive design works on mobile/tablet/desktop
 
 **Testing:**
 
-- [ ] Test with all 5 user roles
-- [ ] Test with invalid credentials
-- [ ] Test session timeout
-- [ ] Test logout from all dashboards
-- [ ] Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- [x] Test with all 5 user roles
+- [x] Test with invalid credentials
+- [x] Test session timeout
+- [x] Test logout from all dashboards
+- [x] Cross-browser testing (Chrome, Firefox, Safari, Edge)
 
 ---
 
@@ -531,21 +532,21 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 1-2: Admin Attendance**
 
-- [ ] **Create** `admin/attendance.html`
-  - Daily attendance overview dashboard
-  - Attendance by class widget
-  - Attendance by date selector
-  - Absent students list
-  - Late arrivals list
-  - Attendance statistics (today, week, month)
-  - Attendance trends chart
-  - Export attendance reports
-  - Filter by class, date range
-  - Parent notification for absences (auto/manual)
+- [x] **Create** `admin/attendance.html`
+  - [x] Daily attendance overview dashboard
+  - [x] Attendance by class widget
+  - [x] Attendance by date selector
+  - [x] Absent students list
+  - [x] Late arrivals list
+  - [x] Attendance statistics (today, week, month)
+  - [x] Attendance trends chart
+  - [x] Export attendance reports (CSV, PDF)
+  - [x] Filter by class, date range
+  - [x] Parent notification for absences (auto/manual)
 
 **Day 2-3: Teacher Attendance**
 
-- [ ] **Create** `teacher/attendance.html`
+- [x] **Create** `teacher/attendance.html`
   - Select class and subject
   - Date selector (defaults to today)
   - Student list with attendance marking
@@ -554,30 +555,32 @@ Implement attendance tracking, timetables, and course materials management.
   - Submit attendance
   - View past attendance (read-only)
   - Attendance statistics per class
-  - Export class attendance
+  - Export class attendance (CSV, PDF)
+  - [x] Import attendance from CSV (for offline marking)
 
 **Day 4: Student Attendance**
 
-- [ ] **Create** `student/attendance.html`
-  - Overall attendance percentage
-  - Attendance calendar view
-  - Attendance by subject
-  - Present/Absent/Late breakdown
-  - Attendance trends chart
-  - Absence reasons (if recorded)
-  - Monthly attendance summary
+- [x] **Create** `student/attendance.html`
+  - [x] Overall attendance percentage
+  - [x] Attendance calendar view
+  - [x] Attendance by subject
+  - [x] Present/Absent/Late breakdown
+  - [x] Attendance trends chart
+  - [x] Absence reasons (if recorded)
+  - [x] Monthly attendance summary
+  - [x] Export attendance report (PDF)
 
 **Day 5: Parent Attendance**
 
-- [ ] **Create** `parent/attendance.html`
-  - Child selector (if multiple)
-  - Child's overall attendance
-  - Attendance calendar
-  - Absence alerts/notifications
-  - Attendance by subject
-  - Attendance trends
-  - Compare with class average
-  - Download attendance report
+- [x] **Create** `parent/attendance.html`
+  - [x] Child selector (if multiple)
+  - [x] Child's overall attendance
+  - [x] Attendance calendar
+  - [x] Absence alerts/notifications
+  - [x] Attendance by subject
+  - [x] Attendance trends
+  - [x] Compare with class average
+  - [x] Download attendance report (PDF)
 
 ---
 
@@ -624,7 +627,7 @@ Implement attendance tracking, timetables, and course materials management.
   - Period details (subject, teacher, room)
   - Current period highlighted (if in session)
   - Next class indicator
-  - Export timetable to PDF
+  - Export timetable to PDF (CSV, PDF)
   - Print view
   - Sync to calendar (optional)
 
