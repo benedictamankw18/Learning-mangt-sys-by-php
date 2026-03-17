@@ -155,7 +155,89 @@
 
     on('ttImportBtn', 'click', openImportModal);
 
-    on('ttExportPdfBtn', 'click', exportPdf);
+    on('ttExportPdfBtn', 'click', handleExportPdfClick);
+  }
+
+  async function handleExportPdfClick() {
+    const mode = await openExportModeModal();
+    if (!mode) return;
+    exportPdf(mode);
+  }
+
+  function openExportModeModal() {
+    return new Promise(function (resolve) {
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.inset = '0';
+      overlay.style.background = 'rgba(15, 23, 42, 0.55)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.padding = '16px';
+      overlay.style.zIndex = '3200';
+
+      const modal = document.createElement('div');
+      modal.style.width = '100%';
+      modal.style.maxWidth = '520px';
+      modal.style.background = '#ffffff';
+      modal.style.borderRadius = '14px';
+      modal.style.boxShadow = '0 20px 45px rgba(2, 6, 23, 0.25)';
+      modal.style.overflow = 'hidden';
+
+      modal.innerHTML = ''
+        + '<div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;background:#f8fafc">'
+        + '<strong style="font-size:1rem;color:#0f172a"><i class="fas fa-file-pdf" style="margin-right:6px;color:#dc2626"></i>Export Timetable PDF</strong>'
+        + '</div>'
+        + '<div style="padding:16px;display:grid;gap:10px">'
+        + '<label style="display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer">'
+        + '<input type="radio" name="ttExportMode" value="combined" checked>'
+        + '<span><strong>Combined Long List</strong><br><small style="color:#64748b">One continuous table of all rows.</small></span>'
+        + '</label>'
+        + '<label style="display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer">'
+        + '<input type="radio" name="ttExportMode" value="by_class">'
+        + '<span><strong>Divide by Classes</strong><br><small style="color:#64748b">One PDF with a section per class.</small></span>'
+        + '</label>'
+        + '<label style="display:flex;gap:8px;align-items:flex-start;padding:10px;border:1px solid #e2e8f0;border-radius:10px;cursor:pointer">'
+        + '<input type="radio" name="ttExportMode" value="by_teacher">'
+        + '<span><strong>Divide by Teachers</strong><br><small style="color:#64748b">One PDF with a section per teacher.</small></span>'
+        + '</label>'
+        + '</div>'
+        + '<div style="padding:12px 16px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:8px">'
+        + '<button type="button" id="ttExportModeCancel" class="btn btn-sm btn-outline">Cancel</button>'
+        + '<button type="button" id="ttExportModeConfirm" class="btn btn-sm btn-primary">Export</button>'
+        + '</div>';
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      const cancelBtn = modal.querySelector('#ttExportModeCancel');
+      const confirmBtn = modal.querySelector('#ttExportModeConfirm');
+
+      function cleanup(result) {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        document.removeEventListener('keydown', onKeydown);
+        resolve(result);
+      }
+
+      function onKeydown(e) {
+        if (e.key === 'Escape') cleanup(null);
+      }
+
+      if (cancelBtn) cancelBtn.addEventListener('click', function () { cleanup(null); });
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function () {
+          const selected = modal.querySelector('input[name="ttExportMode"]:checked');
+          cleanup(selected ? selected.value : 'combined');
+        });
+      }
+
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) cleanup(null);
+      });
+
+      document.addEventListener('keydown', onKeydown);
+      if (confirmBtn) confirmBtn.focus();
+    });
   }
 
   function on(id, evt, handler) {
@@ -1495,7 +1577,7 @@
     }
   }
 
-  function exportPdf() {
+  function exportPdf(mode) {
     if (typeof jsPDF === 'undefined' && typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
       window.jsPDF = window.jspdf.jsPDF;
     }
@@ -1505,14 +1587,23 @@
     }
 
     const rows = S.filtered.slice().sort(sortByDayThenTime);
+    if (!rows.length) {
+      toast('No timetable rows to export for current filters.', 'warning');
+      return;
+    }
+
+    const exportMode = mode || 'combined';
     const doc = new jsPDF({ orientation: 'landscape' });
-    doc.setFontSize(15);
-    doc.text('Admin Timetable Report', 14, 14);
-    doc.setFontSize(10);
-    doc.text('Generated: ' + new Date().toLocaleString(), 14, 21);
+
+    const titleMap = {
+      combined: 'Admin Timetable Report - Combined',
+      by_class: 'Admin Timetable Report - By Classes',
+      by_teacher: 'Admin Timetable Report - By Teachers'
+    };
 
     const head = [['Class', 'Teacher', 'Subject', 'Day', 'Start', 'End', 'Period', 'Room']];
-    const body = rows.map(function (r) {
+
+    function rowToPdfRow(r) {
       return [
         r.class_name || getClassName(r.class_id),
         r.teacher_name || '-',
@@ -1523,27 +1614,76 @@
         r.period_label || '-',
         r.room_name || '-',
       ];
-    });
+    }
 
-    if (typeof doc.autoTable === 'function') {
-      doc.autoTable({
-        head: head,
-        body: body,
-        startY: 26,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [37, 99, 235] },
-        margin: { left: 14, right: 14 },
-      });
-    } else {
-      let y = 30;
+    function drawHeader() {
+      doc.setFontSize(15);
+      doc.text(titleMap[exportMode] || 'Admin Timetable Report', 14, 14);
+      doc.setFontSize(10);
+      doc.text('Generated: ' + new Date().toLocaleString(), 14, 21);
+    }
+
+    function drawRowsTable(startY, sectionRows) {
+      const body = sectionRows.map(rowToPdfRow);
+      if (typeof doc.autoTable === 'function') {
+        doc.autoTable({
+          head: head,
+          body: body,
+          startY: startY,
+          styles: { fontSize: 9 },
+          headStyles: { fillColor: [37, 99, 235] },
+          margin: { left: 14, right: 14 },
+        });
+        return (doc.lastAutoTable && doc.lastAutoTable.finalY) ? (doc.lastAutoTable.finalY + 8) : (startY + 8);
+      }
+
+      let y = startY;
       doc.setFont('courier', 'normal');
       body.forEach(function (r) {
         doc.text(r.join(' | '), 14, y);
         y += 6;
       });
+      return y;
     }
 
-    doc.save('admin_timetable_' + new Date().toISOString().slice(0, 10) + '.pdf');
+    drawHeader();
+
+    if (exportMode === 'combined') {
+      drawRowsTable(26, rows);
+    } else {
+      const groupByTeacher = exportMode === 'by_teacher';
+      const groups = new Map();
+
+      rows.forEach(function (r) {
+        const groupKey = groupByTeacher
+          ? String(r.teacher_id != null ? r.teacher_id : 'unassigned')
+          : String(r.class_id != null ? r.class_id : 'unassigned');
+
+        if (!groups.has(groupKey)) groups.set(groupKey, []);
+        groups.get(groupKey).push(r);
+      });
+
+      let firstSection = true;
+      groups.forEach(function (sectionRows) {
+        const first = sectionRows[0] || {};
+        const sectionTitle = groupByTeacher
+          ? ('Teacher: ' + (first.teacher_name || 'Unassigned'))
+          : ('Class: ' + (first.class_name || getClassName(first.class_id)));
+
+        if (!firstSection) {
+          doc.addPage();
+          drawHeader();
+        }
+        firstSection = false;
+
+        doc.setFontSize(12);
+        doc.text(sectionTitle, 14, 30);
+        drawRowsTable(34, sectionRows.slice().sort(sortByDayThenTime));
+      });
+    }
+
+    const modeToken = exportMode === 'by_class' ? 'by_class' : (exportMode === 'by_teacher' ? 'by_teacher' : 'combined');
+    doc.save('admin_timetable_' + modeToken + '_' + new Date().toISOString().slice(0, 10) + '.pdf');
   }
 
   function toArray(res) {
