@@ -674,6 +674,14 @@ class CourseController
         $validator = new Validator($data);
         $validator->required(['day_of_week', 'start_time', 'end_time']);
 
+        if (isset($data['period_label'])) {
+            $validator->maxLength('period_label', 50);
+        }
+
+        if (isset($data['status'])) {
+            $validator->in('status', ['active', 'inactive']);
+        }
+
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
@@ -727,6 +735,14 @@ class CourseController
 
         $validator = new Validator($data);
         // No required fields for update
+
+        if (isset($data['period_label'])) {
+            $validator->maxLength('period_label', 50);
+        }
+
+        if (isset($data['status'])) {
+            $validator->in('status', ['active', 'inactive']);
+        }
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());

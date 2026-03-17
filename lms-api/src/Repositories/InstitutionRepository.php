@@ -895,6 +895,12 @@ class InstitutionRepository
             ");
             $stmt->execute(['institution_id' => $institutionId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result && isset($result['meta']) && is_string($result['meta']) && $result['meta'] !== '') {
+                $decodedMeta = json_decode($result['meta'], true);
+                $result['meta'] = is_array($decodedMeta) ? $decodedMeta : null;
+            }
+
             return $result ?: null;
         } catch (\PDOException $e) {
             error_log("Get Institution Settings Error: " . $e->getMessage());
@@ -960,6 +966,124 @@ class InstitutionRepository
             return $stmt->execute($params);
         } catch (\PDOException $e) {
             error_log("Update Institution Settings Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get timetable publish state from institution settings meta.
+     */
+    public function getTimetablePublished(int $institutionId): bool
+    {
+        try {
+            $stmt = $this->db->prepare(" 
+                SELECT JSON_EXTRACT(meta, '$.is_timetable_published') AS is_timetable_published
+                FROM institution_settings
+                WHERE institution_id = :institution_id
+                LIMIT 1
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row || !array_key_exists('is_timetable_published', $row) || $row['is_timetable_published'] === null) {
+                return false;
+            }
+
+            $raw = strtolower(trim((string) $row['is_timetable_published'], '"'));
+            return in_array($raw, ['1', 'true'], true);
+        } catch (\PDOException $e) {
+            error_log("Get Timetable Publish State Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update timetable publish state in institution settings meta.
+     */
+    public function updateTimetablePublished(int $institutionId, bool $isPublished): bool
+    {
+        try {
+            $stmt = $this->db->prepare(" 
+                UPDATE institution_settings
+                SET meta = JSON_SET(
+                    COALESCE(meta, JSON_OBJECT()),
+                    '$.is_timetable_published',
+                    :is_timetable_published
+                )
+                WHERE institution_id = :institution_id
+            ");
+
+            return $stmt->execute([
+                'institution_id' => $institutionId,
+                'is_timetable_published' => $isPublished ? 1 : 0
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Update Timetable Publish State Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get timetable period slots from institution settings meta.
+     */
+    public function getTimetablePeriodSlots(int $institutionId): array
+    {
+        try {
+            $stmt = $this->db->prepare(" 
+                SELECT JSON_EXTRACT(meta, '$.timetable_period_slots') AS timetable_period_slots
+                FROM institution_settings
+                WHERE institution_id = :institution_id
+                LIMIT 1
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row || !array_key_exists('timetable_period_slots', $row) || $row['timetable_period_slots'] === null) {
+                return [];
+            }
+
+            $decoded = json_decode((string) $row['timetable_period_slots'], true);
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+
+            // Backward compatibility: handle values that were stored as JSON strings.
+            if (is_string($decoded)) {
+                $decodedNested = json_decode($decoded, true);
+                if (is_array($decodedNested)) {
+                    return $decodedNested;
+                }
+            }
+
+            return [];
+        } catch (\PDOException $e) {
+            error_log("Get Timetable Period Slots Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Update timetable period slots in institution settings meta.
+     */
+    public function updateTimetablePeriodSlots(int $institutionId, array $periodSlots): bool
+    {
+        try {
+            $stmt = $this->db->prepare(" 
+                UPDATE institution_settings
+                SET meta = JSON_SET(
+                    IFNULL(meta, '{}'),
+                    '$.timetable_period_slots',
+                    JSON_EXTRACT(:period_slots, '$')
+                )
+                WHERE institution_id = :institution_id
+            ");
+
+            return $stmt->execute([
+                'institution_id' => $institutionId,
+                'period_slots' => json_encode($periodSlots)
+            ]);
+        } catch (\PDOException $e) {
+            error_log("Update Timetable Period Slots Error: " . $e->getMessage());
             return false;
         }
     }

@@ -588,4 +588,229 @@ class InstitutionController
             Response::serverError('Failed to update institution settings');
         }
     }
+
+    /**
+     * Get timetable publish state
+     * GET /institutions/{uuid}/timetable-publish-state
+     */
+    public function getTimetablePublishState(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution\'s settings');
+            return;
+        }
+
+        $isPublished = $this->repo->getTimetablePublished((int) $institution['institution_id']);
+
+        Response::success([
+            'data' => [
+                'is_timetable_published' => $isPublished
+            ]
+        ]);
+    }
+
+    /**
+     * Update timetable publish state
+     * PUT /institutions/{uuid}/timetable-publish-state
+     */
+    public function updateTimetablePublishState(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this institution\'s settings');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data) || !array_key_exists('is_timetable_published', $data)) {
+            Response::badRequest('is_timetable_published is required');
+            return;
+        }
+
+        $isPublished = filter_var($data['is_timetable_published'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($isPublished === null) {
+            Response::validationError([
+                'is_timetable_published' => 'Must be a boolean value'
+            ]);
+            return;
+        }
+
+        $success = $this->repo->updateTimetablePublished((int) $institution['institution_id'], $isPublished);
+
+        if ($success) {
+            Response::success([
+                'message' => 'Timetable publish state updated successfully',
+                'data' => [
+                    'is_timetable_published' => $isPublished
+                ]
+            ]);
+        } else {
+            Response::serverError('Failed to update timetable publish state');
+        }
+    }
+
+    /**
+     * Get timetable period slots
+     * GET /institutions/{uuid}/timetable-period-slots
+     */
+    public function getTimetablePeriodSlots(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution\'s settings');
+            return;
+        }
+
+        $periodSlots = $this->repo->getTimetablePeriodSlots((int) $institution['institution_id']);
+
+        Response::success([
+            'data' => [
+                'period_slots' => $periodSlots
+            ]
+        ]);
+    }
+
+    /**
+     * Update timetable period slots
+     * PUT /institutions/{uuid}/timetable-period-slots
+     */
+    public function updateTimetablePeriodSlots(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this institution\'s settings');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data) || !array_key_exists('period_slots', $data) || !is_array($data['period_slots'])) {
+            Response::badRequest('period_slots array is required');
+            return;
+        }
+
+        $normalized = [];
+        foreach ($data['period_slots'] as $slot) {
+            if (!is_array($slot)) {
+                continue;
+            }
+
+            $label = isset($slot['label']) ? trim((string) $slot['label']) : '';
+            $start = isset($slot['start']) ? trim((string) $slot['start']) : '';
+            $end = isset($slot['end']) ? trim((string) $slot['end']) : '';
+            $id = isset($slot['id']) ? (string) $slot['id'] : null;
+
+            if ($label === '' || $start === '' || $end === '') {
+                continue;
+            }
+
+            if (strlen($label) > 50 || $start >= $end) {
+                continue;
+            }
+
+            $normalized[] = [
+                'id' => $id,
+                'label' => $label,
+                'start' => $start,
+                'end' => $end
+            ];
+        }
+
+        $success = $this->repo->updateTimetablePeriodSlots((int) $institution['institution_id'], $normalized);
+
+        if ($success) {
+            Response::success([
+                'message' => 'Timetable period slots updated successfully',
+                'data' => [
+                    'period_slots' => $normalized
+                ]
+            ]);
+        } else {
+            Response::serverError('Failed to update timetable period slots');
+        }
+    }
 }

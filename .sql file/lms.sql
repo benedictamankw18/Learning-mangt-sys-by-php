@@ -703,14 +703,17 @@ CREATE TABLE IF NOT EXISTS `course_schedules` (
   `day_of_week` varchar(20) NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
+  `period_label` varchar(50) DEFAULT NULL,
   `room` varchar(50) DEFAULT NULL,
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `is_recurring` tinyint(1) DEFAULT 1,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`schedule_id`),
   UNIQUE KEY `unique_course_schedules` (`course_id`,`day_of_week`,`start_time`,`end_time`),
   KEY `idx_course_id` (`course_id`),
-  KEY `idx_day_of_week` (`day_of_week`)
+  KEY `idx_day_of_week` (`day_of_week`),
+  KEY `idx_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=81 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -1075,6 +1078,7 @@ CREATE TABLE IF NOT EXISTS `institution_settings` (
   `require_email_verification` tinyint(1) DEFAULT 1,
   `custom_css` text DEFAULT NULL,
   `custom_footer` text DEFAULT NULL,
+  `meta` json DEFAULT NULL,
   `social_facebook` varchar(200) DEFAULT NULL,
   `social_twitter` varchar(200) DEFAULT NULL,
   `social_instagram` varchar(200) DEFAULT NULL,

@@ -590,19 +590,19 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 1-2: Admin Timetable**
 
-- [ ] **Create** `admin/timetable.html`
-  - Timetable management dashboard
-  - Create timetable for semester
-  - Class-based view
-  - Teacher-based view
-  - Period configuration (time slots)
-  - Assign subjects to periods
-  - Assign teachers to periods
-  - Room/venue allocation
-  - Conflict detection (teacher double-booking)
-  - Publish/unpublish timetable
-  - Export timetable to PDF
-  - Print-friendly view
+- [x] **Create** `admin/timetable.html`
+  - [x] Timetable management dashboard
+  - [x] Create timetable for semester
+  - [x] Class-based view
+  - [x] Teacher-based view
+  - [x] Period configuration (time slots)
+  - [x] Assign subjects to periods
+  - [x] Assign teachers to periods
+  - [x] Room/venue allocation
+  - [x] Conflict detection (teacher double-booking)
+  - [x] Publish/unpublish timetable
+  - [x] Export timetable to PDF
+  - [x] Print-friendly view
 
 **Day 2-3: Teacher Timetable**
 

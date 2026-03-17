@@ -59,14 +59,18 @@ class CourseScheduleRepository
                 day_of_week,
                 start_time,
                 end_time,
+                period_label,
                 room,
+                status,
                 is_recurring
             ) VALUES (
                 :course_id,
                 :day_of_week,
                 :start_time,
                 :end_time,
+                :period_label,
                 :room,
+                :status,
                 :is_recurring
             )
         ");
@@ -76,7 +80,9 @@ class CourseScheduleRepository
             'day_of_week' => $data['day_of_week'],
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],
+            'period_label' => $data['period_label'] ?? null,
             'room' => $data['room'] ?? null,
+            'status' => $data['status'] ?? 'active',
             'is_recurring' => $data['is_recurring'] ?? 1
         ]);
 
@@ -91,7 +97,7 @@ class CourseScheduleRepository
         $fields = [];
         $params = ['id' => $id];
 
-        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'room', 'is_recurring'];
+        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'period_label', 'room', 'status', 'is_recurring'];
 
         foreach ($allowedFields as $field) {
             if (isset($data[$field])) {

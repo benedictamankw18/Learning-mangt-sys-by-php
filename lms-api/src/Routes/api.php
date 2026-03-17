@@ -122,6 +122,10 @@ return [
     'PUT /institutions/{uuid}/status' => ['controller' => 'InstitutionController', 'method' => 'updateStatus', 'auth' => true],
     'GET /institutions/{uuid}/settings' => ['controller' => 'InstitutionController', 'method' => 'getSettings', 'auth' => true],
     'PUT /institutions/{uuid}/settings' => ['controller' => 'InstitutionController', 'method' => 'updateSettings', 'auth' => true],
+    'GET /institutions/{uuid}/timetable-publish-state' => ['controller' => 'InstitutionController', 'method' => 'getTimetablePublishState', 'auth' => true],
+    'PUT /institutions/{uuid}/timetable-publish-state' => ['controller' => 'InstitutionController', 'method' => 'updateTimetablePublishState', 'auth' => true],
+    'GET /institutions/{uuid}/timetable-period-slots' => ['controller' => 'InstitutionController', 'method' => 'getTimetablePeriodSlots', 'auth' => true],
+    'PUT /institutions/{uuid}/timetable-period-slots' => ['controller' => 'InstitutionController', 'method' => 'updateTimetablePeriodSlots', 'auth' => true],
 
     // Program routes (Ghana SHS: General Arts, General Science, Business, etc.)
     'GET /programs' => ['controller' => 'ProgramController', 'method' => 'index', 'auth' => true],
@@ -176,6 +180,7 @@ return [
     'GET /class-subjects/{id}/schedules' => ['controller' => 'ClassSubjectController', 'method' => 'getSchedules', 'auth' => true],
     'POST /class-subjects/{id}/schedules' => ['controller' => 'ClassSubjectController', 'method' => 'createSchedule', 'auth' => true],
     'PUT /class-subjects/{courseId}/schedules/{scheduleId}' => ['controller' => 'ClassSubjectController', 'method' => 'updateSchedule', 'auth' => true],
+    'PUT /class-subjects/{courseId}/schedules/{scheduleId}/status' => ['controller' => 'ClassSubjectController', 'method' => 'updateSchedule', 'auth' => true],
     'DELETE /class-subjects/{courseId}/schedules/{scheduleId}' => ['controller' => 'ClassSubjectController', 'method' => 'deleteSchedule', 'auth' => true],
     'POST /class-subjects/{id}/assign-teacher' => ['controller' => 'ClassSubjectController', 'method' => 'assignTeacher', 'auth' => true],
 
@@ -198,6 +203,7 @@ return [
     'GET /courses/{id}/schedules' => ['controller' => 'ClassSubjectController', 'method' => 'getSchedules', 'auth' => true],
     'POST /courses/{id}/schedules' => ['controller' => 'ClassSubjectController', 'method' => 'createSchedule', 'auth' => true],
     'PUT /courses/{courseId}/schedules/{scheduleId}' => ['controller' => 'ClassSubjectController', 'method' => 'updateSchedule', 'auth' => true],
+    'PUT /courses/{courseId}/schedules/{scheduleId}/status' => ['controller' => 'ClassSubjectController', 'method' => 'updateSchedule', 'auth' => true],
     'DELETE /courses/{courseId}/schedules/{scheduleId}' => ['controller' => 'ClassSubjectController', 'method' => 'deleteSchedule', 'auth' => true],
 
     // Assessment routes

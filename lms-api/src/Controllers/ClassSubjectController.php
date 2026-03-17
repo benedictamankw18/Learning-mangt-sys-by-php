@@ -690,8 +690,28 @@ class ClassSubjectController
         $validator->required(['day_of_week', 'start_time', 'end_time'])
             ->maxLength('day_of_week', 20);
 
+        if (isset($data['period_label'])) {
+            $validator->maxLength('period_label', 50);
+        }
+
+        if (isset($data['status'])) {
+            $validator->in('status', ['active', 'inactive']);
+        }
+
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $slotExists = $this->repo->scheduleSlotExists(
+            $id,
+            (string) ($data['day_of_week'] ?? ''),
+            (string) ($data['start_time'] ?? ''),
+            (string) ($data['end_time'] ?? '')
+        );
+
+        if ($slotExists) {
+            Response::error('Duplicate schedule: this class subject already has this day and time slot.', 409);
             return;
         }
 
@@ -784,6 +804,14 @@ class ClassSubjectController
         $validator = new Validator($data);
         if (isset($data['day_of_week'])) {
             $validator->maxLength('day_of_week', 20);
+        }
+
+        if (isset($data['period_label'])) {
+            $validator->maxLength('period_label', 50);
+        }
+
+        if (isset($data['status'])) {
+            $validator->in('status', ['active', 'inactive']);
         }
 
         if ($validator->fails()) {

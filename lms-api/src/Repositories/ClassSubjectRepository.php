@@ -929,7 +929,9 @@ class ClassSubjectRepository
                 day_of_week,
                 start_time,
                 end_time,
+                period_label,
                 room,
+                status,
                 is_recurring,
                 created_at,
                 updated_at
@@ -957,7 +959,9 @@ class ClassSubjectRepository
                 s.day_of_week,
                 s.start_time,
                 s.end_time,
+                s.period_label,
                 s.room,
+                s.status,
                 s.is_recurring,
                 s.created_at,
                 s.updated_at,
@@ -984,7 +988,9 @@ class ClassSubjectRepository
                 day_of_week,
                 start_time,
                 end_time,
+                period_label,
                 room,
+                status,
                 is_recurring,
                 created_at,
                 updated_at
@@ -993,7 +999,9 @@ class ClassSubjectRepository
                 :day_of_week,
                 :start_time,
                 :end_time,
+                :period_label,
                 :room,
+                :status,
                 :is_recurring,
                 NOW(),
                 NOW()
@@ -1005,11 +1013,38 @@ class ClassSubjectRepository
             'day_of_week' => strtolower($data['day_of_week']),
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],
+            'period_label' => $data['period_label'] ?? null,
             'room' => $data['room'] ?? null,
+            'status' => $data['status'] ?? 'active',
             'is_recurring' => $data['is_recurring'] ?? 1
         ]);
 
         return $result ? (int) $this->db->lastInsertId() : null;
+    }
+
+    /**
+     * Check whether a schedule slot already exists for the same unique key.
+     */
+    public function scheduleSlotExists(int $courseId, string $dayOfWeek, string $startTime, string $endTime): bool
+    {
+        $stmt = $this->db->prepare("
+            SELECT 1
+            FROM course_schedules
+            WHERE course_id = :course_id
+              AND day_of_week = :day_of_week
+              AND start_time = :start_time
+              AND end_time = :end_time
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'course_id' => $courseId,
+            'day_of_week' => strtolower($dayOfWeek),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+        ]);
+
+        return (bool) $stmt->fetchColumn();
     }
 
     /**
@@ -1021,7 +1056,7 @@ class ClassSubjectRepository
         $params = ['schedule_id' => $scheduleId];
 
         // Allowed fields for update
-        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'room', 'is_recurring'];
+        $allowedFields = ['day_of_week', 'start_time', 'end_time', 'period_label', 'room', 'status', 'is_recurring'];
 
         foreach ($allowedFields as $field) {
             if (array_key_exists($field, $data)) {
