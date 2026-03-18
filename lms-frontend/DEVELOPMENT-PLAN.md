@@ -606,9 +606,9 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 2-3: Teacher Timetable**
 
-- [ ] **Create** `teacher/timetable.html`
+- [x] **Create** `teacher/timetable.html` _(implemented as `teacher/page/timetable.html` + `teacher/js/timetable.js`)_
   - Teacher's personal timetable
-  - Weekly view (Mon-Fri)
+  - Weekly view (Mon-Sun)
   - Daily view
   - Semester view
   - Filter by week
@@ -616,13 +616,14 @@ Implement attendance tracking, timetables, and course materials management.
   - Color-coded by subject
   - Today's classes highlighted
   - Export personal timetable
-  - Print view
+  - Print-friendly view (browser print)
+  - Sync to calendar (optional)
 
 **Day 3-4: Student Timetable**
 
-- [ ] **Create** `student/timetable.html`
+- [x] **Create** `student/timetable.html` _(implemented as `student/page/timetable.html` + `student/js/timetable.js`)_
   - Student's class timetable
-  - Weekly view
+  - Weekly view (Mon-Sun)
   - Daily view
   - Period details (subject, teacher, room)
   - Current period highlighted (if in session)
@@ -633,7 +634,7 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 4-5: Parent & Calendar**
 
-- [ ] **Create** `parent/timetable.html`
+- [x] **Create** `parent/timetable.html` _(implemented as `parent/page/timetable.html` + `parent/js/timetable.js`)_
   - Child selector
   - Child's timetable view
   - Weekly schedule
@@ -641,7 +642,7 @@ Implement attendance tracking, timetables, and course materials management.
   - Export and print
 - [ ] **Create** `common/calendar.html`
   - School calendar with academic events
-  - Semester dates
+  - Semester dates(start/end)
   - Exam periods
   - Holidays and breaks
   - School events (sports day, speech day)
@@ -649,6 +650,7 @@ Implement attendance tracking, timetables, and course materials management.
   - Filter by event type
   - Add personal events (role-based)
   - Export calendar
+  - Sync to calendar (optional)
 
 ---
 

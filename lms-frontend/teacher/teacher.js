@@ -98,7 +98,7 @@ function setupEventListeners() {
     if (btnAttendance) btnAttendance.addEventListener('click', () => { window.location.hash = '#attendance'; });
     if (btnGrade)      btnGrade.addEventListener('click',      () => { window.location.hash = '#grading'; });
     if (btnCreate)     btnCreate.addEventListener('click',     () => { window.location.hash = '#assignments'; });
-    if (btnSchedule)   btnSchedule.addEventListener('click',  () => { window.location.hash = '#schedule'; });
+    if (btnSchedule)   btnSchedule.addEventListener('click',  () => { window.location.hash = '#timetable'; });
 
     // Dropdowns
     const notificationBtn = document.getElementById('notificationBtn');

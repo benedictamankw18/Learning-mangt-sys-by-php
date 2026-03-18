@@ -44,9 +44,9 @@
           <i class="fas fa-book-open"></i>
           <span>My Courses</span>
         </a>
-        <a href="#" class="nav-item" data-page="schedule">
+        <a href="#" class="nav-item" data-page="timetable">
           <i class="fas fa-calendar-alt"></i>
-          <span>Schedule</span>
+          <span>Timetable</span>
         </a>
         <a href="#" class="nav-item" data-page="assignments">
           <i class="fas fa-tasks"></i>
@@ -387,9 +387,9 @@
           <p>Course management interface...</p>
         </div>
 
-        <div class="content-section" id="schedule-section">
-          <h2>My Schedule</h2>
-          <p>Weekly schedule view...</p>
+        <div class="content-section" id="timetable-section">
+          <h2>My Timetable</h2>
+          <p>Teacher timetable view...</p>
         </div>
 
         <div class="content-section" id="assignments-section">
@@ -437,6 +437,7 @@
     <script src="teacher.js"></script>
     <script src="./js/my-classes.js"></script>
     <script src="./js/my-subjects.js"></script>
+    <script src="./js/timetable.js"></script>
     <script src="./js/myprofile.js"></script>
     <script src="./js/attendance.js"></script>
     <script>
@@ -516,7 +517,8 @@
 
         function handleHashChange() {
           const hash = window.location.hash.replace("#", "");
-          loadPage(hash || "dashboard");
+          const normalized = hash === "schedule" ? "timetable" : hash;
+          loadPage(normalized || "dashboard");
         }
 
         window.addEventListener("hashchange", handleHashChange);

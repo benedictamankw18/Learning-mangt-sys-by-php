@@ -413,6 +413,8 @@ class TeacherRepository
                     cs.start_time,
                     cs.end_time,
                     cs.room,
+                    cs.is_recurring,
+                    sem.end_date AS semester_end_date,
                     s.subject_name,
                     s.subject_code,
                     cl.class_name,
@@ -421,6 +423,7 @@ class TeacherRepository
                 INNER JOIN class_subjects csub ON cs.course_id = csub.course_id
                 INNER JOIN subjects s          ON csub.subject_id = s.subject_id
                 INNER JOIN classes cl          ON csub.class_id = cl.class_id
+                LEFT JOIN semesters sem        ON csub.semester_id = sem.semester_id
                 WHERE csub.teacher_id = :teacher_id
             ";
 

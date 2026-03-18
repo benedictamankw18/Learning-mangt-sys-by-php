@@ -607,7 +607,9 @@ class ClassRepository
                 csch.start_time,
                 csch.end_time,
                 csch.room,
+                csch.is_recurring,
                 cs.course_id,
+                sem.end_date AS semester_end_date,
                 s.subject_id,
                 s.subject_code,
                 s.subject_name,
@@ -615,6 +617,7 @@ class ClassRepository
                 CONCAT(tu.first_name, ' ', tu.last_name) as teacher_name
             FROM course_schedules csch
             INNER JOIN class_subjects cs ON csch.course_id = cs.course_id
+            LEFT JOIN semesters sem ON cs.semester_id = sem.semester_id
             INNER JOIN subjects s ON cs.subject_id = s.subject_id
             LEFT JOIN teachers t ON cs.teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id

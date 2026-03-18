@@ -44,6 +44,10 @@
           <i class="fas fa-calendar-check"></i>
           <span>Attendance</span>
         </a>
+        <a href="#" class="nav-item" data-page="timetable">
+          <i class="fas fa-calendar-week"></i>
+          <span>Timetable</span>
+        </a>
         <a href="#" class="nav-item" data-page="grades">
           <i class="fas fa-star"></i>
           <span>Grades</span>
@@ -392,6 +396,7 @@
     <script src="./js/myprofile.js"></script>
     <script src="./js/my-children.js"></script>
     <script src="./js/attendance.js"></script>
+    <script src="./js/timetable.js"></script>
     <!-- jsPDF and autoTable for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
@@ -470,7 +475,8 @@
 
         function handleHashChange() {
           const hash = window.location.hash.replace("#", "");
-          loadPage(hash || "dashboard");
+          const normalized = hash === "schedule" ? "timetable" : hash;
+          loadPage(normalized || "dashboard");
         }
 
         window.addEventListener("hashchange", handleHashChange);

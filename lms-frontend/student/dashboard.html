@@ -56,9 +56,9 @@
           <i class="fas fa-calendar-check"></i>
           <span>Attendance</span>
         </a>
-        <a href="#" class="nav-item" data-page="schedule">
+        <a href="#" class="nav-item" data-page="timetable">
           <i class="fas fa-clock"></i>
-          <span>Schedule</span>
+          <span>Timetable</span>
         </a>
         <a href="#" class="nav-item" data-page="resources">
           <i class="fas fa-folder-open"></i>
@@ -417,6 +417,7 @@
     <script src="student.js"></script>
     <script src="./js/my-classes.js"></script>
     <script src="./js/my-subjects.js"></script>
+    <script src="./js/timetable.js"></script>
     <script src="./js/myprofile.js"></script>
     <script src="./js/attendance.js"></script>
     <!-- jsPDF and autoTable for PDF export -->
@@ -498,7 +499,8 @@
 
         function handleHashChange() {
           const hash = window.location.hash.replace("#", "");
-          loadPage(hash || "dashboard");
+          const normalized = hash === "schedule" ? "timetable" : hash;
+          loadPage(normalized || "dashboard");
         }
 
         window.addEventListener("hashchange", handleHashChange);
