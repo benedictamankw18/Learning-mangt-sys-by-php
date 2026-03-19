@@ -1,0 +1,865 @@
+<style>
+  /* ---- page shell (aligned with attendance visual language) ---- */
+  .lp-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .lp-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  .lp-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .lp-title h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .lp-title p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  .lp-header-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ---- filter row ---- */
+  .lp-filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+  }
+
+  .lp-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .lp-filter-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .lp-field {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .lp-field label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .lp-field input,
+  .lp-field select,
+  .lp-field textarea {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .lp-filters select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+    min-width: 160px;
+    cursor: pointer;
+  }
+
+  .lp-filters select:focus,
+  .lp-field input:focus,
+  .lp-field select:focus,
+  .lp-field textarea:focus {
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .lp-field textarea {
+    min-height: 88px;
+    resize: vertical;
+  }
+
+  /* ---- stats strip ---- */
+  .lp-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .lp-stat {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    text-align: center;
+  }
+
+  .lp-stat h4 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    line-height: 1;
+  }
+
+  .lp-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- list table ---- */
+  .lp-list-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .lp-list-head {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr 1fr 0.8fr;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .lp-row {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr 1fr 0.8fr;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.875rem;
+  }
+
+  .lp-row:last-child {
+    border-bottom: none;
+  }
+
+  .lp-row:hover {
+    background: #f8fafc;
+  }
+
+  .lp-row .btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #dbe4ef;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .lp-row .btn-icon:hover {
+    background: #fff;
+    border-color: #cbd5e1;
+  }
+
+  /* ---- modal ---- */
+  .lp-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .lp-modal.open {
+    display: flex;
+  }
+
+  .lp-modal-content {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(14px);
+    transition: transform 0.2s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .lp-modal.open .lp-modal-content {
+    transform: translateY(0);
+  }
+
+  .lp-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .lp-modal-header h2 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .lp-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .lp-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .lp-form {
+    padding: 1rem 1.2rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .lp-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .lp-form-row.full {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-form-footer {
+    padding: 0.85rem 1.2rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    background: #f8fafc;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .lp-section-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.52);
+    z-index: 2200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .lp-section-overlay.open {
+    display: flex;
+  }
+
+  .lp-section-modal {
+    width: min(920px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.3);
+  }
+
+  .lp-section-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .lp-section-form {
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.65rem;
+    background: #fcfdff;
+  }
+
+  .lp-section-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .lp-section-list-head,
+  .lp-section-row {
+    display: grid;
+    grid-template-columns: 1.2fr 1.8fr 0.55fr 0.7fr 1fr;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    align-items: center;
+  }
+
+  .lp-section-list-head {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+  }
+
+  .lp-section-row {
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.82rem;
+    color: #1e293b;
+  }
+
+  .lp-section-row:last-child {
+    border-bottom: none;
+  }
+
+  .lp-section-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .lp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.18rem 0.48rem;
+  }
+
+  .lp-status-badge.active {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+  }
+
+  .lp-status-badge.inactive {
+    color: #9a3412;
+    background: #ffedd5;
+    border: 1px solid #fed7aa;
+  }
+
+  .lp-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0f172a;
+    text-transform: none;
+    letter-spacing: 0;
+    cursor: pointer;
+  }
+
+  .lp-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .lp-switch-track {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.2s ease;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  }
+
+  .lp-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #ffffff;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+  }
+
+  .lp-switch input:checked + .lp-switch-track {
+    background: #16a34a;
+  }
+
+  .lp-switch input:checked + .lp-switch-track .lp-switch-thumb {
+    transform: translateX(18px);
+  }
+
+  .lp-switch input:focus-visible + .lp-switch-track {
+    outline: 3px solid rgba(22, 163, 74, 0.25);
+    outline-offset: 2px;
+  }
+
+  /* ---- badge ---- */
+  .lp-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  /* ---- empty state ---- */
+  .lp-empty {
+    padding: 2rem;
+    text-align: center;
+    color: #64748b;
+  }
+
+  .lp-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0.4;
+  }
+
+  .lp-empty p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 768px) {
+    .lp-filters {
+      flex-direction: column;
+    }
+
+    .lp-filters select {
+      min-width: 100%;
+      width: 100%;
+    }
+
+    .lp-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .lp-list-head {
+      grid-template-columns: 1fr;
+    }
+
+    .lp-row {
+      grid-template-columns: 1fr;
+    }
+
+    .lp-form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .lp-modal-content {
+      max-width: 95%;
+    }
+  }
+</style>
+
+<div class="card" id="lessonPlansPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-book-open"></i> Lesson Plans</h3>
+  </div>
+
+  <div class="card-body lp-shell">
+    <!-- ==================== HEADER & ACTIONS ==================== -->
+    <div class="lp-toolbar">
+      <div class="lp-title">
+        <h3>Manage Lesson Plans</h3>
+        <p>
+          Create and organize learning objectives, activities, and assessments
+          for your courses
+        </p>
+      </div>
+      <div class="lp-header-actions">
+        <button id="lpManageSectionsBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-layer-group"></i> Manage Topics
+        </button>
+        <button id="lpCreateBtn" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus"></i> New Plan
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== STATS STRIP ==================== -->
+    <div class="lp-stats" id="lpStatsStrip">
+      <div class="lp-stat">
+        <h4 id="totalPlans">0</h4>
+        <p>Total Plans</p>
+      </div>
+      <div class="lp-stat">
+        <h4 id="activePlans">0</h4>
+        <p>Active Plans</p>
+      </div>
+      <div class="lp-stat">
+        <h4 id="withMaterials">0</h4>
+        <p>With Materials</p>
+      </div>
+      <div class="lp-stat">
+        <h4 id="selectedCourse">-</h4>
+        <p>Selected Course</p>
+      </div>
+    </div>
+
+    <!-- ==================== FILTERS PANEL ==================== -->
+    <div class="lp-filters" id="lpFiltersPanel">
+      <div class="lp-filter-group">
+        <label>Course</label>
+        <select id="lpCourseFilter">
+          <option value="">All Courses</option>
+        </select>
+      </div>
+      <div class="lp-filter-group">
+        <label>Topic / Unit / Week</label>
+        <select id="lpSectionFilter">
+          <option value="">All Topic / Unit / Week</option>
+        </select>
+      </div>
+      <div class="lp-filter-group">
+        <label>Status</label>
+        <select id="lpStatusFilter">
+          <option value="">All</option>
+          <option value="1">Active</option>
+          <option value="0">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ==================== LESSON PLANS LIST ==================== -->
+    <div class="lp-list-wrap">
+      <div class="lp-list-head">
+        <div>Title</div>
+        <div>Topic / Unit / Week</div>
+        <div>Materials</div>
+        <div style="text-align: center">Actions</div>
+      </div>
+      <div id="lpListContainer">
+        <div class="lp-empty">
+          <i class="fas fa-inbox"></i>
+          <p>No lesson plans yet. Create your first lesson plan!</p>
+        </div>
+      </div>
+    </div>
+    <!-- /lpListContainer -->
+  </div>
+  <!-- /card-body -->
+</div>
+<!-- /card -->
+
+<!-- ==================== CREATE/EDIT MODAL ==================== -->
+<!-- ==================== CREATE/EDIT MODAL ==================== -->
+<div id="lpModal" class="lp-modal">
+  <div class="lp-modal-content">
+    <div class="lp-modal-header">
+      <h2 id="lpModalTitle">New Lesson Plan</h2>
+      <button class="lp-modal-close" id="lpModalClose" title="Close">
+        &times;
+      </button>
+    </div>
+
+    <form class="lp-form" id="lpForm">
+      <!-- Basic Info Row -->
+      <div class="lp-form-row">
+        <div class="lp-field">
+          <label>Course <span style="color: #dc2626">*</span></label>
+          <select id="lpCourse" required>
+            <option value="">Select Course</option>
+          </select>
+        </div>
+        <div class="lp-field">
+          <label>Status</label>
+          <select id="lpActive">
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Topic / Unit / Week -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Topic / Unit / Week</label>
+          <select id="lpSection">
+            <option value="">Select Topic / Unit / Week (Optional)</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #64748b; margin-top: 0.3rem">
+            Choose a Topic, Unit, or Week bucket for this lesson plan.
+          </p>
+        </div>
+      </div>
+
+      <!-- Title -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Title <span style="color: #dc2626">*</span></label>
+          <input
+            type="text"
+            id="lpTitle"
+            placeholder="e.g., Introduction to Photosynthesis"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Description</label>
+          <textarea
+            id="lpDescription"
+            placeholder="Brief overview of the lesson..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Learning Objectives -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Learning Objectives</label>
+          <textarea
+            id="lpObjectives"
+            placeholder="What students will be able to do by the end of this lesson..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Activities & Resources -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Activities & Resources</label>
+          <textarea
+            id="lpActivities"
+            placeholder="Teaching activities, discussion topics, resources, and materials..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Assessment Methods -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Assessment Methods</label>
+          <textarea
+            id="lpAssessment"
+            placeholder="How will you assess student learning? (quizzes, projects, participation, etc.)"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Teacher Notes -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Teacher Notes</label>
+          <textarea
+            id="lpNotes"
+            placeholder="Additional notes, tips, reminders, or references..."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Link Course Materials -->
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Link Course Materials</label>
+          <select id="lpMaterials" multiple style="min-height: 80px">
+            <option value="">No materials available</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #64748b; margin-top: 0.3rem">
+            <i class="fas fa-info-circle"></i> Hold Ctrl/Cmd to select multiple
+            materials
+          </p>
+        </div>
+      </div>
+
+      <!-- Form Footer -->
+      <div class="lp-form-footer">
+        <button
+          type="button"
+          class="btn btn-outline btn-sm"
+          id="lpFormCancelBtn"
+        >
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary btn-sm">
+          Save Lesson Plan
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- /lpModal -->
+
+<div class="lp-section-overlay" id="lpSectionOverlay" aria-hidden="true">
+  <div
+    class="lp-section-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="lpSectionTitle"
+  >
+    <div class="lp-modal-header">
+      <h2 id="lpSectionTitle">Manage Topics / Units / Weeks</h2>
+      <button class="lp-modal-close" id="lpSectionClose" title="Close">
+        &times;
+      </button>
+    </div>
+
+    <div class="lp-form">
+      <div class="lp-section-toolbar">
+        <div class="lp-field" style="min-width: 280px; margin: 0">
+          <label for="lpSectionCourseSelect">Course</label>
+          <select id="lpSectionCourseSelect"></select>
+        </div>
+        <span style="font-size: 0.74rem; color: #64748b"
+          >Create, edit, or delete Topic / Unit / Week groups used by lesson
+          plans.</span
+        >
+      </div>
+
+      <div class="lp-section-form">
+        <div class="lp-form-row">
+          <div class="lp-field">
+            <label for="lpSectionNameInput">Name *</label>
+            <input
+              id="lpSectionNameInput"
+              type="text"
+              maxlength="120"
+              placeholder="e.g., Unit 1 - Cell Biology"
+            />
+          </div>
+          <div class="lp-field">
+            <label for="lpSectionOrderInput">Order</label>
+            <input
+              id="lpSectionOrderInput"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+        </div>
+        <div class="lp-field">
+          <label for="lpSectionDescInput">Description</label>
+          <textarea
+            id="lpSectionDescInput"
+            placeholder="Optional notes for this topic/unit/week"
+          ></textarea>
+        </div>
+        <div class="lp-field">
+          <label class="lp-switch">
+            <input id="lpSectionIsActiveInput" type="checkbox" checked />
+            <span class="lp-switch-track" aria-hidden="true">
+              <span class="lp-switch-thumb"></span>
+            </span>
+            <span>Active</span>
+          </label>
+        </div>
+        <div class="lp-header-actions" style="justify-content: flex-end">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            id="lpSectionFormResetBtn"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            id="lpSectionFormSaveBtn"
+          >
+            <span id="lpSectionFormSaveText">Save Topic</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="lp-section-list">
+        <div class="lp-section-list-head">
+          <div>Name</div>
+          <div>Description</div>
+          <div>Order</div>
+          <div>Status</div>
+          <div style="text-align: right">Actions</div>
+        </div>
+        <div id="lpSectionListBody"></div>
+      </div>
+    </div>
+
+    <div class="lp-form-footer">
+      <button
+        type="button"
+        class="btn btn-outline btn-sm"
+        id="lpSectionDoneBtn"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="../../assets/js/auth.js"></script>
+<script src="../../assets/js/api.js"></script>
+<script src="../teacher.js"></script>
+<script src="../js/lesson-plans.js"></script>

@@ -1016,6 +1016,73 @@ CREATE TABLE IF NOT EXISTS `course_sections` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `lesson_plans`
+--
+
+DROP TABLE IF EXISTS `lesson_plans`;
+CREATE TABLE IF NOT EXISTS `lesson_plans` (
+  `lesson_plan_id` int(11) NOT NULL AUTO_INCREMENT,
+  `course_id` int(11) NOT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `week_number` int(11) DEFAULT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text DEFAULT NULL,
+  `learning_objectives` text DEFAULT NULL,
+  `activities` text DEFAULT NULL,
+  `assessment_methods` text DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 1,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`lesson_plan_id`),
+  KEY `FK_lesson_plans_course` (`course_id`),
+  KEY `FK_lesson_plans_section` (`section_id`),
+  KEY `FK_lesson_plans_creator` (`created_by`),
+  KEY `idx_lesson_plan_week` (`week_number`),
+  KEY `idx_lesson_plan_active` (`is_active`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `lesson_plans`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `section_id`
+--       `course_sections` -> `course_sections_id`
+--   `created_by`
+--       `users` -> `user_id`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `lesson_plan_materials`
+--
+
+DROP TABLE IF EXISTS `lesson_plan_materials`;
+CREATE TABLE IF NOT EXISTS `lesson_plan_materials` (
+  `lesson_plan_materials_id` int(11) NOT NULL AUTO_INCREMENT,
+  `lesson_plan_id` int(11) NOT NULL,
+  `material_id` int(11) NOT NULL,
+  `order_index` int(11) DEFAULT 0,
+  `created_at` datetime DEFAULT current_timestamp(),
+  PRIMARY KEY (`lesson_plan_materials_id`),
+  UNIQUE KEY `unique_lesson_material` (`lesson_plan_id`,`material_id`),
+  KEY `FK_lesson_material_material` (`material_id`),
+  KEY `idx_lesson_plan_id` (`lesson_plan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `lesson_plan_materials`:
+--   `lesson_plan_id`
+--       `lesson_plans` -> `lesson_plan_id`
+--   `material_id`
+--       `course_materials` -> `material_id`
+--
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `error_logs`
 --
 

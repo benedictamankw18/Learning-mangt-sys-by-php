@@ -671,7 +671,7 @@ Implement attendance tracking, timetables, and course materials management.
   - Delete materials
   - File size validation
   - Allowed file types check
-- [ ] **Create** `teacher/lesson-plans.html`
+- [x] **Create** `teacher/lesson-plans.html` _(implemented as `teacher/page/lesson-plans.html` + `teacher/js/lesson-plans.js`)_
   - Lesson plan list
   - Create lesson plan
   - Weekly lesson plans

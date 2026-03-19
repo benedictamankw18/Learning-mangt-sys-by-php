@@ -455,6 +455,16 @@ return [
     'PUT /course-content/{uuid}/publish' => ['controller' => 'CourseContentController', 'method' => 'publish', 'auth' => true],
     'DELETE /course-content/{uuid}' => ['controller' => 'CourseContentController', 'method' => 'delete', 'auth' => true],
 
+    // Lesson Plan routes
+    'GET /courses/{courseId}/lesson-plans' => ['controller' => 'LessonPlanController', 'method' => 'index', 'auth' => true],
+    'GET /lesson-plans/week' => ['controller' => 'LessonPlanController', 'method' => 'getByWeek', 'auth' => true],
+    'GET /lesson-plans/{id}' => ['controller' => 'LessonPlanController', 'method' => 'show', 'auth' => true],
+    'POST /lesson-plans' => ['controller' => 'LessonPlanController', 'method' => 'create', 'auth' => true],
+    'PUT /lesson-plans/{id}' => ['controller' => 'LessonPlanController', 'method' => 'update', 'auth' => true],
+    'DELETE /lesson-plans/{id}' => ['controller' => 'LessonPlanController', 'method' => 'delete', 'auth' => true],
+    'POST /lesson-plans/{id}/materials' => ['controller' => 'LessonPlanController', 'method' => 'linkMaterial', 'auth' => true],
+    'DELETE /lesson-plans/{id}/materials/{materialId}' => ['controller' => 'LessonPlanController', 'method' => 'unlinkMaterial', 'auth' => true],
+
     // Subscription routes (Billing & Subscription Management)
     'GET /subscriptions' => ['controller' => 'SubscriptionController', 'method' => 'index', 'auth' => true],
     'GET /subscriptions/plans' => ['controller' => 'SubscriptionController', 'method' => 'getPlans', 'auth' => false],
