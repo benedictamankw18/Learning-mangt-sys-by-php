@@ -1,0 +1,915 @@
+<style>
+  .tcm-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+  .tcm-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .tcm-toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .tcm-filters {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .tcm-field {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .tcm-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 600;
+  }
+  .tcm-field input,
+  .tcm-field select,
+  .tcm-field textarea {
+    /* width: 100%; */
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.58rem 0.7rem;
+    font-size: 0.84rem;
+    background: #fff;
+  }
+  .tcm-field textarea {
+    min-height: 88px;
+    resize: vertical;
+  }
+  .tcm-field input:focus,
+  .tcm-field select:focus,
+  .tcm-field textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .tcm-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .tcm-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+  .tcm-stat h4 {
+    margin: 0;
+    font-size: 1.18rem;
+    color: #0f172a;
+  }
+  .tcm-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.77rem;
+    color: #64748b;
+  }
+  .tcm-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .tcm-list-head {
+    display: grid;
+    grid-template-columns: 2fr 1.35fr 1fr 1fr 1fr 1.2fr;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+  }
+  .tcm-row {
+    display: grid;
+    grid-template-columns: 2fr 1.35fr 1fr 1fr 1fr 1.2fr;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.62rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .tcm-row:last-child {
+    border-bottom: none;
+  }
+  .tcm-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+  .tcm-title strong {
+    font-size: 0.84rem;
+    color: #0f172a;
+  }
+  .tcm-title span {
+    font-size: 0.73rem;
+    color: #64748b;
+  }
+  .tcm-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.52rem;
+    width: fit-content;
+  }
+  .tcm-chip.file {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+  .tcm-chip.ext-file {
+    background: #e2e8f0;
+    color: #334155;
+  }
+  .tcm-chip.ext-pdf {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .tcm-chip.ext-doc,
+  .tcm-chip.ext-docx {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .tcm-chip.ext-txt {
+    background: #e0f2fe;
+    color: #075985;
+  }
+  .tcm-chip.ext-odt,
+  .tcm-chip.ext-rtf {
+    background: #ecfccb;
+    color: #3f6212;
+  }
+  .tcm-chip.ext-ppt,
+  .tcm-chip.ext-pptx {
+    background: #ffedd5;
+    color: #9a3412;
+  }
+  .tcm-chip.ext-xls,
+  .tcm-chip.ext-xlsx {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .tcm-chip.link {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .tcm-chip.other {
+    background: #f1f5f9;
+    color: #334155;
+  }
+  .tcm-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .tcm-empty,
+  .tcm-error {
+    padding: 1.2rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.87rem;
+  }
+  .tcm-empty i,
+  .tcm-error i {
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+    color: #94a3b8;
+    display: block;
+  }
+  .tcm-error {
+    color: #b91c1c;
+  }
+  .tcm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.52);
+    z-index: 2400;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .tcm-modal-overlay.open {
+    display: flex;
+  }
+  .tcm-modal {
+    width: min(980px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.3);
+  }
+  .tcm-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.7rem;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.95rem 1rem;
+    z-index: 1;
+  }
+  .tcm-modal-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+  .tcm-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #dbe4ef;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+  }
+  .tcm-modal-body {
+    padding: 1rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+  .tcm-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+  .tcm-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0 1rem 1rem;
+  }
+  .tcm-file-help {
+    font-size: 0.73rem;
+    color: #64748b;
+  }
+  .tcm-upload-field {
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    padding: 0.75rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  }
+  .tcm-upload-field input[type="file"] {
+    border: 1px dashed #93c5fd;
+    background: #eff6ff;
+  }
+  .tcm-upload-meta {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.2rem;
+  }
+  .tcm-upload-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+  .tcm-upload-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+    border-radius: 999px;
+    padding: 0.14rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .tcm-upload-chip.active {
+    border-color: #2563eb;
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+  .tcm-inline-checks {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 0.2rem;
+  }
+  .tcm-inline-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    font-size: 0.8rem;
+    color: #334155;
+    font-weight: 600;
+  }
+  .tcm-switch {
+    position: relative;
+    gap: 0.55rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tcm-switch input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    pointer-events: none;
+  }
+  .tcm-switch-track {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    border: 1px solid #94a3b8;
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease;
+    flex-shrink: 0;
+  }
+  .tcm-switch-track::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.22);
+    transition: transform 0.18s ease;
+  }
+  .tcm-switch-text {
+    font-size: 0.8rem;
+    color: #334155;
+    font-weight: 600;
+  }
+  .tcm-switch input[type="checkbox"]:checked + .tcm-switch-track {
+    background: #2563eb;
+    border-color: #1d4ed8;
+  }
+  .tcm-switch input[type="checkbox"]:checked + .tcm-switch-track::after {
+    transform: translateX(16px);
+  }
+  .tcm-switch input[type="checkbox"]:focus-visible + .tcm-switch-track {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
+  .tcm-multi-select {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.5rem 0.6rem;
+    max-height: 130px;
+    overflow: auto;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .tcm-multi-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.8rem;
+    color: #334155;
+  }
+  .tcm-share-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.55rem;
+  }
+  .tcm-share-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+  .tcm-share-title {
+    display: grid;
+    gap: 0.16rem;
+  }
+  .tcm-share-title label {
+    margin: 0;
+  }
+  .tcm-share-help {
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .tcm-share-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+  .tcm-share-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #1d4ed8;
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    padding: 0.16rem 0.48rem;
+  }
+  .tcm-share-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+  }
+  .tcm-share-btn:hover {
+    background: #f8fafc;
+  }
+  .tcm-share-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.35rem 0.45rem;
+    background: #ffffff;
+  }
+  .tcm-note {
+    border: 1px solid #fde68a;
+    background: #fffbeb;
+    color: #92400e;
+    border-radius: 10px;
+    padding: 0.62rem 0.72rem;
+    font-size: 0.78rem;
+  }
+  .tcm-section-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .tcm-section-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .tcm-section-list-head,
+  .tcm-section-row {
+    display: grid;
+    grid-template-columns: 1.1fr 1.8fr 0.55fr 0.7fr 1fr;
+    gap: 0.5rem;
+    padding: 0.55rem 0.7rem;
+    align-items: center;
+  }
+  .tcm-section-list-head {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+  }
+  .tcm-section-row {
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.82rem;
+    color: #1e293b;
+  }
+  .tcm-section-row:last-child {
+    border-bottom: none;
+  }
+  .tcm-section-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+  .tcm-section-form {
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.65rem;
+    background: #fcfdff;
+  }
+  .tcm-helper {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+  .tcm-status-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.18rem 0.48rem;
+  }
+  .tcm-status-badge.active {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+  }
+  .tcm-status-badge.inactive {
+    color: #9a3412;
+    background: #ffedd5;
+    border: 1px solid #fed7aa;
+  }
+
+  @media (max-width: 1080px) {
+    .tcm-filters {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tcm-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tcm-list-head,
+    .tcm-row {
+      grid-template-columns: 1.6fr 1fr 0.8fr 0.9fr 0.7fr 1.2fr;
+    }
+  }
+  @media (max-width: 760px) {
+    .tcm-filters,
+    .tcm-modal-grid,
+    .tcm-stats {
+      grid-template-columns: 1fr;
+    }
+    .tcm-list-head {
+      display: none;
+    }
+    .tcm-row {
+      grid-template-columns: 1fr;
+      border-bottom: 1px solid #e2e8f0;
+      gap: 0.45rem;
+      padding: 0.75rem;
+    }
+    .tcm-actions {
+      justify-content: flex-start;
+    }
+  }
+</style>
+
+<div class="card" id="teacherCourseMaterialsPage">
+  <div class="card-header">
+    <h3><i class="fas fa-folder-open"></i> Course Materials</h3>
+    <div class="tcm-toolbar-actions">
+      <button class="btn btn-sm btn-outline" id="tcmRefreshBtn">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+      <button class="btn btn-sm btn-outline" id="tcmManageSectionsTopBtn">
+        <i class="fas fa-layer-group"></i> Manage Topics
+      </button>
+      <button class="btn btn-sm btn-primary" id="tcmOpenCreateBtn">
+        <i class="fas fa-upload"></i> Upload Material
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body tcm-wrap">
+    <div class="tcm-filters">
+      <div class="tcm-field">
+        <label for="tcmCourseFilter">Subject / Class</label>
+        <select id="tcmCourseFilter"></select>
+      </div>
+      <div class="tcm-field">
+        <label for="tcmSectionFilter">Topic / Unit / Week</label>
+        <select id="tcmSectionFilter"></select>
+      </div>
+      <div class="tcm-field">
+        <label for="tcmPermissionFilter">Access Permission</label>
+        <select id="tcmPermissionFilter">
+          <option value="all">All</option>
+          <option value="view">View only</option>
+          <option value="download">Allow download</option>
+        </select>
+      </div>
+      <div class="tcm-field">
+        <label for="tcmTypeFilter">File Type</label>
+        <select id="tcmTypeFilter">
+          <option value="all">All</option>
+          <option value="pdf">PDF</option>
+          <option value="doc">Word</option>
+          <option value="ppt">PowerPoint</option>
+          <option value="sheet">Spreadsheet</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="tcm-field">
+        <label for="tcmSearchInput">Search</label>
+        <input
+          id="tcmSearchInput"
+          type="text"
+          placeholder="Title, description, class..."
+        />
+      </div>
+    </div>
+
+    <div class="tcm-stats">
+      <div class="tcm-stat">
+        <h4 id="tcmStatTotal">0</h4>
+        <p>Total Materials</p>
+      </div>
+      <div class="tcm-stat">
+        <h4 id="tcmStatSubjects">0</h4>
+        <p>Subjects Covered</p>
+      </div>
+      <div class="tcm-stat">
+        <h4 id="tcmStatStorage">0 MB</h4>
+        <p>Total Storage</p>
+      </div>
+      <div class="tcm-stat">
+        <h4 id="tcmStatDownloads">0</h4>
+        <p>Tracked Downloads</p>
+      </div>
+    </div>
+
+    <div class="tcm-note">
+      <strong>Download tracking:</strong> each open/download updates a
+      database-backed counter for this material.
+    </div>
+
+    <div class="tcm-list" id="tcmListWrap">
+      <div class="tcm-list-head">
+        <div>Material</div>
+        <div>Subject / Class</div>
+        <div>Topic / Unit / Week</div>
+        <div>Permission</div>
+        <div>Downloads / Views</div>
+        <div style="text-align: right">Actions</div>
+      </div>
+      <div id="tcmList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tcm-modal-overlay" id="tcmEditorOverlay" aria-hidden="true">
+  <div
+    class="tcm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tcmEditorTitle"
+  >
+    <div class="tcm-modal-head">
+      <h3 id="tcmEditorTitle">Upload Material</h3>
+      <button type="button" class="tcm-modal-close" id="tcmEditorClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="tcm-modal-body">
+      <div class="tcm-modal-grid">
+        <div class="tcm-field">
+          <label for="tcmEditCourse">Subject / Class</label>
+          <select id="tcmEditCourse"></select>
+        </div>
+        <div class="tcm-field">
+          <label for="tcmEditSection">Topic / Unit / Week</label>
+          <select id="tcmEditSection"></select>
+        </div>
+      </div>
+
+      <div class="tcm-field">
+        <label for="tcmEditTitle">Title</label>
+        <input
+          id="tcmEditTitle"
+          type="text"
+          maxlength="200"
+          placeholder="Example: Algebra Worksheet - Week 3"
+        />
+      </div>
+
+      <div class="tcm-field">
+        <label for="tcmEditDescription">Description</label>
+        <textarea
+          id="tcmEditDescription"
+          placeholder="Short summary for students..."
+        ></textarea>
+      </div>
+
+      <div class="tcm-modal-grid">
+        <div class="tcm-field">
+          <label for="tcmEditPermission">Access Permission</label>
+          <select id="tcmEditPermission">
+            <option value="download">Allow download</option>
+            <option value="view">View only</option>
+          </select>
+        </div>
+        <div class="tcm-field">
+          <label for="tcmEditType">Material Type</label>
+          <select id="tcmEditType">
+            <option value="document">Document</option>
+            <option value="presentation">Presentation</option>
+            <option value="spreadsheet">Spreadsheet</option>
+            <option value="link">External Link</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tcm-modal-grid">
+        <div class="tcm-field">
+          <label for="tcmEditOrderIndex">Material Order</label>
+          <input
+            id="tcmEditOrderIndex"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+          />
+        </div>
+        <div class="tcm-field">
+          <label>Material Options</label>
+          <div class="tcm-inline-checks">
+            <label class="tcm-inline-check tcm-switch">
+              <input id="tcmEditIsRequired" type="checkbox" />
+              <span class="tcm-switch-track" aria-hidden="true"></span>
+              <span class="tcm-switch-text">Required for students</span>
+            </label>
+            <label class="tcm-inline-check tcm-switch">
+              <input id="tcmEditIsActive" type="checkbox" checked />
+              <span class="tcm-switch-track" aria-hidden="true"></span>
+              <span class="tcm-switch-text">Active</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="tcm-field tcm-upload-field" id="tcmFileFieldWrap">
+        <label for="tcmEditFile">File Upload</label>
+        <input id="tcmEditFile" class="tcmEditFile" type="file" />
+        <div class="tcm-upload-meta">
+          <div class="tcm-file-help" id="tcmFileHelpText">
+            Allowed: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT. Maximum: 10 MB.
+          </div>
+          <div class="tcm-upload-chips" id="tcmFileTypeChips">
+            <span class="tcm-upload-chip">PDF</span>
+            <span class="tcm-upload-chip">DOC</span>
+            <span class="tcm-upload-chip">DOCX</span>
+            <span class="tcm-upload-chip">PPT</span>
+            <span class="tcm-upload-chip">PPTX</span>
+            <span class="tcm-upload-chip">XLS</span>
+            <span class="tcm-upload-chip">XLSX</span>
+            <span class="tcm-upload-chip">TXT</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tcm-field" id="tcmLinkFieldWrap" style="display: none">
+        <label for="tcmEditExternalLink">External Link</label>
+        <input id="tcmEditExternalLink" type="url" placeholder="https://..." />
+      </div>
+
+      <div class="tcm-field tcm-share-panel">
+        <div class="tcm-share-head">
+          <div class="tcm-share-title">
+            <label>Share with additional classes</label>
+            <span class="tcm-share-help"
+              >Optional: create a copy of this material in other subject/class
+              groups.</span
+            >
+          </div>
+          <div class="tcm-share-actions">
+            <span class="tcm-share-pill" id="tcmShareCount">0 selected</span>
+            <button
+              type="button"
+              class="tcm-share-btn"
+              id="tcmShareSelectAllBtn"
+            >
+              Select all
+            </button>
+            <button type="button" class="tcm-share-btn" id="tcmShareClearBtn">
+              Clear
+            </button>
+          </div>
+        </div>
+        <div class="tcm-multi-select" id="tcmShareCourses"></div>
+      </div>
+    </div>
+
+    <div class="tcm-modal-foot">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline"
+        id="tcmOpenSectionManagerBtn"
+      >
+        Manage Topics / Units / Weeks
+      </button>
+      <button type="button" class="btn btn-sm btn-outline" id="tcmEditorCancel">
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        id="tcmEditorSaveBtn"
+      >
+        <span id="tcmEditorSaveText">Save</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="tcm-modal-overlay" id="tcmSectionOverlay" aria-hidden="true">
+  <div
+    class="tcm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tcmSectionTitle"
+  >
+    <div class="tcm-modal-head">
+      <h3 id="tcmSectionTitle">Manage Topics / Units / Weeks</h3>
+      <button type="button" class="tcm-modal-close" id="tcmSectionClose">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="tcm-modal-body">
+      <div class="tcm-section-toolbar">
+        <div class="tcm-field" style="min-width: 280px; margin: 0">
+          <label for="tcmSectionCourseSelect">Subject / Class</label>
+          <select id="tcmSectionCourseSelect"></select>
+        </div>
+        <span class="tcm-helper"
+          >Create, edit, or delete Topic / Unit / Week groups used by
+          materials.</span
+        >
+      </div>
+
+      <div class="tcm-section-form">
+        <div class="tcm-modal-grid">
+          <div class="tcm-field">
+            <label for="tcmSectionNameInput">Name</label>
+            <input
+              id="tcmSectionNameInput"
+              type="text"
+              maxlength="100"
+              placeholder="Example: Unit 1 - Algebra"
+            />
+          </div>
+          <div class="tcm-field">
+            <label for="tcmSectionOrderInput">Order</label>
+            <input
+              id="tcmSectionOrderInput"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+            />
+          </div>
+        </div>
+        <div class="tcm-field">
+          <label for="tcmSectionDescInput">Description</label>
+          <textarea
+            id="tcmSectionDescInput"
+            placeholder="Optional notes for this topic/unit/week"
+          ></textarea>
+        </div>
+        <div class="tcm-field">
+          <label>Section Options</label>
+          <div class="tcm-inline-checks">
+            <label class="tcm-inline-check tcm-switch">
+              <input id="tcmSectionIsActiveInput" type="checkbox" checked />
+              <span class="tcm-switch-track" aria-hidden="true"></span>
+              <span class="tcm-switch-text">Active</span>
+            </label>
+          </div>
+        </div>
+        <div class="tcm-toolbar-actions">
+          <button
+            type="button"
+            class="btn btn-sm btn-outline"
+            id="tcmSectionFormResetBtn"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary"
+            id="tcmSectionFormSaveBtn"
+          >
+            <span id="tcmSectionFormSaveText">Create Topic</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tcm-section-list">
+        <div class="tcm-section-list-head">
+          <div>Name</div>
+          <div>Description</div>
+          <div>Order</div>
+          <div>Status</div>
+          <div style="text-align: right">Actions</div>
+        </div>
+        <div id="tcmSectionListBody"></div>
+      </div>
+    </div>
+
+    <div class="tcm-modal-foot">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline"
+        id="tcmSectionDoneBtn"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+</div>

@@ -420,6 +420,7 @@ class ClassSubjectRepository
         $stmt = $this->db->prepare("
             SELECT 
                 m.material_id,
+                m.section_id,
                 m.title,
                 m.description,
                 m.file_path,
@@ -430,6 +431,8 @@ class ClassSubjectRepository
                 m.is_required,
                 m.is_active,
                 m.status,
+                m.access_permission,
+                m.download_count,
                 m.order_index,
                 m.tags,
                 m.created_at,
@@ -489,6 +492,8 @@ class ClassSubjectRepository
                 is_active,
                 uploaded_by,
                 status,
+                access_permission,
+                download_count,
                 tags,
                 created_at,
                 updated_at
@@ -507,6 +512,8 @@ class ClassSubjectRepository
                 :is_active,
                 :uploaded_by,
                 :status,
+                :access_permission,
+                :download_count,
                 :tags,
                 NOW(),
                 NOW()
@@ -528,6 +535,8 @@ class ClassSubjectRepository
             'is_active' => $data['is_active'] ?? 1,
             'uploaded_by' => $data['uploaded_by'],
             'status' => $data['status'] ?? 'active',
+            'access_permission' => $data['access_permission'] ?? 'download',
+            'download_count' => $data['download_count'] ?? 0,
             'tags' => $data['tags'] ?? null
         ]);
 
@@ -590,6 +599,8 @@ class ClassSubjectRepository
                 m.is_active,
                 m.uploaded_by,
                 m.status,
+                m.access_permission,
+                m.download_count,
                 m.tags,
                 m.created_at,
                 m.updated_at,
@@ -629,6 +640,8 @@ class ClassSubjectRepository
             'is_required',
             'is_active',
             'status',
+            'access_permission',
+            'download_count',
             'tags'
         ];
 

@@ -872,6 +872,8 @@ CREATE TABLE IF NOT EXISTS `course_materials` (
   `is_active` tinyint(1) DEFAULT 1,
   `uploaded_by` int(11) DEFAULT NULL,
   `status` varchar(50) DEFAULT 'active',
+  `access_permission` enum('view','download') NOT NULL DEFAULT 'download',
+  `download_count` int(11) NOT NULL DEFAULT 0,
   `tags` varchar(255) DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -881,6 +883,7 @@ CREATE TABLE IF NOT EXISTS `course_materials` (
   KEY `idx_section_id` (`section_id`),
   KEY `idx_material_type` (`material_type`),
   KEY `idx_is_active` (`is_active`),
+  KEY `idx_access_permission` (`access_permission`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

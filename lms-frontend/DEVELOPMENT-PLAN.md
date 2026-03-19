@@ -660,7 +660,7 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 1-2: Teacher Materials**
 
-- [ ] **Create** `teacher/course-materials.html`
+- [x] **Create** `teacher/course-materials.html` _(implemented as `teacher/page/course-materials.html` + `teacher/js/course-materials.js`)_
   - Materials list by subject
   - Upload materials (PDF, Word, PowerPoint, etc.)
   - Organize by topic/unit/week

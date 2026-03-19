@@ -73,9 +73,17 @@ class CourseSectionController
         }
 
         // Teachers can only create sections for their own courses
-        if ($user['role'] === 'teacher' && $course['teacher_id'] != $user['teacher_id']) {
-            Response::forbidden('You can only create sections for your own courses');
-            return;
+        if ($user['role'] === 'teacher') {
+            $teacherId = $user['teacher_id'] ?? null;
+            if ($teacherId === null) {
+                Response::forbidden('Teacher profile is not linked to this user account');
+                return;
+            }
+
+            if ((int) ($course['teacher_id'] ?? 0) !== (int) $teacherId) {
+                Response::forbidden('You can only create sections for your own courses');
+                return;
+            }
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
@@ -83,7 +91,8 @@ class CourseSectionController
         $validator = new Validator($data);
         $validator->required(['section_name'])
             ->max('section_name', 100)
-            ->numeric('order_index');
+            ->numeric('order_index')
+            ->numeric('is_active');
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
@@ -92,6 +101,9 @@ class CourseSectionController
 
         $data['course_id'] = $courseId;
         $data['created_by'] = $user['user_id'];
+        if (array_key_exists('is_active', $data)) {
+            $data['is_active'] = ((int) $data['is_active'] === 1) ? 1 : 0;
+        }
 
         $sectionId = $this->repo->create($data);
 
@@ -135,7 +147,13 @@ class CourseSectionController
         // Teachers can only update sections for their own courses
         if ($user['role'] === 'teacher') {
             $course = $this->courseRepo->findById($courseId);
-            if ($course['teacher_id'] != $user['teacher_id']) {
+            $teacherId = $user['teacher_id'] ?? null;
+            if ($teacherId === null) {
+                Response::forbidden('Teacher profile is not linked to this user account');
+                return;
+            }
+
+            if ((int) ($course['teacher_id'] ?? 0) !== (int) $teacherId) {
                 Response::forbidden('You can only update sections for your own courses');
                 return;
             }
@@ -145,11 +163,16 @@ class CourseSectionController
 
         $validator = new Validator($data);
         $validator->max('section_name', 100)
-            ->numeric('order_index');
+            ->numeric('order_index')
+            ->numeric('is_active');
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        if (array_key_exists('is_active', $data)) {
+            $data['is_active'] = ((int) $data['is_active'] === 1) ? 1 : 0;
         }
 
         $this->repo->update($sectionId, $data);
@@ -191,7 +214,13 @@ class CourseSectionController
         // Teachers can only delete sections for their own courses
         if ($user['role'] === 'teacher') {
             $course = $this->courseRepo->findById($courseId);
-            if ($course['teacher_id'] != $user['teacher_id']) {
+            $teacherId = $user['teacher_id'] ?? null;
+            if ($teacherId === null) {
+                Response::forbidden('Teacher profile is not linked to this user account');
+                return;
+            }
+
+            if ((int) ($course['teacher_id'] ?? 0) !== (int) $teacherId) {
                 Response::forbidden('You can only delete sections for your own courses');
                 return;
             }

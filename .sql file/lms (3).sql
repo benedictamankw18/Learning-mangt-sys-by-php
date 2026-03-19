@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 19, 2026 at 04:43 PM
+-- Generation Time: Mar 19, 2026 at 04:48 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -3474,7 +3474,7 @@ CREATE TABLE IF NOT EXISTS `user_activity` (
   KEY `idx_user_id` (`user_id`),
   KEY `idx_activity_type` (`activity_type`),
   KEY `idx_created_at` (`created_at`)
-) ENGINE=InnoDB AUTO_INCREMENT=25576 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25577 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- RELATIONSHIPS FOR TABLE `user_activity`:
@@ -28438,7 +28438,8 @@ INSERT INTO `user_activity` (`activity_id`, `user_id`, `activity_type`, `activit
 (25572, 152, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/88\\/materials\",\"method\":\"GET\"}', '::1', NULL, '2026-03-19 15:41:13'),
 (25573, 152, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/89\\/materials\",\"method\":\"GET\"}', '::1', NULL, '2026-03-19 15:41:13'),
 (25574, 152, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/92\\/materials\",\"method\":\"GET\"}', '::1', NULL, '2026-03-19 15:41:13'),
-(25575, 152, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/85\\/materials\\/12\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-19 15:41:20');
+(25575, 152, 'api_access', '{\"endpoint\":\"\\/api\\/courses\\/85\\/materials\\/12\",\"method\":\"PUT\"}', '::1', NULL, '2026-03-19 15:41:20'),
+(25576, 152, 'api_access', '{\"endpoint\":\"\\/api\\/dashboard\\/teacher\",\"method\":\"GET\"}', '::1', NULL, '2026-03-19 15:44:02');
 
 -- --------------------------------------------------------
 

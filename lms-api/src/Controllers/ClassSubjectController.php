@@ -291,11 +291,52 @@ class ClassSubjectController
         $validator = new Validator($data);
         $validator->required(['title', 'section_id'])
             ->maxLength('title', 200)
-            ->numeric('section_id');
+            ->numeric('section_id')
+            ->numeric('order_index')
+            ->numeric('is_required')
+            ->numeric('is_active');
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        if (isset($data['access_permission'])) {
+            $permission = strtolower((string) $data['access_permission']);
+            if (!in_array($permission, ['view', 'download'], true)) {
+                Response::validationError(['access_permission' => 'access_permission must be view or download']);
+                return;
+            }
+            $data['access_permission'] = $permission;
+        }
+
+        if (isset($data['download_count'])) {
+            $downloadCount = (int) $data['download_count'];
+            if ($downloadCount < 0) {
+                Response::validationError(['download_count' => 'download_count must be zero or greater']);
+                return;
+            }
+            $data['download_count'] = $downloadCount;
+        }
+
+        if (array_key_exists('order_index', $data)) {
+            $orderIndex = (int) $data['order_index'];
+            if ($orderIndex < 0) {
+                Response::validationError(['order_index' => 'order_index must be zero or greater']);
+                return;
+            }
+            $data['order_index'] = $orderIndex;
+        }
+
+        if (array_key_exists('is_required', $data)) {
+            $data['is_required'] = (int) ((int) $data['is_required'] ? 1 : 0);
+        }
+
+        if (array_key_exists('is_active', $data)) {
+            $data['is_active'] = (int) ((int) $data['is_active'] ? 1 : 0);
+            if (!array_key_exists('status', $data)) {
+                $data['status'] = $data['is_active'] === 1 ? 'active' : 'inactive';
+            }
         }
 
         $materialId = $this->repo->createMaterial($data);
@@ -361,9 +402,59 @@ class ClassSubjectController
             $validator->numeric('section_id');
         }
 
+        if (isset($data['order_index'])) {
+            $validator->numeric('order_index');
+        }
+
+        if (isset($data['is_required'])) {
+            $validator->numeric('is_required');
+        }
+
+        if (isset($data['is_active'])) {
+            $validator->numeric('is_active');
+        }
+
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        if (isset($data['access_permission'])) {
+            $permission = strtolower((string) $data['access_permission']);
+            if (!in_array($permission, ['view', 'download'], true)) {
+                Response::validationError(['access_permission' => 'access_permission must be view or download']);
+                return;
+            }
+            $data['access_permission'] = $permission;
+        }
+
+        if (isset($data['download_count'])) {
+            $downloadCount = (int) $data['download_count'];
+            if ($downloadCount < 0) {
+                Response::validationError(['download_count' => 'download_count must be zero or greater']);
+                return;
+            }
+            $data['download_count'] = $downloadCount;
+        }
+
+        if (array_key_exists('order_index', $data)) {
+            $orderIndex = (int) $data['order_index'];
+            if ($orderIndex < 0) {
+                Response::validationError(['order_index' => 'order_index must be zero or greater']);
+                return;
+            }
+            $data['order_index'] = $orderIndex;
+        }
+
+        if (array_key_exists('is_required', $data)) {
+            $data['is_required'] = (int) ((int) $data['is_required'] ? 1 : 0);
+        }
+
+        if (array_key_exists('is_active', $data)) {
+            $data['is_active'] = (int) ((int) $data['is_active'] ? 1 : 0);
+            if (!array_key_exists('status', $data)) {
+                $data['status'] = $data['is_active'] === 1 ? 'active' : 'inactive';
+            }
         }
 
         $success = $this->repo->updateMaterial($materialId, $data);
