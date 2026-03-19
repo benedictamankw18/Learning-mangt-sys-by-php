@@ -1,0 +1,3 @@
+- UserRepository::assignRole(userId, roleId) replaces all existing user_roles for that user.
+- UserController::assignRoles accepts exactly one role entry; bulk import rejects rows with multiple roles.
+- User detail/update/delete routes use UUID path params (`/api/users/{uuid}`); passing numeric `user_id` returns `Invalid UUID format` (400).

@@ -10,6 +10,36 @@ class EventController
 {
     private $eventRepository;
 
+    private function isAdminRole(array $user): bool
+    {
+        $role = strtolower((string) ($user['role'] ?? ''));
+        return in_array($role, ['admin', 'super_admin'], true);
+    }
+
+    private function getUserId(array $user): ?int
+    {
+        return isset($user['user_id']) ? (int) $user['user_id'] : null;
+    }
+
+    private function canManageEvent(array $user, array $event): bool
+    {
+        $userId = $this->getUserId($user);
+        if (!$userId) {
+            return false;
+        }
+
+        $targetRole = strtolower((string) ($event['target_role'] ?? 'all'));
+        if ($targetRole === 'personal') {
+            return isset($event['created_by']) && (int) $event['created_by'] === $userId;
+        }
+
+        if ($this->isAdminRole($user)) {
+            return true;
+        }
+
+        return isset($event['created_by']) && (int) $event['created_by'] === $userId;
+    }
+
     public function __construct()
     {
         $this->eventRepository = new EventRepository();
@@ -26,6 +56,7 @@ class EventController
             $type = $_GET['type'] ?? null;
             $startDate = $_GET['start_date'] ?? null;
             $endDate = $_GET['end_date'] ?? null;
+            $academicYearId = $_GET['academic_year_id'] ?? null;
             $page = $_GET['page'] ?? 1;
             $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
@@ -39,6 +70,11 @@ class EventController
                 $filters['start_date'] = $startDate;
             if ($endDate)
                 $filters['end_date'] = $endDate;
+            if ($academicYearId)
+                $filters['academic_year_id'] = (int) $academicYearId;
+
+            $filters['viewer_user_id'] = $this->getUserId($user);
+            $filters['viewer_is_admin'] = $this->isAdminRole($user);
 
             $events = $this->eventRepository->getAll($filters, $limit, $offset);
             $total = $this->eventRepository->count($filters);
@@ -68,7 +104,10 @@ class EventController
             $days = $_GET['days'] ?? 30;
             $limit = $_GET['limit'] ?? 20;
 
-            $events = $this->eventRepository->getUpcoming($institutionId, $days, $limit);
+            $viewerUserId = $this->getUserId($user);
+            $viewerIsAdmin = $this->isAdminRole($user);
+
+            $events = $this->eventRepository->getUpcoming($institutionId, $days, $limit, $viewerUserId, $viewerIsAdmin);
 
             Response::success($events);
         } catch (\Exception $e) {
@@ -85,6 +124,8 @@ class EventController
     {
         try {
             $institutionId = $_GET['institution_id'] ?? null;
+            $viewerUserId = $this->getUserId($user);
+            $viewerIsAdmin = $this->isAdminRole($user);
 
             // Support both formats: month=3&year=2026 OR month=2024-03
             if (isset($_GET['year']) && isset($_GET['month'])) {
@@ -95,7 +136,7 @@ class EventController
                 $monthParam = $_GET['month'] ?? date('Y-m');
             }
 
-            $events = $this->eventRepository->getCalendar($institutionId, $monthParam);
+            $events = $this->eventRepository->getCalendar($institutionId, $monthParam, $viewerUserId, $viewerIsAdmin);
 
             Response::success($events);
         } catch (\Exception $e) {
@@ -127,6 +168,12 @@ class EventController
                 return;
             }
 
+            $targetRole = strtolower((string) ($event['target_role'] ?? 'all'));
+            if ($targetRole === 'personal' && !$this->canManageEvent($user, $event)) {
+                Response::forbidden('You are not allowed to view this personal event.');
+                return;
+            }
+
             Response::success($event);
         } catch (\Exception $e) {
             Response::serverError('Failed to fetch event: ' . $e->getMessage());
@@ -141,14 +188,37 @@ class EventController
     {
         try {
             $data = json_decode(file_get_contents('php://input'), true);
+            if (!is_array($data)) {
+                Response::badRequest('Invalid request body');
+                return;
+            }
+
+            if (!isset($data['event_type']) && isset($data['type'])) {
+                $data['event_type'] = $data['type'];
+            }
+
+            $targetRole = strtolower((string) ($data['target_role'] ?? 'all'));
+            if (!$this->isAdminRole($user) && $targetRole !== 'personal') {
+                Response::forbidden('Only admins can create institution-wide calendar events.');
+                return;
+            }
+
+            $creatorId = $this->getUserId($user);
+            if ($creatorId) {
+                $data['created_by'] = $creatorId;
+            }
 
             // Validate required fields
-            $required = ['title', 'description', 'start_date', 'end_date', 'type', 'institution_id'];
+            $required = ['title', 'start_date', 'end_date', 'institution_id'];
             $errors = [];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
                     $errors[$field] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
                 }
+            }
+
+            if (empty($data['event_type'])) {
+                $errors['event_type'] = 'Event type is required';
             }
 
             if (!empty($errors)) {
@@ -157,11 +227,13 @@ class EventController
             }
 
             // Validate event type
-            $validTypes = ['school', 'academic', 'sports', 'cultural', 'exam', 'holiday', 'meeting', 'other'];
-            if (!in_array($data['type'], $validTypes)) {
+            $validTypes = ['school', 'academic', 'sports', 'cultural', 'exam', 'examination', 'holiday', 'meeting', 'other'];
+            if (!in_array($data['event_type'], $validTypes)) {
                 Response::error('Invalid event type');
                 return;
             }
+
+            unset($data['type']);
 
             $eventId = $this->eventRepository->create($data);
 
@@ -195,17 +267,28 @@ class EventController
                 return;
             }
 
+            if (!$this->canManageEvent($user, $event)) {
+                Response::forbidden('You can only edit events you created.');
+                return;
+            }
+
             $data = json_decode(file_get_contents('php://input'), true);
             $eventId = $event['event_id'];
 
+            if (!isset($data['event_type']) && isset($data['type'])) {
+                $data['event_type'] = $data['type'];
+            }
+
             // Validate event type if provided
-            if (isset($data['type'])) {
-                $validTypes = ['school', 'academic', 'sports', 'cultural', 'exam', 'holiday', 'meeting', 'other'];
-                if (!in_array($data['type'], $validTypes)) {
+            if (isset($data['event_type'])) {
+                $validTypes = ['school', 'academic', 'sports', 'cultural', 'exam', 'examination', 'holiday', 'meeting', 'other'];
+                if (!in_array($data['event_type'], $validTypes)) {
                     Response::error('Invalid event type');
                     return;
                 }
             }
+
+            unset($data['type']);
 
             $this->eventRepository->update($eventId, $data);
 
@@ -239,6 +322,11 @@ class EventController
                 return;
             }
 
+            if (!$this->canManageEvent($user, $event)) {
+                Response::forbidden('You can only delete events you created.');
+                return;
+            }
+
             $eventId = $event['event_id'];
 
             $this->eventRepository->delete($eventId);
@@ -259,7 +347,10 @@ class EventController
             $institutionId = $_GET['institution_id'] ?? null;
             $limit = $_GET['limit'] ?? 50;
 
-            $events = $this->eventRepository->getByType($type, $institutionId, $limit);
+            $viewerUserId = $this->getUserId($user);
+            $viewerIsAdmin = $this->isAdminRole($user);
+
+            $events = $this->eventRepository->getByType($type, $institutionId, $limit, $viewerUserId, $viewerIsAdmin);
 
             Response::success($events);
         } catch (\Exception $e) {
@@ -277,7 +368,10 @@ class EventController
             $institutionId = $_GET['institution_id'] ?? null;
             $academicYearId = $_GET['academic_year_id'] ?? null;
 
-            $events = $this->eventRepository->getAcademicCalendar($institutionId, $academicYearId);
+            $viewerUserId = $this->getUserId($user);
+            $viewerIsAdmin = $this->isAdminRole($user);
+
+            $events = $this->eventRepository->getAcademicCalendar($institutionId, $academicYearId, $viewerUserId, $viewerIsAdmin);
 
             Response::success($events);
         } catch (\Exception $e) {

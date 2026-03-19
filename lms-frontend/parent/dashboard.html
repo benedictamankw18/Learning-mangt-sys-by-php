@@ -56,9 +56,9 @@
           <i class="fas fa-envelope"></i>
           <span>Messages</span>
         </a>
-        <a href="#" class="nav-item" data-page="events">
+        <a href="#" class="nav-item" data-page="calendar">
           <i class="fas fa-calendar-alt"></i>
-          <span>Events</span>
+          <span>School Calendar</span>
         </a>
         <a href="#" class="nav-item" data-page="fees">
           <i class="fas fa-dollar-sign"></i>
@@ -397,6 +397,7 @@
     <script src="./js/my-children.js"></script>
     <script src="./js/attendance.js"></script>
     <script src="./js/timetable.js"></script>
+    <script src="../common/js/calendar.js"></script>
     <!-- jsPDF and autoTable for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
@@ -438,7 +439,11 @@
 
           try {
             dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
-            const res = await fetch(`./page/${page}.html`);
+            const pagePath =
+              page === "calendar"
+                ? `../common/calendar.html`
+                : `./page/${page}.html`;
+            const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
             document
@@ -449,7 +454,10 @@
             const title = document.getElementById("pageTitle");
             if (title)
               title.textContent =
-                page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g, " ");
+                page === "calendar"
+                  ? "School Calendar"
+                  : page.charAt(0).toUpperCase() +
+                    page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             document.dispatchEvent(
               new CustomEvent("page:loaded", { detail: { page } }),

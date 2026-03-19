@@ -146,12 +146,16 @@ abstract class BaseRepository
 
     public function update(int $id, array $data): bool
     {
+        if (empty($data)) {
+            return false;
+        }
+
         $fields = [];
         foreach (array_keys($data) as $field) {
             $fields[] = "{$field} = :{$field}";
         }
 
-        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE id = :id";
+        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE {$this->primaryKey} = :id";
 
         $stmt = $this->db->prepare($sql);
 
@@ -166,7 +170,7 @@ abstract class BaseRepository
 
     public function delete(int $id): bool
     {
-        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE id = :id");
+        $stmt = $this->db->prepare("DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id");
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 
         return $stmt->execute();

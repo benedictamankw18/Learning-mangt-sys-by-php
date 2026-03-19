@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 16, 2026 at 12:39 PM
+-- Generation Time: Mar 18, 2026 at 11:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -21,6 +21,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `lms`
 --
+DROP DATABASE IF EXISTS `lms`;
 CREATE DATABASE IF NOT EXISTS `lms` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `lms`;
 
@@ -46,6 +47,12 @@ CREATE TABLE IF NOT EXISTS `academic_years` (
   KEY `idx_is_current` (`is_current`),
   KEY `idx_year_name` (`year_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `academic_years`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 -- --------------------------------------------------------
 
@@ -80,6 +87,14 @@ CREATE TABLE IF NOT EXISTS `admins` (
   KEY `idx_admins_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `admins`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -111,6 +126,14 @@ CREATE TABLE IF NOT EXISTS `admin_activity` (
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by institution admins';
 
+--
+-- RELATIONSHIPS FOR TABLE `admin_activity`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `performed_by`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -141,6 +164,12 @@ CREATE TABLE IF NOT EXISTS `announcements` (
   KEY `idx_announcements_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `announcements`:
+--   `author_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -170,6 +199,14 @@ CREATE TABLE IF NOT EXISTS `assessments` (
   KEY `idx_due_date` (`due_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `assessments`:
+--   `category_id`
+--       `assessment_categories` -> `category_id`
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -187,6 +224,10 @@ CREATE TABLE IF NOT EXISTS `assessment_categories` (
   PRIMARY KEY (`category_id`),
   KEY `idx_category_name` (`category_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `assessment_categories`:
+--
 
 -- --------------------------------------------------------
 
@@ -214,6 +255,14 @@ CREATE TABLE IF NOT EXISTS `assessment_submissions` (
   KEY `idx_status` (`status`),
   KEY `idx_submission_assessment_student` (`assessment_id`,`student_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `assessment_submissions`:
+--   `assessment_id`
+--       `assessments` -> `assessment_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
 
 --
 -- Triggers `assessment_submissions`
@@ -276,6 +325,14 @@ CREATE TABLE IF NOT EXISTS `assignments` (
   KEY `idx_assignments_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `assignments`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `section_id`
+--       `course_sections` -> `course_sections_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -306,6 +363,18 @@ CREATE TABLE IF NOT EXISTS `assignment_submissions` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `assignment_submissions`:
+--   `assignment_id`
+--       `assignments` -> `assignment_id`
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `graded_by`
+--       `users` -> `user_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -329,6 +398,14 @@ CREATE TABLE IF NOT EXISTS `attendance` (
   KEY `idx_attendance_date` (`attendance_date`),
   KEY `idx_attendance_date_range` (`student_id`,`attendance_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `attendance`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
 
 -- --------------------------------------------------------
 
@@ -370,6 +447,20 @@ CREATE TABLE IF NOT EXISTS `classes` (
   KEY `idx_classes_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `classes`:
+--   `academic_year_id`
+--       `academic_years` -> `academic_year_id`
+--   `grade_level_id`
+--       `grade_levels` -> `grade_level_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `program_id`
+--       `programs` -> `program_id`
+--   `class_teacher_id`
+--       `teachers` -> `teacher_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -403,6 +494,22 @@ CREATE TABLE IF NOT EXISTS `class_subjects` (
   KEY `idx_course_teacher_status` (`teacher_id`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `class_subjects`:
+--   `academic_year_id`
+--       `academic_years` -> `academic_year_id`
+--   `class_id`
+--       `classes` -> `class_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `semester_id`
+--       `semesters` -> `semester_id`
+--   `subject_id`
+--       `subjects` -> `subject_id`
+--   `teacher_id`
+--       `teachers` -> `teacher_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -434,6 +541,16 @@ CREATE TABLE IF NOT EXISTS `course_content` (
   KEY `idx_course_content_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `course_content`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `created_by`
+--       `users` -> `user_id`
+--   `section_id`
+--       `course_sections` -> `course_sections_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -459,6 +576,18 @@ CREATE TABLE IF NOT EXISTS `course_content_order` (
   KEY `idx_content_order_index` (`order_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `course_content_order`:
+--   `course_content_id`
+--       `course_content` -> `course_content_id`
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `material_id`
+--       `course_materials` -> `material_id`
+--   `course_section_id`
+--       `course_sections` -> `course_sections_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -482,6 +611,14 @@ CREATE TABLE IF NOT EXISTS `course_enrollments` (
   KEY `idx_status` (`status`),
   KEY `idx_enrollment_student_status` (`student_id`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `course_enrollments`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
 
 --
 -- Triggers `course_enrollments`
@@ -543,6 +680,16 @@ CREATE TABLE IF NOT EXISTS `course_materials` (
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `course_materials`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `section_id`
+--       `course_sections` -> `course_sections_id`
+--   `uploaded_by`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -564,6 +711,14 @@ CREATE TABLE IF NOT EXISTS `course_reviews` (
   KEY `idx_course_id` (`course_id`),
   KEY `idx_rating` (`rating`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `course_reviews`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
 
 -- --------------------------------------------------------
 
@@ -588,6 +743,12 @@ CREATE TABLE IF NOT EXISTS `course_schedules` (
   KEY `idx_day_of_week` (`day_of_week`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `course_schedules`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -611,6 +772,14 @@ CREATE TABLE IF NOT EXISTS `course_sections` (
   KEY `idx_order_index` (`order_index`),
   KEY `idx_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `course_sections`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `created_by`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -639,6 +808,14 @@ CREATE TABLE IF NOT EXISTS `error_logs` (
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `error_logs`:
+--   `resolved_by`
+--       `users` -> `user_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -659,6 +836,7 @@ CREATE TABLE IF NOT EXISTS `events` (
   `location` varchar(200) DEFAULT NULL,
   `target_role` varchar(50) DEFAULT NULL,
   `course_id` int(11) DEFAULT NULL,
+  `academic_year_id` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `is_recurring` tinyint(1) DEFAULT 0,
   `recurrence_pattern` varchar(100) DEFAULT NULL,
@@ -675,8 +853,21 @@ CREATE TABLE IF NOT EXISTS `events` (
   KEY `idx_event_type` (`event_type`),
   KEY `idx_target_role` (`target_role`),
   KEY `idx_course_id` (`course_id`),
+  KEY `idx_academic_year_id` (`academic_year_id`),
   KEY `idx_events_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `events`:
+--   `academic_year_id`
+--       `academic_years` -> `academic_year_id`
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `created_by`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -703,6 +894,12 @@ CREATE TABLE IF NOT EXISTS `grade_levels` (
   KEY `idx_level_order` (`level_order`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `grade_levels`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 -- --------------------------------------------------------
 
@@ -749,6 +946,20 @@ CREATE TABLE IF NOT EXISTS `grade_reports` (
   KEY `idx_grade_reports_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `grade_reports`:
+--   `generated_by`
+--       `users` -> `user_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `semester_id`
+--       `semesters` -> `semester_id`
+--   `student_id`
+--       `students` -> `student_id`
+--   `academic_year_id`
+--       `academic_years` -> `academic_year_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -778,6 +989,14 @@ CREATE TABLE IF NOT EXISTS `grade_report_details` (
   KEY `idx_course_id` (`course_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `grade_report_details`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `report_id`
+--       `grade_reports` -> `report_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -799,6 +1018,12 @@ CREATE TABLE IF NOT EXISTS `grade_scales` (
   KEY `idx_grade` (`grade`),
   KEY `idx_score_range` (`min_score`,`max_score`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `grade_scales`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 -- --------------------------------------------------------
 
@@ -837,6 +1062,10 @@ CREATE TABLE IF NOT EXISTS `institutions` (
   KEY `idx_status` (`status`),
   KEY `idx_institutions_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `institutions`:
+--
 
 -- --------------------------------------------------------
 
@@ -880,6 +1109,12 @@ CREATE TABLE IF NOT EXISTS `institution_settings` (
   UNIQUE KEY `unique_institution` (`institution_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `institution_settings`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -901,6 +1136,12 @@ CREATE TABLE IF NOT EXISTS `login_activity` (
   KEY `idx_login_time` (`login_time`),
   KEY `idx_is_successful` (`is_successful`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `login_activity`:
+--   `user_id`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -933,6 +1174,18 @@ CREATE TABLE IF NOT EXISTS `messages` (
   KEY `idx_messages_sent_at` (`sent_at`),
   KEY `idx_messages_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `messages`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `parent_message_id`
+--       `messages` -> `message_id`
+--   `receiver_id`
+--       `users` -> `user_id`
+--   `sender_id`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -968,6 +1221,16 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   KEY `idx_notifications_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `notifications`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `sender_id`
+--       `users` -> `user_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -991,6 +1254,14 @@ CREATE TABLE IF NOT EXISTS `parents` (
   UNIQUE KEY `parent_id` (`parent_id`,`institution_id`,`user_id`,`guardian_id`) USING BTREE,
   KEY `idx_institution_id` (`institution_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `parents`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1022,6 +1293,14 @@ CREATE TABLE IF NOT EXISTS `parent_activity` (
   KEY `idx_pa_severity` (`severity`),
   KEY `idx_pa_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by parents';
+
+--
+-- RELATIONSHIPS FOR TABLE `parent_activity`:
+--   `performed_by`
+--       `users` -> `user_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 --
 -- Triggers `parent_activity`
@@ -1056,6 +1335,14 @@ CREATE TABLE IF NOT EXISTS `parent_students` (
   KEY `idx_student_id` (`student_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `parent_students`:
+--   `parent_id`
+--       `parents` -> `parent_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1081,6 +1368,12 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   KEY `idx_is_active` (`is_active`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `password_reset_tokens`:
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1096,6 +1389,10 @@ CREATE TABLE IF NOT EXISTS `permissions` (
   PRIMARY KEY (`permission_id`),
   UNIQUE KEY `permission_name` (`permission_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `permissions`:
+--
 
 -- --------------------------------------------------------
 
@@ -1120,6 +1417,12 @@ CREATE TABLE IF NOT EXISTS `programs` (
   KEY `idx_program_code` (`program_code`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `programs`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1153,6 +1456,14 @@ CREATE TABLE IF NOT EXISTS `quizzes` (
   KEY `idx_end_date` (`end_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `quizzes`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `section_id`
+--       `course_sections` -> `course_sections_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1178,6 +1489,12 @@ CREATE TABLE IF NOT EXISTS `quiz_questions` (
   KEY `idx_order_index` (`order_index`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `quiz_questions`:
+--   `quiz_id`
+--       `quizzes` -> `quiz_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1195,6 +1512,12 @@ CREATE TABLE IF NOT EXISTS `quiz_question_options` (
   PRIMARY KEY (`option_id`),
   KEY `idx_question_id` (`question_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `quiz_question_options`:
+--   `question_id`
+--       `quiz_questions` -> `question_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1226,6 +1549,16 @@ CREATE TABLE IF NOT EXISTS `quiz_submissions` (
   KEY `idx_attempt` (`attempt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `quiz_submissions`:
+--   `graded_by`
+--       `users` -> `user_id`
+--   `quiz_id`
+--       `quizzes` -> `quiz_id`
+--   `student_id`
+--       `students` -> `student_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1245,6 +1578,14 @@ CREATE TABLE IF NOT EXISTS `quiz_submission_answers` (
   KEY `idx_submission_id` (`submission_id`),
   KEY `idx_question_id` (`question_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `quiz_submission_answers`:
+--   `question_id`
+--       `quiz_questions` -> `question_id`
+--   `submission_id`
+--       `quiz_submissions` -> `submission_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1276,6 +1617,18 @@ CREATE TABLE IF NOT EXISTS `results` (
   KEY `idx_grade` (`grade`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `results`:
+--   `course_id`
+--       `class_subjects` -> `course_id`
+--   `semester_id`
+--       `semesters` -> `semester_id`
+--   `student_id`
+--       `students` -> `student_id`
+--   `subject_id`
+--       `subjects` -> `subject_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1293,6 +1646,10 @@ CREATE TABLE IF NOT EXISTS `roles` (
   UNIQUE KEY `role_name` (`role_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `roles`:
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1309,6 +1666,14 @@ CREATE TABLE IF NOT EXISTS `role_permissions` (
   UNIQUE KEY `unique_role_permission` (`role_id`,`permission_id`),
   KEY `FK_role_permissions_permission` (`permission_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `role_permissions`:
+--   `permission_id`
+--       `permissions` -> `permission_id`
+--   `role_id`
+--       `roles` -> `role_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1328,6 +1693,10 @@ CREATE TABLE IF NOT EXISTS `schema_migrations` (
   PRIMARY KEY (`version`),
   KEY `idx_applied_at` (`applied_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `schema_migrations`:
+--
 
 -- --------------------------------------------------------
 
@@ -1351,6 +1720,14 @@ CREATE TABLE IF NOT EXISTS `semesters` (
   KEY `idx_academic_year_id` (`academic_year_id`),
   KEY `idx_is_current` (`is_current`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `semesters`:
+--   `academic_year_id`
+--       `academic_years` -> `academic_year_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1389,6 +1766,16 @@ CREATE TABLE IF NOT EXISTS `students` (
   KEY `idx_students_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `students`:
+--   `class_id`
+--       `classes` -> `class_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1419,6 +1806,14 @@ CREATE TABLE IF NOT EXISTS `student_activity` (
   KEY `idx_sa_severity` (`severity`),
   KEY `idx_sa_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by students';
+
+--
+-- RELATIONSHIPS FOR TABLE `student_activity`:
+--   `performed_by`
+--       `users` -> `user_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
 
 --
 -- Triggers `student_activity`
@@ -1462,6 +1857,12 @@ CREATE TABLE IF NOT EXISTS `subjects` (
   KEY `idx_subjects_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `subjects`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1486,6 +1887,10 @@ CREATE TABLE IF NOT EXISTS `subscription_plans` (
   UNIQUE KEY `uq_subscription_plans_name` (`plan_name`),
   KEY `idx_subscription_plans_active_sort` (`is_active`,`sort_order`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `subscription_plans`:
+--
 
 -- --------------------------------------------------------
 
@@ -1516,6 +1921,12 @@ CREATE TABLE IF NOT EXISTS `superadmin_activity` (
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by super admins';
 
+--
+-- RELATIONSHIPS FOR TABLE `superadmin_activity`:
+--   `performed_by`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1529,6 +1940,10 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
   `updated_at` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`settings_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `system_settings`:
+--
 
 -- --------------------------------------------------------
 
@@ -1566,6 +1981,16 @@ CREATE TABLE IF NOT EXISTS `teachers` (
   KEY `idx_program_id` (`program_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `teachers`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--   `program_id`
+--       `programs` -> `program_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1598,6 +2023,14 @@ CREATE TABLE IF NOT EXISTS `teacher_activity` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tracks all meaningful actions performed by teachers';
 
 --
+-- RELATIONSHIPS FOR TABLE `teacher_activity`:
+--   `performed_by`
+--       `users` -> `user_id`
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
+
+--
 -- Triggers `teacher_activity`
 --
 DROP TRIGGER IF EXISTS `trg_teacher_activity_purge`;
@@ -1627,6 +2060,14 @@ CREATE TABLE IF NOT EXISTS `teacher_subjects` (
   KEY `idx_subject_id` (`subject_id`),
   KEY `idx_teacher_subject` (`teacher_id`,`subject_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `teacher_subjects`:
+--   `subject_id`
+--       `subjects` -> `subject_id`
+--   `teacher_id`
+--       `teachers` -> `teacher_id`
+--
 
 -- --------------------------------------------------------
 
@@ -1672,6 +2113,12 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_users_uuid` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `users`:
+--   `institution_id`
+--       `institutions` -> `institution_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1693,6 +2140,12 @@ CREATE TABLE IF NOT EXISTS `user_activity` (
   KEY `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- RELATIONSHIPS FOR TABLE `user_activity`:
+--   `user_id`
+--       `users` -> `user_id`
+--
+
 -- --------------------------------------------------------
 
 --
@@ -1711,6 +2164,14 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   UNIQUE KEY `unique_user_id` (`user_id`) USING BTREE,
   KEY `FK_user_roles_role` (`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- RELATIONSHIPS FOR TABLE `user_roles`:
+--   `role_id`
+--       `roles` -> `role_id`
+--   `user_id`
+--       `users` -> `user_id`
+--
 
 -- --------------------------------------------------------
 
@@ -2026,9 +2487,10 @@ ALTER TABLE `error_logs`
 -- Constraints for table `events`
 --
 ALTER TABLE `events`
-  ADD CONSTRAINT `FK_events_course` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `FK_events_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `FK_events_institution` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `events_ibfk_1` FOREIGN KEY (`academic_year_id`) REFERENCES `academic_years` (`academic_year_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `events_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `class_subjects` (`course_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `events_ibfk_3` FOREIGN KEY (`institution_id`) REFERENCES `institutions` (`institution_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `events_ibfk_4` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `grade_levels`

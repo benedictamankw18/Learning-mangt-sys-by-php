@@ -1,0 +1,4 @@
+- parents table is normalized: names, email, phone, address, username, and password live on users; parents keeps guardian_id, occupation, and notification prefs.
+- guardian_id is auto-generated in ParentRepository as GDN-00000 when omitted on create.
+- ParentController now creates a user account plus parent row for new parents, and updates users + parents separately on edit.
+- admin parents UI now reads/writes notification preferences from parent records instead of local-only prefs.

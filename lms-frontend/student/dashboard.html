@@ -60,6 +60,10 @@
           <i class="fas fa-clock"></i>
           <span>Timetable</span>
         </a>
+        <a href="#" class="nav-item" data-page="calendar">
+          <i class="fas fa-calendar-days"></i>
+          <span>School Calendar</span>
+        </a>
         <a href="#" class="nav-item" data-page="resources">
           <i class="fas fa-folder-open"></i>
           <span>Resources</span>
@@ -418,6 +422,7 @@
     <script src="./js/my-classes.js"></script>
     <script src="./js/my-subjects.js"></script>
     <script src="./js/timetable.js"></script>
+    <script src="../common/js/calendar.js"></script>
     <script src="./js/myprofile.js"></script>
     <script src="./js/attendance.js"></script>
     <!-- jsPDF and autoTable for PDF export -->
@@ -462,7 +467,11 @@
 
           try {
             dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
-            const res = await fetch(`./page/${page}.html`);
+            const pagePath =
+              page === "calendar"
+                ? `../common/calendar.html`
+                : `./page/${page}.html`;
+            const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
             document
@@ -473,7 +482,10 @@
             const title = document.getElementById("pageTitle");
             if (title)
               title.textContent =
-                page.charAt(0).toUpperCase() + page.slice(1).replace(/-/g, " ");
+                page === "calendar"
+                  ? "School Calendar"
+                  : page.charAt(0).toUpperCase() +
+                    page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             document.dispatchEvent(
               new CustomEvent("page:loaded", { detail: { page } }),

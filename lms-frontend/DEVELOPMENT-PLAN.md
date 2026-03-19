@@ -640,7 +640,7 @@ Implement attendance tracking, timetables, and course materials management.
   - Weekly schedule
   - Daily schedule
   - Export and print
-- [ ] **Create** `common/calendar.html`
+- [x] **Create** `common/calendar.html` _(implemented as `common/calendar.html` + `common/js/calendar.js`, wired in admin/teacher/student/parent dashboards)_
   - School calendar with academic events
   - Semester dates(start/end)
   - Exam periods

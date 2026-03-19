@@ -1,0 +1,3 @@
+- Admin attendance period stats now use GET /api/attendance/summary with start_date, end_date, optional course_ids.
+- Backend aggregation lives in AttendanceRepository::getSummaryByInstitution(); frontend calls it from admin/js/attendance.js.
+- This replaced the previous per-course per-day fetch fan-out that caused large request bursts in the PHP dev server log.

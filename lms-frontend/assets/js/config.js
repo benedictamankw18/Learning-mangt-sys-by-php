@@ -171,6 +171,14 @@ const API_ENDPOINTS = {
     // Announcements
     ANNOUNCEMENTS: '/api/announcements',
 
+    // Events / Calendar
+    EVENTS: '/api/events',
+    EVENT_BY_UUID: (uuid) => `/api/events/${uuid}`,
+    EVENTS_UPCOMING: '/api/events/upcoming',
+    EVENTS_CALENDAR: '/api/events/calendar',
+    EVENTS_ACADEMIC_CALENDAR: '/api/events/academic-calendar',
+    EVENTS_BY_TYPE: (type) => `/api/events/type/${type}`,
+
     // Messages
     MESSAGES: '/api/messages',
     SEND_MESSAGE: '/api/messages/send',

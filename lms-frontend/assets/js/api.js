@@ -493,3 +493,18 @@ const AnnouncementAPI = {
     update: (id, data) => API.put(`${API_ENDPOINTS.ANNOUNCEMENTS}/${id}`, data),
     delete: (id) => API.delete(`${API_ENDPOINTS.ANNOUNCEMENTS}/${id}`),
 };
+
+/**
+ * Event / Calendar APIs
+ */
+const EventAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.EVENTS, params),
+    getById: (uuid) => API.get(API_ENDPOINTS.EVENT_BY_UUID(uuid)),
+    getUpcoming: (params) => API.get(API_ENDPOINTS.EVENTS_UPCOMING, params),
+    getCalendar: (params) => API.get(API_ENDPOINTS.EVENTS_CALENDAR, params),
+    getAcademicCalendar: (params) => API.get(API_ENDPOINTS.EVENTS_ACADEMIC_CALENDAR, params),
+    getByType: (type, params) => API.get(API_ENDPOINTS.EVENTS_BY_TYPE(type), params),
+    create: (data) => API.post(API_ENDPOINTS.EVENTS, data),
+    update: (uuid, data) => API.put(API_ENDPOINTS.EVENT_BY_UUID(uuid), data),
+    delete: (uuid) => API.delete(API_ENDPOINTS.EVENT_BY_UUID(uuid)),
+};

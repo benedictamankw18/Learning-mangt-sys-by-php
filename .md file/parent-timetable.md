@@ -1,0 +1,4 @@
+- Parent timetable frontend is implemented at parent/page/timetable.html with logic in parent/js/timetable.js.
+- It uses DashboardAPI.getParentStats() for child list and ParentAPI.getStudents(parentId) to enrich child records with student/class details.
+- Timetable fetch resolves class UUID then calls GET /api/classes/{uuid}/schedule.
+- Parent dashboard nav includes data-page="timetable" and normalizes #schedule -> #timetable hash.

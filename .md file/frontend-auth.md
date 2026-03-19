@@ -1,0 +1,2 @@
+- Frontend auth token key is lms_access_token via STORAGE_KEYS.ACCESS_TOKEN, but page scripts should prefer Auth.getToken() or the shared API singleton.
+- Admin page modules should not read auth_token directly; use API.get/post/put/delete to inherit auth, 401 handling, and network error handling.
