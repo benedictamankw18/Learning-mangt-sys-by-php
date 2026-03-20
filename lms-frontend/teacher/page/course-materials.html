@@ -445,6 +445,51 @@
     padding: 0.62rem 0.72rem;
     font-size: 0.78rem;
   }
+  .tcm-report-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+  }
+  .tcm-report-pill {
+    border: 1px solid #dbeafe;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+  }
+  .tcm-report-pill strong {
+    display: block;
+    color: #0f172a;
+    font-size: 0.95rem;
+  }
+  .tcm-report-pill span {
+    font-size: 0.74rem;
+    color: #475569;
+  }
+  .tcm-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .tcm-report-table th,
+  .tcm-report-table td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.55rem 0.4rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .tcm-report-table th {
+    color: #334155;
+    font-weight: 700;
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .tcm-report-rate {
+    font-weight: 700;
+    color: #0f766e;
+  }
   .tcm-section-toolbar {
     display: flex;
     justify-content: space-between;
@@ -556,6 +601,9 @@
       <button class="btn btn-sm btn-outline" id="tcmRefreshBtn">
         <i class="fas fa-rotate"></i> Refresh
       </button>
+      <button class="btn btn-sm btn-outline" id="tcmRequiredProgressBtn">
+        <i class="fas fa-chart-column"></i> Required Report
+      </button>
       <button class="btn btn-sm btn-outline" id="tcmManageSectionsTopBtn">
         <i class="fas fa-layer-group"></i> Manage Topics
       </button>
@@ -642,6 +690,74 @@
   </div>
 </div>
 
+<div
+  class="tcm-modal-overlay"
+  id="tcmRequiredProgressOverlay"
+  aria-hidden="true"
+>
+  <div
+    class="tcm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tcmRequiredProgressTitle"
+    style="max-width: 980px"
+  >
+    <div class="tcm-modal-head">
+      <h3 id="tcmRequiredProgressTitle">Required Material Completion Report</h3>
+      <button
+        type="button"
+        class="tcm-modal-close"
+        id="tcmRequiredProgressClose"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="tcm-modal-body">
+      <div class="tcm-report-summary" id="tcmRequiredProgressSummary"></div>
+      <div
+        style="
+          max-height: 52vh;
+          overflow: auto;
+          border: 1px solid #e2e8f0;
+          border-radius: 10px;
+        "
+      >
+        <table
+          class="tcm-report-table"
+          aria-label="Required material completion report table"
+        >
+          <thead>
+            <tr>
+              <th>Subject / Class</th>
+              <th>Topic / Unit / Week</th>
+              <th>Material</th>
+              <th>Completed</th>
+              <th>Total Students</th>
+              <th>Completion Rate</th>
+            </tr>
+          </thead>
+          <tbody id="tcmRequiredProgressBody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: #64748b">
+                No report loaded yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="tcm-modal-foot">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline"
+        id="tcmRequiredProgressCloseFoot"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="tcm-modal-overlay" id="tcmEditorOverlay" aria-hidden="true">
   <div
     class="tcm-modal"
@@ -699,6 +815,8 @@
             <option value="document">Document</option>
             <option value="presentation">Presentation</option>
             <option value="spreadsheet">Spreadsheet</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
             <option value="link">External Link</option>
             <option value="other">Other</option>
           </select>
@@ -735,10 +853,12 @@
 
       <div class="tcm-field tcm-upload-field" id="tcmFileFieldWrap">
         <label for="tcmEditFile">File Upload</label>
+        <div id="tcmCurrentFileInfo" style="margin-bottom: 0.5rem"></div>
         <input id="tcmEditFile" class="tcmEditFile" type="file" />
         <div class="tcm-upload-meta">
           <div class="tcm-file-help" id="tcmFileHelpText">
-            Allowed: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT. Maximum: 10 MB.
+            Allowed: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, JPG, JPEG, PNG,
+            GIF, WEBP, MP4, AVI, MOV, WMV. Maximum: 100 MB.
           </div>
           <div class="tcm-upload-chips" id="tcmFileTypeChips">
             <span class="tcm-upload-chip">PDF</span>
@@ -749,6 +869,9 @@
             <span class="tcm-upload-chip">XLS</span>
             <span class="tcm-upload-chip">XLSX</span>
             <span class="tcm-upload-chip">TXT</span>
+            <span class="tcm-upload-chip">JPG</span>
+            <span class="tcm-upload-chip">PNG</span>
+            <span class="tcm-upload-chip">MP4</span>
           </div>
         </div>
       </div>

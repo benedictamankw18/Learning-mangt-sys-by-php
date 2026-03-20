@@ -1,0 +1,581 @@
+<style>
+  .scm-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .scm-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .scm-toolbar h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+
+  .scm-toolbar p {
+    margin: 0.2rem 0 0;
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+
+  .scm-filters {
+    display: grid;
+    grid-template-columns: 1.1fr 1.1fr 1.6fr auto auto;
+    gap: 0.6rem;
+    align-items: end;
+  }
+
+  .scm-field {
+    display: grid;
+    gap: 0.28rem;
+  }
+
+  .scm-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .scm-field input,
+  .scm-field select {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #0f172a;
+  }
+
+  .scm-field input:focus,
+  .scm-field select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .scm-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    color: #334155;
+    user-select: none;
+  }
+
+  .scm-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.52rem;
+    font-size: 0.82rem;
+    color: #334155;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .scm-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .scm-switch-track {
+    position: relative;
+    width: 42px;
+    height: 24px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.2s ease;
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+  }
+
+  .scm-switch-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: #ffffff;
+    transition: transform 0.2s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+  }
+
+  .scm-switch input:checked + .scm-switch-track {
+    background: #16a34a;
+  }
+
+  .scm-switch input:checked + .scm-switch-track .scm-switch-thumb {
+    transform: translateX(18px);
+  }
+
+  .scm-switch input:focus-visible + .scm-switch-track {
+    outline: 3px solid rgba(22, 163, 74, 0.25);
+    outline-offset: 2px;
+  }
+
+  .scm-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .scm-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+
+  .scm-stat h4 {
+    margin: 0;
+    font-size: 1.18rem;
+    color: #0f172a;
+  }
+
+  .scm-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.77rem;
+    color: #64748b;
+  }
+
+  .scm-grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: 0.8rem;
+  }
+
+  .scm-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .scm-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 0.8rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .scm-panel-head h4 {
+    margin: 0;
+    font-size: 0.86rem;
+    color: #0f172a;
+  }
+
+  .scm-list {
+    display: grid;
+  }
+
+  .scm-card {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.7rem 0.8rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .scm-card:last-child {
+    border-bottom: none;
+  }
+
+  .scm-card-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .scm-card-title strong {
+    color: #0f172a;
+    font-size: 0.88rem;
+  }
+
+  .scm-card-sub {
+    color: #64748b;
+    font-size: 0.76rem;
+  }
+
+  .scm-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #334155;
+    width: fit-content;
+  }
+
+  .scm-chip.required {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .scm-chip.complete {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  .scm-chip.not-complete {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+  }
+
+  .scm-chip.ext-file {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .scm-chip.ext-pdf {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .scm-chip.ext-doc,
+  .scm-chip.ext-docx {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .scm-chip.ext-txt {
+    background: #e0f2fe;
+    color: #075985;
+  }
+
+  .scm-chip.ext-odt,
+  .scm-chip.ext-rtf {
+    background: #ecfccb;
+    color: #3f6212;
+  }
+
+  .scm-chip.ext-ppt,
+  .scm-chip.ext-pptx {
+    background: #ffedd5;
+    color: #9a3412;
+  }
+
+  .scm-chip.ext-xls,
+  .scm-chip.ext-xlsx {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .scm-chip.ext-link {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .scm-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .scm-empty,
+  .scm-error {
+    text-align: center;
+    padding: 1.2rem;
+    color: #64748b;
+    font-size: 0.86rem;
+  }
+
+  .scm-empty i,
+  .scm-error i {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 1.4rem;
+    color: #94a3b8;
+  }
+
+  .scm-error {
+    color: #b91c1c;
+  }
+
+  .scm-side-list {
+    display: grid;
+    max-height: 420px;
+    overflow: auto;
+  }
+
+  .scm-side-item {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.62rem 0.75rem;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .scm-side-item:last-child {
+    border-bottom: none;
+  }
+
+  .scm-side-item strong {
+    font-size: 0.82rem;
+    color: #0f172a;
+  }
+
+  .scm-side-item span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .scm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.55);
+    z-index: 2500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .scm-modal-overlay.open {
+    display: flex;
+  }
+
+  .scm-modal {
+    width: min(980px, 100%);
+    max-height: 90vh;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.3);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .scm-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .scm-modal-head h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 0.95rem;
+  }
+
+  .scm-modal-body {
+    padding: 0.75rem 1rem 1rem;
+    overflow: auto;
+    min-height: 250px;
+  }
+
+  .scm-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+    padding: 0.85rem 1rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .scm-preview-frame {
+    width: 100%;
+    height: min(68vh, 640px);
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+  }
+
+  @media (max-width: 980px) {
+    .scm-filters {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .scm-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .scm-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .scm-stats {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
+
+<div class="card" id="studentCourseMaterialsPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-folder-open"></i> Course Materials</h3>
+  </div>
+
+  <div class="card-body scm-wrap">
+    <div class="scm-toolbar">
+      <div>
+        <h3>My Learning Materials</h3>
+        <p>
+          Browse resources by subject, preview supported files, bookmark
+          favorites, and track your downloads.
+        </p>
+      </div>
+    </div>
+
+    <div class="scm-filters">
+      <div class="scm-field">
+        <label for="scmCourseFilter">Subject / Class</label>
+        <select id="scmCourseFilter">
+          <option value="all">All Subjects / Classes</option>
+        </select>
+      </div>
+      <div class="scm-field">
+        <label for="scmSectionFilter">Topic / Unit / Week</label>
+        <select id="scmSectionFilter">
+          <option value="all">All Topics</option>
+        </select>
+      </div>
+      <div class="scm-field">
+        <label for="scmSearchInput">Search</label>
+        <input
+          id="scmSearchInput"
+          type="text"
+          placeholder="Search title, subject, topic, or file"
+        />
+      </div>
+      <div class="scm-field">
+        <label>&nbsp;</label>
+        <label class="scm-switch" for="scmBookmarkedOnly">
+          <input id="scmBookmarkedOnly" type="checkbox" />
+          <span class="scm-switch-track" aria-hidden="true">
+            <span class="scm-switch-thumb"></span>
+          </span>
+          <span>Bookmarked only</span>
+        </label>
+      </div>
+      <div class="scm-field">
+        <label>&nbsp;</label>
+        <label class="scm-switch" for="scmRequiredOnly">
+          <input id="scmRequiredOnly" type="checkbox" />
+          <span class="scm-switch-track" aria-hidden="true">
+            <span class="scm-switch-thumb"></span>
+          </span>
+          <span>Required only</span>
+        </label>
+      </div>
+      <div class="scm-field">
+        <label for="scmCompletionFilter">Completion</label>
+        <select id="scmCompletionFilter">
+          <option value="all">All</option>
+          <option value="completed">Completed</option>
+          <option value="not_completed">Not Completed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="scm-stats">
+      <div class="scm-stat">
+        <h4 id="scmTotalCount">0</h4>
+        <p>Materials</p>
+      </div>
+      <div class="scm-stat">
+        <h4 id="scmRecentCount">0</h4>
+        <p>Recent Uploads (7 days)</p>
+      </div>
+      <div class="scm-stat">
+        <h4 id="scmDownloadCount">0</h4>
+        <p>Download History</p>
+      </div>
+      <div class="scm-stat">
+        <h4 id="scmBookmarkCount">0</h4>
+        <p>Bookmarked</p>
+      </div>
+    </div>
+
+    <div class="scm-grid">
+      <section class="scm-panel">
+        <div class="scm-panel-head">
+          <h4>Materials</h4>
+        </div>
+        <div class="scm-list" id="scmMaterialList">
+          <div class="scm-empty">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            Loading materials...
+          </div>
+        </div>
+      </section>
+
+      <section class="scm-panel">
+        <div class="scm-panel-head">
+          <h4>Recently Uploaded</h4>
+        </div>
+        <div class="scm-side-list" id="scmRecentList"></div>
+      </section>
+
+      <section class="scm-panel">
+        <div class="scm-panel-head">
+          <h4>Download History</h4>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline"
+            id="scmClearHistoryBtn"
+          >
+            Clear
+          </button>
+        </div>
+        <div class="scm-side-list" id="scmHistoryList"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="scm-modal-overlay" id="scmPreviewOverlay" aria-hidden="true">
+  <div
+    class="scm-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="scmPreviewTitle"
+  >
+    <div class="scm-modal-head">
+      <h4 id="scmPreviewTitle">Preview</h4>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline"
+        id="scmPreviewCloseBtn"
+      >
+        Close
+      </button>
+    </div>
+    <div class="scm-modal-body" id="scmPreviewBody"></div>
+    <div class="scm-modal-foot">
+      <button
+        type="button"
+        class="btn btn-sm btn-outline"
+        id="scmPreviewOpenTabBtn"
+      >
+        Open in New Tab
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm btn-primary"
+        id="scmPreviewDownloadBtn"
+      >
+        Download
+      </button>
+    </div>
+  </div>
+</div>

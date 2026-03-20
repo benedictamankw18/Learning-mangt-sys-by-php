@@ -1,0 +1,245 @@
+<!-- Admin Course Materials Overview + Moderation -->
+<style>
+  .acm-page {
+    padding: 0;
+  }
+
+  .acm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .acm-header h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.35rem;
+    color: var(--text-primary, #0f172a);
+  }
+  .acm-header p {
+    margin: 0;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.88rem;
+  }
+
+  .acm-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+  }
+  @media (max-width: 1100px) {
+    .acm-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 640px) {
+    .acm-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .acm-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.9rem 1rem;
+  }
+  .acm-stat h4 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #0f172a;
+  }
+  .acm-stat p {
+    margin: 0.15rem 0 0;
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+
+  .acm-toolbar {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr auto;
+    gap: 0.65rem;
+    margin-bottom: 0.9rem;
+  }
+  @media (max-width: 900px) {
+    .acm-toolbar {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .acm-input,
+  .acm-select {
+    width: 100%;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.86rem;
+    color: #0f172a;
+    background: #fff;
+  }
+
+  .acm-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .acm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+  .acm-table thead {
+    background: #f8fafc;
+  }
+  .acm-table th,
+  .acm-table td {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    vertical-align: top;
+  }
+  .acm-table th {
+    color: #475569;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .acm-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .acm-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+  .acm-title strong {
+    color: #0f172a;
+  }
+  .acm-meta {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .acm-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border-radius: 999px;
+    padding: 0.12rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .acm-badge.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .acm-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .acm-badge.required {
+    background: #fff7ed;
+    color: #9a3412;
+  }
+
+  .acm-row-controls {
+    display: flex;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .acm-row-controls .btn {
+    white-space: nowrap;
+  }
+
+  .acm-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 1.2rem;
+  }
+</style>
+
+<div class="acm-page">
+  <div class="acm-header">
+    <div>
+      <h2>
+        <i
+          class="fas fa-folder-tree"
+          style="margin-right: 0.45rem; color: var(--primary, #006a3f)"
+        ></i
+        >Course Materials
+      </h2>
+      <p>
+        Overview of uploaded materials by class/subject with moderation
+        controls.
+      </p>
+    </div>
+    <button class="btn btn-outline btn-sm" id="acmRefreshBtn">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+
+  <div class="acm-stats">
+    <div class="acm-stat">
+      <h4 id="acmTotalMaterials">0</h4>
+      <p>Total Materials</p>
+    </div>
+    <div class="acm-stat">
+      <h4 id="acmRequiredMaterials">0</h4>
+      <p>Required Materials</p>
+    </div>
+    <div class="acm-stat">
+      <h4 id="acmInactiveMaterials">0</h4>
+      <p>Inactive Materials</p>
+    </div>
+    <div class="acm-stat">
+      <h4 id="acmStorageUsage">0 MB</h4>
+      <p>Storage Usage</p>
+    </div>
+  </div>
+
+  <div class="acm-toolbar">
+    <input
+      id="acmSearch"
+      class="acm-input"
+      type="text"
+      placeholder="Search title, course, section, teacher..."
+    />
+    <select id="acmClassFilter" class="acm-select">
+      <option value="all">All Classes</option>
+    </select>
+    <select id="acmSubjectFilter" class="acm-select">
+      <option value="all">All Subjects</option>
+    </select>
+    <select id="acmStatusFilter" class="acm-select">
+      <option value="all">All Statuses</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  <div class="acm-table-wrap">
+    <table class="acm-table">
+      <thead>
+        <tr>
+          <th>Material</th>
+          <th>Class / Subject</th>
+          <th>Section</th>
+          <th>Storage</th>
+          <th>Status</th>
+          <th>Moderate</th>
+        </tr>
+      </thead>
+      <tbody id="acmTableBody">
+        <tr>
+          <td colspan="6" class="acm-empty">
+            <i class="fas fa-spinner fa-spin"></i> Loading materials...
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

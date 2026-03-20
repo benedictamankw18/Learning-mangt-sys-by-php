@@ -679,6 +679,278 @@ class ClassSubjectRepository
     }
 
     /**
+     * Resolve student_id by users.user_id.
+     */
+    public function getStudentIdByUserId(int $userId): ?int
+    {
+        $stmt = $this->db->prepare("SELECT student_id FROM students WHERE user_id = :user_id LIMIT 1");
+        $stmt->execute(['user_id' => $userId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int) $result['student_id'] : null;
+    }
+
+    /**
+     * Check whether a student is actively enrolled in a course.
+     */
+    public function isStudentEnrolledInCourse(int $courseId, int $studentId): bool
+    {
+        $enrollmentStmt = $this->db->prepare(
+            "SELECT COUNT(*) AS total
+             FROM course_enrollments
+             WHERE course_id = :course_id
+               AND student_id = :student_id
+               AND LOWER(COALESCE(status, 'active')) IN ('active', 'enrolled', 'in_progress', 'completed')"
+        );
+        $enrollmentStmt->execute([
+            'course_id' => $courseId,
+            'student_id' => $studentId,
+        ]);
+        $enrollment = $enrollmentStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ((int) ($enrollment['total'] ?? 0) > 0) {
+            return true;
+        }
+
+        // Fallback for legacy/class-based enrollment flow used by student course access.
+        $classFallbackStmt = $this->db->prepare(
+            "SELECT COUNT(*) AS total
+             FROM students st
+             INNER JOIN class_subjects cs ON cs.class_id = st.class_id
+             WHERE st.student_id = :student_id
+               AND cs.course_id = :course_id
+               AND LOWER(COALESCE(st.status, 'active')) = 'active'
+               AND LOWER(COALESCE(cs.status, 'active')) = 'active'"
+        );
+        $classFallbackStmt->execute([
+            'student_id' => $studentId,
+            'course_id' => $courseId,
+        ]);
+        $fallback = $classFallbackStmt->fetch(PDO::FETCH_ASSOC);
+
+        return (int) ($fallback['total'] ?? 0) > 0;
+    }
+
+    /**
+     * Track required material completion by student (upsert semantics).
+     */
+    public function markMaterialCompleted(int $materialId, int $studentId, string $source = 'open'): bool
+    {
+        $safeSource = in_array($source, ['open', 'preview', 'download'], true) ? $source : 'open';
+
+        $previewInc = $safeSource === 'preview' ? 1 : 0;
+        $openInc = $safeSource === 'open' ? 1 : 0;
+
+        $stmt = $this->db->prepare(
+            "INSERT INTO student_material_completion (
+                material_id,
+                student_id,
+                first_opened_at,
+                last_opened_at,
+                preview_count,
+                open_count,
+                completed_at,
+                completion_source,
+                created_at,
+                updated_at
+            ) VALUES (
+                :material_id,
+                :student_id,
+                NOW(),
+                NOW(),
+                :preview_inc,
+                :open_inc,
+                NOW(),
+                :completion_source,
+                NOW(),
+                NOW()
+            )
+            ON DUPLICATE KEY UPDATE
+                last_opened_at = NOW(),
+                preview_count = preview_count + VALUES(preview_count),
+                open_count = open_count + VALUES(open_count),
+                completed_at = COALESCE(completed_at, NOW()),
+                completion_source = VALUES(completion_source),
+                updated_at = NOW()"
+        );
+
+        return $stmt->execute([
+            'material_id' => $materialId,
+            'student_id' => $studentId,
+            'preview_inc' => $previewInc,
+            'open_inc' => $openInc,
+            'completion_source' => $safeSource,
+        ]);
+    }
+
+    /**
+     * Get material completion rows for a student within a course.
+     * Returns a map keyed by material_id for quick lookups.
+     */
+    public function getMaterialCompletionMapForStudentCourse(int $courseId, int $studentId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                smc.material_id,
+                smc.completed_at,
+                smc.completion_source,
+                smc.last_opened_at,
+                smc.preview_count,
+                smc.open_count
+             FROM student_material_completion smc
+             INNER JOIN course_materials m ON m.material_id = smc.material_id
+             WHERE m.course_id = :course_id
+               AND smc.student_id = :student_id"
+        );
+
+        $stmt->execute([
+            'course_id' => $courseId,
+            'student_id' => $studentId,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $map = [];
+
+        foreach ($rows as $row) {
+            $materialId = (int) ($row['material_id'] ?? 0);
+            if ($materialId <= 0) {
+                continue;
+            }
+
+            $map[$materialId] = [
+                'is_completed' => !empty($row['completed_at']),
+                'completed_at' => $row['completed_at'] ?? null,
+                'completion_source' => $row['completion_source'] ?? null,
+                'last_opened_at' => $row['last_opened_at'] ?? null,
+                'preview_count' => (int) ($row['preview_count'] ?? 0),
+                'open_count' => (int) ($row['open_count'] ?? 0),
+            ];
+        }
+
+        return $map;
+    }
+
+    /**
+     * Get a student's material access snapshot for parent-facing progress views.
+     */
+    public function getMaterialAccessSnapshotForStudent(int $studentId, int $limit = 8): array
+    {
+        $safeLimit = max(1, min(50, $limit));
+
+        $summaryStmt = $this->db->prepare(
+            "SELECT
+                COUNT(*) AS total_accessed,
+                SUM(CASE WHEN m.is_required = 1 THEN 1 ELSE 0 END) AS required_accessed,
+                MAX(smc.last_opened_at) AS last_accessed_at
+             FROM student_material_completion smc
+             INNER JOIN course_materials m ON m.material_id = smc.material_id
+             WHERE smc.student_id = :student_id
+               AND m.is_active = 1
+               AND LOWER(COALESCE(m.status, 'active')) <> 'inactive'"
+        );
+        $summaryStmt->execute(['student_id' => $studentId]);
+        $summary = $summaryStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $recentStmt = $this->db->prepare(
+            "SELECT
+                smc.material_id,
+                m.title,
+                m.file_name,
+                m.material_type,
+                m.is_required,
+                m.course_id,
+                COALESCE(course_subject.subject_name, CONCAT('Course ', m.course_id)) AS subject_name,
+                smc.last_opened_at,
+                smc.completed_at,
+                smc.completion_source,
+                smc.preview_count,
+                smc.open_count
+             FROM student_material_completion smc
+             INNER JOIN course_materials m ON m.material_id = smc.material_id
+             LEFT JOIN (
+                 SELECT cs.course_id, MIN(s.subject_name) AS subject_name
+                 FROM class_subjects cs
+                 INNER JOIN subjects s ON s.subject_id = cs.subject_id
+                 GROUP BY cs.course_id
+             ) course_subject ON course_subject.course_id = m.course_id
+             WHERE smc.student_id = :student_id
+               AND m.is_active = 1
+               AND LOWER(COALESCE(m.status, 'active')) <> 'inactive'
+             ORDER BY smc.last_opened_at DESC, smc.updated_at DESC
+             LIMIT :limit"
+        );
+        $recentStmt->bindValue(':student_id', $studentId, PDO::PARAM_INT);
+        $recentStmt->bindValue(':limit', $safeLimit, PDO::PARAM_INT);
+        $recentStmt->execute();
+
+        $recent = $recentStmt->fetchAll(PDO::FETCH_ASSOC);
+        $totalAccessed = (int) ($summary['total_accessed'] ?? 0);
+        $requiredAccessed = (int) ($summary['required_accessed'] ?? 0);
+
+        return [
+            'total_accessed' => $totalAccessed,
+            'required_accessed' => $requiredAccessed,
+            'optional_accessed' => max(0, $totalAccessed - $requiredAccessed),
+            'last_accessed_at' => $summary['last_accessed_at'] ?? null,
+            'recent' => $recent,
+        ];
+    }
+
+    /**
+     * Required materials progress summary for a course.
+     */
+    public function getRequiredMaterialProgress(int $courseId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                m.material_id,
+                m.course_id,
+                m.section_id,
+                m.title,
+                m.order_index,
+                COALESCE(sec.section_name, 'General') AS section_name,
+                COUNT(DISTINCT e.student_id) AS total_students,
+                COUNT(DISTINCT CASE WHEN smc.completed_at IS NOT NULL THEN smc.student_id END) AS completed_students
+             FROM course_materials m
+             LEFT JOIN course_sections sec
+                ON sec.course_sections_id = m.section_id
+                 LEFT JOIN (
+                     SELECT ce.course_id, ce.student_id
+                     FROM course_enrollments ce
+                     WHERE LOWER(COALESCE(ce.status, 'active')) IN ('active', 'enrolled', 'in_progress', 'completed')
+
+                     UNION
+
+                     SELECT cs.course_id, st.student_id
+                     FROM class_subjects cs
+                     INNER JOIN students st ON st.class_id = cs.class_id
+                     WHERE LOWER(COALESCE(st.status, 'active')) = 'active'
+                        AND LOWER(COALESCE(cs.status, 'active')) = 'active'
+                 ) e
+                     ON e.course_id = m.course_id
+             LEFT JOIN student_material_completion smc
+                ON smc.material_id = m.material_id
+               AND smc.student_id = e.student_id
+             WHERE m.course_id = :course_id
+               AND m.is_required = 1
+               AND m.is_active = 1
+               AND LOWER(COALESCE(m.status, 'active')) <> 'inactive'
+             GROUP BY
+                m.material_id,
+                m.course_id,
+                m.section_id,
+                m.title,
+                m.order_index,
+                sec.section_name
+             ORDER BY
+                m.order_index ASC,
+                m.created_at DESC"
+        );
+
+        $stmt->execute(['course_id' => $courseId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
      * Get all content for a class subject
      */
     public function getContents(int $courseId): array

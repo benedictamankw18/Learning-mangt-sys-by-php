@@ -64,9 +64,9 @@
           <i class="fas fa-calendar-days"></i>
           <span>School Calendar</span>
         </a>
-        <a href="#" class="nav-item" data-page="resources">
+        <a href="#" class="nav-item" data-page="course-materials">
           <i class="fas fa-folder-open"></i>
-          <span>Resources</span>
+          <span>Course Materials</span>
         </a>
         <a href="#" class="nav-item" data-page="messages">
           <i class="fas fa-comments"></i>
@@ -422,6 +422,7 @@
     <script src="./js/my-classes.js"></script>
     <script src="./js/my-subjects.js"></script>
     <script src="./js/timetable.js"></script>
+    <script src="./js/course-materials.js"></script>
     <script src="../common/js/calendar.js"></script>
     <script src="./js/myprofile.js"></script>
     <script src="./js/attendance.js"></script>
@@ -511,7 +512,12 @@
 
         function handleHashChange() {
           const hash = window.location.hash.replace("#", "");
-          const normalized = hash === "schedule" ? "timetable" : hash;
+          const normalized =
+            hash === "schedule"
+              ? "timetable"
+              : hash === "resources"
+                ? "course-materials"
+                : hash;
           loadPage(normalized || "dashboard");
         }
 

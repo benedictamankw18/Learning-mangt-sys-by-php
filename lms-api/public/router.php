@@ -37,6 +37,31 @@ if (preg_match('#^/uploads/#', $uri)) {
     }
 }
 
+// Backward compatibility: old records may reference /materials/<file>.
+// Map them to /uploads/materials/<file> when running the PHP dev server.
+if (preg_match('#^/materials/#', $uri)) {
+    $legacyPath = '/uploads' . $uri;
+    $filePath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $legacyPath);
+    if (file_exists($filePath)) {
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'png'  => 'image/png',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+            'svg'  => 'image/svg+xml',
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
+        header('Content-Type: ' . ($mimeMap[$ext] ?? 'application/octet-stream'));
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+        return true;
+    }
+}
+
 // For static files (css, js, images), serve them directly from public/
 if (preg_match('/\.(?:css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot)$/', $uri)) {
     return false; // Serve the file normally

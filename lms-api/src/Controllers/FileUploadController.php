@@ -7,7 +7,7 @@ use App\Utils\Response;
 class FileUploadController
 {
     private $uploadPath = __DIR__ . '/../../uploads/';
-    private $maxFileSize = 10485760; // 10MB in bytes
+    private $maxFileSize = 104857600; // 100MB in bytes
     private $allowedTypes = [
         'image' => ['jpg', 'jpeg', 'png', 'gif', 'webp'],
         'document' => ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'],

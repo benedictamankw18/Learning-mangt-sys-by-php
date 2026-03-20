@@ -4,10 +4,8 @@ Why: Enables collaborative learning, peer-to-peer help, course discussions
 2. Student Activity Tracking
 Why: Track engagement (which materials viewed, time spent, completion rate)
 
-
 4. Certificates & Achievements
 Why: Course completion recognition, gamification
-
 
 7. Leave/Absence Management
 Why: Formal absence tracking with parent/admin approval
@@ -22,7 +20,14 @@ Why: Track virtual class attendance, recorded sessions
 Why: Manage shared resources (computer labs, science equipment)
 
 
-
+we will redesgin the teacher and student page to look like LMS like how moodle page/interface look like 
+remove the side bar and use Breadcrumb instead 
+so:
+Teacher 
+when teacher login he see the dashboard with stats, classes/subject  assigned to the teacher and quick action bar below
+the classes/subject assigned to the teacher has buttons like continue teaching and performance
+if click on the performance it navigate you to a page to show the performance of the class/subject
+if click on the continue teaching it navigate you to a page with buttons like () and a list of students in the class and stats
 
 
 

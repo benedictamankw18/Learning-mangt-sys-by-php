@@ -684,7 +684,7 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 3-4: Student Materials**
 
-- [ ] **Create** `student/course-materials.html`
+- [x] **Create** `student/course-materials.html` _(implemented as `student/page/course-materials.html` + `student/js/course-materials.js`)_
   - Materials by subject
   - Filter by topic/week
   - Search materials
@@ -696,12 +696,12 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Day 5: Admin & Parent**
 
-- [ ] **Create** `admin/course-materials.html` (optional)
+- [x] **Create** `admin/course-materials.html` (optional) _(implemented as `admin/page/course-materials.html` + `admin/js/course-materials.js`)_
   - Overview of all materials
   - Materials by class/subject
   - Storage usage statistics
   - Approve/moderate materials
-- [ ] **Update** `parent/performance.html` foundation
+- [x] **Update** `parent/performance.html` foundation _(implemented as `parent/page/performance.html` + `parent/js/performance.js`)_
   - Prepare performance tracking structure
   - Link to materials child has accessed
 
@@ -711,31 +711,31 @@ Implement attendance tracking, timetables, and course materials management.
 
 **Functional Requirements:**
 
-- [ ] Teachers can mark attendance for their classes
-- [ ] Students can view their attendance records
-- [ ] Parents can monitor child's attendance
-- [ ] Admins can generate attendance reports
-- [ ] Timetables display correctly for all roles
-- [ ] Teachers can upload course materials
-- [ ] Students can download course materials
-- [ ] School calendar shows all events
+- [x] Teachers can mark attendance for their classes
+- [x] Students can view their attendance records
+- [x] Parents can monitor child's attendance
+- [x] Admins can generate attendance reports
+- [x] Timetables display correctly for all roles
+- [x] Teachers can upload course materials
+- [x] Students can download course materials
+- [x] School calendar shows all events
 
 **Technical Requirements:**
 
-- [ ] File uploads work with size/type validation
-- [ ] Timetable conflicts are detected
-- [ ] Attendance data saves correctly
-- [ ] Calendar integrates with academic year/semester
-- [ ] PDF export works for timetables
-- [ ] Download tracking works for materials
+- [x] File uploads work with size/type validation
+- [x] Timetable conflicts are detected
+- [x] Attendance data saves correctly
+- [x] Calendar integrates with academic year/semester
+- [x] PDF export works for timetables
+- [x] Download tracking works for materials
 
 **Testing:**
 
-- [ ] Mark attendance for multiple classes
-- [ ] Upload various file types
-- [ ] View timetable on mobile devices
-- [ ] Export attendance reports
-- [ ] Calendar events display correctly
+- [x] Mark attendance for multiple classes
+- [x] Upload various file types
+- [x] View timetable on mobile devices
+- [x] Export attendance reports
+- [x] Calendar events display correctly
 
 ---
 

@@ -371,6 +371,7 @@ class DashboardController
 
             $childrenData = [];
             $allGrades    = [];
+            $allMaterialAccess = [];
             $totalAttendance = 0;
 
             foreach ($children as $child) {
@@ -385,6 +386,10 @@ class DashboardController
                 $currentAverage = $trendCount > 0
                     ? round(array_sum(array_map('floatval', $trendData)) / $trendCount, 1)
                     : null;
+                $materialAccess = $this->classSubjectRepo->getMaterialAccessSnapshotForStudent($sid, 8);
+                $recentMaterialAccess = is_array($materialAccess['recent'] ?? null)
+                    ? $materialAccess['recent']
+                    : [];
 
                 $childName = $child['first_name'] . ' ' . $child['last_name'];
                 $initials  = strtoupper(substr($child['first_name'], 0, 1) . substr($child['last_name'], 0, 1));
@@ -393,6 +398,16 @@ class DashboardController
                     $g['child_initials'] = $initials;
                 }
                 unset($g);
+
+                foreach ($recentMaterialAccess as &$materialRow) {
+                    $materialRow['student_id'] = $sid;
+                    $materialRow['child_name'] = $childName;
+                    $materialRow['child_initials'] = $initials;
+                }
+                unset($materialRow);
+
+                $allMaterialAccess = array_merge($allMaterialAccess, $recentMaterialAccess);
+
                 $allGrades       = array_merge($allGrades, $grades);
                 $totalAttendance += $attendance;
 
@@ -411,10 +426,16 @@ class DashboardController
                     'attendance_rate'      => round($attendance, 1),
                     'upcoming_assessments' => $upcoming,
                     'grade_trend'          => $gradeTrend,
+                    'materials_accessed'   => (int) ($materialAccess['total_accessed'] ?? 0),
+                    'required_materials_accessed' => (int) ($materialAccess['required_accessed'] ?? 0),
+                    'optional_materials_accessed' => (int) ($materialAccess['optional_accessed'] ?? 0),
+                    'last_material_access_at' => $materialAccess['last_accessed_at'] ?? null,
+                    'recent_material_access' => $recentMaterialAccess,
                 ];
             }
 
             usort($allGrades, fn($a, $b) => strcmp($b['graded_at'] ?? '', $a['graded_at'] ?? ''));
+            usort($allMaterialAccess, fn($a, $b) => strcmp($b['last_opened_at'] ?? '', $a['last_opened_at'] ?? ''));
             $childCount = count($children);
 
             $stats = [
@@ -422,6 +443,7 @@ class DashboardController
                 'children_data'   => $childrenData,
                 'avg_attendance'  => $childCount > 0 ? round($totalAttendance / $childCount, 1) : 0,
                 'recent_grades'   => array_slice($allGrades, 0, 5),
+                'recent_material_access' => array_slice($allMaterialAccess, 0, 12),
                 'upcoming_events' => $this->announcementRepo->getRecentForStudent(5),
                 'pending_fee_status' => $this->buildPendingFeeStatus($childrenData),
             ];

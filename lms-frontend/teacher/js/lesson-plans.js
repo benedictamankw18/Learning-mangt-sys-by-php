@@ -31,6 +31,60 @@
     console.log((type || 'info').toUpperCase() + ': ' + message);
   }
 
+  function confirmPopup(message, title) {
+    return new Promise(function (resolve) {
+      const existing = document.getElementById('_lpConfirmOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = '_lpConfirmOverlay';
+      overlay.style.cssText = [
+        'position:fixed',
+        'inset:0',
+        'background:rgba(2,6,23,0.55)',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'padding:1rem',
+        'z-index:2600',
+      ].join(';');
+
+      overlay.innerHTML = ''
+        + '<div role="dialog" aria-modal="true" style="width:min(420px,100%);background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(2,6,23,0.28);overflow:hidden;">'
+        + '  <div style="padding:0.9rem 1rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:0.6rem;">'
+        + '    <h3 style="margin:0;font-size:1rem;color:#0f172a;">' + esc(title || 'Confirm Action') + '</h3>'
+        + '    <button type="button" data-role="close" style="border:none;background:#f1f5f9;color:#475569;border-radius:8px;width:30px;height:30px;cursor:pointer;">&times;</button>'
+        + '  </div>'
+        + '  <div style="padding:1rem;color:#334155;font-size:0.9rem;line-height:1.5;">' + esc(message || 'Are you sure?') + '</div>'
+        + '  <div style="padding:0.9rem 1rem;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:flex-end;gap:0.5rem;">'
+        + '    <button type="button" data-role="cancel" class="btn btn-outline btn-sm">Cancel</button>'
+        + '    <button type="button" data-role="confirm" class="btn btn-primary btn-sm">Confirm</button>'
+        + '  </div>'
+        + '</div>';
+
+      function finish(result) {
+        overlay.remove();
+        resolve(Boolean(result));
+      }
+
+      overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) finish(false);
+      });
+
+      overlay.querySelector('[data-role="close"]').addEventListener('click', function () {
+        finish(false);
+      });
+      overlay.querySelector('[data-role="cancel"]').addEventListener('click', function () {
+        finish(false);
+      });
+      overlay.querySelector('[data-role="confirm"]').addEventListener('click', function () {
+        finish(true);
+      });
+
+      document.body.appendChild(overlay);
+    });
+  }
+
   function getUser() {
     return typeof Auth !== 'undefined' && typeof Auth.getUser === 'function' ? Auth.getUser() : null;
   }
@@ -541,7 +595,7 @@
   }
 
   async function deleteLessonPlan(id) {
-    const ok = window.confirm('Are you sure you want to delete this lesson plan?');
+    const ok = await confirmPopup('Are you sure you want to delete this lesson plan?', 'Delete Lesson Plan');
     if (!ok) return;
 
     await API.delete('/lesson-plans/' + id);
@@ -671,7 +725,7 @@
     const courseId = Number(el('lpSectionCourseSelect')?.value || S.sectionManagerCourseId || 0);
     if (!courseId || !sectionId) return;
 
-    const ok = window.confirm('Delete this Topic / Unit / Week?');
+    const ok = await confirmPopup('Delete this Topic / Unit / Week?', 'Delete Topic');
     if (!ok) return;
 
     await API.delete('/courses/' + courseId + '/sections/' + sectionId);

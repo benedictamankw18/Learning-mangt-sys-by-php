@@ -251,6 +251,28 @@ class ClassSubjectController
 
         $materials = $this->repo->getMaterials($id);
 
+        if (($user['role'] ?? null) === 'student') {
+            $studentId = isset($user['student_id']) ? (int) $user['student_id'] : 0;
+            if ($studentId <= 0) {
+                $studentId = $this->repo->getStudentIdByUserId((int) ($user['user_id'] ?? 0)) ?? 0;
+            }
+
+            if ($studentId > 0) {
+                $completionMap = $this->repo->getMaterialCompletionMapForStudentCourse($id, $studentId);
+
+                foreach ($materials as &$material) {
+                    $materialId = (int) ($material['material_id'] ?? 0);
+                    $completion = $completionMap[$materialId] ?? null;
+
+                    $material['is_completed'] = $completion['is_completed'] ?? false;
+                    $material['completed_at'] = $completion['completed_at'] ?? null;
+                    $material['completion_source'] = $completion['completion_source'] ?? null;
+                    $material['last_opened_at'] = $completion['last_opened_at'] ?? null;
+                }
+                unset($material);
+            }
+        }
+
         Response::success(['data' => $materials]);
     }
 
@@ -511,6 +533,124 @@ class ClassSubjectController
         } else {
             Response::serverError('Failed to delete material');
         }
+    }
+
+    /**
+     * Mark a material as completed by a student.
+     */
+    public function completeMaterial(array $user, int $courseId, int $materialId): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole(['student'])) {
+            return;
+        }
+
+        $material = $this->repo->findMaterialById($materialId);
+
+        if (!$material) {
+            Response::notFound('Material not found');
+            return;
+        }
+
+        if ((int) $material['course_id'] !== $courseId) {
+            Response::badRequest('Material does not belong to this class subject');
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && (int) $material['institution_id'] !== (int) $user['institution_id']) {
+            Response::forbidden('You do not have access to this material');
+            return;
+        }
+
+        $studentId = isset($user['student_id']) ? (int) $user['student_id'] : 0;
+        if ($studentId <= 0) {
+            $studentId = $this->repo->getStudentIdByUserId((int) $user['user_id']) ?? 0;
+        }
+
+        if ($studentId <= 0) {
+            Response::forbidden('Unable to resolve student profile for completion tracking');
+            return;
+        }
+
+        if (!$this->repo->isStudentEnrolledInCourse($courseId, $studentId)) {
+            Response::forbidden('You are not actively enrolled in this class subject');
+            return;
+        }
+
+        $body = json_decode(file_get_contents('php://input'), true) ?: [];
+        $source = strtolower((string) ($body['source'] ?? 'open'));
+        if (!in_array($source, ['open', 'preview', 'download'], true)) {
+            $source = 'open';
+        }
+
+        $ok = $this->repo->markMaterialCompleted($materialId, $studentId, $source);
+
+        if (!$ok) {
+            Response::serverError('Failed to track material completion');
+            return;
+        }
+
+        Response::success([
+            'message' => 'Material completion tracked successfully',
+            'tracked' => true,
+        ]);
+    }
+
+    /**
+     * Get required-material completion progress report for a class subject.
+     */
+    public function getRequiredMaterialProgress(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
+            return;
+        }
+
+        $classSubject = $this->repo->findById($id);
+
+        if (!$classSubject) {
+            Response::notFound('Class subject not found');
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && (int) $classSubject['institution_id'] !== (int) $user['institution_id']) {
+            Response::forbidden('You do not have access to this class subject');
+            return;
+        }
+
+        if ($user['role'] === 'teacher' && (int) ($classSubject['teacher_id'] ?? 0) !== (int) ($user['teacher_id'] ?? 0)) {
+            Response::forbidden('You can only access required-progress for your own class subjects');
+            return;
+        }
+
+        $rows = $this->repo->getRequiredMaterialProgress($id);
+
+        $totalRequired = count($rows);
+        $totalCompleted = 0;
+        $totalRequiredSlots = 0;
+
+        foreach ($rows as &$row) {
+            $completed = (int) ($row['completed_students'] ?? 0);
+            $total = (int) ($row['total_students'] ?? 0);
+            $row['completion_rate'] = $total > 0 ? round(($completed / $total) * 100, 2) : 0.0;
+
+            $totalCompleted += $completed;
+            $totalRequiredSlots += $total;
+        }
+        unset($row);
+
+        Response::success([
+            'course_id' => $id,
+            'summary' => [
+                'required_materials' => $totalRequired,
+                'completed_slots' => $totalCompleted,
+                'total_slots' => $totalRequiredSlots,
+                'completion_rate' => $totalRequiredSlots > 0 ? round(($totalCompleted / $totalRequiredSlots) * 100, 2) : 0.0,
+            ],
+            'data' => $rows,
+        ]);
     }
 
     /**

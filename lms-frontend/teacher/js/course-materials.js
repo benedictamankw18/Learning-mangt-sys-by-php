@@ -5,12 +5,18 @@
 (function () {
   'use strict';
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024;
-  const ALLOWED_EXTS = new Set(['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'odt', 'rtf']);
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
+  const ALLOWED_EXTS = new Set([
+    'pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'odt', 'rtf',
+    'jpg', 'jpeg', 'png', 'gif', 'webp',
+    'mp4', 'avi', 'mov', 'wmv'
+  ]);
   const MATERIAL_TYPE_EXTS = {
     document: new Set(['pdf', 'doc', 'docx', 'txt', 'odt', 'rtf']),
     presentation: new Set(['ppt', 'pptx', 'pdf']),
     spreadsheet: new Set(['xls', 'xlsx']),
+    image: new Set(['jpg', 'jpeg', 'png', 'gif', 'webp']),
+    video: new Set(['mp4', 'avi', 'mov', 'wmv']),
   };
   const DOWNLOAD_COUNT_KEY = 'teacher_material_download_counts';
 
@@ -115,6 +121,8 @@
     const v = String(value || '').toLowerCase();
     if (v.includes('presentation') || v.includes('ppt')) return 'presentation';
     if (v.includes('sheet') || v.includes('excel')) return 'spreadsheet';
+    if (v.includes('image') || v.includes('photo') || v.includes('picture')) return 'image';
+    if (v.includes('video') || v.includes('mp4') || v.includes('mov') || v.includes('avi')) return 'video';
     if (v.includes('link')) return 'link';
     if (v.includes('document') || v.includes('doc') || v.includes('pdf')) return 'document';
     return 'other';
@@ -174,6 +182,12 @@
     return S.courses.find(function (course) {
       return Number(course.course_id) === Number(courseId);
     }) || null;
+  }
+
+  function formatPercent(value) {
+    const v = Number(value || 0);
+    if (!Number.isFinite(v)) return '0%';
+    return v.toFixed(v % 1 === 0 ? 0 : 2) + '%';
   }
 
   async function loadCourses() {
@@ -555,6 +569,114 @@
     }).join('');
   }
 
+  function closeRequiredProgressReport() {
+    hideOverlay('tcmRequiredProgressOverlay');
+  }
+
+  function renderRequiredProgressReport(payload) {
+    const summaryEl = el('tcmRequiredProgressSummary');
+    const bodyEl = el('tcmRequiredProgressBody');
+    if (!summaryEl || !bodyEl) return;
+
+    const totals = payload?.summary || {
+      required_materials: 0,
+      completed_slots: 0,
+      total_slots: 0,
+      completion_rate: 0,
+    };
+
+    summaryEl.innerHTML = ''
+      + '<div class="tcm-report-pill"><strong>' + Number(totals.required_materials || 0) + '</strong><span>Required Materials</span></div>'
+      + '<div class="tcm-report-pill"><strong>' + Number(totals.completed_slots || 0) + '</strong><span>Completed Slots</span></div>'
+      + '<div class="tcm-report-pill"><strong>' + Number(totals.total_slots || 0) + '</strong><span>Total Slots</span></div>'
+      + '<div class="tcm-report-pill"><strong>' + formatPercent(totals.completion_rate || 0) + '</strong><span>Overall Completion</span></div>';
+
+    const rows = Array.isArray(payload?.rows) ? payload.rows : [];
+    if (!rows.length) {
+      bodyEl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">No required materials found for this selection.</td></tr>';
+      return;
+    }
+
+    bodyEl.innerHTML = rows.map(function (row) {
+      return '<tr>'
+        + '<td>' + esc(row.course_label || '-') + '</td>'
+        + '<td>' + esc(row.section_name || '-') + '</td>'
+        + '<td>' + esc(row.title || '-') + '</td>'
+        + '<td>' + Number(row.completed_students || 0) + '</td>'
+        + '<td>' + Number(row.total_students || 0) + '</td>'
+        + '<td><span class="tcm-report-rate">' + formatPercent(row.completion_rate || 0) + '</span></td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  async function loadRequiredProgressReport() {
+    const courseFilterValue = String(el('tcmCourseFilter')?.value || 'all');
+    const targets = courseFilterValue === 'all'
+      ? S.courses.slice()
+      : S.courses.filter(function (course) {
+          return Number(course.course_id) === Number(courseFilterValue);
+        });
+
+    const summaryEl = el('tcmRequiredProgressSummary');
+    const bodyEl = el('tcmRequiredProgressBody');
+    if (summaryEl) summaryEl.innerHTML = '';
+    if (bodyEl) bodyEl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;">Loading report...</td></tr>';
+
+    const reportRows = [];
+    const totals = {
+      required_materials: 0,
+      completed_slots: 0,
+      total_slots: 0,
+      completion_rate: 0,
+    };
+
+    await Promise.all(targets.map(async function (course) {
+      try {
+        const res = await API.get('/api/courses/' + course.course_id + '/materials/required-progress');
+        const payload = res?.data || res || {};
+        const rows = asArray(payload?.data || payload);
+        const summary = payload?.summary || {};
+
+        rows.forEach(function (row) {
+          reportRows.push({
+            course_label: getCourseLabel(course),
+            section_name: row.section_name || 'General',
+            title: row.title || 'Untitled',
+            completed_students: Number(row.completed_students || 0),
+            total_students: Number(row.total_students || 0),
+            completion_rate: Number(row.completion_rate || 0),
+          });
+        });
+
+        totals.required_materials += Number(summary.required_materials || rows.length || 0);
+        totals.completed_slots += Number(summary.completed_slots || 0);
+        totals.total_slots += Number(summary.total_slots || 0);
+      } catch (_) {
+        // Keep rendering other courses if one request fails.
+      }
+    }));
+
+    totals.completion_rate = totals.total_slots > 0
+      ? ((totals.completed_slots / totals.total_slots) * 100)
+      : 0;
+
+    reportRows.sort(function (a, b) {
+      if (a.course_label !== b.course_label) return a.course_label.localeCompare(b.course_label);
+      if (a.section_name !== b.section_name) return a.section_name.localeCompare(b.section_name);
+      return a.title.localeCompare(b.title);
+    });
+
+    renderRequiredProgressReport({
+      summary: totals,
+      rows: reportRows,
+    });
+  }
+
+  async function openRequiredProgressReport() {
+    showOverlay('tcmRequiredProgressOverlay');
+    await loadRequiredProgressReport();
+  }
+
   function resetEditor() {
     S.editingMaterialId = null;
     if (el('tcmEditorTitle')) el('tcmEditorTitle').textContent = 'Upload Material';
@@ -567,6 +689,10 @@
     if (el('tcmEditIsActive')) el('tcmEditIsActive').checked = true;
     if (el('tcmEditFile')) el('tcmEditFile').value = '';
     if (el('tcmEditExternalLink')) el('tcmEditExternalLink').value = '';
+    if (el('tcmCurrentFileInfo')) {
+      el('tcmCurrentFileInfo').setAttribute('data-file-path', '');
+      el('tcmCurrentFileInfo').setAttribute('data-file-name', '');
+    }
     if (el('tcmEditorSaveText')) el('tcmEditorSaveText').textContent = 'Save';
 
     const defaultCourse = Number(S.selectedCourseId || S.courses?.[0]?.course_id || 0);
@@ -748,6 +874,7 @@
     const fileInput = el('tcmEditFile');
     const fileHelp = el('tcmFileHelpText');
     const fileTypeChips = el('tcmFileTypeChips');
+    const currentFileInfo = el('tcmCurrentFileInfo');
 
     if (el('tcmFileFieldWrap')) el('tcmFileFieldWrap').style.display = isLink ? 'none' : '';
     if (el('tcmLinkFieldWrap')) el('tcmLinkFieldWrap').style.display = isLink ? '' : 'none';
@@ -759,21 +886,62 @@
         fileInput.setAttribute('accept', '.ppt,.pptx,.pdf');
       } else if (materialType === 'spreadsheet') {
         fileInput.setAttribute('accept', '.xls,.xlsx');
+      } else if (materialType === 'image') {
+        fileInput.setAttribute('accept', '.jpg,.jpeg,.png,.gif,.webp');
+      } else if (materialType === 'video') {
+        fileInput.setAttribute('accept', '.mp4,.avi,.mov,.wmv');
       } else {
         fileInput.removeAttribute('accept');
+      }
+      fileInput.required = !S.editingMaterialId;
+    }
+
+    // Render current file info prominently if editing
+    if (currentFileInfo) {
+      const fileName = currentFileInfo.getAttribute('data-file-name');
+      const filePath = currentFileInfo.getAttribute('data-file-path');
+      
+      if (S.editingMaterialId && fileName) {
+        const ext = String(fileName || '').split('.').pop().toUpperCase();
+        const fileIcon = ext.match(/^(PDF|DOC|DOCX|PPT|PPTX|XLS|XLSX)$/) ? 'fa-file-' + ext.toLowerCase() : 'fa-file';
+        currentFileInfo.innerHTML = ''
+          + '<div style="display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.8rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;margin-bottom:0.5rem;">'
+          + '  <div style="flex:1;">'
+          + '    <div style="font-size:0.82rem;color:#0f172a;font-weight:600;margin-bottom:0.2rem;">'
+          + '      <i class="fas fa-check-circle" style="color:#16a34a;margin-right:0.4rem;"></i>'
+          + '      <strong>Current File</strong>'
+          + '    </div>'
+          + '    <div style="font-size:0.8rem;color:#404040;display:flex;align-items:center;gap:0.4rem;">'
+          + '      <i class="fas ' + (fileIcon === 'fa-file' ? 'fa-file' : 'fas fa-file-pdf') + '" style="color:#64748b;"></i>'
+          + '      <span>' + esc(fileName) + '</span>'
+          + '      <span class="tcm-chip" style="margin-left:0.3rem;background:#d4edda;color:#155724;font-size:0.65rem;padding:0.15rem 0.4rem;">' + ext + '</span>'
+          + '    </div>'
+          + '  </div>'
+          + '  <button type="button" id="tcmReplaceFileBtn" class="btn btn-sm btn-outline" style="white-space:nowrap;flex-shrink:0;">'
+          + '    <i class="fas fa-arrow-rotate-right" style="margin-right:0.3rem;"></i> Replace'
+          + '  </button>'
+          + '</div>';
+      } else {
+        currentFileInfo.innerHTML = '';
       }
     }
 
     if (fileHelp) {
+      let helpText = '';
       if (materialType === 'document') {
-        fileHelp.textContent = 'Allowed for Document: PDF, DOC, DOCX, TXT, ODT, RTF. Maximum: 10 MB.';
+        helpText = 'Allowed for Document: PDF, DOC, DOCX, TXT, ODT, RTF. Maximum: 10 MB.';
       } else if (materialType === 'presentation') {
-        fileHelp.textContent = 'Allowed for Presentation: PPT, PPTX, PDF. Maximum: 10 MB.';
+        helpText = 'Allowed for Presentation: PPT, PPTX, PDF. Maximum: 10 MB.';
       } else if (materialType === 'spreadsheet') {
-        fileHelp.textContent = 'Allowed for Spreadsheet: XLS, XLSX. Maximum: 10 MB.';
+        helpText = 'Allowed for Spreadsheet: XLS, XLSX. Maximum: 100 MB.';
+      } else if (materialType === 'image') {
+        helpText = 'Allowed for Image: JPG, JPEG, PNG, GIF, WEBP. Maximum: 100 MB.';
+      } else if (materialType === 'video') {
+        helpText = 'Allowed for Video: MP4, AVI, MOV, WMV. Maximum: 100 MB.';
       } else {
-        fileHelp.textContent = 'Allowed: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, ODT, RTF. Maximum: 10 MB.';
+        helpText = 'Allowed: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, TXT, ODT, RTF, JPG, JPEG, PNG, GIF, WEBP, MP4, AVI, MOV, WMV. Maximum: 100 MB.';
       }
+      fileHelp.textContent = helpText;
     }
 
     if (fileTypeChips) {
@@ -784,13 +952,31 @@
         tags.push('PPT', 'PPTX', 'PDF');
       } else if (materialType === 'spreadsheet') {
         tags.push('XLS', 'XLSX');
+      } else if (materialType === 'image') {
+        tags.push('JPG', 'JPEG', 'PNG', 'GIF', 'WEBP');
+      } else if (materialType === 'video') {
+        tags.push('MP4', 'AVI', 'MOV', 'WMV');
       } else {
-        tags.push('PDF', 'DOC', 'DOCX', 'PPT', 'PPTX', 'XLS', 'XLSX', 'TXT', 'ODT', 'RTF');
+        tags.push('PDF', 'DOC', 'DOCX', 'PPT', 'PPTX', 'XLS', 'XLSX', 'TXT', 'ODT', 'RTF', 'JPG', 'JPEG', 'PNG', 'GIF', 'WEBP', 'MP4', 'AVI', 'MOV', 'WMV');
       }
 
       fileTypeChips.innerHTML = tags
         .map(function (tag) { return '<span class="tcm-upload-chip active">' + esc(tag) + '</span>'; })
         .join('');
+    }
+
+    // Wire replace button if editing and button exists
+    if (S.editingMaterialId) {
+      setTimeout(function () {
+        const replaceBtn = el('tcmReplaceFileBtn');
+        if (replaceBtn && !replaceBtn._bound) {
+          replaceBtn._bound = true;
+          replaceBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            el('tcmEditFile')?.click();
+          });
+        }
+      }, 0);
     }
   }
 
@@ -813,14 +999,20 @@
       if (materialType === 'spreadsheet') {
         return { ok: false, message: 'Spreadsheet type accepts only XLS or XLSX files.' };
       }
+      if (materialType === 'image') {
+        return { ok: false, message: 'Image type accepts only JPG, JPEG, PNG, GIF, or WEBP files.' };
+      }
+      if (materialType === 'video') {
+        return { ok: false, message: 'Video type accepts only MP4, AVI, MOV, or WMV files.' };
+      }
     }
 
     if (!ALLOWED_EXTS.has(ext)) {
-      return { ok: false, message: 'File type not allowed. Use PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX or TXT.' };
+      return { ok: false, message: 'File type not allowed. Use document, spreadsheet, image, or video supported formats.' };
     }
 
     if (Number(file.size || 0) > MAX_FILE_SIZE) {
-      return { ok: false, message: 'File exceeds 10 MB limit.' };
+      return { ok: false, message: 'File exceeds 100 MB limit.' };
     }
 
     return { ok: true };
@@ -943,6 +1135,24 @@
           status: (el('tcmEditIsActive')?.checked ? 'active' : 'inactive'),
         };
 
+        // Handle optional file replacement during edit
+        const materialType = String(el('tcmEditType')?.value || 'document');
+        const newFile = el('tcmEditFile')?.files?.[0] || null;
+        if (newFile && materialType !== 'link') {
+          const validation = validateFile(newFile);
+          if (!validation.ok) throw new Error(validation.message);
+          const uploaded = await uploadMaterialFile(newFile);
+          payload.file_name = uploaded.file_name;
+          payload.file_path = uploaded.file_path;
+          payload.file_size = uploaded.file_size;
+          payload.material_type = uploaded.material_type;
+        } else if (materialType === 'link') {
+          const link = String(el('tcmEditExternalLink')?.value || '').trim();
+          if (!link) throw new Error('Please provide an external link.');
+          if (!/^https?:\/\//i.test(link)) throw new Error('External link must start with http:// or https://');
+          payload.external_link = link;
+        }
+
         await API.put('/api/courses/' + material.course_id + '/materials/' + material.material_id, payload);
       } else {
         let sharedSource = null;
@@ -1013,11 +1223,12 @@
     if (!material) return;
 
     let url = '';
-    if (material.external_link) {
-      url = material.external_link;
-    } else if (material.file_path) {
-      const normalized = String(material.file_path || '').replace(/^\/+/, '');
-      url = '/uploads/' + normalized;
+    const raw = String(material.external_link || material.file_path || '').trim();
+    if (/^https?:\/\//i.test(raw)) {
+      url = raw;
+    } else if (raw) {
+      const normalized = raw.replace(/^\/+/, '');
+      url = /^uploads\//i.test(normalized) ? ('/' + normalized) : ('/uploads/' + normalized);
     }
 
     if (!url) {
@@ -1055,6 +1266,11 @@
     if (el('tcmEditIsRequired')) el('tcmEditIsRequired').checked = Boolean(material.is_required);
     if (el('tcmEditIsActive')) el('tcmEditIsActive').checked = Boolean(material.is_active);
     if (el('tcmEditExternalLink')) el('tcmEditExternalLink').value = material.external_link || '';
+    if (el('tcmEditFile')) el('tcmEditFile').value = '';
+    if (el('tcmCurrentFileInfo')) {
+      el('tcmCurrentFileInfo').setAttribute('data-file-name', material.file_name || '');
+      el('tcmCurrentFileInfo').setAttribute('data-file-path', material.file_path || '');
+    }
 
     renderShareCourseChecklist(material.course_id);
     populateEditSections(material.course_id, material.section_id);
@@ -1092,6 +1308,7 @@
 
   function bindEvents() {
     el('tcmRefreshBtn')?.addEventListener('click', function () { reloadAll(); });
+    el('tcmRequiredProgressBtn')?.addEventListener('click', function () { openRequiredProgressReport(); });
     el('tcmOpenCreateBtn')?.addEventListener('click', function () {
       resetEditor();
       openEditor();
@@ -1146,6 +1363,12 @@
 
     el('tcmSectionOverlay')?.addEventListener('click', function (event) {
       if (event.target === el('tcmSectionOverlay')) closeSectionManager();
+    });
+
+    el('tcmRequiredProgressClose')?.addEventListener('click', closeRequiredProgressReport);
+    el('tcmRequiredProgressCloseFoot')?.addEventListener('click', closeRequiredProgressReport);
+    el('tcmRequiredProgressOverlay')?.addEventListener('click', function (event) {
+      if (event.target === el('tcmRequiredProgressOverlay')) closeRequiredProgressReport();
     });
 
     el('tcmSectionListBody')?.addEventListener('click', function (event) {

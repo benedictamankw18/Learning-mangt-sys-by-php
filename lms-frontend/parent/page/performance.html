@@ -1,6 +1,563 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-chart-line"></i> Academic Performance</h3></div>
-  <div class="card-body">
-    <p>Performance charts and progress for selected child.</p>
+<div id="parentPerformancePageRoot" class="ppf-page">
+  <style>
+    .ppf-page {
+      background: #f8fafc;
+    }
+
+    /* === HERO SECTION === */
+    .ppf-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .ppf-hero::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 400px;
+      height: 400px;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .ppf-hero-content {
+      position: relative;
+      z-index: 1;
+    }
+    .ppf-hero-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .ppf-hero-title {
+      flex: 1;
+    }
+    .ppf-hero-title h2 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: wheat;
+    }
+    .ppf-hero-title p {
+      margin: 0;
+      opacity: 0.85;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    .ppf-hero-controls {
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+      flex-wrap: wrap;
+      min-width: 280px;
+    }
+    .ppf-hero-controls label {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+    .ppf-hero-controls select {
+      background: rgba(255, 255, 255, 0.1) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      color: white !important;
+      padding: 0.45rem 0.6rem !important;
+    }
+    .ppf-hero-controls select option {
+      background: #1e293b;
+      color: white;
+    }
+    .ppf-hero-controls button {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      color: white !important;
+    }
+    .ppf-hero-controls button:hover {
+      background: rgba(255, 255, 255, 0.25) !important;
+    }
+
+    .ppf-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1.2rem;
+    }
+    .ppf-hero-stat {
+      border-left: 3px solid #3b82f6;
+      padding-left: 1rem;
+    }
+    .ppf-hero-stat small {
+      display: block;
+      opacity: 0.8;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.3rem;
+    }
+    .ppf-hero-stat strong {
+      display: block;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    /* === TOOLBAR & CONTROLS === */
+    .ppf-toolbar {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .ppf-toolbar p {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.9rem;
+      flex: 1;
+    }
+
+    /* === METRIC CARDS === */
+    .ppf-metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .ppf-metric {
+      background: white;
+      border-radius: 12px;
+      padding: 1.2rem;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .ppf-metric::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+    }
+    .ppf-metric:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+    .ppf-metric small {
+      color: #64748b;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .ppf-metric strong {
+      font-size: 1.4rem;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .ppf-metric-icon {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      opacity: 0.08;
+      font-size: 2.5rem;
+    }
+
+    /* === MAIN GRID === */
+    .ppf-grid-2 {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .ppf-card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+    }
+    .ppf-card-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 1.5rem;
+    }
+    .ppf-card-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .ppf-card-header small {
+      display: block;
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 400;
+      margin-top: 0.25rem;
+    }
+    .ppf-card-body {
+      padding: 1.5rem;
+    }
+
+    /* === PROGRESS BARS & INDICATORS === */
+    .ppf-progress-item {
+      margin-bottom: 1.3rem;
+    }
+    .ppf-progress-item:last-child {
+      margin-bottom: 0;
+    }
+    .ppf-progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .ppf-progress-label strong {
+      font-size: 0.9rem;
+      color: #0f172a;
+    }
+    .ppf-progress-label .ppf-progress-value {
+      font-size: 0.85rem;
+      color: #3b82f6;
+      font-weight: 600;
+    }
+    .ppf-progress-bar {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .ppf-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4);
+      border-radius: 999px;
+    }
+
+    /* === SUBJECT BREAKDOWN === */
+    .ppf-subject-item {
+      display: grid;
+      grid-template-columns: 100px 1fr 60px;
+      gap: 1rem;
+      align-items: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .ppf-subject-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+    .ppf-subject-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0f172a;
+      text-align: right;
+    }
+    .ppf-subject-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .ppf-subject-score {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #0f172a;
+      text-align: right;
+      min-width: 50px;
+    }
+
+    /* === TABLE === */
+    .ppf-table-wrap {
+      overflow-x: auto;
+    }
+    .ppf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .ppf-table th {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .ppf-table td {
+      padding: 0.85rem 0.75rem;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+    }
+    .ppf-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    /* === CHIPS & BADGES === */
+    .ppf-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .ppf-chip.complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .ppf-chip.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .ppf-chip.preview {
+      background: #dbeafe;
+      color: #0c4a6e;
+    }
+    .ppf-chip.open {
+      background: #f3e8ff;
+      color: #6b21a8;
+    }
+
+    /* === EMPTY STATE === */
+    .ppf-empty {
+      text-align: center;
+      color: #64748b;
+      padding: 2rem;
+      font-size: 0.9rem;
+    }
+    .ppf-empty i {
+      display: block;
+      font-size: 2.5rem;
+      opacity: 0.4;
+      margin-bottom: 0.5rem;
+    }
+
+    /* === FEED === */
+    .ppf-feed {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .ppf-feed-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.9rem;
+      background: white;
+      transition: all 0.2s ease;
+    }
+    .ppf-feed-item:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+    .ppf-feed-item strong {
+      display: block;
+      font-size: 0.9rem;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    .ppf-feed-item .ppf-feed-subject {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin: 0.25rem 0;
+    }
+    .ppf-feed-item .ppf-feed-meta {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 0.25rem;
+    }
+
+    /* === ENGAGEMENT SECTION === */
+    .ppf-engagement-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+    .ppf-engagement-stat {
+      background: #f0f9ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .ppf-engagement-stat small {
+      display: block;
+      color: #0c4a6e;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .ppf-engagement-stat strong {
+      display: block;
+      font-size: 1.3rem;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    .ppfChildSelector {
+      color: whitesmoke;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1024px) {
+      .ppf-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .ppf-hero-header {
+        flex-direction: column;
+      }
+      .ppf-hero-controls {
+        min-width: 100%;
+      }
+    }
+    @media (max-width: 640px) {
+      .ppf-hero {
+        padding: 1.5rem;
+      }
+      .ppf-metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .ppf-subject-item {
+        grid-template-columns: 80px 1fr 50px;
+      }
+    }
+  </style>
+
+  <!-- Hero Section -->
+  <div class="ppf-hero">
+    <div class="ppf-hero-content">
+      <div class="ppf-hero-header">
+        <div class="ppf-hero-title">
+          <h2><i class="fas fa-chart-line"></i> Academic Performance</h2>
+          <p id="ppfHeroSubtitle">
+            Select a child to view their performance overview
+          </p>
+        </div>
+        <div class="ppf-hero-controls">
+          <label for="ppfChildSelector" class="ppfChildSelector">Child</label>
+          <select id="ppfChildSelector" class="form-select">
+            <option value="">Loading...</option>
+          </select>
+          <button id="ppfRefreshBtn" class="btn-secondary" type="button">
+            <i class="fas fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="ppf-hero-stats">
+        <div class="ppf-hero-stat">
+          <small><i class="fas fa-certificate"></i> Current Score</small>
+          <strong id="ppfAvgScore">0%</strong>
+        </div>
+        <div class="ppf-hero-stat">
+          <small><i class="fas fa-calendar-check"></i> Attendance</small>
+          <strong id="ppfAttendance">0%</strong>
+        </div>
+        <div class="ppf-hero-stat">
+          <small><i class="fas fa-book"></i> Courses</small>
+          <strong id="ppfCourses">0</strong>
+        </div>
+        <div class="ppf-hero-stat">
+          <small><i class="fas fa-folder"></i> Materials</small>
+          <strong id="ppfMaterialsAccessed">0</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="ppf-grid-2">
+    <!-- Subject Performance & Trend -->
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-chart-bar"></i> Subject Performance</h3>
+        <small id="ppfTrendLabel"
+          >Select a child to see performance breakdown</small
+        >
+      </div>
+      <div class="ppf-card-body">
+        <div id="ppfSubjectPerformanceContainer">
+          <div class="ppf-empty">
+            <i class="fas fa-inbox"></i><br />No data available
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engagement & Recent Activity -->
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-zap"></i> Engagement</h3>
+        <small>Material access & activity</small>
+      </div>
+      <div class="ppf-card-body">
+        <div id="ppfEngagementContainer">
+          <div class="ppf-empty">
+            <i class="fas fa-inbox"></i><br />No activity yet
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Summary -->
+  <div class="ppf-card" style="margin-bottom: 1.5rem">
+    <div class="ppf-card-header">
+      <h3><i class="fas fa-wave-square"></i> Score Trend</h3>
+      <small id="ppfTrendChartLabel">Average score progression</small>
+    </div>
+    <div class="ppf-card-body">
+      <canvas
+        id="ppfTrendChart"
+        style="min-height: 260px; max-height: 300px"
+      ></canvas>
+    </div>
+  </div>
+
+  <!-- Materials Accessed -->
+  <div class="ppf-card" style="margin-bottom: 1.5rem">
+    <div class="ppf-card-header">
+      <h3><i class="fas fa-folder-open"></i> Materials Accessed</h3>
+      <small>All materials your child has opened or downloaded</small>
+    </div>
+    <div class="ppf-card-body ppf-table-wrap">
+      <table class="ppf-table">
+        <thead>
+          <tr>
+            <th>Material</th>
+            <th>Subject</th>
+            <th>Last Accessed</th>
+            <th>How</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ppfMaterialsTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Activity Feed -->
+  <div class="ppf-card">
+    <div class="ppf-card-header">
+      <h3><i class="fas fa-clock-rotate-left"></i> Recent Activity</h3>
+      <small>Latest material access across your children</small>
+    </div>
+    <div class="ppf-card-body">
+      <div class="ppf-feed" id="ppfRecentAccessFeed"></div>
+    </div>
   </div>
 </div>
