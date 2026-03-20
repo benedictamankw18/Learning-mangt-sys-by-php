@@ -116,6 +116,48 @@
     return Number(lessonPlan?.material_count || 0) || 0;
   }
 
+  function getPlanStrand(plan) {
+    return String(plan?.strand || plan?.title || '').trim();
+  }
+
+  function getFieldValue(id) {
+    return String(el(id)?.value || '').trim();
+  }
+
+  function getSelectableMaterialOptions(selectEl) {
+    return Array.from(selectEl?.options || []).filter(function (option) {
+      const value = Number(option.value || 0);
+      return !option.disabled && Number.isInteger(value) && value > 0;
+    });
+  }
+
+  function updateMaterialsUi() {
+    const materialsSelect = el('lpMaterials');
+    const countBadge = el('lpMaterialsCount');
+    const emptyHint = el('lpMaterialsEmptyHint');
+    const clearBtn = el('lpMaterialsClearBtn');
+    if (!materialsSelect) return;
+
+    const selectable = getSelectableMaterialOptions(materialsSelect);
+    const selectedCount = selectable.filter(function (option) {
+      return option.selected;
+    }).length;
+
+    if (countBadge) countBadge.textContent = selectedCount + ' selected';
+    if (clearBtn) clearBtn.disabled = selectedCount === 0;
+    if (emptyHint) emptyHint.style.display = selectable.length ? 'none' : 'block';
+  }
+
+  function clearSelectedMaterials() {
+    const materialsSelect = el('lpMaterials');
+    if (!materialsSelect) return;
+
+    Array.from(materialsSelect.options).forEach(function (option) {
+      option.selected = false;
+    });
+    updateMaterialsUi();
+  }
+
   function getTeacherCoursesEndpoint(uuid) {
     if (typeof API_ENDPOINTS !== 'undefined' && typeof API_ENDPOINTS.TEACHER_COURSES === 'function') {
       return API_ENDPOINTS.TEACHER_COURSES(uuid);
@@ -162,11 +204,13 @@
 
   function bindEvents() {
     const createBtn = el('lpCreateBtn');
+    const exportBtn = el('lpExportBtn');
     const manageSectionsBtn = el('lpManageSectionsBtn');
     const form = el('lpForm');
     const listContainer = el('lpListContainer');
 
     if (createBtn) createBtn.addEventListener('click', openCreateModal);
+    if (exportBtn) exportBtn.addEventListener('click', exportLessonPlans);
     if (manageSectionsBtn) {
       manageSectionsBtn.addEventListener('click', function () {
         const courseId = Number(el('lpCourseFilter')?.value || S.courses?.[0]?.course_id || 0);
@@ -179,6 +223,8 @@
     const sectionFilter = el('lpSectionFilter');
     const statusFilter = el('lpStatusFilter');
     const modalCourse = el('lpCourse');
+    const materialsSelect = el('lpMaterials');
+    const materialsClearBtn = el('lpMaterialsClearBtn');
 
     if (courseFilter) {
       courseFilter.addEventListener('change', function () {
@@ -187,6 +233,8 @@
     }
     if (sectionFilter) sectionFilter.addEventListener('change', applyFilters);
     if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+    if (materialsSelect) materialsSelect.addEventListener('change', updateMaterialsUi);
+    if (materialsClearBtn) materialsClearBtn.addEventListener('click', clearSelectedMaterials);
 
     if (modalCourse) {
       modalCourse.addEventListener('change', async function (event) {
@@ -205,6 +253,7 @@
         if (!id) return;
 
         const action = button.getAttribute('data-action');
+        if (action === 'export') await exportLessonPlanById(id);
         if (action === 'edit') await openEditModal(id);
         if (action === 'delete') await deleteLessonPlan(id);
       });
@@ -390,6 +439,7 @@
         opt.text = 'No materials available';
         opt.disabled = true;
         materialsSelect.appendChild(opt);
+        updateMaterialsUi();
         return;
       }
 
@@ -399,8 +449,10 @@
         opt.text = material.title || 'Untitled Material';
         materialsSelect.appendChild(opt);
       });
+      updateMaterialsUi();
     } catch (error) {
       console.error('Error loading materials:', error);
+      updateMaterialsUi();
     }
   }
 
@@ -471,6 +523,7 @@
 
     container.innerHTML = S.view.map(function (lp) {
       const grouping = lp.section_name || (lp.week_number ? ('Week ' + lp.week_number) : '-');
+      const strand = getPlanStrand(lp) || 'Untitled';
       const statusBadge = Number(lp.is_active) === 1
         ? '<span class="lp-badge" style="background:#dcfce7;color:#166534;">Active</span>'
         : '<span class="lp-badge" style="background:#ffedd5;color:#9a3412;">Inactive</span>';
@@ -478,12 +531,13 @@
       return '' +
         '<div class="lp-row">' +
         '  <div>' +
-        '    <strong>' + esc(lp.title || 'Untitled') + '</strong>' +
+        '    <strong>' + esc(strand) + '</strong>' +
         '    <div style="font-size:0.75rem;color:#64748b;margin-top:0.2rem;">' + statusBadge + '</div>' +
         '  </div>' +
         '  <div style="font-size:0.85rem;color:#64748b;">' + esc(grouping) + '</div>' +
         '  <div><span class="lp-badge">' + esc(String(getMaterialCount(lp))) + '</span></div>' +
         '  <div style="display:flex;gap:0.3rem;justify-content:center;">' +
+        '    <button class="btn-icon" data-action="export" data-id="' + Number(lp.lesson_plan_id || 0) + '" title="Export"><i class="fas fa-file-export"></i></button>' +
         '    <button class="btn-icon" data-action="edit" data-id="' + Number(lp.lesson_plan_id || 0) + '" title="Edit"><i class="fas fa-pen-to-square"></i></button>' +
         '    <button class="btn-icon" data-action="delete" data-id="' + Number(lp.lesson_plan_id || 0) + '" title="Delete"><i class="fas fa-trash"></i></button>' +
         '  </div>' +
@@ -521,12 +575,26 @@
     S.currentEditId = Number(id);
     if (el('lpModalTitle')) el('lpModalTitle').textContent = 'Edit Lesson Plan';
     if (el('lpCourse')) el('lpCourse').value = String(lp.course_id || '');
-    if (el('lpTitle')) el('lpTitle').value = lp.title || '';
-    if (el('lpDescription')) el('lpDescription').value = lp.description || '';
-    if (el('lpObjectives')) el('lpObjectives').value = lp.learning_objectives || '';
-    if (el('lpActivities')) el('lpActivities').value = lp.activities || '';
-    if (el('lpAssessment')) el('lpAssessment').value = lp.assessment_methods || '';
-    if (el('lpNotes')) el('lpNotes').value = lp.notes || '';
+    if (el('lpStrand')) el('lpStrand').value = getPlanStrand(lp);
+    if (el('lpSubStrand')) el('lpSubStrand').value = lp.sub_strand || '';
+    if (el('lpDuration')) el('lpDuration').value = lp.duration || '';
+    if (el('lpContentStandard')) el('lpContentStandard').value = lp.content_standard || '';
+    if (el('lpLearningOutcomes')) el('lpLearningOutcomes').value = lp.learning_outcomes || '';
+    if (el('lpLearningIndicators')) el('lpLearningIndicators').value = lp.learning_indicators || '';
+    if (el('lpEssentialQuestions')) el('lpEssentialQuestions').value = lp.essential_questions || '';
+    if (el('lpPedagogicalStrategies')) el('lpPedagogicalStrategies').value = lp.pedagogical_strategies || '';
+    if (el('lpTeachingLearningResources')) el('lpTeachingLearningResources').value = lp.teaching_learning_resources || '';
+    if (el('lpDifferentiationNotes')) el('lpDifferentiationNotes').value = lp.differentiation_notes || '';
+    if (el('lpLessonIntroduction')) el('lpLessonIntroduction').value = lp.lesson_introduction || '';
+    if (el('lpLessonMain')) el('lpLessonMain').value = lp.lesson_main || '';
+    if (el('lpLessonClosure')) el('lpLessonClosure').value = lp.lesson_closure || '';
+    if (el('lpFormativeAssessmentMode')) el('lpFormativeAssessmentMode').value = lp.formative_assessment_mode || '';
+    if (el('lpFormativeAssessmentTask')) el('lpFormativeAssessmentTask').value = lp.formative_assessment_task || '';
+    if (el('lpFormativeMarkScheme')) el('lpFormativeMarkScheme').value = lp.formative_mark_scheme || '';
+    if (el('lpTranscriptAssessmentMode')) el('lpTranscriptAssessmentMode').value = lp.transcript_assessment_mode || '';
+    if (el('lpTranscriptAssessmentTask')) el('lpTranscriptAssessmentTask').value = lp.transcript_assessment_task || '';
+    if (el('lpTranscriptRubricMarkScheme')) el('lpTranscriptRubricMarkScheme').value = lp.transcript_rubric_mark_scheme || '';
+    if (el('lpReflectionRemarks')) el('lpReflectionRemarks').value = lp.reflection_remarks || '';
     if (el('lpActive')) el('lpActive').value = String(lp.is_active ?? 1);
 
     await populateEditSections(Number(lp.course_id || 0), Number(lp.section_id || 0));
@@ -540,6 +608,8 @@
       });
     }
 
+    updateMaterialsUi();
+
     showModal();
   }
 
@@ -547,6 +617,7 @@
     if (el('lpModal')) el('lpModal').classList.remove('open');
     S.currentEditId = null;
     if (el('lpForm')) el('lpForm').reset();
+    updateMaterialsUi();
   }
 
   function showModal() {
@@ -557,10 +628,10 @@
     event.preventDefault();
 
     const courseId = Number(el('lpCourse')?.value || 0);
-    const title = String(el('lpTitle')?.value || '').trim();
+    const strand = String(el('lpStrand')?.value || '').trim();
     const sectionId = Number(el('lpSection')?.value || 0) || null;
-    if (!courseId || !title) {
-      toast('Course and title are required.', 'error');
+    if (!courseId || !strand) {
+      toast('Course and strand are required.', 'error');
       return;
     }
 
@@ -570,13 +641,26 @@
 
     const payload = {
       course_id: courseId,
-      title: title,
-      description: String(el('lpDescription')?.value || '').trim(),
-      learning_objectives: String(el('lpObjectives')?.value || '').trim(),
-      activities: String(el('lpActivities')?.value || '').trim(),
-      assessment_methods: String(el('lpAssessment')?.value || '').trim(),
-      notes: String(el('lpNotes')?.value || '').trim(),
-      week_number: null,
+      strand: strand,
+      sub_strand: getFieldValue('lpSubStrand'),
+      duration: getFieldValue('lpDuration'),
+      content_standard: getFieldValue('lpContentStandard'),
+      learning_outcomes: getFieldValue('lpLearningOutcomes'),
+      learning_indicators: getFieldValue('lpLearningIndicators'),
+      essential_questions: getFieldValue('lpEssentialQuestions'),
+      pedagogical_strategies: getFieldValue('lpPedagogicalStrategies'),
+      teaching_learning_resources: getFieldValue('lpTeachingLearningResources'),
+      differentiation_notes: getFieldValue('lpDifferentiationNotes'),
+      lesson_introduction: getFieldValue('lpLessonIntroduction'),
+      lesson_main: getFieldValue('lpLessonMain'),
+      lesson_closure: getFieldValue('lpLessonClosure'),
+      formative_assessment_mode: getFieldValue('lpFormativeAssessmentMode'),
+      formative_assessment_task: getFieldValue('lpFormativeAssessmentTask'),
+      formative_mark_scheme: getFieldValue('lpFormativeMarkScheme'),
+      transcript_assessment_mode: getFieldValue('lpTranscriptAssessmentMode'),
+      transcript_assessment_task: getFieldValue('lpTranscriptAssessmentTask'),
+      transcript_rubric_mark_scheme: getFieldValue('lpTranscriptRubricMarkScheme'),
+      reflection_remarks: getFieldValue('lpReflectionRemarks'),
       section_id: sectionId,
       is_active: Number(el('lpActive')?.value || 1),
       material_ids: materialIds,
@@ -735,6 +819,326 @@
     await renderSectionManagerList(courseId);
     await populateSectionFilter(Number(el('lpCourseFilter')?.value || courseId));
     await populateEditSections(Number(el('lpCourse')?.value || courseId), Number(el('lpSection')?.value || 0));
+  }
+
+  function csvValue(value) {
+    const text = String(value ?? '').replace(/\r?\n/g, ' ').trim();
+    return '"' + text.replace(/"/g, '""') + '"';
+  }
+
+  function getCourseLabelById(courseId) {
+    const match = S.courses.find(function (course) {
+      return Number(course.course_id) === Number(courseId);
+    });
+    return match ? getCourseLabel(match) : ('Course #' + Number(courseId || 0));
+  }
+
+  async function resolveSectionLabel(plan) {
+    if (plan.section_name) return String(plan.section_name);
+    if (plan.week_number) return 'Week ' + plan.week_number;
+
+    const courseId = Number(plan.course_id || 0);
+    const sectionId = Number(plan.section_id || 0);
+    if (!courseId || !sectionId) return '-';
+
+    const sections = await loadSectionsForCourse(courseId);
+    const found = sections.find(function (section) {
+      return Number(section.section_id) === sectionId;
+    });
+    return found ? String(found.section_name || '-') : '-';
+  }
+
+  function buildSinglePlanSections(plan, sectionLabel) {
+    const materials = Array.isArray(plan.materials)
+      ? plan.materials
+        .map(function (material) {
+          return material.title || ('Material #' + Number(material.material_id || 0));
+        })
+        .filter(Boolean)
+      : [];
+
+    return [
+      {
+        title: 'Document Info',
+        entries: [
+          ['Date of Export', new Date().toLocaleString()],
+          ['Class/Subject', getCourseLabelById(plan.course_id)],
+          ['Topic / Unit / Week', sectionLabel || '-'],
+        ],
+      },
+      {
+        title: 'Curriculum Focus',
+        entries: [
+          ['Strand', getPlanStrand(plan) || 'Untitled'],
+          ['Sub Strand', plan.sub_strand || ''],
+          ['Duration', plan.duration || ''],
+          ['Content Standard', plan.content_standard || ''],
+          ['Learning Outcomes', plan.learning_outcomes || ''],
+          ['Learning Indicators', plan.learning_indicators || ''],
+          ['Essential Questions', plan.essential_questions || ''],
+        ],
+      },
+      {
+        title: 'Pedagogy and Delivery',
+        entries: [
+          ['Pedagogical Strategies', plan.pedagogical_strategies || ''],
+          ['Teaching and Learning Resources', plan.teaching_learning_resources || ''],
+          ['Differentiation Notes', plan.differentiation_notes || ''],
+          ['Lesson Introduction', plan.lesson_introduction || ''],
+          ['Lesson Main', plan.lesson_main || ''],
+          ['Lesson Closure', plan.lesson_closure || ''],
+        ],
+      },
+      {
+        title: 'Assessment',
+        entries: [
+          ['Formative Assessment Mode', plan.formative_assessment_mode || ''],
+          ['Formative Assessment Task', plan.formative_assessment_task || ''],
+          ['Formative Mark Scheme', plan.formative_mark_scheme || ''],
+          ['Transcript Assessment Mode', plan.transcript_assessment_mode || ''],
+          ['Transcript Assessment Task', plan.transcript_assessment_task || ''],
+          ['Transcript Rubric Mark Scheme', plan.transcript_rubric_mark_scheme || ''],
+        ],
+      },
+      {
+        title: 'Reflection and Resources',
+        entries: [
+          ['Reflection Remarks', plan.reflection_remarks || ''],
+          ['Linked Course Materials', materials.length ? materials.join(', ') : 'None'],
+        ],
+      },
+    ];
+  }
+
+  function downloadSinglePlanCsv(sections, fileSafeTitle) {
+    const lines = [['Section', 'Field', 'Value'].map(csvValue).join(',')];
+    sections.forEach(function (section) {
+      (section.entries || []).forEach(function (entry) {
+        lines.push([section.title || '', entry[0], entry[1]].map(csvValue).join(','));
+      });
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'lesson-plan-' + fileSafeTitle + '-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function exportSinglePlanPdf(sections, fileSafeTitle) {
+    if (!window.jspdf || typeof window.jspdf.jsPDF !== 'function') return false;
+
+    const doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentBottom = pageHeight - 56;
+    const footerY = pageHeight - 24;
+    const palette = {
+      headerBg: [15, 23, 42],
+      headerText: [255, 255, 255],
+      accent: [14, 116, 144],
+      sectionTitle: [30, 64, 175],
+      label: [71, 85, 105],
+      body: [30, 41, 59],
+      divider: [203, 213, 225],
+    };
+    const infoSection = (sections || []).find(function (section) {
+      return section.title === 'Document Info';
+    }) || { entries: [] };
+    const fieldMap = new Map((infoSection.entries || []).map(function (entry) {
+      return [String(entry[0] || ''), String(entry[1] || '')];
+    }));
+
+    function setBold() {
+      doc.setFont('helvetica', 'bold');
+    }
+
+    function setNormal() {
+      doc.setFont('helvetica', 'normal');
+    }
+
+    let y = 44;
+
+    doc.setFillColor(palette.headerBg[0], palette.headerBg[1], palette.headerBg[2]);
+    doc.rect(0, 0, 595, 74, 'F');
+
+    setBold();
+    doc.setTextColor(palette.headerText[0], palette.headerText[1], palette.headerText[2]);
+    doc.setFontSize(24);
+    doc.text('Lesson Plan', 40, 46);
+
+    y = 74;
+    doc.setDrawColor(palette.accent[0], palette.accent[1], palette.accent[2]);
+    doc.setLineWidth(1.2);
+    doc.line(40, y, 555, y);
+
+    y += 22;
+    setBold();
+    doc.setFontSize(11);
+    doc.setTextColor(palette.label[0], palette.label[1], palette.label[2]);
+    doc.text('Date of Export:', 40, y);
+    setNormal();
+    doc.setTextColor(palette.body[0], palette.body[1], palette.body[2]);
+    doc.text(fieldMap.get('Date of Export') || '-', 130, y);
+
+    y += 18;
+    setBold();
+    doc.setTextColor(palette.label[0], palette.label[1], palette.label[2]);
+    doc.text('Class/Subject:', 40, y);
+    setNormal();
+    doc.setTextColor(palette.body[0], palette.body[1], palette.body[2]);
+    doc.text(fieldMap.get('Class/Subject') || '-', 130, y);
+
+    y += 18;
+    setBold();
+    doc.setTextColor(palette.label[0], palette.label[1], palette.label[2]);
+    doc.text('Topic / Unit / Week:', 40, y);
+    setNormal();
+    doc.setTextColor(palette.body[0], palette.body[1], palette.body[2]);
+    doc.text(fieldMap.get('Topic / Unit / Week') || '-', 170, y);
+
+    function drawFooter(pageNumber, totalPages) {
+      doc.setDrawColor(palette.divider[0], palette.divider[1], palette.divider[2]);
+      doc.setLineWidth(0.6);
+      doc.line(40, pageHeight - 36, 555, pageHeight - 36);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(palette.label[0], palette.label[1], palette.label[2]);
+      doc.text('GHANA LMS', 40, footerY);
+      doc.text('Page ' + pageNumber + ' of ' + totalPages, 555, footerY, { align: 'right' });
+    }
+
+    function ensureSpace(height) {
+      if (y + height > contentBottom) {
+        doc.addPage();
+        y = 48;
+      }
+    }
+
+    function addSectionTitle(title) {
+      ensureSpace(36);
+      y += 24;
+      setBold();
+      doc.setFontSize(15);
+      doc.setTextColor(palette.sectionTitle[0], palette.sectionTitle[1], palette.sectionTitle[2]);
+      doc.text(title, 40, y);
+
+      y += 8;
+      doc.setLineWidth(0.6);
+      doc.setDrawColor(palette.divider[0], palette.divider[1], palette.divider[2]);
+      doc.line(40, y, 555, y);
+
+      y += 14;
+    }
+
+    function addSectionEntry(label, value) {
+      const safeValue = String(value || '').trim() || 'N/A';
+      const labelWidth = 140;
+      const valueX = 190;
+      const valueWidth = 350;
+      const lineHeight = 14;
+      const allLines = doc.splitTextToSize(safeValue, valueWidth);
+      let remainingLines = allLines.slice();
+      let isContinuation = false;
+
+      while (remainingLines.length) {
+        const labelText = String(label || 'Field') + (isContinuation ? ' (cont.)' : '') + ':';
+        const labelLines = doc.splitTextToSize(labelText, labelWidth);
+        ensureSpace(Math.max(24, labelLines.length * lineHeight + 8));
+
+        setBold();
+        doc.setFontSize(10.5);
+        doc.setTextColor(palette.label[0], palette.label[1], palette.label[2]);
+        doc.text(labelLines, 40, y);
+
+        setNormal();
+        doc.setFontSize(11);
+        doc.setTextColor(palette.body[0], palette.body[1], palette.body[2]);
+
+        const availableHeight = Math.max(lineHeight, contentBottom - y);
+        const maxLines = Math.max(1, Math.floor(availableHeight / lineHeight));
+        const chunk = remainingLines.splice(0, maxLines);
+
+        doc.text(chunk, valueX, y);
+        const rowLines = Math.max(labelLines.length, chunk.length);
+        y += Math.max(20, rowLines * lineHeight);
+        y += 6;
+        isContinuation = true;
+      }
+    }
+
+    (sections || []).forEach(function (section) {
+      if (!section || section.title === 'Document Info') return;
+      addSectionTitle(section.title || 'Section');
+      (section.entries || []).forEach(function (entry) {
+        addSectionEntry(entry[0], entry[1]);
+      });
+    });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i += 1) {
+      doc.setPage(i);
+      drawFooter(i, totalPages);
+    }
+
+    doc.save('lesson-plan-' + fileSafeTitle + '-' + new Date().toISOString().slice(0, 10) + '.pdf');
+    return true;
+  }
+
+  function sanitizeFilenamePart(value) {
+    return String(value || 'lesson-plan')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'lesson-plan';
+  }
+
+  async function exportLessonPlanById(id) {
+    const response = await API.get('/lesson-plans/' + id);
+    const plan = response?.data || response;
+    if (!plan || !plan.lesson_plan_id) {
+      toast('Unable to export this lesson plan right now.', 'error');
+      return;
+    }
+
+    const sectionLabel = await resolveSectionLabel(plan);
+    const sections = buildSinglePlanSections(plan, sectionLabel);
+    const fileSafeTitle = sanitizeFilenamePart(getPlanStrand(plan) || ('lesson-plan-' + id));
+
+    const pdfDone = exportSinglePlanPdf(sections, fileSafeTitle);
+    if (pdfDone) {
+      toast('Lesson plan exported to PDF.', 'success');
+      return;
+    }
+
+    downloadSinglePlanCsv(sections, fileSafeTitle);
+    toast('PDF library unavailable. Exported CSV instead.', 'warning');
+  }
+
+  function exportLessonPlans() {
+    if (!S.view.length) {
+      toast('No lesson plans available to export.', 'warning');
+      return;
+    }
+
+    if (S.view.length > 1) {
+      toast('Use the export button on a specific lesson plan row.', 'info');
+      return;
+    }
+
+    const planId = Number(S.view[0]?.lesson_plan_id || 0);
+    if (!planId) {
+      toast('Could not find lesson plan to export.', 'error');
+      return;
+    }
+
+    exportLessonPlanById(planId).catch(function () {
+      toast('Failed to export lesson plan.', 'error');
+    });
   }
 
   async function init() {

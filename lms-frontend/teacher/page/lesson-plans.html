@@ -301,6 +301,78 @@
     border-radius: 0 0 14px 14px;
   }
 
+  .lp-materials-panel {
+    border: 1px solid #dbe4ef;
+    border-radius: 12px;
+    padding: 0.65rem;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfefe 100%);
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .lp-materials-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .lp-materials-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .lp-materials-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .lp-materials-select {
+    min-height: 130px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 0.35rem;
+  }
+
+  .lp-materials-help {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+
+  .lp-materials-help button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .lp-materials-empty {
+    margin: 0;
+    font-size: 0.72rem;
+    color: #b45309;
+    background: #fffbeb;
+    border: 1px dashed #fcd34d;
+    border-radius: 8px;
+    padding: 0.4rem 0.55rem;
+    display: none;
+  }
+
   .lp-section-overlay {
     position: fixed;
     inset: 0;
@@ -592,7 +664,7 @@
     <!-- ==================== LESSON PLANS LIST ==================== -->
     <div class="lp-list-wrap">
       <div class="lp-list-head">
-        <div>Title</div>
+        <div>Strand</div>
         <div>Topic / Unit / Week</div>
         <div>Materials</div>
         <div style="text-align: center">Actions</div>
@@ -652,70 +724,200 @@
         </div>
       </div>
 
-      <!-- Title -->
+      <!-- Strand -->
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Title <span style="color: #dc2626">*</span></label>
+          <label>Strand <span style="color: #dc2626">*</span></label>
           <input
             type="text"
-            id="lpTitle"
-            placeholder="e.g., Introduction to Photosynthesis"
+            id="lpStrand"
+            placeholder="e.g., Life Processes"
             required
           />
         </div>
       </div>
 
-      <!-- Description -->
+      <!-- Sub Strand + Duration -->
+      <div class="lp-form-row">
+        <div class="lp-field">
+          <label>Sub Strand</label>
+          <input
+            type="text"
+            id="lpSubStrand"
+            placeholder="e.g., Photosynthesis"
+          />
+        </div>
+        <div class="lp-field">
+          <label>Duration</label>
+          <input type="text" id="lpDuration" placeholder="e.g., 40 minutes" />
+        </div>
+      </div>
+
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Description</label>
+          <label>Content Standard</label>
           <textarea
-            id="lpDescription"
-            placeholder="Brief overview of the lesson..."
+            id="lpContentStandard"
+            placeholder="Expected content standard..."
           ></textarea>
         </div>
       </div>
 
-      <!-- Learning Objectives -->
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Learning Objectives</label>
+          <label>Learning Outcomes</label>
           <textarea
-            id="lpObjectives"
-            placeholder="What students will be able to do by the end of this lesson..."
+            id="lpLearningOutcomes"
+            placeholder="Expected learning outcomes..."
           ></textarea>
         </div>
       </div>
 
-      <!-- Activities & Resources -->
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Activities & Resources</label>
+          <label>Learning Indicators</label>
           <textarea
-            id="lpActivities"
-            placeholder="Teaching activities, discussion topics, resources, and materials..."
+            id="lpLearningIndicators"
+            placeholder="Performance indicators for learners..."
           ></textarea>
         </div>
       </div>
 
-      <!-- Assessment Methods -->
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Assessment Methods</label>
+          <label>Essential Questions</label>
           <textarea
-            id="lpAssessment"
-            placeholder="How will you assess student learning? (quizzes, projects, participation, etc.)"
+            id="lpEssentialQuestions"
+            placeholder="Guiding questions for the lesson..."
           ></textarea>
         </div>
       </div>
 
-      <!-- Teacher Notes -->
       <div class="lp-form-row full">
         <div class="lp-field">
-          <label>Teacher Notes</label>
+          <label>Pedagogical Strategies</label>
           <textarea
-            id="lpNotes"
-            placeholder="Additional notes, tips, reminders, or references..."
+            id="lpPedagogicalStrategies"
+            placeholder="Teaching strategies and methods..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Teaching and Learning Resources</label>
+          <textarea
+            id="lpTeachingLearningResources"
+            placeholder="Resources needed for delivery..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Differentiation Notes</label>
+          <textarea
+            id="lpDifferentiationNotes"
+            placeholder="How this lesson supports diverse learners..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Lesson Introduction</label>
+          <textarea
+            id="lpLessonIntroduction"
+            placeholder="How the lesson starts..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Lesson Main</label>
+          <textarea
+            id="lpLessonMain"
+            placeholder="Main learning activities and delivery..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Lesson Closure</label>
+          <textarea
+            id="lpLessonClosure"
+            placeholder="How the lesson is concluded..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row">
+        <div class="lp-field">
+          <label>Formative Assessment Mode</label>
+          <input
+            type="text"
+            id="lpFormativeAssessmentMode"
+            placeholder="e.g., Observation"
+          />
+        </div>
+        <div class="lp-field">
+          <label>Transcript Assessment Mode</label>
+          <input
+            type="text"
+            id="lpTranscriptAssessmentMode"
+            placeholder="e.g., Quiz"
+          />
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Formative Assessment Task</label>
+          <textarea
+            id="lpFormativeAssessmentTask"
+            placeholder="Task for formative assessment..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Formative Mark Scheme</label>
+          <textarea
+            id="lpFormativeMarkScheme"
+            placeholder="Marking guide for formative task..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Transcript Assessment Task</label>
+          <textarea
+            id="lpTranscriptAssessmentTask"
+            placeholder="Task for transcript assessment..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Transcript Rubric Mark Scheme</label>
+          <textarea
+            id="lpTranscriptRubricMarkScheme"
+            placeholder="Rubric and marks for transcript task..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="lp-form-row full">
+        <div class="lp-field">
+          <label>Reflection Remarks</label>
+          <textarea
+            id="lpReflectionRemarks"
+            placeholder="Post-lesson reflections and remarks..."
           ></textarea>
         </div>
       </div>
@@ -724,13 +926,40 @@
       <div class="lp-form-row full">
         <div class="lp-field">
           <label>Link Course Materials</label>
-          <select id="lpMaterials" multiple style="min-height: 80px">
-            <option value="">No materials available</option>
-          </select>
-          <p style="font-size: 0.7rem; color: #64748b; margin-top: 0.3rem">
-            <i class="fas fa-info-circle"></i> Hold Ctrl/Cmd to select multiple
-            materials
-          </p>
+          <div class="lp-materials-panel">
+            <div class="lp-materials-head">
+              <span class="lp-materials-title"
+                ><i class="fas fa-paperclip"></i> Course Materials</span
+              >
+              <span class="lp-materials-badge" id="lpMaterialsCount"
+                >0 selected</span
+              >
+            </div>
+            <select
+              id="lpMaterials"
+              class="lp-materials-select"
+              multiple
+              size="6"
+            >
+              <option value="">No materials available</option>
+            </select>
+            <div class="lp-materials-help">
+              <span
+                ><i class="fas fa-info-circle"></i> Hold Ctrl/Cmd to select
+                multiple materials</span
+              >
+              <button
+                type="button"
+                class="btn btn-outline btn-sm"
+                id="lpMaterialsClearBtn"
+              >
+                Clear Selection
+              </button>
+            </div>
+            <p class="lp-materials-empty" id="lpMaterialsEmptyHint">
+              No linked materials available for this course yet.
+            </p>
+          </div>
         </div>
       </div>
 

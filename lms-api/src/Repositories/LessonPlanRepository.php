@@ -33,7 +33,7 @@ class LessonPlanRepository
                     GROUP BY lesson_plan_id
                 ) mc ON lp.lesson_plan_id = mc.lesson_plan_id
                 WHERE lp.course_id = :course_id 
-                ORDER BY lp.week_number ASC, lp.created_at DESC
+                ORDER BY lp.created_at DESC
             ");
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -97,25 +97,50 @@ class LessonPlanRepository
     public function create(array $data): ?int
     {
         try {
+            $strandValue = $data['strand'] ?? ($data['title'] ?? null);
+
             $stmt = $this->db->prepare("
                 INSERT INTO lesson_plans 
-                (course_id, section_id, week_number, title, description, learning_objectives, 
-                 activities, assessment_methods, notes, created_by, is_active)
+                (course_id, section_id, strand, sub_strand, duration, content_standard,
+                 learning_outcomes, learning_indicators, essential_questions,
+                 pedagogical_strategies, teaching_learning_resources, differentiation_notes,
+                 lesson_introduction, lesson_main, lesson_closure,
+                 formative_assessment_mode, formative_assessment_task, formative_mark_scheme,
+                 transcript_assessment_mode, transcript_assessment_task, transcript_rubric_mark_scheme,
+                 reflection_remarks, created_by, is_active)
                 VALUES 
-                (:course_id, :section_id, :week_number, :title, :description, :learning_objectives,
-                 :activities, :assessment_methods, :notes, :created_by, :is_active)
+                (:course_id, :section_id, :strand, :sub_strand, :duration, :content_standard,
+                 :learning_outcomes, :learning_indicators, :essential_questions,
+                 :pedagogical_strategies, :teaching_learning_resources, :differentiation_notes,
+                 :lesson_introduction, :lesson_main, :lesson_closure,
+                 :formative_assessment_mode, :formative_assessment_task, :formative_mark_scheme,
+                 :transcript_assessment_mode, :transcript_assessment_task, :transcript_rubric_mark_scheme,
+                 :reflection_remarks, :created_by, :is_active)
             ");
 
             $stmt->execute([
                 'course_id' => $data['course_id'],
                 'section_id' => $data['section_id'] ?? null,
-                'week_number' => $data['week_number'] ?? null,
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'learning_objectives' => $data['learning_objectives'] ?? null,
-                'activities' => $data['activities'] ?? null,
-                'assessment_methods' => $data['assessment_methods'] ?? null,
-                'notes' => $data['notes'] ?? null,
+                'strand' => $strandValue,
+                'sub_strand' => $data['sub_strand'] ?? null,
+                'duration' => $data['duration'] ?? null,
+                'content_standard' => $data['content_standard'] ?? null,
+                'learning_outcomes' => $data['learning_outcomes'] ?? null,
+                'learning_indicators' => $data['learning_indicators'] ?? null,
+                'essential_questions' => $data['essential_questions'] ?? null,
+                'pedagogical_strategies' => $data['pedagogical_strategies'] ?? null,
+                'teaching_learning_resources' => $data['teaching_learning_resources'] ?? null,
+                'differentiation_notes' => $data['differentiation_notes'] ?? null,
+                'lesson_introduction' => $data['lesson_introduction'] ?? null,
+                'lesson_main' => $data['lesson_main'] ?? null,
+                'lesson_closure' => $data['lesson_closure'] ?? null,
+                'formative_assessment_mode' => $data['formative_assessment_mode'] ?? null,
+                'formative_assessment_task' => $data['formative_assessment_task'] ?? null,
+                'formative_mark_scheme' => $data['formative_mark_scheme'] ?? null,
+                'transcript_assessment_mode' => $data['transcript_assessment_mode'] ?? null,
+                'transcript_assessment_task' => $data['transcript_assessment_task'] ?? null,
+                'transcript_rubric_mark_scheme' => $data['transcript_rubric_mark_scheme'] ?? null,
+                'reflection_remarks' => $data['reflection_remarks'] ?? null,
                 'created_by' => $data['created_by'],
                 'is_active' => $data['is_active'] ?? 1,
             ]);
@@ -133,9 +158,33 @@ class LessonPlanRepository
     public function update(int $id, array $data): bool
     {
         try {
+            if (!array_key_exists('strand', $data) && array_key_exists('title', $data)) {
+                $data['strand'] = $data['title'];
+            }
+
             $allowedFields = [
-                'section_id', 'week_number', 'title', 'description',
-                'learning_objectives', 'activities', 'assessment_methods', 'notes', 'is_active'
+                'section_id',
+                'strand',
+                'sub_strand',
+                'duration',
+                'content_standard',
+                'learning_outcomes',
+                'learning_indicators',
+                'essential_questions',
+                'pedagogical_strategies',
+                'teaching_learning_resources',
+                'differentiation_notes',
+                'lesson_introduction',
+                'lesson_main',
+                'lesson_closure',
+                'formative_assessment_mode',
+                'formative_assessment_task',
+                'formative_mark_scheme',
+                'transcript_assessment_mode',
+                'transcript_assessment_task',
+                'transcript_rubric_mark_scheme',
+                'reflection_remarks',
+                'is_active',
             ];
 
             $updateParts = [];
@@ -232,10 +281,10 @@ class LessonPlanRepository
             $stmt = $this->db->prepare("
                 SELECT *
                 FROM lesson_plans
-                WHERE course_id = :course_id AND week_number = :week AND is_active = 1
+                WHERE course_id = :course_id AND is_active = 1
                 ORDER BY created_at DESC
             ");
-            $stmt->execute(['course_id' => $courseId, 'week' => $week]);
+            $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("LessonPlanRepository::getByWeek error: " . $e->getMessage());

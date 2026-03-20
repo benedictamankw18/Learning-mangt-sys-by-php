@@ -43,8 +43,8 @@ class LessonPlanController
         $courseId = (int) ($_GET['course_id'] ?? 0);
         $week = (int) ($_GET['week'] ?? 0);
         
-        if (!$courseId || !$week) {
-            Response::validationError(['course_id' => 'Course ID and week are required']);
+        if (!$courseId) {
+            Response::validationError(['course_id' => 'Course ID is required']);
             return;
         }
 
@@ -75,8 +75,18 @@ class LessonPlanController
         if (!$roleMiddleware->requireRole(['teacher'])) return;
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::validationError(['body' => 'Invalid request payload']);
+            return;
+        }
+
+        // Backward compatibility: allow legacy title and map it to strand.
+        if (!isset($data['strand']) && isset($data['title'])) {
+            $data['strand'] = $data['title'];
+        }
+
         $validator = new Validator($data);
-        $validator->required(['course_id', 'title']);
+        $validator->required(['course_id', 'strand']);
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
@@ -116,6 +126,15 @@ class LessonPlanController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::validationError(['body' => 'Invalid request payload']);
+            return;
+        }
+
+        if (!isset($data['strand']) && isset($data['title'])) {
+            $data['strand'] = $data['title'];
+        }
+
         $updated = $this->lessonPlanRepo->update($id, $data);
         
         if (!$updated) {

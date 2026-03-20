@@ -460,7 +460,11 @@ return [
     'DELETE /course-content/{uuid}' => ['controller' => 'CourseContentController', 'method' => 'delete', 'auth' => true],
 
     // Lesson Plan routes
+    // Canonical listing route: expects query param course_id.
+    'GET /lesson-plans' => ['controller' => 'LessonPlanController', 'method' => 'index', 'auth' => true],
+    // Backward compatibility with existing frontend path.
     'GET /courses/{courseId}/lesson-plans' => ['controller' => 'LessonPlanController', 'method' => 'index', 'auth' => true],
+    // Legacy week-filter route retained for compatibility.
     'GET /lesson-plans/week' => ['controller' => 'LessonPlanController', 'method' => 'getByWeek', 'auth' => true],
     'GET /lesson-plans/{id}' => ['controller' => 'LessonPlanController', 'method' => 'show', 'auth' => true],
     'POST /lesson-plans' => ['controller' => 'LessonPlanController', 'method' => 'create', 'auth' => true],
