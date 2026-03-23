@@ -165,6 +165,7 @@ class TeacherAssessmentController
             $stmt = $this->db->prepare(
                 "SELECT
                     s.student_id,
+                    s.student_id_number,
                     s.uuid AS student_uuid,
                     u.first_name,
                     u.last_name,
@@ -407,6 +408,303 @@ class TeacherAssessmentController
     public function publishAssessments(array $user): void
     {
         $this->persistAssessments($user, true);
+    }
+
+    /**
+     * Import assessment scores from parsed CSV rows.
+     * POST /teacher/assessments/import
+     * Body: { class_subject_id, rows: [ { student_name, student_id_number?, category_name, score, max_score } ], publish? }
+     */
+    public function importAssessments(array $user): void
+    {
+        try {
+            if (!$this->requireTeacherRole($user)) {
+                return;
+            }
+
+            $institutionId = $this->getInstitutionId($user);
+            $teacherId = $this->getTeacherId($user);
+            if ($institutionId <= 0 || $teacherId <= 0) {
+                Response::error('Teacher context required', 400);
+            }
+
+            $input = json_decode((string) file_get_contents('php://input'), true) ?: [];
+            $courseId = isset($input['class_subject_id']) ? (int) $input['class_subject_id'] : 0;
+            $rows = $input['rows'] ?? [];
+            $publish = !empty($input['publish']);
+
+            if ($courseId <= 0) {
+                Response::error('class_subject_id is required', 400);
+            }
+            if (!is_array($rows) || !$rows) {
+                Response::error('rows array is required', 400);
+            }
+            if (!$this->teacherOwnsCourse($teacherId, $institutionId, $courseId)) {
+                Response::error('course not assigned to this teacher', 403);
+            }
+
+            $studentMaps = $this->buildStudentLookupMaps($institutionId, $courseId, $teacherId);
+            $nameToStudentId = $studentMaps['by_name'];
+            $idNumberToStudentId = $studentMaps['by_id_number'];
+
+            $categories = $this->categoryRepo->getAll($institutionId, 1, 500);
+            $categoryNameToId = [];
+            foreach ($categories as $category) {
+                $normalized = $this->normalizeLookupValue((string) ($category['category_name'] ?? ''));
+                if ($normalized !== '') {
+                    $categoryNameToId[$normalized] = (int) $category['category_id'];
+                }
+            }
+
+            $this->db->beginTransaction();
+            $processed = 0;
+            $errors = [];
+            $insertedRows = [];
+            $notInsertedRows = [];
+
+            foreach ($rows as $idx => $row) {
+                $line = $idx + 2;
+                $rawStudentName = trim((string) ($row['student_name'] ?? ''));
+                $rawStudentIdNumber = trim((string) ($row['student_id_number'] ?? ''));
+                $rawCategoryName = trim((string) ($row['category_name'] ?? ''));
+                $studentName = $this->normalizeLookupValue($rawStudentName);
+                $studentIdNumber = $this->normalizeLookupValue($rawStudentIdNumber);
+                $categoryName = $this->normalizeLookupValue($rawCategoryName);
+                $scoreRaw = $row['score'] ?? null;
+                $maxScoreRaw = $row['max_score'] ?? null;
+
+                $baseRow = [
+                    'line' => $line,
+                    'student_name' => $rawStudentName,
+                    'student_id_number' => $rawStudentIdNumber,
+                    'category_name' => $rawCategoryName,
+                ];
+
+                if (($studentName === '' && $studentIdNumber === '') || $categoryName === '' || $scoreRaw === null || $maxScoreRaw === null) {
+                    $errorMessage = 'missing required fields (provide student_name or student_id_number, plus category_name, score, max_score)';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                $studentIdByIdNumber = 0;
+                $studentIdByName = 0;
+                if ($studentIdNumber !== '' && isset($idNumberToStudentId[$studentIdNumber])) {
+                    $studentIdByIdNumber = (int) $idNumberToStudentId[$studentIdNumber];
+                }
+                if ($studentName !== '' && isset($nameToStudentId[$studentName])) {
+                    $studentIdByName = (int) $nameToStudentId[$studentName];
+                }
+
+                if ($studentIdByIdNumber > 0 && $studentIdByName > 0 && $studentIdByIdNumber !== $studentIdByName) {
+                    $errorMessage = 'student_name and student_id_number refer to different students';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                $studentId = $studentIdByIdNumber > 0 ? $studentIdByIdNumber : $studentIdByName;
+                if ($studentId <= 0) {
+                    $errorMessage = 'student_name or student_id_number not found in selected class';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                $categoryId = isset($categoryNameToId[$categoryName]) ? (int) $categoryNameToId[$categoryName] : 0;
+                if ($categoryId <= 0) {
+                    $errorMessage = 'category not found';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                $score = is_numeric($scoreRaw) ? (float) $scoreRaw : NAN;
+                $maxScore = is_numeric($maxScoreRaw) ? (float) $maxScoreRaw : NAN;
+                if (!is_finite($score) || !is_finite($maxScore) || $maxScore <= 0) {
+                    $errorMessage = 'score and max_score must be valid numbers';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+                if ($score < 0 || $score > $maxScore) {
+                    $errorMessage = "score must be between 0 and {$maxScore}";
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+                if ($maxScore <= $score) {
+                    $errorMessage = 'max_score must be greater than score';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $publish)) {
+                    $errorMessage = 'failed to persist score';
+                    $errors[] = ['line' => $line, 'error' => $errorMessage];
+                    $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
+                    continue;
+                }
+
+                $processed++;
+                $insertedRows[] = $baseRow + [
+                    'score' => $score,
+                    'max_score' => $maxScore,
+                ];
+            }
+
+            if ($processed === 0) {
+                $this->db->rollBack();
+                Response::error('Import failed', 400, [
+                    'rows' => $errors,
+                    'inserted_rows' => $insertedRows,
+                    'not_inserted_rows' => $notInsertedRows,
+                    'processed' => 0,
+                    'failed' => count($notInsertedRows),
+                    'total' => count($rows),
+                ]);
+            }
+
+            $this->db->commit();
+            Response::success([
+                'processed' => $processed,
+                'total' => count($rows),
+                'failed' => count($errors),
+                'errors' => $errors,
+                'inserted_rows' => $insertedRows,
+                'not_inserted_rows' => $notInsertedRows,
+            ], $publish ? 'Assessment scores imported and published' : 'Assessment scores imported successfully');
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('TeacherAssessmentController::importAssessments ' . $e->getMessage());
+            Response::serverError('Failed to import assessment scores');
+        }
+    }
+
+    /**
+     * Export currently scoped teacher assessments as CSV.
+     * GET /teacher/assessments/export?class_subject_id=...&category_ids=1,2
+     */
+    public function exportAssessments(array $user): void
+    {
+        try {
+            if (!$this->requireTeacherRole($user)) {
+                return;
+            }
+
+            $institutionId = $this->getInstitutionId($user);
+            $teacherId = $this->getTeacherId($user);
+            $courseId = $this->getCourseIdFromRequest();
+            $format = strtolower((string) ($_GET['format'] ?? 'csv'));
+
+            if ($institutionId <= 0 || $teacherId <= 0 || $courseId <= 0) {
+                Response::error('class_subject_id and teacher context are required', 400);
+            }
+            if (!$this->teacherOwnsCourse($teacherId, $institutionId, $courseId)) {
+                Response::error('course not assigned to this teacher', 403);
+            }
+            if ($format !== 'csv') {
+                Response::error('Only csv format is supported by API export endpoint', 400);
+            }
+
+            $currentAcademicYearId = $this->getCurrentAcademicYearId();
+            $currentSemesterId = $this->getCurrentSemesterId();
+            if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
+                Response::error('Current academic year and semester are required', 400);
+            }
+
+            $categoryIds = [];
+            $categoryCsv = trim((string) ($_GET['category_ids'] ?? ''));
+            if ($categoryCsv !== '') {
+                foreach (explode(',', $categoryCsv) as $rawId) {
+                    $id = (int) trim($rawId);
+                    if ($id > 0) {
+                        $categoryIds[] = $id;
+                    }
+                }
+            }
+            if (!$categoryIds && isset($_GET['category_id'])) {
+                $single = (int) $_GET['category_id'];
+                if ($single > 0) {
+                    $categoryIds[] = $single;
+                }
+            }
+
+            $sql =
+                "SELECT
+                    u.first_name,
+                    u.last_name,
+                    s.student_id_number,
+                    ac.category_name,
+                    a.title AS assessment_name,
+                    sub.score,
+                    a.max_score,
+                    sub.status,
+                    sub.graded_at
+                FROM assessments a
+                INNER JOIN assessment_categories ac ON ac.category_id = a.category_id
+                LEFT JOIN assessment_submissions sub ON sub.assessment_id = a.assessment_id
+                LEFT JOIN students s ON s.student_id = sub.student_id
+                LEFT JOIN users u ON u.user_id = s.user_id
+                WHERE a.course_id = :course_id
+                  AND a.academic_year_id = :academic_year_id
+                  AND a.semester_id = :semester_id
+                  AND a.assessment_type = 'teacher_mode'
+                  AND ac.institution_id = :institution_id";
+
+            $params = [
+                'course_id' => $courseId,
+                'academic_year_id' => $currentAcademicYearId,
+                'semester_id' => $currentSemesterId,
+                'institution_id' => $institutionId,
+            ];
+
+            if ($categoryIds) {
+                $placeholders = [];
+                foreach ($categoryIds as $i => $cid) {
+                    $key = 'cid_' . $i;
+                    $placeholders[] = ':' . $key;
+                    $params[$key] = $cid;
+                }
+                $sql .= ' AND a.category_id IN (' . implode(',', $placeholders) . ')';
+            }
+
+            $sql .= ' ORDER BY u.first_name, u.last_name, ac.category_name';
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $filename = 'teacher-assessments-' . date('Y-m-d-His') . '.csv';
+            header('Content-Type: text/csv; charset=utf-8');
+            header('Content-Disposition: attachment; filename=' . $filename);
+
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['student_name', 'student_id_number', 'category_name', 'assessment_name', 'score', 'max_score', 'status', 'graded_at']);
+
+            foreach ($rows as $row) {
+                $studentName = trim((string) (($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')));
+                fputcsv($out, [
+                    $studentName,
+                    $row['student_id_number'] ?? '',
+                    $row['category_name'] ?? '',
+                    $row['assessment_name'] ?? '',
+                    $row['score'] ?? '',
+                    $row['max_score'] ?? '',
+                    $row['status'] ?? '',
+                    $row['graded_at'] ?? '',
+                ]);
+            }
+
+            fclose($out);
+            exit();
+        } catch (\Throwable $e) {
+            error_log('TeacherAssessmentController::exportAssessments ' . $e->getMessage());
+            Response::serverError('Failed to export assessment scores');
+        }
     }
 
     /**
@@ -709,6 +1007,61 @@ class TeacherAssessmentController
         $stmt = $this->db->prepare('SELECT institution_id FROM assessment_categories WHERE category_id = :category_id LIMIT 1');
         $stmt->execute(['category_id' => $categoryId]);
         return (int) $stmt->fetchColumn();
+    }
+
+    private function normalizeLookupValue(string $value): string
+    {
+        $normalized = preg_replace('/\s+/', ' ', trim($value));
+        return strtolower((string) $normalized);
+    }
+
+    private function buildStudentLookupMaps(int $institutionId, int $courseId, int $teacherId): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                s.student_id,
+                s.student_id_number,
+                u.first_name,
+                u.last_name
+             FROM class_subjects cs
+             INNER JOIN students s ON s.class_id = cs.class_id AND s.institution_id = cs.institution_id
+             INNER JOIN users u ON u.user_id = s.user_id
+             WHERE cs.course_id = :course_id
+               AND cs.institution_id = :institution_id
+               AND cs.teacher_id = :teacher_id
+               AND LOWER(COALESCE(s.status, 'active')) = 'active'"
+        );
+        $stmt->execute([
+            'course_id' => $courseId,
+            'institution_id' => $institutionId,
+            'teacher_id' => $teacherId,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $byName = [];
+        $byIdNumber = [];
+
+        foreach ($rows as $row) {
+            $studentId = (int) ($row['student_id'] ?? 0);
+            if ($studentId <= 0) {
+                continue;
+            }
+
+            $fullName = $this->normalizeLookupValue(((string) ($row['first_name'] ?? '')) . ' ' . ((string) ($row['last_name'] ?? '')));
+            if ($fullName !== '' && !isset($byName[$fullName])) {
+                $byName[$fullName] = $studentId;
+            }
+
+            $idNumber = $this->normalizeLookupValue((string) ($row['student_id_number'] ?? ''));
+            if ($idNumber !== '' && !isset($byIdNumber[$idNumber])) {
+                $byIdNumber[$idNumber] = $studentId;
+            }
+        }
+
+        return [
+            'by_name' => $byName,
+            'by_id_number' => $byIdNumber,
+        ];
     }
 
     private function getCurrentAcademicYearId(): int

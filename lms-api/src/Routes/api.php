@@ -501,6 +501,8 @@ return [
     'GET /teacher/assessments/existing' => ['controller' => 'TeacherAssessmentController', 'method' => 'getExistingAssessments', 'auth' => true],
     'GET /teacher/assessments' => ['controller' => 'TeacherAssessmentController', 'method' => 'getExistingAssessments', 'auth' => true],
     'GET /teacher/assignments-quizzes' => ['controller' => 'TeacherAssessmentController', 'method' => 'getAssignmentsAndQuizzes', 'auth' => true],
+    'POST /teacher/assessments/import' => ['controller' => 'TeacherAssessmentController', 'method' => 'importAssessments', 'auth' => true],
+    'GET /teacher/assessments/export' => ['controller' => 'TeacherAssessmentController', 'method' => 'exportAssessments', 'auth' => true],
     'POST /teacher/assessments/save' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
     'POST /teacher/assessments' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
     'POST /teacher/assessments/publish' => ['controller' => 'TeacherAssessmentController', 'method' => 'publishAssessments', 'auth' => true],

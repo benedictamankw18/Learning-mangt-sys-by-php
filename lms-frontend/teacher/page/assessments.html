@@ -534,6 +534,66 @@
     flex-wrap: wrap;
   }
 
+  .as-result-summary {
+    font-size: 0.84rem;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .as-result-block {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .as-result-block h4 {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .as-result-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: auto;
+    max-height: 210px;
+    background: #fff;
+  }
+
+  .as-result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .as-result-table th,
+  .as-result-table td {
+    padding: 0.46rem 0.52rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .as-result-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .as-result-empty {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
   @keyframes as-spin {
     to {
       transform: rotate(360deg);
@@ -676,6 +736,18 @@
         <button id="resetScoresBtn" class="btn btn-outline btn-sm">
           <i class="fas fa-undo"></i> Reset Changes
         </button>
+        <button id="downloadTemplateBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-file-csv"></i> CSV Template
+        </button>
+        <button id="importCsvBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-file-import"></i> Import CSV
+        </button>
+        <button id="exportCsvBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+        <button id="exportPdfBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
       </div>
 
       <div id="statusMessage" class="as-status" aria-live="polite"></div>
@@ -702,6 +774,94 @@
     <div class="as-modal-actions">
       <button id="autoFillConfirmBtn" class="btn btn-primary btn-sm">
         <i class="fas fa-check"></i> Select
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="importCsvModal" class="as-modal" aria-hidden="true">
+  <div class="as-modal-card">
+    <div class="as-modal-head">
+      <h3>Import Assessment Scores (CSV)</h3>
+      <button id="importCsvCloseBtn" class="btn btn-outline btn-sm">
+        Close
+      </button>
+    </div>
+
+    <div class="as-modal-body">
+      <p style="margin: 0; color: #475569; font-size: 0.85rem">
+        Required headers: <strong>student_name</strong>,
+        <strong>student_id_number</strong> (optional),
+        <strong>category_name</strong>, <strong>score</strong>,
+        <strong>max_score</strong>
+      </p>
+
+      <input id="importCsvFileInput" type="file" accept=".csv,text/csv" />
+
+      <div
+        id="importCsvPreview"
+        style="
+          display: none;
+          background: #f8fafc;
+          border: 1px solid #dbe4ef;
+          border-radius: 8px;
+          padding: 0.75rem;
+        "
+      >
+        <div
+          id="importCsvSummary"
+          style="font-size: 0.82rem; color: #334155"
+        ></div>
+        <div
+          id="importCsvErrors"
+          style="
+            margin-top: 0.45rem;
+            font-size: 0.8rem;
+            color: #991b1b;
+            max-height: 130px;
+            overflow: auto;
+          "
+        ></div>
+      </div>
+    </div>
+
+    <div class="as-modal-actions">
+      <button id="importCsvCancelBtn" class="btn btn-outline btn-sm">
+        Cancel
+      </button>
+      <button id="importCsvConfirmBtn" class="btn btn-primary btn-sm" disabled>
+        <i class="fas fa-check"></i> Import
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="importResultModal" class="as-modal" aria-hidden="true">
+  <div class="as-modal-card">
+    <div class="as-modal-head">
+      <h3>Import Results</h3>
+      <button id="importResultCloseBtn" class="btn btn-outline btn-sm">
+        Close
+      </button>
+    </div>
+
+    <div class="as-modal-body">
+      <div id="importResultSummary" class="as-result-summary"></div>
+
+      <div class="as-result-block">
+        <h4>Inserted Rows</h4>
+        <div id="importResultInserted" class="as-result-table-wrap"></div>
+      </div>
+
+      <div class="as-result-block">
+        <h4>Not Inserted Rows</h4>
+        <div id="importResultNotInserted" class="as-result-table-wrap"></div>
+      </div>
+    </div>
+
+    <div class="as-modal-actions">
+      <button id="importResultOkBtn" class="btn btn-primary btn-sm">
+        <i class="fas fa-check"></i> OK
       </button>
     </div>
   </div>

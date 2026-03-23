@@ -19,6 +19,7 @@ Why: Track virtual class attendance, recorded sessions
 10. Resource Bookings
 Why: Manage shared resources (computer labs, science equipment)
 
+11. AI Chatbot
 
 we will redesgin the teacher and student page to look like LMS like how moodle page/interface look like 
 remove the side bar and use Breadcrumb instead 

@@ -15,7 +15,9 @@ let state = {
     autoFillStudentId: null,
     autoFillCategoryId: null,
     autoFillItems: [],
-    autoFillGroups: []
+    autoFillGroups: [],
+    importRows: [],
+    importErrors: []
 };
 
 function hasPageRoot() {
@@ -237,6 +239,46 @@ function setupEventListeners() {
     document.getElementById('resetScoresBtn').addEventListener('click', resetChanges);
     document.getElementById('autoFillConfirmBtn').addEventListener('click', confirmAutoFill);
     document.getElementById('autoFillCancelBtn').addEventListener('click', closeAutoFillModal);
+    const downloadTemplateBtn = document.getElementById('downloadTemplateBtn');
+    if (downloadTemplateBtn) {
+        downloadTemplateBtn.addEventListener('click', downloadImportTemplate);
+    }
+    const importCsvBtn = document.getElementById('importCsvBtn');
+    if (importCsvBtn) {
+        importCsvBtn.addEventListener('click', openImportCsvModal);
+    }
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', exportScoresToCsv);
+    }
+    const exportPdfBtn = document.getElementById('exportPdfBtn');
+    if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', exportScoresToPdf);
+    }
+    const importCsvFileInput = document.getElementById('importCsvFileInput');
+    if (importCsvFileInput) {
+        importCsvFileInput.addEventListener('change', onImportCsvFileSelected);
+    }
+    const importCsvConfirmBtn = document.getElementById('importCsvConfirmBtn');
+    if (importCsvConfirmBtn) {
+        importCsvConfirmBtn.addEventListener('click', confirmImportCsv);
+    }
+    const importCsvCancelBtn = document.getElementById('importCsvCancelBtn');
+    if (importCsvCancelBtn) {
+        importCsvCancelBtn.addEventListener('click', closeImportCsvModal);
+    }
+    const importCsvCloseBtn = document.getElementById('importCsvCloseBtn');
+    if (importCsvCloseBtn) {
+        importCsvCloseBtn.addEventListener('click', closeImportCsvModal);
+    }
+    const importResultCloseBtn = document.getElementById('importResultCloseBtn');
+    if (importResultCloseBtn) {
+        importResultCloseBtn.addEventListener('click', closeImportResultModal);
+    }
+    const importResultOkBtn = document.getElementById('importResultOkBtn');
+    if (importResultOkBtn) {
+        importResultOkBtn.addEventListener('click', closeImportResultModal);
+    }
     const scoresSearch = document.getElementById('scoresSearch');
     if (scoresSearch) {
         scoresSearch.addEventListener('input', (e) => {
@@ -249,6 +291,22 @@ function setupEventListeners() {
             // Close only when clicking the faded backdrop, not modal content.
             if (e.target === autoFillModal) {
                 closeAutoFillModal();
+            }
+        });
+    }
+    const importCsvModal = document.getElementById('importCsvModal');
+    if (importCsvModal) {
+        importCsvModal.addEventListener('click', (e) => {
+            if (e.target === importCsvModal) {
+                closeImportCsvModal();
+            }
+        });
+    }
+    const importResultModal = document.getElementById('importResultModal');
+    if (importResultModal) {
+        importResultModal.addEventListener('click', (e) => {
+            if (e.target === importResultModal) {
+                closeImportResultModal();
             }
         });
     }
@@ -427,7 +485,8 @@ function renderScoresTable() {
         const nameTd = document.createElement('td');
         nameTd.style.fontWeight = '600';
         nameTd.style.color = '#0f172a';
-        nameTd.textContent = `${student.first_name} ${student.last_name}`;
+        const studentIdLabel = student.student_id_number || student.student_id || 'N/A';
+        nameTd.textContent = `${student.first_name} ${student.last_name} (ID: ${studentIdLabel})`;
         tr.appendChild(nameTd);
 
         // Score cells for each category
@@ -814,6 +873,486 @@ function clearFilter() {
     updateCategoryComboDisplay();
 }
 
+function downloadImportTemplate() {
+    const lines = [
+        'student_name,student_id_number,category_name,score,max_score',
+        'John Doe,ASHS-2024-0001,Quiz,18,20'
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'teacher-assessment-import-template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function openImportCsvModal() {
+    if (!state.selectedClassSubject || !state.students.length || !state.selectedCategories.length) {
+        showError('Load students and categories first before importing CSV');
+        return;
+    }
+
+    const modal = document.getElementById('importCsvModal');
+    const fileInput = document.getElementById('importCsvFileInput');
+    const preview = document.getElementById('importCsvPreview');
+    const summary = document.getElementById('importCsvSummary');
+    const errors = document.getElementById('importCsvErrors');
+    const confirmBtn = document.getElementById('importCsvConfirmBtn');
+
+    state.importRows = [];
+    state.importErrors = [];
+
+    if (fileInput) fileInput.value = '';
+    if (preview) preview.style.display = 'none';
+    if (summary) summary.textContent = '';
+    if (errors) errors.innerHTML = '';
+    if (confirmBtn) confirmBtn.disabled = true;
+
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+    }
+}
+
+function closeImportCsvModal() {
+    const modal = document.getElementById('importCsvModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function closeImportResultModal() {
+    const modal = document.getElementById('importResultModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function escapeHtml(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderResultTableRows(rows, includeError) {
+    if (!rows.length) {
+        return '<p class="as-result-empty">No rows.</p>';
+    }
+
+    const header = includeError
+        ? '<tr><th>Line</th><th>Student Name</th><th>Student ID</th><th>Category</th><th>Error</th></tr>'
+        : '<tr><th>Line</th><th>Student Name</th><th>Student ID</th><th>Category</th><th>Score</th><th>Max Score</th></tr>';
+
+    const body = rows.map(item => {
+        const line = escapeHtml(item.line || '');
+        const studentName = escapeHtml(item.student_name || '');
+        const studentId = escapeHtml(item.student_id_number || '');
+        const category = escapeHtml(item.category_name || '');
+
+        if (includeError) {
+            const error = escapeHtml(item.error || 'Not inserted');
+            return `<tr><td>${line}</td><td>${studentName}</td><td>${studentId}</td><td>${category}</td><td>${error}</td></tr>`;
+        }
+
+        const score = escapeHtml(item.score == null ? '' : item.score);
+        const maxScore = escapeHtml(item.max_score == null ? '' : item.max_score);
+        return `<tr><td>${line}</td><td>${studentName}</td><td>${studentId}</td><td>${category}</td><td>${score}</td><td>${maxScore}</td></tr>`;
+    }).join('');
+
+    return `<table class="as-result-table"><thead>${header}</thead><tbody>${body}</tbody></table>`;
+}
+
+function openImportResultModal(result) {
+    const modal = document.getElementById('importResultModal');
+    const summaryEl = document.getElementById('importResultSummary');
+    const insertedEl = document.getElementById('importResultInserted');
+    const notInsertedEl = document.getElementById('importResultNotInserted');
+
+    if (!modal || !summaryEl || !insertedEl || !notInsertedEl) {
+        return;
+    }
+
+    const total = Number(result.total || 0);
+    const processed = Number(result.processed || 0);
+    const failed = Number(result.failed || 0);
+    const insertedRows = Array.isArray(result.insertedRows) ? result.insertedRows : [];
+    const notInsertedRows = Array.isArray(result.notInsertedRows) ? result.notInsertedRows : [];
+
+    summaryEl.textContent = `Total rows: ${total} | Inserted: ${processed} | Not inserted: ${failed}`;
+    insertedEl.innerHTML = renderResultTableRows(insertedRows, false);
+    notInsertedEl.innerHTML = renderResultTableRows(notInsertedRows, true);
+
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function splitCsvLine(line) {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const next = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && next === '"') {
+                current += '"';
+                i += 1;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (char === ',' && !inQuotes) {
+            cells.push(current.trim());
+            current = '';
+            continue;
+        }
+
+        current += char;
+    }
+
+    cells.push(current.trim());
+    return cells;
+}
+
+function onImportCsvFileSelected(event) {
+    const file = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+    if (!file) {
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        const text = String(reader.result || '');
+        const parsed = parseImportCsv(text);
+        state.importRows = parsed.rows;
+        state.importErrors = parsed.errors;
+        renderImportPreview();
+    };
+    reader.onerror = () => {
+        showError('Failed to read CSV file');
+    };
+    reader.readAsText(file);
+}
+
+function parseImportCsv(text) {
+    const lines = String(text || '').split(/\r?\n/).filter(line => line.trim() !== '');
+    if (!lines.length) {
+        return { rows: [], errors: [{ line: 1, error: 'CSV is empty' }] };
+    }
+
+    const headers = splitCsvLine(lines[0]).map(h => h.toLowerCase().trim());
+    const required = ['student_name', 'category_name', 'score', 'max_score'];
+    const missing = required.filter(h => !headers.includes(h));
+    if (missing.length) {
+        return {
+            rows: [],
+            errors: [{ line: 1, error: 'Missing required header(s): ' + missing.join(', ') }],
+        };
+    }
+
+    const rows = [];
+    const errors = [];
+
+    for (let i = 1; i < lines.length; i++) {
+        const values = splitCsvLine(lines[i]);
+        const row = {};
+        headers.forEach((header, idx) => {
+            row[header] = (values[idx] || '').trim();
+        });
+
+        const lineNum = i + 1;
+        const hasStudentName = !!(row.student_name && row.student_name.trim());
+        const hasStudentIdNumber = !!(row.student_id_number && row.student_id_number.trim());
+        if ((!hasStudentName && !hasStudentIdNumber) || !row.category_name || row.score === '' || row.max_score === '') {
+            errors.push({
+                line: lineNum,
+                error: 'Missing required value(s): provide student_name or student_id_number, plus category_name, score, max_score'
+            });
+            continue;
+        }
+
+        if (Number.isNaN(parseFloat(row.score)) || Number.isNaN(parseFloat(row.max_score))) {
+            errors.push({ line: lineNum, error: 'score and max_score must be numeric' });
+            continue;
+        }
+
+        const score = parseFloat(row.score);
+        const maxScore = parseFloat(row.max_score);
+
+        if (maxScore <= score) {
+            errors.push({ line: lineNum, error: 'max_score must be greater than score' });
+            continue;
+        }
+
+        rows.push({
+            student_name: row.student_name,
+            student_id_number: row.student_id_number || '',
+            category_name: row.category_name,
+            score,
+            max_score: maxScore,
+        });
+    }
+
+    return { rows, errors };
+}
+
+function renderImportPreview() {
+    const preview = document.getElementById('importCsvPreview');
+    const summary = document.getElementById('importCsvSummary');
+    const errorsEl = document.getElementById('importCsvErrors');
+    const confirmBtn = document.getElementById('importCsvConfirmBtn');
+
+    if (!preview || !summary || !errorsEl || !confirmBtn) {
+        return;
+    }
+
+    preview.style.display = 'block';
+    summary.textContent = `Ready rows: ${state.importRows.length} | Validation errors: ${state.importErrors.length}`;
+    errorsEl.innerHTML = state.importErrors.length
+        ? state.importErrors.map(err => `<div>Line ${err.line}: ${err.error}</div>`).join('')
+        : '<div style="color:#166534;">No validation errors found.</div>';
+
+    confirmBtn.disabled = state.importRows.length === 0;
+}
+
+async function confirmImportCsv() {
+    if (!state.selectedClassSubject || !state.importRows.length) {
+        showError('No rows available for import');
+        return;
+    }
+
+    const confirmBtn = document.getElementById('importCsvConfirmBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+    }
+
+    try {
+        showLoading(true);
+        const response = await TeacherAssessmentAPI.importAssessments({
+            class_subject_id: state.selectedClassSubject.class_subject_id,
+            rows: state.importRows,
+            publish: false,
+        });
+        showLoading(false);
+
+        if (!response.success) {
+            showError(response.message || 'Import failed');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+            }
+            return;
+        }
+
+        const data = response.data || {};
+        const processed = Number(data.processed || 0);
+        const failed = Number(data.failed || 0);
+        const total = Number(data.total || state.importRows.length);
+        const insertedRows = Array.isArray(data.inserted_rows) ? data.inserted_rows : [];
+        const notInsertedRows = Array.isArray(data.not_inserted_rows) ? data.not_inserted_rows : [];
+
+        state.importRows = insertedRows;
+        state.importErrors = notInsertedRows.map(item => ({
+            line: item.line || '?',
+            error: item.error || 'Not inserted',
+        }));
+        renderImportPreview();
+
+        showSuccess(`Import complete: ${processed}/${total} processed, ${failed} failed`, 'success');
+        closeImportCsvModal();
+        openImportResultModal({
+            total,
+            processed,
+            failed,
+            insertedRows,
+            notInsertedRows,
+        });
+        await submitFilter();
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('CSV import failed:', error);
+        const responseBody = error && error.body ? error.body : null;
+        const responseErrors = responseBody && responseBody.errors ? responseBody.errors : null;
+        const notInsertedRows = responseErrors && Array.isArray(responseErrors.not_inserted_rows)
+            ? responseErrors.not_inserted_rows
+            : [];
+        const insertedRows = responseErrors && Array.isArray(responseErrors.inserted_rows)
+            ? responseErrors.inserted_rows
+            : [];
+
+        if (insertedRows.length || notInsertedRows.length) {
+            state.importRows = insertedRows;
+            state.importErrors = notInsertedRows.map(item => ({
+                line: item.line || '?',
+                error: item.error || 'Not inserted',
+            }));
+            renderImportPreview();
+
+            const total = Number((responseErrors && responseErrors.total) || (insertedRows.length + notInsertedRows.length));
+            const processed = Number((responseErrors && responseErrors.processed) || insertedRows.length);
+            const failed = Number((responseErrors && responseErrors.failed) || notInsertedRows.length);
+            closeImportCsvModal();
+            openImportResultModal({
+                total,
+                processed,
+                failed,
+                insertedRows,
+                notInsertedRows,
+            });
+        }
+
+        showError(error && error.message ? error.message : 'CSV import failed');
+        showLoading(false);
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+        }
+    }
+}
+
+function csvEscape(value) {
+    const v = String(value == null ? '' : value);
+    if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+        return '"' + v.replace(/"/g, '""') + '"';
+    }
+    return v;
+}
+
+function buildExportRows() {
+    const rows = [];
+    const headers = ['student_name', 'student_id_number'];
+    state.selectedCategories.forEach(cat => {
+        headers.push(`${cat.category_name} score`);
+        headers.push(`${cat.category_name} max_score`);
+    });
+    rows.push(headers);
+
+    state.students.forEach(student => {
+        const row = [
+            `${student.first_name} ${student.last_name}`,
+            student.student_id_number || student.student_id || '',
+        ];
+
+        state.selectedCategories.forEach(cat => {
+            const scoreInput = document.querySelector(`.score-input[data-student-id="${student.student_id}"][data-category-id="${cat.category_id}"]`);
+            const maxInput = document.querySelector(`.max-score-input[data-category-id="${cat.category_id}"]`);
+            row.push(scoreInput ? (scoreInput.value || '') : '');
+            row.push(maxInput ? (maxInput.value || '') : '');
+        });
+
+        rows.push(row);
+    });
+
+    return rows;
+}
+
+function exportScoresToCsv() {
+    if (!state.selectedClassSubject || !state.students.length || !state.selectedCategories.length) {
+        showError('Load students and categories first before exporting');
+        return;
+    }
+
+    const rows = buildExportRows();
+    const csv = rows.map(row => row.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const fileDate = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `teacher-assessment-${fileDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showSuccess('CSV exported successfully', 'success');
+}
+
+function exportScoresToPdf() {
+    if (!state.selectedClassSubject || !state.students.length || !state.selectedCategories.length) {
+        showError('Load students and categories first before exporting');
+        return;
+    }
+
+    if (window.jspdf && window.jspdf.jsPDF) {
+        try {
+            const doc = new window.jspdf.jsPDF({ orientation: 'landscape' });
+            const rows = buildExportRows();
+            const headers = rows.shift() || [];
+            const body = rows;
+
+            doc.setFontSize(12);
+            doc.text('Teacher Assessment Scores', 14, 14);
+            doc.setFontSize(10);
+            doc.text(`${state.selectedClassSubject.class_name} - ${state.selectedClassSubject.subject_name}`, 14, 22);
+
+            if (typeof doc.autoTable === 'function') {
+                doc.autoTable({
+                    head: [headers],
+                    body,
+                    startY: 28,
+                    styles: { fontSize: 8 },
+                    headStyles: { fillColor: [48, 144, 207] },
+                });
+            }
+
+            const fileDate = new Date().toISOString().slice(0, 10);
+            doc.save(`teacher-assessment-${fileDate}.pdf`);
+            showSuccess('PDF exported successfully', 'success');
+            return;
+        } catch (error) {
+            console.warn('jsPDF export failed, falling back to print.', error);
+        }
+    }
+
+    const rows = buildExportRows();
+    const htmlRows = rows
+        .map((row, idx) => {
+            const cells = row.map(cell => `<${idx === 0 ? 'th' : 'td'}>${String(cell).replace(/</g, '&lt;').replace(/>/g, '&gt;')}</${idx === 0 ? 'th' : 'td'}>`).join('');
+            return `<tr>${cells}</tr>`;
+        })
+        .join('');
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+        showError('Popup blocked: allow popups to export PDF via print');
+        return;
+    }
+
+    printWin.document.write(`
+      <html>
+        <head>
+          <title>Teacher Assessment Scores</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 16px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #ddd; padding: 6px; font-size: 12px; }
+            th { background: #f1f5f9; }
+          </style>
+        </head>
+        <body>
+          <h3>Teacher Assessment Scores</h3>
+          <p>${state.selectedClassSubject.class_name} - ${state.selectedClassSubject.subject_name}</p>
+          <table>${htmlRows}</table>
+        </body>
+      </html>
+    `);
+    printWin.document.close();
+    printWin.focus();
+    printWin.print();
+}
+
 function filterScoresTable(query) {
     const normalized = (query || '').toLowerCase().trim();
     const rows = document.querySelectorAll('#scoresTableBody tr');
@@ -978,10 +1517,10 @@ function showErrorMessage(message) {
     msgDiv.className = 'as-status show error';
 
     if (typeof showToast === 'function') {
-      showToast(message, type || 'error');
+            showToast(message, 'error');
       return;
     }
-    console.error((type || 'error').toUpperCase() + ': ' + message);
+        console.error('ERROR: ' + message);
 }
 
 /**

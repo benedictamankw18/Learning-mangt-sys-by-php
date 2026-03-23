@@ -695,6 +695,11 @@ const TeacherAssessmentAPI = {
     getClassesSubjects: () => API.get(API_ENDPOINTS.TEACHER_CLASSES_SUBJECTS),
     getStudents: (params) => API.get(API_ENDPOINTS.TEACHER_STUDENTS, params),
     getExistingAssessments: (params) => API.get(API_ENDPOINTS.TEACHER_EXISTING_ASSESSMENTS, params),
+    importAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_IMPORT_ASSESSMENTS, data),
+    exportAssessments: (params) => API.download(
+        API_ENDPOINTS.TEACHER_EXPORT_ASSESSMENTS + (params ? ('?' + new URLSearchParams(params).toString()) : ''),
+        params && params.format === 'csv' ? 'teacher-assessments.csv' : 'teacher-assessments-export.dat'
+    ),
     getAssignmentsAndQuizzes: (params) => API.get(API_ENDPOINTS.TEACHER_ASSIGNMENTS_QUIZZES, params),
     saveAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_SAVE_ASSESSMENTS, data),
     publishAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_PUBLISH_ASSESSMENTS, data),

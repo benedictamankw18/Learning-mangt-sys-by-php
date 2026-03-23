@@ -184,6 +184,8 @@ const API_ENDPOINTS = {
     TEACHER_CLASSES_SUBJECTS: '/api/teacher/classes-subjects',
     TEACHER_STUDENTS: '/api/teacher/students',
     TEACHER_EXISTING_ASSESSMENTS: '/api/teacher/assessments/existing',
+    TEACHER_IMPORT_ASSESSMENTS: '/api/teacher/assessments/import',
+    TEACHER_EXPORT_ASSESSMENTS: '/api/teacher/assessments/export',
     TEACHER_ASSIGNMENTS_QUIZZES: '/api/teacher/assignments-quizzes',
     TEACHER_SAVE_ASSESSMENTS: '/api/teacher/assessments/save',
     TEACHER_PUBLISH_ASSESSMENTS: '/api/teacher/assessments/publish',
