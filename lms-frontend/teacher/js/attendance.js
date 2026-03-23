@@ -6,11 +6,8 @@
 (function () {
   'use strict';
 
-  /* -------- URL helpers (not in global config.js) -------- */
-  const API_TEACHER     = (uuid) => `/api/teachers/${uuid}/courses`;
-  const API_CLASS_STU   = (uuid) => `/api/classes/${uuid}/students`;   // students by class UUID
-  const API_COURSE_ATT  = (id)   => `/api/courses/${id}/attendance`;
-  const API_ATT_BULK    = '/api/attendance/bulk';
+  /* -------- API helpers -------- */
+  const API_TEACHER     = (uuid, params) => TeacherAPI.getCourses(uuid, params);
 
   /* -------- module state -------- */
   const S = {
@@ -476,7 +473,7 @@
 
     try {
       const [coursesRes, classesRes] = await Promise.all([
-        API.get(API_TEACHER(uuid), { limit: 500 }),
+        API_TEACHER(uuid, { limit: 500 }),
         API.get(API_ENDPOINTS.CLASSES, { page: 1, limit: 1000 }).catch(() => []),
       ]);
       S.courses = toArray(coursesRes);
@@ -588,11 +585,11 @@
     setMarkLoading(true);
 
     try {
-      /* Use GET /api/classes/{uuid}/students — students are enrolled per class,
+      /* Use class roster endpoint — students are enrolled per class,
          not per course, so course_enrollments is typically empty. */
       const [stuRes, attRes] = await Promise.all([
-        API.get(API_CLASS_STU(classUuid)),
-        API.get(API_COURSE_ATT(courseId), { date }).catch(() => []),
+        ClassAPI.getStudents(classUuid),
+        AttendanceAPI.getByCourse(courseId, { date }).catch(() => []),
       ]);
 
       const students = toArray(stuRes);
@@ -789,7 +786,7 @@
     if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting…'; }
 
     try {
-      await API.post(API_ATT_BULK, {
+      await AttendanceAPI.bulkCreate({
         course_id:       parseInt(S.selectedCourseId, 10),
         attendance_date: date,
         students:        students,
@@ -839,7 +836,7 @@
       const course = S.courses.find(c => String(c.course_id) === String(courseId)) || {};
 
       const results = await Promise.all(days.map(function (date) {
-        return API.get(API_COURSE_ATT(courseId), { date })
+        return AttendanceAPI.getByCourse(courseId, { date })
           .then(function (res) {
             return toArray(res).map(r => Object.assign({}, r, { _date: date }));
           })

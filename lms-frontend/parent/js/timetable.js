@@ -655,7 +655,7 @@
       return;
     }
 
-    const schRes = await API.get('/api/classes/' + S.classUuid + '/schedule');
+    const schRes = await ClassScheduleAPI.getByClass(S.classUuid);
     const raw = Array.isArray(schRes && schRes.data) ? schRes.data : (Array.isArray(schRes) ? schRes : []);
 
     S.entries = raw.map(function (item) {

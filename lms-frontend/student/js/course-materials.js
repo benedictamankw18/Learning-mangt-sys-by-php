@@ -512,7 +512,7 @@
     S.completionSent.add(key);
 
     try {
-      await API.post('/api/courses/' + courseId + '/materials/' + materialId + '/complete', {
+      await CourseContentAPI.markMaterialComplete(courseId, materialId, {
         source: String(source || 'open').toLowerCase(),
       });
 
@@ -560,7 +560,7 @@
 
     let rows = [];
     try {
-      const res = await API.get('/api/courses/' + id + '/sections');
+      const res = await CourseContentAPI.getSections(id);
       rows = asArray(res?.data || res);
     } catch (_) {
       rows = [];
@@ -586,7 +586,7 @@
     const grouped = await Promise.all(S.courses.map(async function (course) {
       await loadSections(course.course_id);
 
-      const res = await API.get('/api/courses/' + course.course_id + '/materials');
+      const res = await CourseContentAPI.getMaterials(course.course_id);
       const rows = asArray(res?.data || res);
 
       return rows.map(function (row) {

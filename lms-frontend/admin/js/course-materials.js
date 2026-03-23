@@ -95,7 +95,7 @@
       if (!courseId) return [];
 
       try {
-        const res = await API.get('/api/courses/' + courseId + '/materials');
+        const res = await CourseContentAPI.getMaterials(courseId);
         const rows = Array.isArray(res?.data?.data) ? res.data.data : (Array.isArray(res?.data) ? res.data : []);
 
         return rows.map(function (m) {
@@ -225,7 +225,7 @@
     const row = S.rows.find(function (r) { return Number(r.material_id) === Number(materialId); });
     if (!row) return;
 
-    await API.put('/api/courses/' + row.course_id + '/materials/' + row.material_id, {
+    await CourseContentAPI.updateMaterial(row.course_id, row.material_id, {
       status: newStatus,
       is_active: newStatus === 'active' ? 1 : 0,
     });

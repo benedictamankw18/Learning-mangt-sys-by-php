@@ -212,7 +212,7 @@
   async function fetchClassProfile(row) {
     const classUuid = getClassUuid(row);
     if (!classUuid) throw new Error('Class UUID not found');
-    const res = await API.get(`/api/classes/${classUuid}`);
+    const res = await ClassAPI.getByUuid(classUuid);
     return res?.data || null;
   }
 
@@ -272,7 +272,7 @@
       const classUuid = getClassUuid(row);
       if (!classUuid) throw new Error('Class UUID not found');
 
-      const res = await API.get(`/api/classes/${classUuid}/schedule`);
+      const res = await ClassAPI.getSchedule(classUuid);
       const rows = res?.data || [];
 
       if (!rows.length) {

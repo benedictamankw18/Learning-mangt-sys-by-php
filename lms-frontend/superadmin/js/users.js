@@ -122,7 +122,7 @@
     // ─── Load Data ─────────────────────────────────────────────────────────────
     async function loadInstitutions() {
         try {
-            const res = await API.get('/api/institutions', { limit: 1000, include_all: 1 });
+            const res = await InstitutionAPI.getAll({ limit: 1000, include_all: 1 });
             const list =
                 (Array.isArray(res?.data) && res.data) ||
                 (Array.isArray(res?.data?.data) && res.data.data) ||
@@ -162,7 +162,7 @@
         params.role_filter = 'admin';
 
         try {
-            const res = await API.get('/api/users', params);
+            const res = await UserAPI.getAll(params);
             if (res && res.data) {
                 S.users = Array.isArray(res.data) ? res.data : [];
                 if (res.pagination) {
@@ -513,7 +513,7 @@
         const saveBtn = document.getElementById('userModalSave');
         if (saveBtn) saveBtn.disabled = true;
 
-        API.get('/api/users/' + userUuidValue).then(res => {
+        UserAPI.getById(userUuidValue).then(res => {
             if (res && res.data) {
                 const user = res.data;
                 document.getElementById('userUuid').value = user.uuid || user.user_uuid || userUuidValue || '';
@@ -603,9 +603,9 @@
         try {
             let res;
             if (userId) {
-                res = await API.put('/api/users/' + userId, payload);
+                res = await UserAPI.update(userId, payload);
             } else {
-                res = await API.post('/api/users', payload);
+                res = await UserAPI.create(payload);
             }
 
             if (res) {
@@ -645,7 +645,7 @@
             `Delete "${name}"? This cannot be undone.`,
             async () => {
                 try {
-                    await API.delete('/api/users/' + userId);
+                    await UserAPI.delete(userId);
                     toast('User deleted successfully', 'success');
                     S.selectedUuids.delete(userId);
                     await loadUsers();
@@ -671,7 +671,7 @@
                 let success = 0;
                 for (const userId of userIds) {
                     try {
-                        await API.put('/api/users/' + userId, { is_active: status === 'active' ? 1 : 0 });
+                        await UserAPI.update(userId, { is_active: status === 'active' ? 1 : 0 });
                         success++;
                     } catch (err) {
                         console.error('Error updating user:', err);
@@ -697,7 +697,7 @@
                 let success = 0;
                 for (const userId of userIds) {
                     try {
-                        await API.delete('/api/users/' + userId);
+                        await UserAPI.delete(userId);
                         success++;
                     } catch (err) {
                         console.error('Error deleting user:', err);
@@ -958,7 +958,7 @@
         if (btn) btn.disabled = true;
 
         try {
-            const response = await API.post('/api/users/import', { rows: S.importRows });
+            const response = await UserAPI.import({ rows: S.importRows });
             const payload = (response && response.data && !Array.isArray(response.data)) ? response.data : (response || {});
             const created = Number(payload.created || 0);
             const errors = Array.isArray(payload.errors) ? payload.errors : [];

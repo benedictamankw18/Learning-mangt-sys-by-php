@@ -197,7 +197,7 @@
       const res = await API.get('/courses/' + courseId + '/sections');
       return asArray(res?.data || res);
     } catch (_) {
-      const fallback = await API.get('/api/courses/' + courseId + '/sections');
+      const fallback = await CourseContentAPI.getSections(courseId);
       return asArray(fallback?.data || fallback);
     }
   }

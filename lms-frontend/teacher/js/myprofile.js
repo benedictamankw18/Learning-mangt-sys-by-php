@@ -304,18 +304,11 @@
 
   async function uploadPhoto(file) {
     try {
-      const token = Auth.getToken();
       const formData = new FormData();
       formData.append('file', file);
       formData.append('category', 'profiles');
 
-      const res  = await fetch(`${API_BASE_URL}${API_ENDPOINTS.FILE_UPLOAD}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.message || 'Upload failed');
+      const json = await FileAPI.upload(formData);
 
       const url = (json.data || json).url;
       if (!url) throw new Error('No URL in upload response');

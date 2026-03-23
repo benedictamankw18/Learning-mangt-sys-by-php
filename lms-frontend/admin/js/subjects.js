@@ -54,30 +54,11 @@
     }
 
     function apiReq(method, url, body) {
-            if (typeof API !== 'undefined') {
-                if (method === 'GET') return API.get(url);
-                if (method === 'POST') return API.post(url, body || {});
-                if (method === 'PUT') return API.put(url, body || {});
-                if (method === 'DELETE') return API.delete(url);
-            }
-
-            const accessTokenKey = typeof STORAGE_KEYS !== 'undefined' ? STORAGE_KEYS.ACCESS_TOKEN : 'lms_access_token';
-            const token = typeof Auth !== 'undefined' && typeof Auth.getToken === 'function'
-                ? Auth.getToken()
-                : (localStorage.getItem(accessTokenKey) || sessionStorage.getItem(accessTokenKey) || '');
-
-            return fetch(API_BASE_URL + url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: 'Bearer ' + token } : {}),
-                },
-                body: body ? JSON.stringify(body) : undefined,
-            }).then(async r => {
-                const data = await r.json();
-                if (!r.ok) throw new Error(data?.message || 'Request failed');
-                return data;
-            });
+            if (method === 'GET') return API.get(url);
+            if (method === 'POST') return API.post(url, body || {});
+            if (method === 'PUT') return API.put(url, body || {});
+            if (method === 'DELETE') return API.delete(url);
+            throw new Error('Unsupported method: ' + method);
     }
 
     // ─── Event Listeners ──────────────────────────────────────────────────────
@@ -541,7 +522,7 @@
             if (Number.isNaN(payload.credits)) payload.credits = null;
 
             try {
-                const res = await API.post(API_ENDPOINTS.SUBJECTS, payload);
+                const res = await SubjectAPI.create(payload);
                 if (res && res.success) {
                     results.push({ name, status: 'success', reason: '' });
                 } else {
@@ -623,7 +604,7 @@
         if (S.isCore !== '') params.set('is_core', S.isCore);
         let subjects = [];
         try {
-            const res = await API.get(API_ENDPOINTS.SUBJECTS + '?' + params);
+            const res = await SubjectAPI.getAll(Object.fromEntries(params.entries()));
             if (!res || !res.success) { toast('PDF export failed', 'error'); return; }
             const d = res.data || res;
             subjects = d.data || (Array.isArray(d) ? d : []);

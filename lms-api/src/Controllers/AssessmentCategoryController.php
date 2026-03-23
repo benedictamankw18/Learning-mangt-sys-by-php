@@ -16,13 +16,24 @@ class AssessmentCategoryController
         $this->repo = new AssessmentCategoryRepository();
     }
 
+    private function resolveInstitutionId(array $user): int
+    {
+        return isset($user['institution_id']) ? (int) $user['institution_id'] : 0;
+    }
+
     public function index(array $user): void
     {
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 
-        $categories = $this->repo->getAll($page, $limit);
-        $total = $this->repo->count();
+        $institutionId = $this->resolveInstitutionId($user);
+        if ($institutionId <= 0) {
+            Response::forbidden('Institution scope is required');
+            return;
+        }
+
+        $categories = $this->repo->getAll($institutionId, $page, $limit);
+        $total = $this->repo->count($institutionId);
 
         Response::success([
             'data' => $categories,
@@ -37,7 +48,13 @@ class AssessmentCategoryController
 
     public function show(array $user, int $id): void
     {
-        $category = $this->repo->findById($id);
+        $institutionId = $this->resolveInstitutionId($user);
+        if ($institutionId <= 0) {
+            Response::forbidden('Institution scope is required');
+            return;
+        }
+
+        $category = $this->repo->findById($id, $institutionId);
 
         if (!$category) {
             Response::notFound('Assessment category not found');
@@ -71,7 +88,27 @@ class AssessmentCategoryController
             return;
         }
 
-        $categoryId = $this->repo->create($data);
+        if (isset($data['weight_percentage']) && (float) $data['weight_percentage'] < 1) {
+            Response::validationError([
+                'weight_percentage' => ['Weight percentage must be 1 or greater']
+            ]);
+            return;
+        }
+
+        if (isset($data['weight_percentage']) && (float) $data['weight_percentage'] > 100) {
+            Response::validationError([
+                'weight_percentage' => ['Weight percentage must be 100 or less']
+            ]);
+            return;
+        }
+
+        $institutionId = $this->resolveInstitutionId($user);
+        if ($institutionId <= 0) {
+            Response::forbidden('Institution scope is required');
+            return;
+        }
+
+        $categoryId = $this->repo->create($data, $institutionId);
 
         if ($categoryId) {
             Response::success([
@@ -92,7 +129,13 @@ class AssessmentCategoryController
             return;
         }
 
-        $category = $this->repo->findById($id);
+        $institutionId = $this->resolveInstitutionId($user);
+        if ($institutionId <= 0) {
+            Response::forbidden('Institution scope is required');
+            return;
+        }
+
+        $category = $this->repo->findById($id, $institutionId);
 
         if (!$category) {
             Response::notFound('Assessment category not found');
@@ -114,7 +157,21 @@ class AssessmentCategoryController
             return;
         }
 
-        if ($this->repo->update($id, $data)) {
+        if (isset($data['weight_percentage']) && (float) $data['weight_percentage'] < 1) {
+            Response::validationError([
+                'weight_percentage' => ['Weight percentage must be 1 or greater']
+            ]);
+            return;
+        }
+
+        if (isset($data['weight_percentage']) && (float) $data['weight_percentage'] > 100) {
+            Response::validationError([
+                'weight_percentage' => ['Weight percentage must be 100 or less']
+            ]);
+            return;
+        }
+
+        if ($this->repo->update($id, $data, $institutionId)) {
             Response::success(['message' => 'Assessment category updated successfully']);
         } else {
             Response::serverError('Failed to update assessment category');
@@ -129,14 +186,34 @@ class AssessmentCategoryController
             return;
         }
 
-        $category = $this->repo->findById($id);
+        $institutionId = $this->resolveInstitutionId($user);
+        if ($institutionId <= 0) {
+            Response::forbidden('Institution scope is required');
+            return;
+        }
+
+        $category = $this->repo->findById($id, $institutionId);
 
         if (!$category) {
             Response::notFound('Assessment category not found');
             return;
         }
 
-        if ($this->repo->delete($id)) {
+        if ($this->repo->countByInstitution($institutionId) <= 1) {
+            Response::validationError([
+                'category' => ['At least one assessment category must remain for the institution']
+            ]);
+            return;
+        }
+
+        if ($this->repo->hasLinkedAssessments($id, $institutionId)) {
+            Response::validationError([
+                'category' => ['Cannot delete category because it is used by one or more assessments']
+            ]);
+            return;
+        }
+
+        if ($this->repo->delete($id, $institutionId)) {
             Response::success(['message' => 'Assessment category deleted successfully']);
         } else {
             Response::serverError('Failed to delete assessment category');

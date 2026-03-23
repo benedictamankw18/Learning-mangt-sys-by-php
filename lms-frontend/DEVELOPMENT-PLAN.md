@@ -761,26 +761,44 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 1-2: Teacher Assignments**
 
-- [ ] **Enhance** `teacher/assignments.html`
-  - Assignment list (all classes/subjects)
-  - Create assignment form:
-    - Title and description
-    - Select class and subject
-    - Due date and time
-    - Upload instructions/attachments
-    - Total points/marks
-    - Submission type (file upload, text, both)
-  - Edit assignment
-  - View submissions list
-  - Download all submissions (ZIP)
-  - Grade submissions interface
-  - Provide feedback
-  - Publish grades
-  - Assignment analytics (submission rate)
+- [x] **Enhance** `teacher/assignments.html`
+  - [x] Assignment list (all classes/subjects)
+  - [x] Create assignment form:
+    - [x] Title and description
+    - [x] Select class and subject
+    - [x] Due date and time
+    - [x] Upload instructions/attachments
+    - [x] Total points/marks
+    - [x] Submission type (file upload, text, both)
+  - [x] Edit / delete assignment
+  - [x] View assignment details
+- [x] **Created** `teacher/js/assignments.js`
+  - [x] Full CRUD operations (Create, Read, Update, Delete)
+  - [x] Load teacher's class/subject list from API
+  - [x] Display assignments with filtering and search
+  - [x] Form validation and error handling
+  - [x] Statistics dashboard (total, active, draft, pending)
+  - [x] API integration with proper authentication
+- [x] **Create** `teacher/submissions.html`
+  - [x] View submissions list
+  - [x] Download all submissions (ZIP)
+  - [x] Grade submissions interface
+  - [x] Provide feedback
+  - [x] Publish grades
+  - [x] Assignment analytics (submission rate)
+  - [x] Late submission indicators
+  - [x] View individual submission details
+- [x] **Created** `teacher/js/submissions.js`
+  - [x] Grade submission API integration
+  - [x] Publish grades functionality
+  - [x] Download submissions (bulk and individual)
+  - [x] Submission analytics and statistics
+  - [x] Feedback management
+  - [x] Late submission detection
 
 **Day 2-3: Student Assignments**
 
-- [ ] **Create** `student/assignments.html`
+- [x] **Create** `student/assignments.html`
   - Assignment list by status:
     - Pending (not submitted)
     - Submitted (awaiting grade)
@@ -795,7 +813,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 3-4: Assessment Management**
 
-- [ ] **Create** `admin/assessments.html`
+- [x] **Create** `admin/assessments.html` _(implemented as `admin/page/assessments.html` + `admin/js/assessments.js`)_
   - ⚠️ Admin cannot create or give assignments — only teachers can
   - Assessment categories management (configure, not assign)
     - Class Test (CA)

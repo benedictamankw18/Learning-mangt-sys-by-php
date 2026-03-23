@@ -188,7 +188,7 @@
     if (!classUuid) {
       throw new Error('Class UUID not found');
     }
-    const res = await API.get(`/api/classes/${classUuid}/students`, { page: 1, limit: 200 });
+    const res = await ClassAPI.getStudents(classUuid, { page: 1, limit: 200 });
     return res?.data?.data || res?.data || [];
   }
 
@@ -240,7 +240,7 @@
 
   async function fetchCourseAttendance(courseId, dateStr) {
     try {
-      const res = await API.get(`/api/courses/${courseId}/attendance`, { date: dateStr });
+      const res = await AttendanceAPI.getByCourse(courseId, { date: dateStr });
       const rows = res?.data || [];
       const map = new Map();
       rows.forEach(a => map.set(String(a.student_id), a.status || 'present'));
@@ -363,7 +363,7 @@
           saveBtn.disabled = true;
           saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
         }
-        await API.post('/api/attendance/bulk', {
+        await AttendanceAPI.bulkCreate({
           course_id: Number(courseEl.value),
           attendance_date: dateEl.value || today,
           students,

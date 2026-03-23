@@ -110,7 +110,7 @@
 
                 let records = [];
                 try {
-                    const attendanceRes = await API.get('/api/courses/' + course.course_id + '/attendance', { date: selectedDate });
+                    const attendanceRes = await AttendanceAPI.getByCourse(course.course_id, { date: selectedDate });
                     records = toArray(attendanceRes);
                 } catch (error) {
                     records = [];
@@ -610,7 +610,7 @@
             params.course_ids = courseIdsParam;
         }
 
-        const res = await API.get('/api/attendance/summary', params);
+        const res = await AttendanceAPI.getSummary(params);
         return (res && res.data) ? res.data : (res || {});
     }
 
@@ -701,7 +701,7 @@
             const day = days[i];
             const dayRates = await Promise.all(courseIds.map(async function (courseId) {
                 try {
-                    const res = await API.get('/api/courses/' + courseId + '/attendance', { date: day });
+                    const res = await AttendanceAPI.getByCourse(courseId, { date: day });
                     const records = toArray(res);
                     if (!records.length) return null;
                     const present = records.filter(function (r) { return String(r.status || '').toLowerCase() === 'present'; }).length;
@@ -975,7 +975,7 @@
                 let parentLinks = [];
 
                 try {
-                    const parentRes = await API.get('/api/students/' + entry.student_id + '/parents');
+                    const parentRes = await StudentRelationAPI.getParents(entry.student_id);
                     parentLinks = toArray(parentRes);
                 } catch (error) {
                     failed += 1;

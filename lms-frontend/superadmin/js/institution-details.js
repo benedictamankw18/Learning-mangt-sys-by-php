@@ -73,7 +73,7 @@
             : Promise.resolve(null);
         const usersPromise = InstitutionAPI.getUsers(selection.uuid, { page: 1, limit: 200 }).catch(function () { return null; });
         const paymentsPromise = selection.institutionId
-            ? API.get('/api/subscriptions', { institution_id: selection.institutionId, limit: 8 }).catch(function () { return null; })
+            ? SubscriptionAPI.getByInstitution(selection.institutionId, { limit: 8 }).catch(function () { return null; })
             : Promise.resolve(null);
         const activityPromise = SuperadminActivityAPI.getRecent({ limit: 40 }).catch(function () { return null; });
 

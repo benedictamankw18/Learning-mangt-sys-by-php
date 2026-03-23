@@ -1,0 +1,820 @@
+<style>
+  /* ── Root & Globals ────────────────────────────────────── */
+  :root {
+    --primary: #6366f1;
+    --primary-light: #ede9fe;
+    --white: #fff;
+    --bg: #f8fafc;
+    --line: #e2e8f0;
+    --text: #0f172a;
+    --gray-500: #64748b;
+    --gray-600: #475569;
+    --gray-900: #0f172a;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.07);
+    --border-radius: 8px;
+    --border-radius-lg: 12px;
+    --ok-bg: #dcfce7;
+    --ok-text: #16a34a;
+    --warn-bg: #fef3c7;
+    --warn-text: #92400e;
+    --danger-bg: #fee2e2;
+    --danger-text: #991b1b;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ── Layout ────────────────────────────────────────────── */
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* ── Header ────────────────────────────────────────────── */
+  .ad-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .ad-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    margin-top: 0.25rem;
+  }
+  .ad-back-btn:hover {
+    background: var(--primary-light);
+    color: #fff;
+  }
+
+  .ad-icon-lg {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+
+  .ad-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .ad-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 0.5rem 0;
+    word-break: break-word;
+  }
+
+  .ad-meta {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+  .ad-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .ad-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .ad-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    gap: 0.3rem;
+  }
+  .ad-badge-Active {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+  }
+  .ad-badge-Draft {
+    background: #f3f4f6;
+    color: #4b5568;
+  }
+  .ad-badge-Archived {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  .ad-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* ── Error Banner ──────────────────────────────────────── */
+  .ad-error-banner {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    border: 1px solid #fecaca;
+    display: none;
+  }
+  .ad-error-banner.show {
+    display: block;
+  }
+
+  /* ── Tabs ──────────────────────────────────────────────── */
+  .ad-tabs {
+    display: flex;
+    gap: 0.25rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+    flex-wrap: wrap;
+    background: var(--white);
+    padding: 0.5rem 0;
+  }
+
+  .ad-tab-btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition:
+      color 0.15s,
+      border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .ad-tab-btn:hover {
+    color: var(--primary);
+  }
+  .ad-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+  }
+
+  .ad-tab-panel {
+    display: none;
+  }
+  .ad-tab-panel.active {
+    display: block;
+  }
+
+  /* ── Cards ────────────────────────────────────────────── */
+  .ad-card {
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--line);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+  }
+
+  .ad-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .ad-card-body {
+    padding: 1.25rem;
+  }
+
+  /* ── Fields Grid ───────────────────────────────────────── */
+  .ad-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .ad-meta-item {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px;
+    background: var(--white);
+  }
+
+  .ad-meta-item .label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .ad-meta-item .value {
+    font-size: 0.875rem;
+    color: var(--gray-900);
+    margin: 0;
+    word-break: break-word;
+  }
+
+  /* ── Chip ──────────────────────────────────────────────── */
+  .ad-chip {
+    display: inline-flex;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+  }
+  .ad-chip.active {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+  }
+  .ad-chip.draft {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
+  .ad-chip.archived {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+
+  /* ── Text Block ────────────────────────────────────────── */
+  .ad-text-block {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    white-space: pre-wrap;
+    line-height: 1.45;
+    font-size: 0.875rem;
+    background: #f8fafc;
+  }
+
+  .ad-section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  /* ── Table ────────────────────────────────────────────── */
+  .ad-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .ad-data-table thead th {
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--line);
+  }
+  .ad-data-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .ad-data-table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .ad-data-table tbody td {
+    padding: 0.75rem 1rem;
+  }
+
+  /* ── Loading / Empty States ────────────────────────────── */
+  .ad-spinner-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+  }
+
+  .ad-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e5e7eb;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: ad-spin 0.8s linear infinite;
+  }
+
+  @keyframes ad-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .ad-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--gray-500);
+    font-size: 0.875rem;
+  }
+
+  /* ── Buttons ───────────────────────────────────────────── */
+  .ad-btn {
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--text);
+    border-radius: var(--border-radius);
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition:
+      background 0.2s,
+      border-color 0.2s;
+  }
+  .ad-btn:hover {
+    background: #f1f5f9;
+    border-color: var(--line);
+  }
+
+  .ad-btn-icon {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--border-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+  }
+  .ad-btn-icon:hover {
+    background: var(--primary-light);
+  }
+
+  /* ── Link ──────────────────────────────────────────────– */
+  .ad-link {
+    color: var(--primary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .ad-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .ad-meta-grid {
+      grid-template-columns: 1fr;
+    }
+    .ad-header {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <!-- ─── Header ──────────────────────────────────────────────── -->
+  <div class="ad-header">
+    <button class="ad-back-btn" id="adBackBtn">
+      <i class="fas fa-arrow-left"></i> Back to Assignments
+    </button>
+
+    <div class="ad-icon-lg" id="adIconLg">
+      <i class="fas fa-file-lines"></i>
+    </div>
+
+    <div class="ad-info">
+      <div class="ad-title" id="adTitle">Loading…</div>
+      <div class="ad-meta" id="adMeta"></div>
+      <div class="ad-badges" id="adBadges"></div>
+    </div>
+
+    <div class="ad-header-actions">
+      <button id="adRefreshBtn" class="ad-btn-icon" title="Refresh">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Banner -->
+  <div class="ad-error-banner" id="adErrorBanner"></div>
+
+  <!-- ─── Tabs ────────────────────────────────────────────────── -->
+  <div class="ad-tabs">
+    <button class="ad-tab-btn active" data-tab="overview">
+      <i class="fas fa-eye"></i> Overview
+    </button>
+    <button class="ad-tab-btn" data-tab="submissions">
+      <i class="fas fa-list-check"></i> Submissions
+    </button>
+    <button class="ad-tab-btn" data-tab="rubric">
+      <i class="fas fa-star"></i> Rubric
+    </button>
+  </div>
+
+  <!-- ─── Overview Tab ──────────────────────────────────────────– -->
+  <div class="ad-tab-panel active" id="adTab-overview">
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <i class="fas fa-info-circle"></i> Assignment Details
+      </div>
+      <div class="ad-card-body" id="adOverviewBody">
+        <div class="ad-spinner-wrap"><div class="ad-spinner"></div></div>
+      </div>
+    </div>
+
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <i class="fas fa-file-pdf"></i> Instructions
+      </div>
+      <div class="ad-card-body" id="adInstructionsBody"></div>
+    </div>
+  </div>
+
+  <!-- ─── Submissions Tab ────────────────────────────────────────– -->
+  <div class="ad-tab-panel" id="adTab-submissions">
+    <div class="ad-card">
+      <div class="ad-card-header">
+        <i class="fas fa-user-check"></i> Student Submissions
+      </div>
+      <div class="ad-card-body" id="adSubmissionsBody">
+        <div class="ad-spinner-wrap"><div class="ad-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Rubric Tab ─────────────────────────────────────────────– -->
+  <div class="ad-tab-panel" id="adTab-rubric">
+    <div class="ad-card">
+      <div class="ad-card-body" id="adRubricBody">
+        <div class="ad-spinner-wrap"><div class="ad-spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ========================================
+     Assignment Detail Page Logic
+     Initialised on page load
+  ======================================== */
+  (function () {
+    "use strict";
+
+    let currentAssignment = null;
+
+    // ─── Init ────────────────────────────────────────────────────────────
+    function initDetailsPage() {
+      setupTabs();
+      setupBackButton();
+      setupRefreshButton();
+
+      const uuid = getAssignmentUuid();
+      if (!uuid) {
+        showError(
+          "No assignment selected. Please go back and select an assignment.",
+        );
+        return;
+      }
+      loadAssignment(uuid);
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────
+    function getAssignmentUuid() {
+      const qs = new URLSearchParams(window.location.hash.split("?")[1] || "");
+      return qs.get("id") || null;
+    }
+
+    function escHtml(s) {
+      return String(s || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function fmtDate(d) {
+      if (!d) return "—";
+      try {
+        return new Date(d).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch (_) {
+        return d;
+      }
+    }
+
+    function canonicalStatus(status) {
+      const s = String(status || "")
+        .trim()
+        .toLowerCase();
+      if (s.includes("active")) return "Active";
+      if (s.includes("archiv")) return "Archived";
+      return "Draft";
+    }
+
+    function fileHref(path) {
+      if (!path) return "";
+      const v = String(path).trim();
+      if (!v) return "";
+      if (/^https?:\/\//i.test(v)) return v;
+      if (v.startsWith("/uploads/")) return v;
+      return "/uploads/" + v.replace(/^\/+/, "");
+    }
+
+    // ─── Back Button ──────────────────────────────────────────────────────
+    function setupBackButton() {
+      const btn = document.getElementById("adBackBtn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          window.location.hash = "#assignments";
+        });
+      }
+    }
+
+    // ─── Refresh Button ───────────────────────────────────────────────────
+    function setupRefreshButton() {
+      const btn = document.getElementById("adRefreshBtn");
+      if (btn) {
+        btn.addEventListener("click", () => {
+          const uuid = getAssignmentUuid();
+          if (uuid) loadAssignment(uuid);
+        });
+      }
+    }
+
+    // ─── Tabs ────────────────────────────────────────────────────────────
+    function setupTabs() {
+      document.querySelectorAll(".ad-tab-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const tab = btn.getAttribute("data-tab");
+          activateTab(tab);
+        });
+      });
+    }
+
+    function activateTab(tabName) {
+      // Hide all panels
+      document.querySelectorAll(".ad-tab-panel").forEach((panel) => {
+        panel.classList.remove("active");
+      });
+      // Deactivate all buttons
+      document.querySelectorAll(".ad-tab-btn").forEach((btn) => {
+        btn.classList.remove("active");
+      });
+      // Activate selected
+      const panel = document.getElementById("adTab-" + tabName);
+      if (panel) panel.classList.add("active");
+      const btn = document.querySelector('[data-tab="' + tabName + '"]');
+      if (btn) btn.classList.add("active");
+    }
+
+    // ─── Load Assignment ──────────────────────────────────────────────────
+    async function loadAssignment(uuid) {
+      try {
+        if (!Auth || !Auth.isAuthenticated || !Auth.isAuthenticated()) {
+          window.location.href = "/auth/login.html";
+          return;
+        }
+
+        const res = await AssignmentAPI.getById(uuid);
+        const a = res?.data || res || {};
+        currentAssignment = a;
+
+        renderHeader(a);
+        renderOverviewTab(a);
+        renderInstructionsCard(a);
+        await loadSubmissions(uuid);
+        renderRubricTab(a);
+      } catch (err) {
+        console.error("Load assignment detail error:", err);
+        showError("Failed to load assignment details.");
+      }
+    }
+
+    // ─── Render Header ───────────────────────────────────────────────────
+    function renderHeader(a) {
+      const titleEl = document.getElementById("adTitle");
+      if (titleEl) titleEl.textContent = a.title || "—";
+
+      const metaEl = document.getElementById("adMeta");
+      if (metaEl) {
+        metaEl.innerHTML = [
+          a.section_name
+            ? `<span><i class="fas fa-book"></i> ${escHtml(a.section_name)}</span>`
+            : "",
+          a.due_date
+            ? `<span><i class="fas fa-calendar"></i> ${escHtml(fmtDate(a.due_date))}</span>`
+            : "",
+          a.max_score
+            ? `<span><i class="fas fa-star"></i> ${escHtml(a.max_score)} marks</span>`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("");
+      }
+
+      const badgesEl = document.getElementById("adBadges");
+      if (badgesEl) {
+        const status = canonicalStatus(a.status);
+        badgesEl.innerHTML = `<span class="ad-badge ad-badge-${status}"><i class="fas fa-circle" style="font-size:.5rem"></i> ${escHtml(status)}</span>`;
+      }
+    }
+
+    // ─── Render Overview Tab ──────────────────────────────────────────────
+    function renderOverviewTab(a) {
+      const body = document.getElementById("adOverviewBody");
+      if (!body) return;
+
+      body.innerHTML =
+        '<div class="ad-meta-grid">' +
+        '<div class="ad-meta-item"><div class="label">Status</div><div class="value"><span class="ad-chip ad-chip-' +
+        canonicalStatus(a.status.toUpperCase()) +
+        '">' +
+        escHtml(canonicalStatus(a.status.toUpperCase())) +
+        "</span></div></div>" +
+        '<div class="ad-meta-item"><div class="label">Due Date</div><div class="value">' +
+        escHtml(fmtDate(a.due_date)) +
+        "</div></div>" +
+        '<div class="ad-meta-item"><div class="label">Total Marks</div><div class="value">' +
+        escHtml(a.max_score || "—") +
+        "</div></div>" +
+        '<div class="ad-meta-item"><div class="label">Passing Mark</div><div class="value">' +
+        escHtml(a.passing_score || "—") +
+        "</div></div>" +
+        '<div class="ad-meta-item"><div class="label">Submission Type</div><div class="value">' +
+        escHtml(a.submission_type.toUpperCase() || "—") +
+        "</div></div>" +
+        '<div class="ad-meta-item"><div class="label">Section</div><div class="value">' +
+        escHtml(a.section_name || "—") +
+        "</div></div>" +
+        "</div>";
+    }
+
+    // ─── Render Instructions Card ────────────────────────────────────────
+    function renderInstructionsCard(a) {
+      const body = document.getElementById("adInstructionsBody");
+      if (!body) return;
+
+      const href = fileHref(a.file_path);
+      const fileBlock = href
+        ? '<a class="ad-btn" href="' +
+          escHtml(href) +
+          '" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Open Instructions File</a>'
+        : '<p class="ad-empty">No instruction file uploaded.</p>';
+
+      body.innerHTML =
+        '<div class="ad-section-title">Instructions Text</div>' +
+        '<div class="ad-text-block">' +
+        escHtml(a.description || "No instructions text provided.") +
+        "</div>" +
+        '<div style="margin-top:16px"></div>' +
+        '<div class="ad-section-title">Instructions File</div>' +
+        '<div style="margin-top:8px">' +
+        fileBlock +
+        "</div>";
+    }
+
+    // ─── Render Rubric Tab ────────────────────────────────────────────────
+    function renderRubricTab(a) {
+      const body = document.getElementById("adRubricBody");
+      if (!body) return;
+
+      body.innerHTML =
+        '<div class="ad-section-title">Grading Rubric</div>' +
+        '<div class="ad-text-block">' +
+        escHtml(a.rubric || "No rubric provided.") +
+        "</div>";
+    }
+
+    // ─── Load Submissions ─────────────────────────────────────────────────
+    async function loadSubmissions(uuid) {
+      const body = document.getElementById("adSubmissionsBody");
+      if (!body) return;
+
+      try {
+        const res = await AssignmentAPI.getSubmissions(uuid);
+        const submissions = Array.isArray(res?.submissions)
+          ? res.submissions
+          : Array.isArray(res?.data?.submissions)
+            ? res.data.submissions
+            : Array.isArray(res?.data)
+              ? res.data
+              : [];
+
+        if (!submissions.length) {
+          body.innerHTML = '<p class="ad-empty">No submissions yet.</p>';
+          return;
+        }
+
+        body.innerHTML =
+          '<table class="ad-data-table">' +
+          "<thead><tr>" +
+          "<th>Student Name</th>" +
+          "<th>Status</th>" +
+          "<th>Score</th>" +
+          "<th>Submitted At</th>" +
+          "<th>Graded At</th>" +
+          "</tr></thead>" +
+          "<tbody>" +
+          submissions
+            .map(function (s) {
+              const student =
+                s.student_name ||
+                [s.first_name, s.last_name].filter(Boolean).join(" ") ||
+                "—";
+              return (
+                "<tr>" +
+                "<td>" +
+                escHtml(student) +
+                "</td>" +
+                "<td>" +
+                escHtml(s.status || "—") +
+                "</td>" +
+                "<td>" +
+                escHtml(s.score ?? "—") +
+                "</td>" +
+                "<td>" +
+                escHtml(fmtDate(s.submitted_at || s.created_at)) +
+                "</td>" +
+                "<td>" +
+                escHtml(fmtDate(s.graded_at)) +
+                "</td>" +
+                "</tr>"
+              );
+            })
+            .join("") +
+          "</tbody>" +
+          "</table>";
+      } catch (err) {
+        console.error("Load submissions error:", err);
+        body.innerHTML = '<p class="ad-empty">Failed to load submissions.</p>';
+      }
+    }
+
+    // ─── Error State ──────────────────────────────────────────────────────
+    function showError(msg) {
+      const banner = document.getElementById("adErrorBanner");
+      if (banner) {
+        banner.textContent = msg;
+        banner.classList.add("show");
+      }
+      const titleEl = document.getElementById("adTitle");
+      if (titleEl) titleEl.textContent = "Error";
+    }
+
+    // ─── Start ────────────────────────────────────────────────────────────
+    document.addEventListener("page:loaded", function (e) {
+      if (e.detail && e.detail.page === "assignment-detail") {
+        initDetailsPage();
+      }
+    });
+  })();
+</script>

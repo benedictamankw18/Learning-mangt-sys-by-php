@@ -52,7 +52,10 @@ function setupEventListeners() {
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            handleNavigation(item);
+            const page = item.dataset.page;
+            if (page) {
+                window.location.hash = `#${page}`;
+            }
         });
     });
 

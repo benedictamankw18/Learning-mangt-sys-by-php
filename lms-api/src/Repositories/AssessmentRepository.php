@@ -19,17 +19,18 @@ class AssessmentRepository
         try {
             $stmt = $this->db->prepare("
                 INSERT INTO assessments (
-                    course_id, category_id, title, description, assessment_type,
+                    course_id, academic_year_id, category_id, title, description, assessment_type,
                     max_score, due_date, duration_minutes, passing_score, is_published, weight_percentage
                 )
                 VALUES (
-                    :course_id, :category_id, :title, :description, :type,
+                    :course_id, :academic_year_id, :category_id, :title, :description, :type,
                     :max_score, :due_date, :duration, :passing_score, :is_published, :weight_percentage
                 )
             ");
 
             $stmt->execute([
                 'course_id' => $data['course_id'],
+                'academic_year_id' => $data['academic_year_id'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,

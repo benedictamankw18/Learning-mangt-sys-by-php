@@ -722,3 +722,5 @@ window.StorageUtils = StorageUtils;
 window.showAlert = UIUtils.showAlert.bind(UIUtils);
 window.formatDate = DateUtils.formatDate.bind(DateUtils);
 window.formatNumber = NumberUtils.formatNumber.bind(NumberUtils);
+
+

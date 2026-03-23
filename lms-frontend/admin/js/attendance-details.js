@@ -79,7 +79,7 @@
         setTableMessage('Loading attendance details...');
 
         try {
-            const attendanceRes = await API.get('/api/courses/' + S.context.course_id + '/attendance', {
+              const attendanceRes = await AttendanceAPI.getByCourse(S.context.course_id, {
                 date: S.context.selected_date || new Date().toISOString().slice(0, 10),
             });
 
@@ -112,7 +112,7 @@
         // even when no attendance has been marked yet (view mode).
         let students = [];
         try {
-            const studentRes = await API.get('/api/courses/' + S.context.course_id + '/students');
+                const studentRes = await StudentRelationAPI.getCourseStudents(S.context.course_id);
             students = toArray(studentRes);
         } catch (e) {
             students = [];
@@ -122,7 +122,7 @@
         // course_enrollments yet; use class roster as fallback.
         if (!students.length && S.context && S.context.class_uuid) {
             try {
-                const classRes = await API.get('/api/classes/' + S.context.class_uuid + '/students');
+                    const classRes = await StudentRelationAPI.getClassStudents(S.context.class_uuid);
                 students = toArray(classRes);
             } catch (e) {
                 students = [];
@@ -340,10 +340,10 @@
                 };
 
                 if (row.attendance_id > 0) {
-                    return API.put('/api/attendance/' + row.attendance_id, payload);
+                        return AttendanceAPI.updateById(row.attendance_id, payload);
                 }
 
-                return API.post('/api/attendance', {
+                    return AttendanceAPI.create({
                     student_id: row.student_id,
                     course_id: S.context.course_id,
                     attendance_date: date,

@@ -74,10 +74,15 @@ class AssignmentRepository
                 a.*,
                 c.institution_id,
                 c.teacher_id,
-                cs.section_name
+                cs.section_name,
+                i.institution_name,
+                i.institution_code,
+                ins.logo_url
             FROM assignments a
             INNER JOIN class_subjects c ON a.course_id = c.course_id
             LEFT JOIN course_sections cs ON a.section_id = cs.course_sections_id
+            LEFT JOIN institutions i ON c.institution_id = i.institution_id
+            LEFT JOIN institution_settings ins ON c.institution_id = ins.institution_id
             WHERE a.uuid = :uuid
         ");
 
@@ -204,13 +209,15 @@ class AssignmentRepository
         $stmt = $this->db->prepare("
             SELECT 
                 asub.*,
-                s.first_name,
-                s.last_name,
-                s.student_number,
-                CONCAT(u.first_name, ' ', u.last_name) as grader_name
+                su.first_name AS first_name,
+                su.last_name AS last_name,
+                s.student_id_number,
+                CONCAT(COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, '')) AS student_name,
+                CONCAT(COALESCE(gu.first_name, ''), ' ', COALESCE(gu.last_name, '')) AS grader_name
             FROM assignment_submissions asub
             INNER JOIN students s ON asub.student_id = s.student_id
-            LEFT JOIN users u ON asub.graded_by = u.user_id
+            LEFT JOIN users su ON s.user_id = su.user_id
+            LEFT JOIN users gu ON asub.graded_by = gu.user_id
             WHERE asub.assignment_id = :assignment_id
             ORDER BY asub.submitted_at DESC, asub.created_at DESC
         ");
@@ -230,12 +237,15 @@ class AssignmentRepository
                 a.course_id,
                 c.institution_id,
                 c.teacher_id,
-                s.student_number,
-                CONCAT(s.first_name, ' ', s.last_name) as student_name
+                s.student_id_number,
+                CONCAT(COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, '')) AS student_name,
+                CONCAT(COALESCE(gu.first_name, ''), ' ', COALESCE(gu.last_name, '')) AS grader_name
             FROM assignment_submissions asub
             INNER JOIN assignments a ON asub.assignment_id = a.assignment_id
             INNER JOIN class_subjects c ON a.course_id = c.course_id
             INNER JOIN students s ON asub.student_id = s.student_id
+            LEFT JOIN users su ON s.user_id = su.user_id
+            LEFT JOIN users gu ON asub.graded_by = gu.user_id 
             WHERE asub.submission_id = :id
         ");
 
@@ -292,7 +302,6 @@ class AssignmentRepository
                 feedback = :feedback,
                 graded_by = :graded_by,
                 graded_at = NOW(),
-                status = 'graded',
                 updated_at = NOW()
             WHERE submission_id = :id
         ");
@@ -303,6 +312,23 @@ class AssignmentRepository
             'feedback' => $data['feedback'] ?? null,
             'graded_by' => $data['graded_by']
         ]);
+    }
+    
+    /**
+     * Publish grades for all graded submissions in an assignment.
+     */
+    public function publishGradesForAssignment(int $assignmentId): int
+    {
+        $stmt = $this->db->prepare("
+            UPDATE assignment_submissions
+            SET status = 'graded',
+                updated_at = NOW()
+            WHERE assignment_id = :assignment_id
+              AND score IS NOT NULL
+        ");
+
+        $stmt->execute(['assignment_id' => $assignmentId]);
+        return (int) $stmt->rowCount();
     }
 
     /**
@@ -325,6 +351,121 @@ class AssignmentRepository
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
+    }
+
+    public function getAssignmentsForStudent(int $studentId, array $filters = []): array
+    {
+        try {
+            $sql = "
+                SELECT
+                    a.assignment_id,
+                    a.uuid,
+                    a.course_id,
+                    a.section_id,
+                    a.title,
+                    a.description,
+                    a.file_path,
+                    a.max_score,
+                    a.passing_score,
+                    a.rubric,
+                    a.submission_type,
+                    a.due_date,
+                    a.status AS assignment_status,
+                    a.created_at,
+                    a.updated_at,
+                    s.subject_id,
+                    s.subject_name,
+                    s.subject_code,
+                    cs.class_id,
+                    c.class_name,
+                    cs.teacher_id,
+                    CONCAT(COALESCE(tu.first_name, ''), ' ', COALESCE(tu.last_name, '')) AS teacher_name,
+                    asub.submission_id,
+                    asub.submission_text,
+                    asub.submission_file,
+                    asub.score,
+                    asub.feedback,
+                    asub.status AS submission_status,
+                    asub.submitted_at,
+                    asub.graded_at,
+                    CASE
+                        WHEN asub.submission_id IS NULL THEN 'pending'
+                        WHEN asub.status = 'graded' THEN 'graded'
+                        ELSE 'submitted'
+                    END AS student_status,
+                    CASE
+                        WHEN asub.submitted_at IS NOT NULL
+                             AND a.due_date IS NOT NULL
+                             AND asub.submitted_at > a.due_date
+                        THEN 1
+                        ELSE 0
+                    END AS is_late
+                FROM assignments a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                LEFT JOIN classes c ON cs.class_id = c.class_id
+                INNER JOIN students st ON cs.class_id = st.class_id
+                INNER JOIN subjects s ON cs.subject_id = s.subject_id
+                LEFT JOIN teachers t ON cs.teacher_id = t.teacher_id
+                LEFT JOIN users tu ON t.user_id = tu.user_id
+                LEFT JOIN assignment_submissions asub
+                    ON asub.assignment_id = a.assignment_id
+                   AND asub.student_id = st.student_id
+                   AND asub.submission_id = (
+                        SELECT MAX(s2.submission_id)
+                        FROM assignment_submissions s2
+                        WHERE s2.assignment_id = a.assignment_id
+                          AND s2.student_id = st.student_id
+                   )
+                WHERE st.student_id = :student_id 
+                AND cs.status = 'active'
+                  AND a.status = 'active'
+            ";
+
+            $params = ['student_id' => $studentId];
+
+            $status = strtolower(trim((string) ($filters['status'] ?? '')));
+            if (in_array($status, ['pending', 'submitted', 'graded'], true)) {
+                if ($status === 'pending') {
+                    $sql .= " AND asub.submission_id IS NULL";
+                } elseif ($status === 'submitted') {
+                    $sql .= " AND asub.submission_id IS NOT NULL AND asub.status = 'submitted'";
+                } elseif ($status === 'graded') {
+                    $sql .= " AND asub.status = 'graded'";
+                }
+            }
+
+            $subjectId = isset($filters['subject_id']) ? (int) $filters['subject_id'] : 0;
+            if ($subjectId > 0) {
+                $sql .= " AND s.subject_id = :subject_id";
+                $params['subject_id'] = $subjectId;
+            }
+
+            $search = trim((string) ($filters['search'] ?? ''));
+            if ($search !== '') {
+                $sql .= "
+                    AND (
+                        a.title LIKE :search_title
+                        OR a.description LIKE :search_description
+                        OR s.subject_name LIKE :search_subject_name
+                        OR s.subject_code LIKE :search_subject_code
+                    )
+                ";
+                $searchLike = "%{$search}%";
+                $params['search_title'] = $searchLike;
+                $params['search_description'] = $searchLike;
+                $params['search_subject_name'] = $searchLike;
+                $params['search_subject_code'] = $searchLike;
+            }
+
+            $sql .= " ORDER BY a.due_date ASC, a.created_at DESC";
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Get Assignments For Student Error: " . $e->getMessage());
+            return [];
+        }
     }
 
     /**

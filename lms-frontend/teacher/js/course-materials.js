@@ -46,6 +46,60 @@
     if (typeof showToast === 'function') showToast(message, type || 'info');
   }
 
+  function confirmPopup(message, title) {
+    return new Promise(function (resolve) {
+      const existing = document.getElementById('_cmConfirmOverlay');
+      if (existing) existing.remove();
+
+      const overlay = document.createElement('div');
+      overlay.id = '_cmConfirmOverlay';
+      overlay.style.cssText = [
+        'position:fixed',
+        'inset:0',
+        'background:rgba(2,6,23,0.55)',
+        'display:flex',
+        'align-items:center',
+        'justify-content:center',
+        'padding:1rem',
+        'z-index:2600',
+      ].join(';');
+
+      overlay.innerHTML = ''
+        + '<div role="dialog" aria-modal="true" style="width:min(420px,100%);background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(2,6,23,0.28);overflow:hidden;">'
+        + '  <div style="padding:0.9rem 1rem;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;gap:0.6rem;">'
+        + '    <h3 style="margin:0;font-size:1rem;color:#0f172a;">' + esc(title || 'Confirm Action') + '</h3>'
+        + '    <button type="button" data-role="close" style="border:none;background:#f1f5f9;color:#475569;border-radius:8px;width:30px;height:30px;cursor:pointer;">&times;</button>'
+        + '  </div>'
+        + '  <div style="padding:1rem;color:#334155;font-size:0.9rem;line-height:1.5;">' + esc(message || 'Are you sure?') + '</div>'
+        + '  <div style="padding:0.9rem 1rem;border-top:1px solid #e2e8f0;background:#f8fafc;display:flex;justify-content:flex-end;gap:0.5rem;">'
+        + '    <button type="button" data-role="cancel" class="btn btn-outline btn-sm">Cancel</button>'
+        + '    <button type="button" data-role="confirm" class="btn btn-primary btn-sm">Confirm</button>'
+        + '  </div>'
+        + '</div>';
+
+      function finish(result) {
+        overlay.remove();
+        resolve(Boolean(result));
+      }
+
+      overlay.addEventListener('click', function (event) {
+        if (event.target === overlay) finish(false);
+      });
+
+      overlay.querySelector('[data-role="close"]').addEventListener('click', function () {
+        finish(false);
+      });
+      overlay.querySelector('[data-role="cancel"]').addEventListener('click', function () {
+        finish(false);
+      });
+      overlay.querySelector('[data-role="confirm"]').addEventListener('click', function () {
+        finish(true);
+      });
+
+      document.body.appendChild(overlay);
+    });
+  }
+
   function el(id) {
     return document.getElementById(id);
   }
@@ -227,7 +281,7 @@
     if (!id) return [];
     if (S.sectionsByCourse.has(id)) return S.sectionsByCourse.get(id);
 
-    const response = await API.get('/api/courses/' + id + '/sections');
+    const response = await CourseContentAPI.getSections(id);
     const rows = asArray(response?.data || response);
 
     const sections = rows
@@ -258,7 +312,7 @@
     });
     if (firstActive) return firstActive;
 
-    await API.post('/api/courses/' + id + '/sections', {
+    await CourseContentAPI.createSection(id, {
       section_name: 'General',
       description: 'General topic section',
       order_index: 0,
@@ -272,7 +326,7 @@
 
   async function loadMaterials() {
     const tasks = S.courses.map(async function (course) {
-      const res = await API.get('/api/courses/' + course.course_id + '/materials');
+      const res = await CourseContentAPI.getMaterials(course.course_id);
       const rows = asArray(res?.data || res);
 
       return rows.map(function (row) {
@@ -632,7 +686,7 @@
 
     await Promise.all(targets.map(async function (course) {
       try {
-        const res = await API.get('/api/courses/' + course.course_id + '/materials/required-progress');
+        const res = await CourseContentAPI.getRequiredProgress(course.course_id);
         const payload = res?.data || res || {};
         const rows = asArray(payload?.data || payload);
         const summary = payload?.summary || {};
@@ -821,10 +875,10 @@
 
     try {
       if (S.editingSectionId) {
-        await API.put('/api/courses/' + courseId + '/sections/' + S.editingSectionId, payload);
+        await CourseContentAPI.updateSection(courseId, S.editingSectionId, payload);
         toast('Topic updated successfully.', 'success');
       } else {
-        await API.post('/api/courses/' + courseId + '/sections', payload);
+        await CourseContentAPI.createSection(courseId, payload);
         toast('Topic created successfully.', 'success');
       }
 
@@ -846,16 +900,11 @@
     const courseId = Number(el('tcmSectionCourseSelect')?.value || S.sectionManagerCourseId || 0);
     if (!courseId || !sectionId) return;
 
-    let ok = true;
-    if (typeof showConfirm === 'function') {
-      ok = await showConfirm('Delete this topic/unit/week?');
-    } else {
-      ok = window.confirm('Delete this topic/unit/week?');
-    }
+    const ok = await confirmPopup('Delete this topic/unit/week?', 'Confirm Delete');
     if (!ok) return;
 
     try {
-      await API.delete('/api/courses/' + courseId + '/sections/' + Number(sectionId));
+      await CourseContentAPI.deleteSection(courseId, Number(sectionId));
       S.sectionsByCourse.delete(courseId);
       await renderSectionManagerList(courseId);
       await populateEditSections(Number(el('tcmEditCourse')?.value || courseId), Number(el('tcmEditSection')?.value || 0));
@@ -1099,7 +1148,7 @@
       }
     }
 
-    await API.post('/api/courses/' + Number(courseId) + '/materials', payload);
+    await CourseContentAPI.createMaterial(Number(courseId), payload);
   }
 
   async function saveEditor() {
@@ -1153,7 +1202,7 @@
           payload.external_link = link;
         }
 
-        await API.put('/api/courses/' + material.course_id + '/materials/' + material.material_id, payload);
+        await CourseContentAPI.updateMaterial(material.course_id, material.material_id, payload);
       } else {
         let sharedSource = null;
         await createMaterialForCourse(courseId, sectionId, sharedSource);
@@ -1201,16 +1250,11 @@
     const material = S.materials.find(function (item) { return Number(item.material_id) === Number(materialId); });
     if (!material) return;
 
-    let ok = true;
-    if (typeof showConfirm === 'function') {
-      ok = await showConfirm('Delete this material? This cannot be undone.');
-    } else {
-      ok = window.confirm('Delete this material? This cannot be undone.');
-    }
+    const ok = await confirmPopup('Delete this material? This cannot be undone.', 'Confirm Delete');
     if (!ok) return;
 
     try {
-      await API.delete('/api/courses/' + material.course_id + '/materials/' + material.material_id);
+      await CourseContentAPI.deleteMaterial(material.course_id, material.material_id);
       await reloadAll();
       toast('Material deleted.', 'success');
     } catch (error) {
@@ -1241,7 +1285,7 @@
     material.download_count = nextCount;
 
     // Best-effort server-side download tracking.
-    API.put('/api/courses/' + material.course_id + '/materials/' + material.material_id, {
+    CourseContentAPI.updateMaterial(material.course_id, material.material_id, {
       download_count: nextCount,
     }).catch(function () {
       // Ignore tracking update failures; local fallback is still shown.

@@ -310,11 +310,14 @@ return [
 
     // Assignment routes
     'GET /courses/{courseId}/assignments' => ['controller' => 'AssignmentController', 'method' => 'getByCourse', 'auth' => true],
+    'GET /assignments/my' => ['controller' => 'AssignmentController', 'method' => 'getMyAssignments', 'auth' => true],
     'GET /assignments/{uuid}' => ['controller' => 'AssignmentController', 'method' => 'show', 'auth' => true],
     'POST /assignments' => ['controller' => 'AssignmentController', 'method' => 'create', 'auth' => true],
     'PUT /assignments/{uuid}' => ['controller' => 'AssignmentController', 'method' => 'update', 'auth' => true],
     'DELETE /assignments/{uuid}' => ['controller' => 'AssignmentController', 'method' => 'delete', 'auth' => true],
     'GET /assignments/{uuid}/submissions' => ['controller' => 'AssignmentController', 'method' => 'getSubmissions', 'auth' => true],
+    'POST /assignments/{uuid}/submissions/publish' => ['controller' => 'AssignmentController', 'method' => 'publishSubmissionGrades', 'auth' => true],
+    'GET /assignments/{uuid}/submissions/download-all' => ['controller' => 'AssignmentController', 'method' => 'downloadAllSubmissions', 'auth' => true],
     'POST /assignments/{uuid}/submit' => ['controller' => 'AssignmentController', 'method' => 'submit', 'auth' => true],
     'PUT /assignment-submissions/{id}/grade' => ['controller' => 'AssignmentController', 'method' => 'gradeSubmission', 'auth' => true],
 
@@ -490,4 +493,15 @@ return [
     'POST /upload/multiple' => ['controller' => 'FileUploadController', 'method' => 'uploadMultiple', 'auth' => true],
     'GET /upload/{category}/{filename}/info' => ['controller' => 'FileUploadController', 'method' => 'getFileInfo', 'auth' => true],
     'DELETE /upload/{category}/{filename}' => ['controller' => 'FileUploadController', 'method' => 'delete', 'auth' => true],
+
+    // Teacher Assessment routes
+    'GET /teacher/assessment-categories' => ['controller' => 'TeacherAssessmentController', 'method' => 'getCategories', 'auth' => true],
+    'GET /teacher/classes-subjects' => ['controller' => 'TeacherAssessmentController', 'method' => 'getClassesSubjects', 'auth' => true],
+    'GET /teacher/students' => ['controller' => 'TeacherAssessmentController', 'method' => 'getStudents', 'auth' => true],
+    'GET /teacher/assessments/existing' => ['controller' => 'TeacherAssessmentController', 'method' => 'getExistingAssessments', 'auth' => true],
+    'GET /teacher/assessments' => ['controller' => 'TeacherAssessmentController', 'method' => 'getExistingAssessments', 'auth' => true],
+    'GET /teacher/assignments-quizzes' => ['controller' => 'TeacherAssessmentController', 'method' => 'getAssignmentsAndQuizzes', 'auth' => true],
+    'POST /teacher/assessments/save' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
+    'POST /teacher/assessments' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
+    'POST /teacher/assessments/publish' => ['controller' => 'TeacherAssessmentController', 'method' => 'publishAssessments', 'auth' => true],
 ];

@@ -326,7 +326,7 @@
       const classUuid = S.classUuidById.get(String(row.class_id));
       if (!classUuid) throw new Error('Class UUID not found');
 
-      const res = await API.get(`/api/classes/${classUuid}/schedule`);
+      const res = await ClassAPI.getSchedule(classUuid);
       const all = res?.data || [];
       const codeLow = String(row.subject_code || '').toLowerCase();
       const nameLow = String(row.subject_name || '').toLowerCase();

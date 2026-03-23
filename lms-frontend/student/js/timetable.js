@@ -486,7 +486,7 @@
     const classUuid = classMap.get(String(classId));
     if (!classUuid) throw new Error('Class UUID not found for assigned class');
 
-    const schRes = await API.get('/api/classes/' + classUuid + '/schedule');
+    const schRes = await ClassScheduleAPI.getByClass(classUuid);
     const raw = Array.isArray(schRes && schRes.data) ? schRes.data : (Array.isArray(schRes) ? schRes : []);
 
     S.entries = raw.map(function (item) {

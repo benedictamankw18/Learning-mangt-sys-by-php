@@ -1,6 +1,508 @@
+<style>
+  .sa-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+  .sa-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sa-filters {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sa-search {
+    min-width: 240px;
+    flex: 1;
+    max-width: 420px;
+    position: relative;
+  }
+  .sa-search i {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.82rem;
+  }
+  .sa-search input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem 0.55rem 2rem;
+    font-size: 0.87rem;
+  }
+  .sa-search input:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+  .sa-select {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    height: 36px;
+    padding: 0 0.7rem;
+    min-width: 180px;
+    font-size: 0.84rem;
+    color: #334155;
+    background: #fff;
+  }
+  .sa-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .sa-tab {
+    border: 1px solid #dbe2ea;
+    background: #fff;
+    color: #334155;
+    padding: 0.4rem 0.82rem;
+    border-radius: 999px;
+    font-size: 0.79rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .sa-tab.active {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+    color: #0369a1;
+  }
+
+  .sa-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .sa-chip {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+  .sa-chip-k {
+    margin: 0.18rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  .sa-chip-v {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .sa-list-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.9rem;
+  }
+  .sa-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .sa-head {
+    padding: 0.85rem 0.95rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .sa-head h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+  .sa-head p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.45;
+  }
+  .sa-code {
+    font-family: monospace;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #0369a1;
+    font-size: 0.76rem;
+    margin-top: 0.2rem;
+  }
+
+  .sa-body {
+    padding: 0.85rem 0.95rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .sa-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.82rem;
+    color: #334155;
+  }
+  .sa-row strong {
+    color: #0f172a;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .sa-status,
+  .sa-late {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.62rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  .sa-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .sa-status.submitted {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .sa-status.graded {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .sa-late.yes {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .sa-late.no {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .sa-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    padding: 0.85rem 0.95rem;
+    border-top: 1px solid #eef2f7;
+    background: #fafcff;
+  }
+  .sa-actions .btn {
+    white-space: nowrap;
+  }
+
+  .sa-empty,
+  .sa-loading,
+  .sa-error {
+    padding: 1.4rem 1rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    grid-column: 1 / -1;
+  }
+
+  .sa-error {
+    color: #b91c1c;
+  }
+
+  .sa-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2600;
+    padding: 1rem;
+  }
+
+  .sa-modal-backdrop.show {
+    display: flex;
+  }
+
+  .sa-modal {
+    width: min(820px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(2, 6, 23, 0.3);
+  }
+
+  .sa-modal-header,
+  .sa-modal-footer {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .sa-modal-footer {
+    border-top: 1px solid #e2e8f0;
+    border-bottom: none;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  .sa-modal-body {
+    padding: 1rem;
+    display: grid;
+    gap: 1rem;
+  }
+
+  .sa-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .sa-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: #fff;
+  }
+
+  .sa-block h4 {
+    margin: 0 0 0.45rem;
+    font-size: 0.83rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .sa-textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    padding: 0.65rem;
+    resize: vertical;
+    font-size: 0.9rem;
+  }
+
+  .sa-help {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  @media (max-width: 900px) {
+    .sa-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 760px) {
+    .sa-summary {
+      grid-template-columns: 1fr;
+    }
+    .sa-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    .sa-search {
+      max-width: none;
+      min-width: 0;
+      width: 100%;
+    }
+    .sa-toolbar,
+    .sa-filters {
+      width: 100%;
+    }
+    .sa-select {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+</style>
+
 <div class="card">
-  <div class="card-header"><h3><i class="fas fa-clipboard-list"></i> Assignments</h3></div>
+  <div class="card-header">
+    <h3><i class="fas fa-clipboard-list"></i> Assignments</h3>
+    <button class="btn btn-sm btn-outline" id="saRefreshBtn" type="button">
+      <i class="fas fa-rotate"></i> Refresh
+    </button>
+  </div>
   <div class="card-body">
-    <p>Assignment list, due dates, and submission status.</p>
+    <div class="sa-wrap" id="saRoot">
+      <div class="sa-toolbar">
+        <div class="sa-search">
+          <i class="fas fa-search"></i>
+          <input
+            id="saSearchInput"
+            type="text"
+            placeholder="Search assignment title or description"
+          />
+        </div>
+        <div class="sa-filters">
+          <select class="sa-select" id="saSubjectFilter">
+            <option value="">All subjects</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="sa-tabs" id="saStatusTabs">
+        <button class="sa-tab active" data-status="all">All</button>
+        <button class="sa-tab" data-status="pending">Pending</button>
+        <button class="sa-tab" data-status="submitted">Submitted</button>
+        <button class="sa-tab" data-status="graded">Graded</button>
+      </div>
+
+      <div class="sa-summary">
+        <div class="sa-chip">
+          <h4 class="sa-chip-v" id="saPendingCount">0</h4>
+          <p class="sa-chip-k">Pending</p>
+        </div>
+        <div class="sa-chip">
+          <h4 class="sa-chip-v" id="saSubmittedCount">0</h4>
+          <p class="sa-chip-k">Submitted</p>
+        </div>
+        <div class="sa-chip">
+          <h4 class="sa-chip-v" id="saGradedCount">0</h4>
+          <p class="sa-chip-k">Graded</p>
+        </div>
+      </div>
+
+      <div class="sa-list-wrap" id="saListBody">
+        <div class="sa-loading">Loading assignments...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="sa-modal-backdrop" id="saModalBackdrop" aria-hidden="true">
+  <div
+    class="sa-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="saModalTitle"
+  >
+    <div
+      class="sa-modal-header"
+      style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.7rem;
+      "
+    >
+      <h3 id="saModalTitle" style="margin: 0; font-size: 1rem; color: #0f172a">
+        Assignment Details
+      </h3>
+      <button type="button" class="btn btn-outline btn-sm" id="saModalCloseBtn">
+        Close
+      </button>
+    </div>
+
+    <div class="sa-modal-body">
+      <div class="sa-grid-2">
+        <div class="sa-block">
+          <h4>Title</h4>
+          <div id="saDetailTitle">-</div>
+        </div>
+        <div class="sa-block">
+          <h4>Subject</h4>
+          <div id="saDetailSubject">-</div>
+        </div>
+        <div class="sa-block">
+          <h4>Due Date</h4>
+          <div id="saDetailDueDate">-</div>
+        </div>
+        <div class="sa-block">
+          <h4>Submission Type</h4>
+          <div id="saDetailSubmissionType">-</div>
+        </div>
+      </div>
+
+      <div class="sa-block">
+        <h4>Description</h4>
+        <div
+          id="saDetailDescription"
+          style="white-space: pre-wrap; line-height: 1.55"
+        >
+          No description.
+        </div>
+      </div>
+
+      <div class="sa-block">
+        <h4>Instruction File</h4>
+        <div class="sa-actions">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            id="saDownloadInstructionBtn"
+          >
+            <i class="fas fa-file-download"></i> Download Instructions
+          </button>
+        </div>
+      </div>
+
+      <div class="sa-block" id="saGradeBlock" style="display: none">
+        <h4>Grade & Feedback</h4>
+        <div style="display: grid; gap: 0.45rem">
+          <div><strong>Score:</strong> <span id="saDetailScore">-</span></div>
+          <div><strong>Feedback:</strong></div>
+          <div id="saDetailFeedback" style="white-space: pre-wrap">
+            No feedback yet.
+          </div>
+        </div>
+      </div>
+
+      <div class="sa-block" id="saSubmittedFileBlock" style="display: none">
+        <h4>Submitted File</h4>
+        <div class="sa-actions">
+          <button
+            type="button"
+            class="btn btn-outline btn-sm"
+            id="saViewSubmittedFileBtn"
+          >
+            <i class="fas fa-file"></i> View Submitted File
+          </button>
+        </div>
+      </div>
+
+      <div class="sa-block" id="saSubmitBlock">
+        <h4>Submit Assignment</h4>
+        <div style="display: grid; gap: 0.65rem">
+          <div id="saSubmissionTextWrap">
+            <textarea
+              id="saSubmissionText"
+              class="sa-textarea"
+              placeholder="Write your response or notes here..."
+            ></textarea>
+          </div>
+
+          <div id="saSubmissionFileWrap">
+            <input type="file" id="saSubmissionFile" />
+            <div class="sa-help">
+              Accepted by backend upload handler. Max size is 30MB.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sa-modal-footer">
+      <button type="button" class="btn btn-outline" id="saModalCancelBtn">
+        Cancel
+      </button>
+      <button type="button" class="btn btn-primary" id="saSubmitBtn">
+        <i class="fas fa-upload"></i> Submit Assignment
+      </button>
+    </div>
   </div>
 </div>

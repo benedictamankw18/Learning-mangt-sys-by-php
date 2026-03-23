@@ -60,6 +60,10 @@
           <i class="fas fa-clipboard-check"></i>
           <span>Grading</span>
         </a>
+        <a href="#" class="nav-item" data-page="assessments">
+          <i class="fas fa-chart-line"></i>
+          <span>Assessments</span>
+        </a>
         <a href="#" class="nav-item" data-page="attendance">
           <i class="fas fa-user-check"></i>
           <span>Attendance</span>
@@ -409,6 +413,13 @@
           <h2>Grading</h2>
           <p>Student grading interface...</p>
         </div>
+        <div class="content-section" id="assignment-detail-section">
+          <!-- assignment-detail.html fragment loads here -->
+        </div>
+
+        <div class="content-section" id="submissions-section">
+          <!-- submissions.html fragment loads here -->
+        </div>
       </main>
     </div>
 
@@ -451,6 +462,10 @@
     <script src="./js/attendance.js"></script>
     <script src="./js/course-materials.js"></script>
     <script src="./js/lesson-plans.js"></script>
+    <script src="./js/assignments.js"></script>
+    <script src="./js/submissions.js"></script>
+    <script src="./js/assessments.js"></script>
+
     <script>
       // Dynamic section loader with hash routing (loads pages from ./page/)
       (function () {
@@ -472,7 +487,47 @@
           if (match) match.classList.add("active");
         }
 
-        async function loadPage(page) {
+        function parseHashRoute() {
+          const raw = window.location.hash.replace("#", "");
+          const [pageRaw, queryParams = ""] = raw.split("?");
+          const page = pageRaw || "dashboard";
+          return { page, queryParams };
+        }
+
+        function executeEmbeddedScripts(container) {
+          const scripts = container.querySelectorAll("script");
+          scripts.forEach((oldScript) => {
+            const newScript = document.createElement("script");
+
+            // Avoid reloading the same external script repeatedly.
+            const src = oldScript.getAttribute("src");
+            if (src) {
+              const resolved = new URL(src, window.location.href).href;
+              window.__teacherFragmentScripts =
+                window.__teacherFragmentScripts || new Set();
+              if (window.__teacherFragmentScripts.has(resolved)) {
+                oldScript.remove();
+                return;
+              }
+              window.__teacherFragmentScripts.add(resolved);
+              newScript.src = src;
+            }
+
+            Array.from(oldScript.attributes).forEach((attr) => {
+              if (attr.name !== "src") {
+                newScript.setAttribute(attr.name, attr.value);
+              }
+            });
+
+            if (!src) {
+              newScript.textContent = oldScript.textContent;
+            }
+
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        }
+
+        async function loadPage(page, queryParams) {
           if (!dynamicSection) return;
           if (!page || page === "dashboard") {
             document
@@ -501,6 +556,7 @@
               .forEach((s) => s.classList.remove("active"));
             dynamicSection.classList.add("active");
             dynamicSection.innerHTML = html;
+            executeEmbeddedScripts(dynamicSection);
             const title = document.getElementById("pageTitle");
             if (title)
               title.textContent =
@@ -511,7 +567,9 @@
             setActiveNav(page);
             try {
               document.dispatchEvent(
-                new CustomEvent("page:loaded", { detail: { page } }),
+                new CustomEvent("page:loaded", {
+                  detail: { page, queryParams },
+                }),
               );
             } catch (e) {}
           } catch (err) {
@@ -524,9 +582,9 @@
             e.preventDefault();
             const page = item.getAttribute("data-page");
             if (!page) return;
-            const current = window.location.hash.replace("#", "");
-            if (current === page) {
-              loadPage(page);
+            const { page: currentPage } = parseHashRoute();
+            if (currentPage === page) {
+              loadPage(page, "");
             } else {
               window.location.hash = `#${page}`;
             }
@@ -534,9 +592,9 @@
         });
 
         function handleHashChange() {
-          const hash = window.location.hash.replace("#", "");
-          const normalized = hash === "schedule" ? "timetable" : hash;
-          loadPage(normalized || "dashboard");
+          const { page, queryParams } = parseHashRoute();
+          const normalized = page === "schedule" ? "timetable" : page;
+          loadPage(normalized || "dashboard", queryParams);
         }
 
         window.addEventListener("hashchange", handleHashChange);

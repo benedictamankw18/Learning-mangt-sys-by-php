@@ -157,8 +157,43 @@ const API_ENDPOINTS = {
 
     // Assignments
     ASSIGNMENTS: '/api/assignments',
+    ASSIGNMENTS_MY: '/api/assignments/my',
+    ASSIGNMENTS_BY_COURSE: (courseId) => `/api/courses/${courseId}/assignments`,
     ASSIGNMENT_BY_ID: (id) => `/api/assignments/${id}`,
+    ASSIGNMENT_SUBMIT: (id) => `/api/assignments/${id}/submit`,
     ASSIGNMENT_SUBMISSIONS: (id) => `/api/assignments/${id}/submissions`,
+    ASSIGNMENT_SUBMISSIONS_ANALYTICS: (id) => `/api/assignments/${id}/submissions/analytics`,
+    ASSIGNMENT_SUBMISSIONS_PUBLISH: (id) => `/api/assignments/${id}/submissions/publish`,
+    ASSIGNMENT_SUBMISSIONS_DOWNLOAD_ALL: (id) => `/api/assignments/${id}/submissions/download-all`,
+    ASSIGNMENT_SUBMISSIONS_EXPORT_GRADES: (id) => `/api/assignments/${id}/submissions/export-grades`,
+    ASSIGNMENT_SUBMISSIONS_BULK_GRADE: (id) => `/api/assignments/${id}/submissions/bulk-grade`,
+    ASSIGNMENT_SUBMISSION_GRADE: (id) => `/api/assignment-submissions/${id}/grade`,
+
+    // Assessments
+    ASSESSMENTS: '/api/assessments',
+    ASSESSMENT_BY_ID: (id) => `/api/assessments/${id}`,
+    ASSESSMENT_SUBMIT: (id) => `/api/assessments/${id}/submit`,
+    ASSESSMENT_SUBMISSIONS: (id) => `/api/assessments/${id}/submissions`,
+
+    // Assessment Categories
+    ASSESSMENT_CATEGORIES: '/api/assessment-categories',
+    ASSESSMENT_CATEGORY_BY_ID: (id) => `/api/assessment-categories/${id}`,
+
+    // Teacher Assessment Endpoints
+    TEACHER_ASSESSMENT_CATEGORIES: '/api/teacher/assessment-categories',
+    TEACHER_CLASSES_SUBJECTS: '/api/teacher/classes-subjects',
+    TEACHER_STUDENTS: '/api/teacher/students',
+    TEACHER_EXISTING_ASSESSMENTS: '/api/teacher/assessments/existing',
+    TEACHER_ASSIGNMENTS_QUIZZES: '/api/teacher/assignments-quizzes',
+    TEACHER_SAVE_ASSESSMENTS: '/api/teacher/assessments/save',
+    TEACHER_PUBLISH_ASSESSMENTS: '/api/teacher/assessments/publish',
+
+    // Submissions
+    SUBMISSIONS: '/api/submissions',
+    SUBMISSION_BY_ID: (id) => `/api/submissions/${id}`,
+    SUBMISSION_GRADE: (id) => `/api/submissions/${id}/grade`,
+    SUBMISSION_FEEDBACK: (id) => `/api/submissions/${id}/feedback`,
+    SUBMISSION_DOWNLOAD: (id) => `/api/submissions/${id}/download`,
 
     // Grades
     GRADES: '/api/grades',

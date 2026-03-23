@@ -1,6 +1,650 @@
+<style>
+  .ta-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ta-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .ta-toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .ta-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 20px;
+  }
+
+  .ta-field {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .ta-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .ta-field input,
+  .ta-field select {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.84rem;
+    background: #fff;
+  }
+
+  .ta-field input:focus,
+  .ta-field select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .ta-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .ta-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+
+  .ta-stat h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .ta-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.77rem;
+    color: #64748b;
+  }
+
+  .ta-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    margin-top: 10px;
+  }
+
+  .ta-list-head {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr 1.2fr;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+  }
+
+  .ta-row {
+    display: grid;
+    grid-template-columns: 2fr 1.2fr 1fr 1fr 1fr 1.2fr;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.62rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s;
+  }
+
+  .ta-row:hover {
+    background: #f8fafc;
+  }
+
+  .ta-row:last-child {
+    border-bottom: none;
+  }
+
+  .ta-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .ta-title strong {
+    font-size: 0.85rem;
+    color: #0f172a;
+  }
+
+  .ta-title span {
+    font-size: 0.73rem;
+    color: #64748b;
+  }
+
+  .ta-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.52rem;
+    width: fit-content;
+  }
+
+  .ta-chip.draft {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .ta-chip.active {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .ta-chip.archived {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .ta-actions {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: flex-end;
+  }
+
+  .ta-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #0f172a;
+    transition: all 0.2s;
+  }
+
+  .ta-btn:hover {
+    background: #f1f5f9;
+  }
+
+  .ta-btn.danger:hover {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .ta-btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ta-btn-primary:hover {
+    background: var(--primary-light);
+  }
+
+  .ta-btn-primary:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  /* ---- modal (aligned with lesson-plans) ---- */
+  .ta-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .ta-modal-overlay.open {
+    display: flex;
+  }
+
+  .ta-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(14px);
+    transition: transform 0.2s;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .ta-modal-overlay.open .ta-modal {
+    transform: translateY(0);
+  }
+
+  .ta-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .ta-modal-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .ta-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .ta-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .ta-modal-body {
+    padding: 1rem 1.2rem;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .form-group {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+    background: #fff;
+    font-family: inherit;
+  }
+
+  .form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .ta-modal-foot {
+    padding: 0.85rem 1.2rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    background: #f8fafc;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .ta-btn-secondary {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .ta-btn-secondary:hover {
+    background: #e2e8f0;
+  }
+
+  .form-error {
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+  }
+
+  .form-success {
+    color: #059669;
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #64748b;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    color: #cbd5e1;
+    margin-bottom: 0.5rem;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+
+  .spinner {
+    border: 3px solid #f1f5f9;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .ta-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .ta-list-head,
+    .ta-row {
+      grid-template-columns: 1fr;
+      gap: 0.25rem;
+    }
+
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+
+    .ta-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
 <div class="card">
-  <div class="card-header"><h3><i class="fas fa-tasks"></i> Assignments</h3></div>
+  <div class="card-header">
+    <h3><i class="fas fa-tasks"></i> Assignments</h3>
+  </div>
   <div class="card-body">
     <p>Create and manage assignments, deadlines, and resources.</p>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="ta-toolbar">
+    <div class="ta-toolbar-actions">
+      <button class="ta-btn-primary" id="createAssignmentBtn">
+        <i class="fas fa-plus"></i> Create Assignment
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="ta-filters">
+    <div class="ta-field">
+      <label for="filterClass">Class/Subject</label>
+      <select id="filterClass">
+        <option value="">All Classes</option>
+      </select>
+    </div>
+    <div class="ta-field">
+      <label for="filterStatus">Status</label>
+      <select id="filterStatus">
+        <option value="">All Status</option>
+        <option value="draft">Draft</option>
+        <option value="active">Active</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+    <div class="ta-field">
+      <label for="searchKeyword">Search</label>
+      <input
+        type="text"
+        id="searchKeyword"
+        placeholder="Search assignments..."
+      />
+    </div>
+    <div style="display: flex; gap: 0.5rem; align-items: flex-end">
+      <button class="ta-btn-primary" id="applyFiltersBtn" style="flex: 1">
+        <i class="fas fa-filter"></i> Filter
+      </button>
+      <button class="ta-btn-secondary" id="resetFiltersBtn">Reset</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="ta-stats">
+    <div class="ta-stat">
+      <h4 id="totalAssignments">0</h4>
+      <p>Total Assignments</p>
+    </div>
+    <div class="ta-stat">
+      <h4 id="activeAssignments">0</h4>
+      <p>Active Assignments</p>
+    </div>
+    <div class="ta-stat">
+      <h4 id="draftAssignments">0</h4>
+      <p>Draft Assignments</p>
+    </div>
+    <div class="ta-stat">
+      <h4 id="pendingSubmissions">0</h4>
+      <p>Pending to Grade</p>
+    </div>
+  </div>
+
+  <!-- Assignments List -->
+  <div class="ta-list">
+    <div class="ta-list-head">
+      <div>Title</div>
+      <div>Class/Subject</div>
+      <div>Due Date</div>
+      <div>Total Marks</div>
+      <div>Status</div>
+      <div>Actions</div>
+    </div>
+    <div id="assignmentsList"></div>
+  </div>
+</div>
+
+<!-- Create/Edit Assignment Modal -->
+<div id="assignmentModal" class="ta-modal-overlay">
+  <div class="ta-modal">
+    <div class="ta-modal-head">
+      <h3 id="modalTitle">Create Assignment</h3>
+      <button class="ta-modal-close" id="modalCloseBtn">&times;</button>
+    </div>
+    <form id="assignmentForm">
+      <div class="ta-modal-body">
+        <div class="form-group">
+          <label for="assignmentTitle">Assignment Title *</label>
+          <input
+            type="text"
+            id="assignmentTitle"
+            name="title"
+            required
+            maxlength="200"
+          />
+          <div class="form-error" id="titleError"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assignmentClass">Class/Subject *</label>
+            <select id="assignmentClass" name="course_id" required>
+              <option value="">Select Class/Subject</option>
+            </select>
+            <div class="form-error" id="classError"></div>
+          </div>
+          <div class="form-group">
+            <label for="assignmentSection">Section (Optional)</label>
+            <select id="assignmentSection" name="section_id" disabled>
+              <option value="">Select Class/Subject first</option>
+            </select>
+            <div class="form-error" id="sectionError"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="assignmentDescription">Instructions (Optional)</label>
+          <textarea
+            id="assignmentDescription"
+            name="description"
+            placeholder="Type assignment instructions for students"
+          ></textarea>
+          <div class="form-error" id="descriptionError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="assignmentRubric">Rubric (Optional)</label>
+          <textarea
+            id="assignmentRubric"
+            name="rubric"
+            placeholder="Assessment criteria and grading rubric"
+          ></textarea>
+          <div class="form-error" id="rubricError"></div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assignmentDueDate">Due Date *</label>
+            <input
+              type="datetime-local"
+              id="assignmentDueDate"
+              name="due_date"
+              required
+            />
+            <div class="form-error" id="dueDateError"></div>
+          </div>
+          <div class="form-group">
+            <label for="assignmentMaxScore">Total Marks *</label>
+            <input
+              type="number"
+              id="assignmentMaxScore"
+              name="max_score"
+              min="1"
+              step="0.01"
+              value="100"
+              required
+            />
+            <div class="form-error" id="maxScoreError"></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="assignmentPassingScore">Passing Mark</label>
+            <input
+              type="number"
+              id="assignmentPassingScore"
+              name="passing_score"
+              min="0"
+              step="0.01"
+              value="60"
+            />
+            <div class="form-error" id="passingScoreError"></div>
+          </div>
+          <div class="form-group">
+            <label for="assignmentSubmissionType">Submission Type *</label>
+            <select
+              id="assignmentSubmissionType"
+              name="submission_type"
+              required
+            >
+              <option value="text">Text Only</option>
+              <option value="file">File Upload Only</option>
+              <option value="both">Text & File</option>
+            </select>
+            <div class="form-error" id="submissionTypeError"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="assignmentInstructionFile"
+            >Instructions File (Optional, PDF only)</label
+          >
+          <input
+            type="file"
+            id="assignmentInstructionFile"
+            accept=".pdf,application/pdf"
+          />
+          <small id="assignmentInstructionFileHelp" style="color: #64748b"
+            >Upload a PDF to share assignment instructions with students.</small
+          >
+          <div class="form-error" id="filePathError"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="assignmentStatus">Status *</label>
+          <select id="assignmentStatus" name="status" required>
+            <option value="draft">Draft (Not visible to students)</option>
+            <option value="active">Active (Visible to students)</option>
+            <option value="archived">Archived</option>
+          </select>
+          <div class="form-error" id="statusError"></div>
+        </div>
+
+        <div id="formSuccess" class="form-success" style="display: none"></div>
+      </div>
+
+      <div class="ta-modal-foot">
+        <button type="button" class="ta-btn-secondary" id="modalCancelBtn">
+          Cancel
+        </button>
+        <button type="submit" class="ta-btn-primary">
+          <i class="fas fa-save"></i> Save Assignment
+        </button>
+      </div>
+    </form>
   </div>
 </div>

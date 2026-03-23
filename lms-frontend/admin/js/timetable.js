@@ -313,7 +313,7 @@
       const cs = S.classSubjects[i];
       if (!cs || !cs.course_id) continue;
       try {
-        const res = await API.get('/api/class-subjects/' + cs.course_id + '/schedules');
+        const res = await ClassScheduleAPI.getByCourse(cs.course_id);
         const rows = toArray(res).map(function (r) {
           const merged = Object.assign({}, r, {
             course_id: r.course_id || cs.course_id,
@@ -529,7 +529,7 @@
             status: editData.status,
           };
 
-          await API.put('/api/class-subjects/' + courseId + '/schedules/' + scheduleId, payload);
+          await ClassScheduleAPI.updateForCourse(courseId, scheduleId, payload);
 
           current.day_of_week = editData.day;
           current.start_time = editData.start;
@@ -707,7 +707,7 @@
         const approved = await openDeleteConfirmModal();
         if (!approved) return;
         try {
-          await API.delete('/api/class-subjects/' + courseId + '/schedules/' + scheduleId);
+          await ClassScheduleAPI.deleteForCourse(courseId, scheduleId);
           S.schedules = S.schedules.filter(function (r) {
             return String(r.schedule_id || r.id) !== String(scheduleId);
           });
@@ -1031,7 +1031,7 @@
     }
 
     try {
-      const res = await API.get('/api/institutions/' + encodeURIComponent(institutionKey) + '/timetable-period-slots');
+      const res = await InstitutionTimetableAPI.getPeriodSlots(institutionKey);
       const payload = (res && res.data) ? res.data : res;
       const periodSlots = Array.isArray(payload && payload.period_slots)
         ? payload.period_slots
@@ -1053,7 +1053,7 @@
     }
 
     try {
-      await API.put('/api/institutions/' + encodeURIComponent(institutionKey) + '/timetable-period-slots', {
+      await InstitutionTimetableAPI.updatePeriodSlots(institutionKey, {
         period_slots: S.periods
       });
     } catch (e) {
@@ -1103,7 +1103,7 @@
       }
       if (periodTag) payload.period_label = periodTag;
 
-      const res = await API.post('/api/class-subjects/' + courseId + '/schedules', payload);
+      const res = await ClassScheduleAPI.createForCourse(courseId, payload);
       const scheduleId = res && res.data ? (res.data.schedule_id || null) : null;
 
       const cs = S.coursesById.get(String(courseId)) || {};
@@ -1377,7 +1377,7 @@
       if (periodLabel) payload.period_label = periodLabel;
 
       try {
-        const res = await API.post('/api/class-subjects/' + encodeURIComponent(courseId) + '/schedules', payload);
+        const res = await ClassScheduleAPI.createForCourse(encodeURIComponent(courseId), payload);
         if (res && res.success !== false) {
           successCount++;
           results.push({ name: rowName, status: 'success', reason: '' });
@@ -1532,7 +1532,7 @@
     }
 
     try {
-      const res = await API.get('/api/institutions/' + encodeURIComponent(institutionKey) + '/timetable-publish-state');
+      const res = await InstitutionTimetableAPI.getPublishState(institutionKey);
       const payload = (res && res.data) ? res.data : res;
       S.isPublished = Boolean(payload && payload.is_timetable_published);
     } catch (_) {
@@ -1550,7 +1550,7 @@
       throw new Error('Institution context not found');
     }
 
-    await API.put('/api/institutions/' + encodeURIComponent(institutionKey) + '/timetable-publish-state', {
+    await InstitutionTimetableAPI.updatePublishState(institutionKey, {
       is_timetable_published: Boolean(value)
     });
 

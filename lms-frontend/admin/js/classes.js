@@ -88,7 +88,7 @@
         try {
             const [progRes, glRes, ayRes, tchrRes] = await Promise.all([
                 API.get(API_ENDPOINTS.PROGRAMS_ACTIVE),
-                API.get('/api/grade-levels'),
+                GradeLevelAPI.getAll(),
                 API.get(API_ENDPOINTS.ACADEMIC_YEAR_CURRENT),
                 API.get(API_ENDPOINTS.TEACHERS, { limit: 500, status: 'active' }),
             ]);
@@ -656,9 +656,7 @@
         if (bodyEl)  bodyEl.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading students…</div>';
         overlay.classList.add('open');
 
-        const endpoint = API_ENDPOINTS.CLASS_BY_UUID(uuid).replace(/\/api\/classes\/([^/]+)$/, '/api/classes/$1/students');
-
-        API.get(`/api/classes/${uuid}/students`).then(res => {
+        ClassAPI.getStudents(uuid).then(res => {
             if (!res?.success) {
                 bodyEl.innerHTML = `<p style="color:#ef4444;text-align:center;">Failed to load roster: ${esc(res?.message || 'Unknown error')}</p>`;
                 return;

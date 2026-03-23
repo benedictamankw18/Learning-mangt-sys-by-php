@@ -290,6 +290,14 @@ const InstitutionAPI = {
 };
 
 /**
+ * Subscription APIs
+ */
+const SubscriptionAPI = {
+    getAll: (params) => API.get('/api/subscriptions', params),
+    getByInstitution: (institutionId, params = {}) => API.get('/api/subscriptions', { institution_id: institutionId, ...params }),
+};
+
+/**
  * Parent APIs
  */
 const ParentAPI = {
@@ -330,6 +338,51 @@ const CourseAPI = {
 };
 
 /**
+ * Program APIs
+ */
+const ProgramAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.PROGRAMS, params),
+    getById: (id) => API.get(API_ENDPOINTS.PROGRAM_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.PROGRAMS, data),
+    update: (id, data) => API.put(API_ENDPOINTS.PROGRAM_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.PROGRAM_BY_ID(id)),
+};
+
+/**
+ * Subject APIs
+ */
+const SubjectAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.SUBJECTS, params),
+    getByUuid: (uuid) => API.get(API_ENDPOINTS.SUBJECT_BY_UUID(uuid)),
+    create: (data) => API.post(API_ENDPOINTS.SUBJECTS, data),
+    update: (uuid, data) => API.put(API_ENDPOINTS.SUBJECT_BY_UUID(uuid), data),
+    delete: (uuid) => API.delete(API_ENDPOINTS.SUBJECT_BY_UUID(uuid)),
+};
+
+/**
+ * Teacher APIs
+ */
+const TeacherAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.TEACHERS, params),
+    getById: (uuid) => API.get(API_ENDPOINTS.TEACHER_BY_UUID(uuid)),
+    getCourses: (uuid, params) => API.get(API_ENDPOINTS.TEACHER_COURSES(uuid), params),
+    getSchedule: (uuid, params) => API.get(API_ENDPOINTS.TEACHER_SCHEDULE(uuid), params),
+    getPerformance: (uuid, params) => API.get(API_ENDPOINTS.TEACHER_PERFORMANCE(uuid), params),
+};
+
+/**
+ * Class APIs
+ */
+const ClassAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.CLASSES, params),
+    getByUuid: (uuid) => API.get(API_ENDPOINTS.CLASS_BY_UUID(uuid)),
+    getStudents: (uuid, params) => API.get(`/api/classes/${uuid}/students`, params),
+    getSchedule: (uuid, params) => API.get(`/api/classes/${uuid}/schedule`, params),
+    getClassSubjects: (uuid, params) => API.get(`/api/classes/${uuid}/class-subjects`, params),
+    getPerformance: (uuid, params) => API.get(`/api/classes/${uuid}/performance`, params),
+};
+
+/**
  * Permission APIs
  */
 const PermissionAPI = {
@@ -353,11 +406,38 @@ const SystemAPI = {
  */
 const AssignmentAPI = {
     getAll: (params) => API.get(API_ENDPOINTS.ASSIGNMENTS, params),
+    getMyAssignments: (params) => API.get(API_ENDPOINTS.ASSIGNMENTS_MY, params),
+    getByCourse: (courseId) => API.get(API_ENDPOINTS.ASSIGNMENTS_BY_COURSE(courseId)),
     getById: (id) => API.get(API_ENDPOINTS.ASSIGNMENT_BY_ID(id)),
+    submit: (id, data) => API.post(API_ENDPOINTS.ASSIGNMENT_SUBMIT(id), data),
     getSubmissions: (id) => API.get(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS(id)),
     create: (data) => API.post(API_ENDPOINTS.ASSIGNMENTS, data),
     update: (id, data) => API.put(API_ENDPOINTS.ASSIGNMENT_BY_ID(id), data),
     delete: (id) => API.delete(API_ENDPOINTS.ASSIGNMENT_BY_ID(id)),
+};
+
+/**
+ * Assessment APIs
+ */
+const AssessmentAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ASSESSMENTS, params),
+    getById: (id) => API.get(API_ENDPOINTS.ASSESSMENT_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.ASSESSMENTS, data),
+    update: (id, data) => API.put(API_ENDPOINTS.ASSESSMENT_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.ASSESSMENT_BY_ID(id)),
+    submit: (id, data) => API.post(API_ENDPOINTS.ASSESSMENT_SUBMIT(id), data),
+    getSubmissions: (id) => API.get(API_ENDPOINTS.ASSESSMENT_SUBMISSIONS(id)),
+};
+
+/**
+ * Assessment Category APIs
+ */
+const AssessmentCategoryAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ASSESSMENT_CATEGORIES, params),
+    getById: (id) => API.get(API_ENDPOINTS.ASSESSMENT_CATEGORY_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.ASSESSMENT_CATEGORIES, data),
+    update: (id, data) => API.put(API_ENDPOINTS.ASSESSMENT_CATEGORY_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.ASSESSMENT_CATEGORY_BY_ID(id)),
 };
 
 /**
@@ -371,12 +451,103 @@ const GradeAPI = {
 };
 
 /**
+ * Submissions APIs
+ */
+const SubmissionsAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.SUBMISSIONS, params),
+    getById: (id) => API.get(API_ENDPOINTS.SUBMISSION_BY_ID(id)),
+    gradeSubmission: (submissionId, payload) => API.put(API_ENDPOINTS.ASSIGNMENT_SUBMISSION_GRADE(submissionId), payload),
+    saveFeedback: (submissionId, feedback) => API.post(API_ENDPOINTS.SUBMISSION_FEEDBACK(submissionId), { feedback }),
+    downloadSubmission: (submissionId) => fetch(API_ENDPOINTS.SUBMISSION_DOWNLOAD(submissionId), {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+    }).then(r => r.ok ? r.blob() : Promise.reject(new Error(`Download failed: ${r.status}`))),
+    
+    // Assignment submissions (bulk operations)
+    getAssignmentSubmissions: (assignmentId) => API.get(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS(assignmentId)),
+    getSubmissionsAnalytics: (assignmentId) => API.get(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_ANALYTICS(assignmentId)),
+    publishGrades: (assignmentId) => API.post(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_PUBLISH(assignmentId), {
+        published_at: new Date().toISOString(),
+    }),
+    downloadAllSubmissions: (assignmentId) => fetch(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_DOWNLOAD_ALL(assignmentId), {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+    }).then(async r => {
+        if (r.ok) return r.json();
+        let msg = `Download failed: ${r.status}`;
+        try {
+            const payload = await r.json();
+            if (payload?.message) msg = payload.message;
+        } catch (_) {
+            // Keep default message when response is not JSON.
+        }
+        return Promise.reject(new Error(msg));
+    }),
+    bulkGradeSubmissions: (assignmentId, updates) => API.post(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_BULK_GRADE(assignmentId), { updates }),
+    exportGradesAsCSV: (assignmentId) => fetch(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_EXPORT_GRADES(assignmentId), {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
+    }).then(r => r.ok ? r.blob() : Promise.reject(new Error(`Export failed: ${r.status}`))),
+};
+
+/**
  * Attendance APIs
  */
 const AttendanceAPI = {
     getAll: (params) => API.get(API_ENDPOINTS.ATTENDANCE, params),
     getStudentAttendance: (studentId) => API.get(API_ENDPOINTS.STUDENT_ATTENDANCE(studentId)),
     create: (data) => API.post(API_ENDPOINTS.ATTENDANCE, data),
+    getSummary: (params) => API.get('/api/attendance/summary', params),
+    getByCourse: (courseId, params) => API.get(`/api/courses/${courseId}/attendance`, params),
+    bulkCreate: (data) => API.post('/api/attendance/bulk', data),
+    updateById: (attendanceId, data) => API.put(`/api/attendance/${attendanceId}`, data),
+};
+
+/**
+ * Course content APIs (sections/materials/progress)
+ */
+const CourseContentAPI = {
+    getSections: (courseId) => API.get(`/api/courses/${courseId}/sections`),
+    createSection: (courseId, data) => API.post(`/api/courses/${courseId}/sections`, data),
+    updateSection: (courseId, sectionId, data) => API.put(`/api/courses/${courseId}/sections/${sectionId}`, data),
+    deleteSection: (courseId, sectionId) => API.delete(`/api/courses/${courseId}/sections/${sectionId}`),
+    getMaterials: (courseId) => API.get(`/api/courses/${courseId}/materials`),
+    createMaterial: (courseId, data) => API.post(`/api/courses/${courseId}/materials`, data),
+    updateMaterial: (courseId, materialId, data) => API.put(`/api/courses/${courseId}/materials/${materialId}`, data),
+    deleteMaterial: (courseId, materialId) => API.delete(`/api/courses/${courseId}/materials/${materialId}`),
+    getRequiredProgress: (courseId) => API.get(`/api/courses/${courseId}/materials/required-progress`),
+    markMaterialComplete: (courseId, materialId, data) => API.post(`/api/courses/${courseId}/materials/${materialId}/complete`, data),
+};
+
+/**
+ * Timetable APIs
+ */
+const ClassScheduleAPI = {
+    getByClass: (classUuid) => API.get(`/api/classes/${classUuid}/schedule`),
+    getByCourse: (courseId) => API.get(`/api/class-subjects/${courseId}/schedules`),
+    createForCourse: (courseId, data) => API.post(`/api/class-subjects/${courseId}/schedules`, data),
+    updateForCourse: (courseId, scheduleId, data) => API.put(`/api/class-subjects/${courseId}/schedules/${scheduleId}`, data),
+    deleteForCourse: (courseId, scheduleId) => API.delete(`/api/class-subjects/${courseId}/schedules/${scheduleId}`),
+};
+
+const InstitutionTimetableAPI = {
+    getPeriodSlots: (institutionKey) => API.get(`/api/institutions/${encodeURIComponent(institutionKey)}/timetable-period-slots`),
+    updatePeriodSlots: (institutionKey, data) => API.put(`/api/institutions/${encodeURIComponent(institutionKey)}/timetable-period-slots`, data),
+    getPublishState: (institutionKey) => API.get(`/api/institutions/${encodeURIComponent(institutionKey)}/timetable-publish-state`),
+    updatePublishState: (institutionKey, data) => API.put(`/api/institutions/${encodeURIComponent(institutionKey)}/timetable-publish-state`, data),
+};
+
+/**
+ * Student relation APIs
+ */
+const StudentRelationAPI = {
+    getParents: (studentId) => API.get(`/api/students/${studentId}/parents`),
+    getCourseStudents: (courseId) => API.get(`/api/courses/${courseId}/students`),
+    getClassStudents: (classUuid) => API.get(`/api/classes/${classUuid}/students`),
+};
+
+const GradeLevelAPI = {
+    getAll: (params) => API.get('/api/grade-levels', params),
 };
 
 /**
@@ -407,6 +578,13 @@ const NotificationAPI = {
     getById: (id) => API.get(API_ENDPOINTS.NOTIFICATION_BY_ID(id)),
     markAsRead: (id) => API.put(API_ENDPOINTS.NOTIFICATION_MARK_READ(id)),
     markAllAsRead: () => API.put(API_ENDPOINTS.NOTIFICATION_MARK_ALL_READ),
+};
+
+/**
+ * File APIs
+ */
+const FileAPI = {
+    upload: (formData) => API.upload(API_ENDPOINTS.FILE_UPLOAD, formData),
 };
 
 /**
@@ -507,4 +685,17 @@ const EventAPI = {
     create: (data) => API.post(API_ENDPOINTS.EVENTS, data),
     update: (uuid, data) => API.put(API_ENDPOINTS.EVENT_BY_UUID(uuid), data),
     delete: (uuid) => API.delete(API_ENDPOINTS.EVENT_BY_UUID(uuid)),
+};
+
+/**
+ * Teacher Assessment APIs
+ */
+const TeacherAssessmentAPI = {
+    getCategories: () => API.get(API_ENDPOINTS.TEACHER_ASSESSMENT_CATEGORIES),
+    getClassesSubjects: () => API.get(API_ENDPOINTS.TEACHER_CLASSES_SUBJECTS),
+    getStudents: (params) => API.get(API_ENDPOINTS.TEACHER_STUDENTS, params),
+    getExistingAssessments: (params) => API.get(API_ENDPOINTS.TEACHER_EXISTING_ASSESSMENTS, params),
+    getAssignmentsAndQuizzes: (params) => API.get(API_ENDPOINTS.TEACHER_ASSIGNMENTS_QUIZZES, params),
+    saveAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_SAVE_ASSESSMENTS, data),
+    publishAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_PUBLISH_ASSESSMENTS, data),
 };

@@ -209,7 +209,7 @@
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>`;
 
         try {
-            const res = await API.get(`/api/classes/${uuid}/students`);
+            const res = await ClassAPI.getStudents(uuid);
             const data = res?.data?.students || res?.data || (Array.isArray(res?.data) ? res.data : []);
             allStudents    = Array.isArray(data) ? data : [];
             rosterFiltered = [...allStudents];
@@ -313,7 +313,7 @@
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading…</td></tr>`;
 
         try {
-            const res  = await API.get(`/api/classes/${uuid}/class-subjects`);
+            const res  = await ClassAPI.getClassSubjects(uuid);
             const data = res?.data?.class_subjects || res?.data || (Array.isArray(res?.data) ? res.data : []);
             const subjects = Array.isArray(data) ? data : [];
             allSubjects = subjects; // store for PDF export
@@ -369,7 +369,7 @@
         container.innerHTML = `<div style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>`;
 
         try {
-            const res  = await API.get(`/api/classes/${uuid}/schedule`);
+            const res  = await ClassAPI.getSchedule(uuid);
             const data = res?.data?.schedule || res?.data || (Array.isArray(res?.data) ? res.data : []);
             scheduleData = Array.isArray(data) ? data : [];
 
@@ -664,7 +664,7 @@
             `<div id="${spinnerId}" style="text-align:center;padding:2.5rem;color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i> Loading…</div>`);
 
         try {
-            const res        = await API.get(`/api/classes/${uuid}/performance`);
+            const res        = await ClassAPI.getPerformance(uuid);
             const data       = res?.data || {};
             const summary    = data.summary    || {};
             const bySubject  = data.by_subject || [];

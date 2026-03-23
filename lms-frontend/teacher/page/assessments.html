@@ -1,0 +1,708 @@
+<style>
+  .as-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .as-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .as-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .as-title h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .as-title p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  .as-filters {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.95rem;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .as-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .as-field {
+    display: grid;
+    gap: 0.32rem;
+  }
+
+  .as-field label {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .as-field select,
+  .as-field input,
+  .as-category-box {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.5rem 0.72rem;
+    font-size: 0.875rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .as-field select:focus,
+  .as-field input:focus,
+  .as-category-box:focus-within {
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .as-category-box {
+    min-height: 124px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 0.55rem 0.62rem;
+  }
+
+  .combo-box {
+    width: 100%;
+    position: relative;
+  }
+
+  .combo-display {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+    background: #fff;
+    font-size: 0.875rem;
+    color: #0f172a;
+    user-select: none;
+  }
+
+  .combo-display::after {
+    content: "▼";
+    float: right;
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .dropdown {
+    display: none;
+    position: absolute;
+    width: 100%;
+    margin-top: 6px;
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    background: #fff;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 14px 32px rgba(2, 6, 23, 0.12);
+  }
+
+  .dropdown.show {
+    display: block;
+  }
+
+  .search-box {
+    width: calc(100% - 16px);
+    margin: 8px;
+    padding: 6px;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.82rem;
+  }
+
+  .option {
+    display: block;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 0.84rem;
+    color: #334155;
+  }
+
+  .option:hover {
+    background: #f8fafc;
+  }
+
+  .option input[type="checkbox"] {
+    margin-right: 8px;
+  }
+
+  .as-category-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.24rem 0.15rem;
+  }
+
+  .as-category-item label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #334155;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .as-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .as-empty {
+    background: #fff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 2.2rem 1rem;
+    text-align: center;
+    color: #64748b;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .as-empty-logo {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 12px;
+  }
+
+  .as-scores-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .as-scores-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .as-scores-head h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .as-scores-head p {
+    margin: 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .as-scores-meta {
+    display: grid;
+    gap: 0.22rem;
+    min-width: 220px;
+  }
+
+  .as-head-search {
+    width: 250px;
+    max-width: 100%;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .as-head-search:focus {
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .as-table-scroll {
+    overflow: auto;
+  }
+
+  .as-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 760px;
+    font-size: 0.86rem;
+  }
+
+  .as-table th,
+  .as-table td {
+    border-bottom: 1px solid #f1f5f9;
+    border-right: 1px solid #f1f5f9;
+    padding: 0.58rem 0.64rem;
+    vertical-align: top;
+  }
+
+  .as-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .as-table th:first-child,
+  .as-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #fff;
+  }
+
+  .as-table th:first-child {
+    z-index: 2;
+    background: #f8fafc;
+  }
+
+  .as-cat-head {
+    display: grid;
+    gap: 0.36rem;
+    min-width: 160px;
+  }
+
+  .as-cat-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+  }
+
+  .as-cat-name {
+    font-size: 0.73rem;
+    color: #334155;
+    font-weight: 700;
+    line-height: 1.3;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .as-max-input,
+  .as-score-input {
+    width: 100%;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.38rem 0.48rem;
+    font-size: 0.82rem;
+    color: #0f172a;
+    outline: none;
+    background: #fff;
+  }
+
+  .as-max-input:focus,
+  .as-score-input:focus {
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .as-score-input.invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+
+  .as-head-btn {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    border-radius: 8px;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .as-head-btn-icon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 0.78rem;
+  }
+
+  .as-head-btn:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+  }
+
+  .as-status {
+    margin-top: 0.7rem;
+    padding: 0.58rem 0.72rem;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: none;
+  }
+
+  .as-status.show {
+    display: block;
+  }
+
+  .as-status.error {
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+  }
+
+  .as-status.success {
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+  }
+
+  .as-status.info {
+    color: #1e40af;
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+  }
+
+  .as-loading {
+    display: none;
+    align-items: center;
+    gap: 0.6rem;
+    color: #475569;
+    font-size: 0.82rem;
+  }
+
+  .as-loading.show {
+    display: inline-flex;
+  }
+
+  .as-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e1;
+    border-top-color: #3090cf;
+    border-radius: 999px;
+    animation: as-spin 0.9s linear infinite;
+  }
+
+  .as-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.46);
+    z-index: 1200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .as-modal-card {
+    width: min(560px, 100%);
+    max-height: 88vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(2, 6, 23, 0.32);
+  }
+
+  .as-modal-head {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+
+  .as-modal-head h3 {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .as-modal-body {
+    padding: 0.95rem 1rem;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .as-modal-options {
+    display: grid;
+    gap: 0.45rem;
+    max-height: 270px;
+    overflow: auto;
+  }
+
+  .as-option {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.6rem 0.65rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "radio body"
+      "icon body";
+    align-items: start;
+    gap: 0.42rem 0.65rem;
+    cursor: pointer;
+    background: #fff;
+    position: relative;
+  }
+
+  .as-option-radio {
+    grid-area: radio;
+    margin-top: 0.12rem;
+  }
+
+  .as-option-icon {
+    grid-area: icon;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #eef6ff;
+    color: #2563eb;
+    font-size: 0.83rem;
+  }
+
+  .as-option-body {
+    grid-area: body;
+    display: grid;
+    gap: 0.16rem;
+  }
+
+  .as-option:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  .as-option-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.28;
+  }
+
+  .as-option-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .as-option-desc {
+    font-size: 0.74rem;
+    color: #475569;
+    line-height: 1.35;
+  }
+
+  .as-modal-actions {
+    padding: 0.8rem 1rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  @keyframes as-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 880px) {
+    .as-filter-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .as-actions {
+      width: 100%;
+    }
+
+    .as-head-search {
+      width: 100%;
+    }
+  }
+</style>
+
+<div class="card" id="assessmentPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-clipboard-list"></i> Assessment Score Management</h3>
+  </div>
+
+  <div class="card-body as-shell">
+    <div class="as-toolbar">
+      <div class="as-title">
+        <h3>Manage Category Scores</h3>
+        <p>
+          Select a class, choose categories, and save or publish student scores.
+        </p>
+      </div>
+      <div id="loadingIndicator" class="as-loading" aria-live="polite">
+        <span class="as-spinner" aria-hidden="true"></span>
+        <span>Loading data...</span>
+      </div>
+    </div>
+
+    <div id="filterSection" class="as-filters">
+      <div class="as-filter-grid">
+        <div class="as-field">
+          <label for="classSubjectSelect">Class / Subject</label>
+          <select id="classSubjectSelect">
+            <option value="">-- Select Class and Subject --</option>
+          </select>
+        </div>
+
+        <div class="as-field">
+          <label for="categoryMultiselect">Assessment Categories</label>
+          <div class="combo-box" id="comboBox">
+            <div class="combo-display" id="display">Select options</div>
+
+            <div class="dropdown" id="dropdown">
+              <input
+                type="text"
+                id="search"
+                class="search-box"
+                placeholder="Search..."
+              />
+
+              <label class="option">
+                <input type="checkbox" id="selectAll" />
+                <strong>Select All</strong>
+              </label>
+
+              <div id="categoryMultiselect"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="as-actions">
+        <button id="submitFilterBtn" class="btn btn-primary btn-sm">
+          <i class="fas fa-filter"></i> Load Students & Scores
+        </button>
+        <button id="clearFilterBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-rotate-left"></i> Clear Selection
+        </button>
+
+        <span style="margin-left: auto">
+          <span id="semesterDisplay" style="color: #005ee1; font-size: 0.82rem">
+            Current Semester: <strong id="semesterValue"></strong>
+          </span>
+          |
+          <span
+            id="academicYearDisplay"
+            style="color: #005ee1; font-size: 0.82rem"
+          >
+            Academic Year: <strong id="academicYearValue"></strong>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div id="logoContainer" class="as-empty">
+      <img
+        id="institutionLogoImage"
+        class="as-empty-logo"
+        src="../assets/img/logo.png"
+        alt="Institution logo"
+      />
+      <p>Choose filters above to load the score table.</p>
+    </div>
+
+    <div id="scoresSection" style="display: none" class="as-scores-wrap">
+      <div class="as-scores-head">
+        <div class="as-scores-meta">
+          <h4>Student Assessment Scores</h4>
+          <p id="scoresSubtitle"></p>
+        </div>
+        <input
+          id="scoresSearch"
+          class="as-head-search"
+          type="text"
+          placeholder="Search student name..."
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="as-table-scroll">
+        <table id="scoresTable" class="as-table">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+            </tr>
+          </thead>
+          <tbody id="scoresTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="as-modal-actions" style="border-top: 1px solid #e2e8f0">
+        <button id="saveAllBtn" class="btn btn-primary btn-sm">
+          <i class="fas fa-save"></i> Save All (Draft)
+        </button>
+        <button id="publishBtn" class="btn btn-success btn-sm">
+          <i class="fas fa-upload"></i> Publish All
+        </button>
+        <button id="resetScoresBtn" class="btn btn-outline btn-sm">
+          <i class="fas fa-undo"></i> Reset Changes
+        </button>
+      </div>
+
+      <div id="statusMessage" class="as-status" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<div id="autoFillModal" class="as-modal" aria-hidden="true">
+  <div class="as-modal-card">
+    <div class="as-modal-head">
+      <h3>Auto Assessment</h3>
+      <button id="autoFillCancelBtn" class="btn btn-outline btn-sm">
+        Close
+      </button>
+    </div>
+
+    <div class="as-modal-body">
+      <p style="margin: 0; color: #475569; font-size: 0.85rem">
+        Select one to Auto fill the Assessment mode.
+      </p>
+      <div id="autoFillOptions" class="as-modal-options"></div>
+    </div>
+
+    <div class="as-modal-actions">
+      <button id="autoFillConfirmBtn" class="btn btn-primary btn-sm">
+        <i class="fas fa-check"></i> Select
+      </button>
+    </div>
+  </div>
+</div>
