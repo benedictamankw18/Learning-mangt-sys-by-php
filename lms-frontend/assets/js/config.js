@@ -67,6 +67,7 @@ const API_ENDPOINTS = {
     PARENTS: '/api/parents',
     PARENT_BY_ID: (id) => `/api/parents/${id}`,
     PARENT_STUDENTS: (parentId) => `/api/parents/${parentId}/students`,
+    PARENT_ASSIGNMENTS: '/api/parent/assignments',
     PARENT_STUDENT_REL: '/api/parent-students',
     PARENT_STUDENT_REL_BY_ID: (id) => `/api/parent-students/${id}`,
 

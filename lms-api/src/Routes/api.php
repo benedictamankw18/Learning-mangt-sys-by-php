@@ -311,6 +311,7 @@ return [
     // Assignment routes
     'GET /courses/{courseId}/assignments' => ['controller' => 'AssignmentController', 'method' => 'getByCourse', 'auth' => true],
     'GET /assignments/my' => ['controller' => 'AssignmentController', 'method' => 'getMyAssignments', 'auth' => true],
+    'GET /parent/assignments' => ['controller' => 'AssignmentController', 'method' => 'getParentAssignments', 'auth' => true],
     'GET /assignments/{uuid}' => ['controller' => 'AssignmentController', 'method' => 'show', 'auth' => true],
     'POST /assignments' => ['controller' => 'AssignmentController', 'method' => 'create', 'auth' => true],
     'PUT /assignments/{uuid}' => ['controller' => 'AssignmentController', 'method' => 'update', 'auth' => true],

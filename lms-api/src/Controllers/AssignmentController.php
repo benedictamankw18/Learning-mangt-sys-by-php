@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Repositories\AssignmentRepository;
 use App\Repositories\ClassSubjectRepository;
+use App\Repositories\ParentRepository;
+use App\Repositories\ParentStudentRepository;
 use App\Repositories\StudentRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
@@ -14,13 +16,31 @@ class AssignmentController
 {
     private AssignmentRepository $repo;
     private ClassSubjectRepository $courseRepo;
+    private ParentRepository $parentRepo;
+    private ParentStudentRepository $parentStudentRepo;
     private StudentRepository $studentRepo;
 
     public function __construct()
     {
         $this->repo = new AssignmentRepository();
         $this->courseRepo = new ClassSubjectRepository();
+        $this->parentRepo = new ParentRepository();
+        $this->parentStudentRepo = new ParentStudentRepository();
         $this->studentRepo = new StudentRepository();
+    }
+
+    /**
+     * Resolve parent_id from auth payload, with fallback lookup by user_id.
+     */
+    private function resolveParentId(array $user): int
+    {
+        $parentId = isset($user['parent_id']) ? (int) $user['parent_id'] : 0;
+        if ($parentId > 0) {
+            return $parentId;
+        }
+
+        $parent = $this->parentRepo->findByUserId((int) ($user['user_id'] ?? 0));
+        return (int) ($parent['parent_id'] ?? 0);
     }
 
     /**
@@ -134,6 +154,71 @@ class AssignmentController
 
         Response::success([
             'assignments' => $assignments,
+            'count' => count($assignments),
+        ]);
+    }
+
+    /**
+     * Get assignments for a selected child linked to logged-in parent.
+     * GET /parent/assignments?child_id={studentId}&status=pending|submitted|graded
+     */
+    public function getParentAssignments(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole(['parent'])) {
+            return;
+        }
+
+        $parentId = $this->resolveParentId($user);
+        if ($parentId <= 0) {
+            Response::notFound('Parent record not found');
+            return;
+        }
+
+        $childId = isset($_GET['child_id']) ? (int) $_GET['child_id'] : 0;
+        if ($childId <= 0) {
+            Response::error('child_id is required', 400);
+            return;
+        }
+
+        if (!$this->parentStudentRepo->relationshipExists($parentId, $childId)) {
+            Response::forbidden('You do not have access to this child');
+            return;
+        }
+
+        $filters = [
+            'status' => $_GET['status'] ?? '',
+            'subject_id' => $_GET['subject_id'] ?? '',
+            'search' => $_GET['search'] ?? '',
+        ];
+
+        $assignments = $this->repo->getAssignmentsForStudent($childId, $filters);
+
+        $summary = [
+            'pending' => 0,
+            'submitted' => 0,
+            'graded' => 0,
+            'total' => count($assignments),
+            'completion_rate' => 0,
+        ];
+
+        foreach ($assignments as $assignment) {
+            $status = strtolower((string) ($assignment['student_status'] ?? 'pending'));
+            if (!isset($summary[$status])) {
+                continue;
+            }
+            $summary[$status]++;
+        }
+
+        if ($summary['total'] > 0) {
+            $completed = $summary['submitted'] + $summary['graded'];
+            $summary['completion_rate'] = (int) round(($completed / $summary['total']) * 100);
+        }
+
+        Response::success([
+            'child_id' => $childId,
+            'assignments' => $assignments,
+            'summary' => $summary,
             'count' => count($assignments),
         ]);
     }

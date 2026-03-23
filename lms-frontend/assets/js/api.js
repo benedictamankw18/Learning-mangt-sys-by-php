@@ -417,6 +417,13 @@ const AssignmentAPI = {
 };
 
 /**
+ * Parent Assignment APIs
+ */
+const ParentAssignmentAPI = {
+    getAssignments: (params) => API.get(API_ENDPOINTS.PARENT_ASSIGNMENTS, params),
+};
+
+/**
  * Assessment APIs
  */
 const AssessmentAPI = {

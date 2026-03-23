@@ -825,33 +825,47 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
   - Assessment schedule overview (read-only view of what teachers have created)
   - Upcoming assessments by class (read-only)
   - Assessment calendar (read-only)
-- [ ] **Create** `teacher/assessments.html`
-  - Create assessment:
-    - Select class and subject
-    - Assessment type/category
-    - Date and time
-    - Duration
-    - Total marks
-    - Instructions
-  - Schedule assessments
-  - Record marks/grades
-  - Submit grades to admin
-  - Assessment results analytics
+- [x] **Create** `teacher/assessments.html` _(implemented as `teacher/page/assessments.html` + `teacher/js/assessments.js`)_
+  - Teacher Assessment Management Guide (implemented)
+    - Filter section with:
+      - Class/Subject combo box
+      - Assessment Categories combo box (checkbox multi-select)
+      - Submit button to load students and scores
+    - Institution logo shown in center before filters are applied
+    - On submit:
+      - Logo is hidden
+      - Search bar + score table are displayed
+      - Student list loads for selected class/subject
+      - Selected categories render as table columns
+    - Score table columns:
+      - Student Name
+      - One or more assessment category columns (dynamic)
+      - Max score input under each category header
+    - Max score controls editability:
+      - Teacher enters `max_score` first per category
+      - Score input validates against `0..max_score`
+      - Invalid entries are highlighted with feedback
+    - Auto Assessment modal per category:
+      - Header icon opens modal: "Auto Assessment"
+      - Description: "Select one to Auto fill the Assessment mode"
+      - Single-select list (radio) of graded assignment/quiz sources
+      - Select button auto-fills matching student scores
+      - Teacher can review/edit after auto-fill
+    - Save & publish workflow:
+      - Save All stores as draft
+      - Publish validates and marks scores as published
+    - Import/Export (implemented):
+      - CSV template download
+      - CSV import with row-level validation and feedback
+      - Result popup with inserted vs not inserted rows (table format)
+      - CSV export and PDF export (frontend PDF/fallback)
+    - Data scope safeguards:
+      - Teacher ownership check on class-subject
+      - Current academic year + current semester enforced in backend
 
 **Day 4-5: Student & Parent Assessment Views**
 
-- [ ] **Create** `student/assessments.html`
-  - Upcoming assessments
-  - Assessment schedule
-  - Past assessments with results
-  - Assessment preparation materials
-- [ ] **Create** `student/exams.html`
-  - Exam timetable
-  - Exam venues
-  - Exam instructions
-  - Past exam results
-  - WASSCE preparation section
-- [ ] **Update** `parent/assignments.html`
+- [x] **Update** `parent/assignments.html` _(implemented as `parent/page/assignments.html` + `parent/js/assignments.js`)_
   - Child's pending assignments
   - Submitted assignments
   - Graded assignments with scores
