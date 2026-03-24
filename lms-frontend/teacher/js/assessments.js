@@ -17,7 +17,9 @@ let state = {
     autoFillItems: [],
     autoFillGroups: [],
     importRows: [],
-    importErrors: []
+    importErrors: [],
+    publishConfirmResolve: null,
+    resetConfirmResolve: null
 };
 
 function hasPageRoot() {
@@ -279,6 +281,30 @@ function setupEventListeners() {
     if (importResultOkBtn) {
         importResultOkBtn.addEventListener('click', closeImportResultModal);
     }
+    const publishConfirmCloseBtn = document.getElementById('publishConfirmCloseBtn');
+    if (publishConfirmCloseBtn) {
+        publishConfirmCloseBtn.addEventListener('click', () => closePublishConfirmModal(false));
+    }
+    const publishConfirmCancelBtn = document.getElementById('publishConfirmCancelBtn');
+    if (publishConfirmCancelBtn) {
+        publishConfirmCancelBtn.addEventListener('click', () => closePublishConfirmModal(false));
+    }
+    const publishConfirmOkBtn = document.getElementById('publishConfirmOkBtn');
+    if (publishConfirmOkBtn) {
+        publishConfirmOkBtn.addEventListener('click', () => closePublishConfirmModal(true));
+    }
+    const resetConfirmCloseBtn = document.getElementById('resetConfirmCloseBtn');
+    if (resetConfirmCloseBtn) {
+        resetConfirmCloseBtn.addEventListener('click', () => closeResetConfirmModal(false));
+    }
+    const resetConfirmCancelBtn = document.getElementById('resetConfirmCancelBtn');
+    if (resetConfirmCancelBtn) {
+        resetConfirmCancelBtn.addEventListener('click', () => closeResetConfirmModal(false));
+    }
+    const resetConfirmOkBtn = document.getElementById('resetConfirmOkBtn');
+    if (resetConfirmOkBtn) {
+        resetConfirmOkBtn.addEventListener('click', () => closeResetConfirmModal(true));
+    }
     const scoresSearch = document.getElementById('scoresSearch');
     if (scoresSearch) {
         scoresSearch.addEventListener('input', (e) => {
@@ -307,6 +333,22 @@ function setupEventListeners() {
         importResultModal.addEventListener('click', (e) => {
             if (e.target === importResultModal) {
                 closeImportResultModal();
+            }
+        });
+    }
+    const publishConfirmModal = document.getElementById('publishConfirmModal');
+    if (publishConfirmModal) {
+        publishConfirmModal.addEventListener('click', (e) => {
+            if (e.target === publishConfirmModal) {
+                closePublishConfirmModal(false);
+            }
+        });
+    }
+    const resetConfirmModal = document.getElementById('resetConfirmModal');
+    if (resetConfirmModal) {
+        resetConfirmModal.addEventListener('click', (e) => {
+            if (e.target === resetConfirmModal) {
+                closeResetConfirmModal(false);
             }
         });
     }
@@ -729,7 +771,7 @@ async function saveAllScores() {
  * Publish all scores (final mode)
  */
 async function publishAllScores() {
-    if (!confirmPublish()) {
+    if (!(await confirmPublish())) {
         return;
     }
 
@@ -827,8 +869,8 @@ function validateAllScores() {
 /**
  * Reset changes
  */
-function resetChanges() {
-    if (!confirm('Are you sure? This will discard all changes.')) {
+async function resetChanges() {
+    if (!(await confirmReset())) {
         return;
     }
 
@@ -1556,7 +1598,59 @@ function hideStatusMessage() {
  * Utility: Confirm publish action
  */
 function confirmPublish() {
-    return confirm('Are you sure you want to publish these scores? This action cannot be undone.');
+    const modal = document.getElementById('publishConfirmModal');
+    if (!modal) {
+        return Promise.resolve(false);
+    }
+
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    return new Promise((resolve) => {
+        state.publishConfirmResolve = resolve;
+    });
+}
+
+function closePublishConfirmModal(confirmed) {
+    const modal = document.getElementById('publishConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    if (typeof state.publishConfirmResolve === 'function') {
+        const resolver = state.publishConfirmResolve;
+        state.publishConfirmResolve = null;
+        resolver(!!confirmed);
+    }
+}
+
+function confirmReset() {
+    const modal = document.getElementById('resetConfirmModal');
+    if (!modal) {
+        return Promise.resolve(false);
+    }
+
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+
+    return new Promise((resolve) => {
+        state.resetConfirmResolve = resolve;
+    });
+}
+
+function closeResetConfirmModal(confirmed) {
+    const modal = document.getElementById('resetConfirmModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    if (typeof state.resetConfirmResolve === 'function') {
+        const resolver = state.resetConfirmResolve;
+        state.resetConfirmResolve = null;
+        resolver(!!confirmed);
+    }
 }
 
 function showError(message) {
