@@ -819,12 +819,16 @@
       return window.jspdf.jsPDF;
     }
 
-    function toAbsoluteAssetUrl(path) {
+    function toAbsoluteAssetUrl(path, baseOrigin) {
       const raw = String(path || "").trim();
       if (!raw || raw === "-") return "";
       if (/^https?:\/\//i.test(raw)) return raw;
       const normalized = raw.replace(/^\/+/, "");
-      return `${window.location.origin.replace(/\/$/, "")}/${normalized}`;
+      const origin = String(baseOrigin || window.location.origin).replace(
+        /\/$/,
+        "",
+      );
+      return `${origin}/${normalized}`;
     }
 
     function blobToDataUrl(blob) {
@@ -837,15 +841,83 @@
       });
     }
 
-    async function loadInstitutionLogoDataUrl(logoUrl) {
-      const fallbacks = [
-        toAbsoluteAssetUrl(logoUrl),
-        toAbsoluteAssetUrl("/assets/img/logo.png"),
-      ].filter(Boolean);
+    function toApiUploadServeUrl(rawPath) {
+      const source = String(rawPath || "").trim();
+      if (!source || source === "-") return "";
 
-      for (const candidate of fallbacks) {
+      const apiBase = String(
+        typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "",
+      )
+        .trim()
+        .replace(/\/$/, "");
+      if (!apiBase) return "";
+
+      let pathOnly = source;
+      if (/^https?:\/\//i.test(source)) {
         try {
-          const res = await fetch(candidate, { credentials: "same-origin" });
+          pathOnly = new URL(source).pathname;
+        } catch (_) {
+          pathOnly = source;
+        }
+      }
+
+      const uploadsMarker = "/uploads/";
+      const markerIndex = pathOnly.toLowerCase().indexOf(uploadsMarker);
+      const relative =
+        markerIndex >= 0
+          ? pathOnly.slice(markerIndex + uploadsMarker.length)
+          : pathOnly.replace(/^\/+/, "");
+
+      const parts = relative.split("/").filter(Boolean);
+      if (parts.length < 2) return "";
+
+      const category = encodeURIComponent(parts[0]);
+      if (parts.length === 2) {
+        const filename = encodeURIComponent(parts[1]);
+        return `${apiBase}/api/upload/${category}/${filename}`;
+      }
+
+      if (parts.length > 3) {
+        return "";
+      }
+
+      const subdir = encodeURIComponent(parts[1]);
+      const filename = encodeURIComponent(parts[2]);
+      return `${apiBase}/api/upload/${category}/${subdir}/${filename}`;
+    }
+
+    async function loadInstitutionLogoDataUrl(logoUrl) {
+      const apiBase = String(
+        typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "",
+      )
+        .trim()
+        .replace(/\/$/, "");
+      const apiOrigin = apiBase ? apiBase.replace(/\/api$/i, "") : "";
+
+      const candidates = [];
+      const pushCandidate = (value) => {
+        const v = String(value || "").trim();
+        if (!v) return;
+        if (!candidates.includes(v)) candidates.push(v);
+      };
+
+      // Prefer API-served upload path to avoid static /uploads CORS issues.
+      pushCandidate(toApiUploadServeUrl(logoUrl));
+
+      // Then try institution logo from frontend origin and API origin as fallback.
+      pushCandidate(toAbsoluteAssetUrl(logoUrl, window.location.origin));
+      if (apiOrigin) {
+        pushCandidate(toAbsoluteAssetUrl(logoUrl, apiOrigin));
+      }
+
+      // Final fallback to frontend default logo.
+      pushCandidate(
+        toAbsoluteAssetUrl("/assets/img/logo.png", window.location.origin),
+      );
+
+      for (const candidate of candidates) {
+        try {
+          const res = await fetch(candidate, { credentials: "omit" });
           if (!res.ok) continue;
           const blob = await res.blob();
           if (

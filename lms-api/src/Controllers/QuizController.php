@@ -89,6 +89,7 @@ class QuizController
             ->max('title', 200)
             ->numeric('duration_minutes')
             ->numeric('max_attempts')
+            ->numeric('randomize_questions')
             ->in('status', ['draft', 'active', 'archived'])
             ->in('quiz_type', ['graded', 'practice', 'survey'])
             ->in('show_results', ['instant', 'after_end', 'never']);
@@ -164,6 +165,7 @@ class QuizController
             ->max('title', 200)
             ->numeric('duration_minutes')
             ->numeric('max_attempts')
+            ->numeric('randomize_questions')
             ->in('status', ['draft', 'active', 'archived'])
             ->in('quiz_type', ['graded', 'practice', 'survey'])
             ->in('show_results', ['instant', 'after_end', 'never']);
@@ -280,12 +282,41 @@ class QuizController
             ->in('question_type', ['multiple_choice', 'true_false', 'short_answer', 'essay'])
             ->numeric('points')
             ->in('difficulty', ['easy', 'medium', 'hard'])
+            ->max('image_question', 255)
+            ->max('image_name', 255)
             ->max('correct_answer', 500)
             ->numeric('order_index');
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        if (array_key_exists('image_name', $data) && !array_key_exists('image_question', $data)) {
+            $data['image_question'] = $data['image_name'];
+        }
+
+        if (array_key_exists('image_question', $data)) {
+            $data['image_question'] = $this->normalizeImageQuestionPath($data['image_question']);
+        }
+
+        if (!empty($data['options']) && is_array($data['options'])) {
+            $normalizedOptions = [];
+            foreach ($data['options'] as $option) {
+                $label = strtoupper(trim((string) ($option['label'] ?? '')));
+                $text = trim((string) ($option['text'] ?? ''));
+                if (!$label || !$text) {
+                    continue;
+                }
+
+                $normalizedOptions[] = [
+                    'label' => $label,
+                    'text' => $text,
+                    'is_correct' => !empty($option['is_correct']) ? 1 : 0,
+                ];
+            }
+
+            $data['options'] = $normalizedOptions;
         }
 
         $data['quiz_id'] = $id;
@@ -296,6 +327,155 @@ class QuizController
             'message' => 'Question added successfully',
             'question_id' => $questionId
         ], 201);
+    }
+
+    /**
+     * Update question (teacher/admin)
+     * PUT /quiz-questions/{id}
+     */
+    public function updateQuestion(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
+            return;
+        }
+
+        $question = $this->repo->findQuestionById($id);
+        if (!$question) {
+            Response::error('Question not found', 404);
+            return;
+        }
+
+        $quiz = $this->repo->findById((int) $question['quiz_id']);
+        if (!$quiz) {
+            Response::error('Quiz not found', 404);
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && $quiz['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this question');
+            return;
+        }
+
+        if ($user['role'] === 'teacher' && $quiz['teacher_id'] != $user['teacher_id']) {
+            Response::forbidden('You can only update questions in your own quizzes');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        $validator->max('question_text', 65535)
+            ->in('question_type', ['multiple_choice', 'true_false', 'short_answer', 'essay'])
+            ->numeric('points')
+            ->in('difficulty', ['easy', 'medium', 'hard'])
+            ->max('image_question', 255)
+            ->max('image_name', 255)
+            ->max('correct_answer', 500)
+            ->numeric('order_index');
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if (array_key_exists('image_name', $data) && !array_key_exists('image_question', $data)) {
+            $data['image_question'] = $data['image_name'];
+        }
+
+        if (array_key_exists('image_question', $data)) {
+            $data['image_question'] = $this->normalizeImageQuestionPath($data['image_question']);
+        }
+
+        if (array_key_exists('options', $data) && is_array($data['options'])) {
+            $normalizedOptions = [];
+            foreach ($data['options'] as $option) {
+                $label = strtoupper(trim((string) ($option['label'] ?? '')));
+                $text = trim((string) ($option['text'] ?? ''));
+                if (!$label || !$text) {
+                    continue;
+                }
+
+                $normalizedOptions[] = [
+                    'label' => $label,
+                    'text' => $text,
+                    'is_correct' => !empty($option['is_correct']) ? 1 : 0,
+                ];
+            }
+
+            $data['options'] = $normalizedOptions;
+        }
+
+        $this->repo->updateQuestion($id, $data);
+
+        Response::success(['message' => 'Question updated successfully']);
+    }
+
+    private function normalizeImageQuestionPath($value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $path = trim($value);
+        if ($path === '') {
+            return null;
+        }
+
+        if (preg_match('#^https?://#i', $path)) {
+            return $path;
+        }
+
+        if (strpos($path, '/api/upload/') === 0) {
+            return $path;
+        }
+
+        if (strpos($path, '/uploads/') === 0) {
+            return '/api' . $path;
+        }
+
+        if (strpos($path, '/') === false) {
+            return '/api/upload/quiz-questions/' . $path;
+        }
+
+        return $path;
+    }
+
+    /**
+     * Delete question (teacher/admin)
+     * DELETE /quiz-questions/{id}
+     */
+    public function deleteQuestion(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole(['admin', 'teacher', 'super_admin'])) {
+            return;
+        }
+
+        $question = $this->repo->findQuestionById($id);
+        if (!$question) {
+            Response::error('Question not found', 404);
+            return;
+        }
+
+        $quiz = $this->repo->findById((int) $question['quiz_id']);
+        if (!$quiz) {
+            Response::error('Quiz not found', 404);
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && $quiz['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this question');
+            return;
+        }
+
+        if ($user['role'] === 'teacher' && $quiz['teacher_id'] != $user['teacher_id']) {
+            Response::forbidden('You can only delete questions in your own quizzes');
+            return;
+        }
+
+        $this->repo->deleteQuestion($id);
+        Response::success(['message' => 'Question deleted successfully']);
     }
 
     /**
@@ -431,6 +611,45 @@ class QuizController
         }
 
         Response::success($submission);
+    }
+
+    /**
+     * Get quiz results and analytics (teacher/admin)
+     * GET /quizzes/{id}/results
+     */
+    public function getResults(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole(['teacher', 'admin', 'super_admin'])) {
+            return;
+        }
+
+        $quiz = $this->repo->findById($id);
+
+        if (!$quiz) {
+            Response::error('Quiz not found', 404);
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && $quiz['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this quiz');
+            return;
+        }
+
+        if ($user['role'] === 'teacher' && $quiz['teacher_id'] != $user['teacher_id']) {
+            Response::forbidden('You can only view results for your own quizzes');
+            return;
+        }
+
+        $summary = $this->repo->getQuizResultsSummary($id);
+        $submissions = $this->repo->getQuizSubmissions($id);
+
+        Response::success([
+            'quiz' => $quiz,
+            'summary' => $summary,
+            'submissions' => $submissions,
+            'count' => count($submissions)
+        ]);
     }
 
     /**

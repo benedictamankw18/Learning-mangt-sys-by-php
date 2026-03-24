@@ -77,7 +77,8 @@ class FileUploadController
                 'category' => $category,
                 'institution_id' => $institutionId,
                 'uploaded_by' => $userId,
-                'url' => '/uploads/' . $category . '/' . $filename
+                'url' => '/uploads/' . $category . '/' . $filename,
+                'api_url' => '/api/upload/' . $category . '/' . $filename
             ];
 
             Response::success($fileData, 'File uploaded successfully');
@@ -148,7 +149,8 @@ class FileUploadController
                         'type' => $file['type'],
                         'extension' => $ext,
                         'category' => $category,
-                        'url' => '/uploads/' . $category . '/' . $filename
+                        'url' => '/uploads/' . $category . '/' . $filename,
+                        'api_url' => '/api/upload/' . $category . '/' . $filename
                     ];
                 } else {
                     $errors[] = [
@@ -174,7 +176,9 @@ class FileUploadController
     public function delete(array $user, string $category, string $filename): void
     {
         try {
-            $filePath = $this->uploadPath . $category . '/' . $filename;
+            $safeCategory = preg_replace('/[^a-zA-Z0-9_-]/', '', $category);
+            $safeFilename = basename($filename);
+            $filePath = $this->uploadPath . $safeCategory . '/' . $safeFilename;
 
             if (!file_exists($filePath)) {
                 Response::notFound('File not found');
@@ -258,7 +262,9 @@ class FileUploadController
     public function getFileInfo(array $user, string $category, string $filename): void
     {
         try {
-            $filePath = $this->uploadPath . $category . '/' . $filename;
+            $safeCategory = preg_replace('/[^a-zA-Z0-9_-]/', '', $category);
+            $safeFilename = basename($filename);
+            $filePath = $this->uploadPath . $safeCategory . '/' . $safeFilename;
 
             if (!file_exists($filePath)) {
                 Response::notFound('File not found');
@@ -266,13 +272,14 @@ class FileUploadController
             }
 
             $info = [
-                'filename' => $filename,
-                'path' => $category . '/' . $filename,
+                'filename' => $safeFilename,
+                'path' => $safeCategory . '/' . $safeFilename,
                 'size' => filesize($filePath),
                 'type' => mime_content_type($filePath),
-                'extension' => pathinfo($filename, PATHINFO_EXTENSION),
-                'category' => $category,
-                'url' => '/uploads/' . $category . '/' . $filename,
+                'extension' => pathinfo($safeFilename, PATHINFO_EXTENSION),
+                'category' => $safeCategory,
+                'url' => '/uploads/' . $safeCategory . '/' . $safeFilename,
+                'api_url' => '/api/upload/' . $safeCategory . '/' . $safeFilename,
                 'created_at' => date('Y-m-d H:i:s', filectime($filePath)),
                 'modified_at' => date('Y-m-d H:i:s', filemtime($filePath))
             ];
@@ -280,6 +287,61 @@ class FileUploadController
             Response::success($info);
         } catch (\Exception $e) {
             Response::serverError('Failed to get file info: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Serve uploaded file bytes
+     * GET /upload/{category}/{filename}
+     */
+    public function serve(string $category, string $filename): void
+    {
+        try {
+            $safeCategory = preg_replace('/[^a-zA-Z0-9_-]/', '', $category);
+            $safeFilename = basename($filename);
+            $filePath = $this->uploadPath . $safeCategory . '/' . $safeFilename;
+
+            if (!file_exists($filePath) || !is_file($filePath)) {
+                Response::notFound('File not found');
+                return;
+            }
+
+            $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+            header('Content-Type: ' . $mimeType);
+            header('Content-Length: ' . filesize($filePath));
+            header('Cache-Control: public, max-age=86400');
+            readfile($filePath);
+            exit;
+        } catch (\Exception $e) {
+            Response::serverError('Failed to serve file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Serve uploaded file bytes for one-level nested folders
+     * GET /upload/{category}/{subdir}/{filename}
+     */
+    public function serveNested(string $category, string $subdir, string $filename): void
+    {
+        try {
+            $safeCategory = preg_replace('/[^a-zA-Z0-9_-]/', '', $category);
+            $safeSubdir = preg_replace('/[^a-zA-Z0-9_-]/', '', $subdir);
+            $safeFilename = basename($filename);
+            $filePath = $this->uploadPath . $safeCategory . '/' . $safeSubdir . '/' . $safeFilename;
+
+            if (!file_exists($filePath) || !is_file($filePath)) {
+                Response::notFound('File not found');
+                return;
+            }
+
+            $mimeType = mime_content_type($filePath) ?: 'application/octet-stream';
+            header('Content-Type: ' . $mimeType);
+            header('Content-Length: ' . filesize($filePath));
+            header('Cache-Control: public, max-age=86400');
+            readfile($filePath);
+            exit;
+        } catch (\Exception $e) {
+            Response::serverError('Failed to serve file: ' . $e->getMessage());
         }
     }
 }

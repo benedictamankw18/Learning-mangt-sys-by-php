@@ -330,6 +330,11 @@ return [
     'DELETE /quizzes/{id}' => ['controller' => 'QuizController', 'method' => 'delete', 'auth' => true],
     'GET /quizzes/{id}/questions' => ['controller' => 'QuizController', 'method' => 'getQuestions', 'auth' => true],
     'POST /quizzes/{id}/questions' => ['controller' => 'QuizController', 'method' => 'addQuestion', 'auth' => true],
+    'PUT /quiz-questions/{id}' => ['controller' => 'QuizController', 'method' => 'updateQuestion', 'auth' => true],
+    'DELETE /quiz-questions/{id}' => ['controller' => 'QuizController', 'method' => 'deleteQuestion', 'auth' => true],
+    'PUT /quizzes/questions/{id}' => ['controller' => 'QuizController', 'method' => 'updateQuestion', 'auth' => true],
+    'DELETE /quizzes/questions/{id}' => ['controller' => 'QuizController', 'method' => 'deleteQuestion', 'auth' => true],
+    'GET /quizzes/{id}/results' => ['controller' => 'QuizController', 'method' => 'getResults', 'auth' => true],
     'POST /quizzes/{id}/start' => ['controller' => 'QuizController', 'method' => 'startQuiz', 'auth' => true],
     'POST /quiz-submissions/{id}/submit' => ['controller' => 'QuizController', 'method' => 'submitQuiz', 'auth' => true],
     'GET /quiz-submissions/{id}' => ['controller' => 'QuizController', 'method' => 'getSubmissionResults', 'auth' => true],
@@ -492,6 +497,8 @@ return [
     // File Upload routes
     'POST /upload' => ['controller' => 'FileUploadController', 'method' => 'upload', 'auth' => true],
     'POST /upload/multiple' => ['controller' => 'FileUploadController', 'method' => 'uploadMultiple', 'auth' => true],
+    'GET /upload/{category}/{filename}' => ['controller' => 'FileUploadController', 'method' => 'serve', 'auth' => false],
+    'GET /upload/{category}/{subdir}/{filename}' => ['controller' => 'FileUploadController', 'method' => 'serveNested', 'auth' => false],
     'GET /upload/{category}/{filename}/info' => ['controller' => 'FileUploadController', 'method' => 'getFileInfo', 'auth' => true],
     'DELETE /upload/{category}/{filename}' => ['controller' => 'FileUploadController', 'method' => 'delete', 'auth' => true],
 

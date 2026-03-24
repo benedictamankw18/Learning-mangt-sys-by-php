@@ -176,6 +176,14 @@ const API_ENDPOINTS = {
     ASSESSMENT_SUBMIT: (id) => `/api/assessments/${id}/submit`,
     ASSESSMENT_SUBMISSIONS: (id) => `/api/assessments/${id}/submissions`,
 
+    // Quizzes
+    QUIZZES: '/api/quizzes',
+    QUIZ_BY_ID: (id) => `/api/quizzes/${id}`,
+    COURSE_QUIZZES: (courseId) => `/api/courses/${courseId}/quizzes`,
+    QUIZ_QUESTIONS: (id) => `/api/quizzes/${id}/questions`,
+    QUIZ_QUESTION_BY_ID: (id) => `/api/quiz-questions/${id}`,
+    QUIZ_RESULTS: (id) => `/api/quizzes/${id}/results`,
+
     // Assessment Categories
     ASSESSMENT_CATEGORIES: '/api/assessment-categories',
     ASSESSMENT_CATEGORY_BY_ID: (id) => `/api/assessment-categories/${id}`,

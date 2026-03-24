@@ -22,7 +22,17 @@ class QuizRepository
         $stmt = $this->db->prepare("
             SELECT 
                 q.*,
-                cs.section_name
+                cs.section_name,
+                (
+                    SELECT COALESCE(SUM(qq.points), 0)
+                    FROM quiz_questions qq
+                    WHERE qq.quiz_id = q.quiz_id
+                ) AS total_points,
+                (
+                    SELECT COUNT(*)
+                    FROM quiz_questions qq
+                    WHERE qq.quiz_id = q.quiz_id
+                ) AS question_count
             FROM quizzes q
             LEFT JOIN course_sections cs ON q.section_id = cs.course_sections_id
             WHERE q.course_id = :course_id
@@ -43,7 +53,17 @@ class QuizRepository
                 q.*,
                 c.institution_id,
                 c.teacher_id,
-                cs.section_name
+                cs.section_name,
+                (
+                    SELECT COALESCE(SUM(qq.points), 0)
+                    FROM quiz_questions qq
+                    WHERE qq.quiz_id = q.quiz_id
+                ) AS total_points,
+                (
+                    SELECT COUNT(*)
+                    FROM quiz_questions qq
+                    WHERE qq.quiz_id = q.quiz_id
+                ) AS question_count
             FROM quizzes q
             INNER JOIN class_subjects c ON q.course_id = c.course_id
             LEFT JOIN course_sections cs ON q.section_id = cs.course_sections_id
@@ -72,6 +92,7 @@ class QuizRepository
                 quiz_type,
                 is_activated,
                 show_results,
+                randomize_questions,
                 start_date,
                 end_date
             ) VALUES (
@@ -85,6 +106,7 @@ class QuizRepository
                 :quiz_type,
                 :is_activated,
                 :show_results,
+                :randomize_questions,
                 :start_date,
                 :end_date
             )
@@ -101,6 +123,7 @@ class QuizRepository
             'quiz_type' => $data['quiz_type'] ?? 'graded',
             'is_activated' => $data['is_activated'] ?? 0,
             'show_results' => $data['show_results'] ?? 'after_end',
+            'randomize_questions' => $data['randomize_questions'] ?? 0,
             'start_date' => $data['start_date'] ?? null,
             'end_date' => $data['end_date'] ?? null
         ]);
@@ -126,6 +149,7 @@ class QuizRepository
             'quiz_type',
             'is_activated',
             'show_results',
+            'randomize_questions',
             'start_date',
             'end_date'
         ];
@@ -174,7 +198,24 @@ class QuizRepository
         ");
 
         $stmt->execute(['quiz_id' => $quizId]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$questions) {
+            return [];
+        }
+
+        foreach ($questions as &$question) {
+            $optStmt = $this->db->prepare("
+                SELECT option_label, option_text, is_correct
+                FROM quiz_question_options
+                WHERE question_id = :question_id
+                ORDER BY option_label ASC
+            ");
+            $optStmt->execute(['question_id' => (int) $question['question_id']]);
+            $question['options'] = $optStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+
+        return $questions;
     }
 
     /**
@@ -210,14 +251,33 @@ class QuizRepository
     }
 
     /**
+     * Find question by ID
+     */
+    public function findQuestionById(int $questionId): ?array
+    {
+        $stmt = $this->db->prepare("
+            SELECT *
+            FROM quiz_questions
+            WHERE question_id = :id
+        ");
+
+        $stmt->execute(['id' => $questionId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ?: null;
+    }
+
+    /**
      * Add question to quiz
      */
     public function addQuestion(array $data): int
     {
+        $imageQuestion = $data['image_question'] ?? ($data['image_name'] ?? null);
+
         $stmt = $this->db->prepare("
             INSERT INTO quiz_questions (
                 quiz_id,
                 question_text,
+                image_question,
                 question_type,
                 points,
                 difficulty,
@@ -227,6 +287,7 @@ class QuizRepository
             ) VALUES (
                 :quiz_id,
                 :question_text,
+                :image_question,
                 :question_type,
                 :points,
                 :difficulty,
@@ -239,6 +300,7 @@ class QuizRepository
         $stmt->execute([
             'quiz_id' => $data['quiz_id'],
             'question_text' => $data['question_text'],
+            'image_question' => $imageQuestion,
             'question_type' => $data['question_type'],
             'points' => $data['points'] ?? 1,
             'difficulty' => $data['difficulty'] ?? 'medium',
@@ -286,6 +348,79 @@ class QuizRepository
         ]);
 
         return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Replace all options for a question
+     */
+    public function replaceQuestionOptions(int $questionId, array $options): void
+    {
+        $deleteStmt = $this->db->prepare("
+            DELETE FROM quiz_question_options
+            WHERE question_id = :question_id
+        ");
+        $deleteStmt->execute(['question_id' => $questionId]);
+
+        foreach ($options as $option) {
+            $this->addQuestionOption($questionId, $option);
+        }
+    }
+
+    /**
+     * Update question by ID
+     */
+    public function updateQuestion(int $questionId, array $data): bool
+    {
+        if (array_key_exists('image_name', $data) && !array_key_exists('image_question', $data)) {
+            $data['image_question'] = $data['image_name'];
+        }
+
+        $fields = [];
+        $params = ['question_id' => $questionId];
+
+        $allowedFields = [
+            'question_text',
+            'image_question',
+            'question_type',
+            'points',
+            'difficulty',
+            'explanation',
+            'correct_answer',
+            'order_index'
+        ];
+
+        foreach ($allowedFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $fields[] = "$field = :$field";
+                $params[$field] = $data[$field];
+            }
+        }
+
+        if (!empty($fields)) {
+            $fields[] = 'updated_at = NOW()';
+            $sql = "UPDATE quiz_questions SET " . implode(', ', $fields) . " WHERE question_id = :question_id";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+        }
+
+        if (array_key_exists('options', $data) && is_array($data['options'])) {
+            $this->replaceQuestionOptions($questionId, $data['options']);
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete question by ID
+     */
+    public function deleteQuestion(int $questionId): bool
+    {
+        $stmt = $this->db->prepare("
+            DELETE FROM quiz_questions
+            WHERE question_id = :question_id
+        ");
+
+        return $stmt->execute(['question_id' => $questionId]);
     }
 
     /**
@@ -464,6 +599,68 @@ class QuizRepository
             'student_id' => $studentId
         ]);
 
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get quiz result summary for teachers/admins
+     */
+    public function getQuizResultsSummary(int $quizId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                COUNT(*) AS total_attempts,
+                COUNT(DISTINCT qs.student_id) AS unique_students,
+                SUM(CASE WHEN qs.status = 'submitted' THEN 1 ELSE 0 END) AS submitted_attempts,
+                SUM(CASE WHEN qs.status = 'in_progress' THEN 1 ELSE 0 END) AS in_progress_attempts,
+                COALESCE(AVG(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 END), 0) AS avg_percentage,
+                COALESCE(MAX(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 END), 0) AS best_percentage,
+                COALESCE(MIN(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 END), 0) AS lowest_percentage
+            FROM quiz_submissions qs
+            WHERE qs.quiz_id = :quiz_id
+        ");
+
+        $stmt->execute(['quiz_id' => $quizId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result ?: [
+            'total_attempts' => 0,
+            'unique_students' => 0,
+            'submitted_attempts' => 0,
+            'in_progress_attempts' => 0,
+            'avg_percentage' => 0,
+            'best_percentage' => 0,
+            'lowest_percentage' => 0,
+        ];
+    }
+
+    /**
+     * Get quiz submissions for teachers/admins
+     */
+    public function getQuizSubmissions(int $quizId): array
+    {
+        $stmt = $this->db->prepare("
+            SELECT
+                qs.submission_id,
+                qs.quiz_id,
+                qs.student_id,
+                qs.attempt,
+                qs.status,
+                qs.score,
+                qs.max_score,
+                qs.created_at AS started_at,
+                qs.submitted_at,
+                qs.graded_at,
+                s.student_id_number,
+                TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS student_name
+            FROM quiz_submissions qs
+            LEFT JOIN students s ON s.student_id = qs.student_id
+            LEFT JOIN users u ON u.user_id = s.user_id
+            WHERE qs.quiz_id = :quiz_id
+            ORDER BY qs.submitted_at DESC, qs.created_at DESC, qs.attempt DESC
+        ");
+
+        $stmt->execute(['quiz_id' => $quizId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

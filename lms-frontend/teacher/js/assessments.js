@@ -142,12 +142,12 @@ async function loadInstitutionLogo() {
 
     try {
         const user = typeof Auth !== 'undefined' && typeof Auth.getUser === 'function' ? Auth.getUser() : null;
-        const institutionUuid = String(
-            user?.institution_uuid || user?.institution?.uuid || ''
+        const institutionIdentifier = String(
+            user?.institution_uuid || user?.institution?.uuid || user?.institution_id || ''
         ).trim();
 
-        if (institutionUuid && typeof API !== 'undefined' && typeof API.get === 'function') {
-            const response = await API.get(`/api/institutions/${encodeURIComponent(institutionUuid)}/settings`);
+        if (institutionIdentifier && typeof API !== 'undefined' && typeof API.get === 'function') {
+            const response = await API.get(`/api/institutions/${encodeURIComponent(institutionIdentifier)}/settings`);
             const settings = response?.data?.data || response?.data || {};
             logoPath = String(settings.logo_url || '').trim();
         }
@@ -155,11 +155,105 @@ async function loadInstitutionLogo() {
         console.warn('Failed to load institution logo from settings, using fallback.', error);
     }
 
-    logoImg.src = resolveLogoUrl(logoPath, fallbackLogo);
+    const candidates = buildLogoCandidates(logoPath, fallbackLogo);
+    const selectedLogo = await chooseFirstWorkingImage(candidates, fallbackLogo);
+    logoImg.src = selectedLogo;
     logoImg.onerror = () => {
         logoImg.onerror = null;
         logoImg.src = fallbackLogo;
     };
+}
+
+function getApiBaseNormalized() {
+    return typeof API_BASE_URL === 'string' ? API_BASE_URL.replace(/\/$/, '') : '';
+}
+
+function toApiUploadServeUrl(logoPath) {
+    const source = String(logoPath || '').trim();
+    if (!source) {
+        return '';
+    }
+
+    const apiBase = getApiBaseNormalized();
+    if (!apiBase) {
+        return '';
+    }
+
+    let pathOnly = source;
+    if (/^https?:\/\//i.test(source)) {
+        try {
+            pathOnly = new URL(source).pathname;
+        } catch (_) {
+            pathOnly = source;
+        }
+    }
+
+    const marker = '/uploads/';
+    const markerIndex = pathOnly.toLowerCase().indexOf(marker);
+    const relative = markerIndex >= 0
+        ? pathOnly.slice(markerIndex + marker.length)
+        : pathOnly.replace(/^\/+/, '');
+
+    const parts = relative.split('/').filter(Boolean);
+    if (parts.length < 2) {
+        return '';
+    }
+
+    const category = encodeURIComponent(parts[0]);
+    if (parts.length === 2) {
+        return `${apiBase}/api/upload/${category}/${encodeURIComponent(parts[1])}`;
+    }
+
+    if (parts.length === 3) {
+        return `${apiBase}/api/upload/${category}/${encodeURIComponent(parts[1])}/${encodeURIComponent(parts[2])}`;
+    }
+
+    return '';
+}
+
+function buildLogoCandidates(logoPath, fallbackLogo) {
+    const candidates = [];
+    const pushCandidate = (value) => {
+        const v = String(value || '').trim();
+        if (!v) {
+            return;
+        }
+        if (!candidates.includes(v)) {
+            candidates.push(v);
+        }
+    };
+
+    pushCandidate(toApiUploadServeUrl(logoPath));
+    pushCandidate(resolveLogoUrl(logoPath, ''));
+    pushCandidate(fallbackLogo);
+
+    return candidates;
+}
+
+function canUseImage(url) {
+    return new Promise((resolve) => {
+        const testImage = new Image();
+        testImage.onload = () => resolve(true);
+        testImage.onerror = () => resolve(false);
+        testImage.src = String(url || '');
+    });
+}
+
+async function chooseFirstWorkingImage(candidates, fallbackLogo) {
+    for (const candidate of candidates) {
+        if (!candidate) {
+            continue;
+        }
+        try {
+            if (await canUseImage(candidate)) {
+                return candidate;
+            }
+        } catch (_) {
+            // Try next candidate.
+        }
+    }
+
+    return fallbackLogo;
 }
 
 function resolveLogoUrl(logoPath, fallbackLogo) {

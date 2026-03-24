@@ -437,6 +437,22 @@ const AssessmentAPI = {
 };
 
 /**
+ * Quiz APIs
+ */
+const QuizAPI = {
+    getByCourse: (courseId) => API.get(API_ENDPOINTS.COURSE_QUIZZES(courseId)),
+    getById: (id) => API.get(API_ENDPOINTS.QUIZ_BY_ID(id)),
+    getResults: (id) => API.get(API_ENDPOINTS.QUIZ_RESULTS(id)),
+    create: (data) => API.post(API_ENDPOINTS.QUIZZES, data),
+    update: (id, data) => API.put(API_ENDPOINTS.QUIZ_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.QUIZ_BY_ID(id)),
+    getQuestions: (id) => API.get(API_ENDPOINTS.QUIZ_QUESTIONS(id)),
+    addQuestion: (id, data) => API.post(API_ENDPOINTS.QUIZ_QUESTIONS(id), data),
+    updateQuestion: (id, data) => API.put(API_ENDPOINTS.QUIZ_QUESTION_BY_ID(id), data),
+    deleteQuestion: (id) => API.delete(API_ENDPOINTS.QUIZ_QUESTION_BY_ID(id)),
+};
+
+/**
  * Assessment Category APIs
  */
 const AssessmentCategoryAPI = {

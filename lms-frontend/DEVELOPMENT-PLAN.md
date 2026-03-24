@@ -879,41 +879,57 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 1-2: Teacher Quiz Creation**
 
-- [ ] **Create** `teacher/quizzes.html`
-  - Quiz list
-  - Create quiz form:
-    - Quiz title and description
-    - Select class and subject
-    - Time limit
-    - Total points
-    - Pass mark
-    - Available from/to dates
-    - Shuffle questions
-    - Show results immediately
-    - Number of type to access
-  - Question bank:
-    - Multiple choice questions
-    - True/False questions
-    - Short answer (text)
-    - Essay questions
-  - Add questions:
-    - Question text
-    - Question image (optional)
-    - Options (A, B, C, D)
-    - Correct answer
-    - Points per question
-    - Explanation (optional)
-  - Edit/delete questions
-  - Preview quiz
-  - Publish quiz
-  - View results and analytics
-  - Export quiz results
+- [x] **Create** `teacher/page/quizzes.html` + `teacher/js/quizzes.js`
+  - [x] Quiz list
+  - [x] Create quiz form:
+    - [x] Quiz title and description
+    - [x] Select class and subject (course)
+    - [x] Select Section (if applicable)
+    - [x] Time limit
+    - [x] Total points
+    - [x] Available from/to dates
+    - [x] Shuffle questions
+    - [x] Show results immediately
+    - [x] Number of attempts allowed
+
+- [x] **Create** `teacher/page/quiz-details.html` + `teacher/js/quiz-details.js`
+  - [x] Quiz information
+  - [x] Question list
+  - [x] Quiz settings (time limit, attempts, etc)
+  - [x] Preview quiz
+  - [x] Publish/unpublish quiz
+  - [x] View results and analytics
+  - [x] Export quiz questions (PDF)
+  - [x] Export quiz results (PDF, CSV)
+
+- [x] **Create** `teacher/page/quiz-questions.html` + `teacher/js/quiz-questions.js`
+  - [x] List of questions for the quiz
+  - [x] Create questions 
+  - [x] Edit/delete questions
+  - [x] View question details
+  - [x] Reorder questions (drag and drop)
+  - [x] Question bank:
+    - [x] Multiple choice questions
+    - [x] True/False questions
+    - [x] Short answer (text)
+    - [x] Essay questions
+  - [x] Add questions:
+    - [x] Question text
+    - [x] Question image (optional)
+    - [x] Options (A, B, C, D)
+    - [x] Correct answer
+    - [x] Points per question
+    - [x] Explanation (optional)
+  - [x] Preview quiz
+  - [x] Publish quiz
+  - [x] View results and analytics
+  - [x] Export quiz results
 
 **Day 3-4: Student Quiz Taking**
 
 - [ ] **Create** `student/quizzes.html`
   - Available quizzes list
-  - Quiz details (title, duration, points)
+  - Quiz details (title, duration, totalpoints, Number of attempts allowed, Time limit, Pass mark, Available from/to dates etc.)
   - Start quiz button
   - Take quiz interface:
     - Question navigation

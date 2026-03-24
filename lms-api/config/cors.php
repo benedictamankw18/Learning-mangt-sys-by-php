@@ -4,18 +4,30 @@
 $allowedOrigins = $_ENV['ALLOWED_ORIGINS'] ?? '*';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-if ($allowedOrigins === '*') {
-    header('Access-Control-Allow-Origin: *');
-} else {
-    // Split the comma-separated origins
-    $originsArray = array_map('trim', explode(',', $allowedOrigins));
+$isLocalDevOrigin = false;
+if ($origin && preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#i', $origin)) {
+    $isLocalDevOrigin = true;
+}
 
-    // Check if the request origin is in the allowed list
-    if (in_array($origin, $originsArray)) {
+if ($allowedOrigins === '*') {
+    // With credentials enabled below, reflect request origin when available.
+    if ($origin) {
         header('Access-Control-Allow-Origin: ' . $origin);
     } else {
-        // Default to first origin if no match
-        header('Access-Control-Allow-Origin: ' . $originsArray[0]);
+        header('Access-Control-Allow-Origin: *');
+    }
+} else {
+    // Split comma-separated origins and ignore empty values.
+    $originsArray = array_values(array_filter(array_map(function ($item) {
+        return trim((string) $item, " \t\n\r\0\x0B\"'");
+    }, explode(',', $allowedOrigins))));
+    $isExplicitlyAllowed = $origin && in_array($origin, $originsArray, true);
+
+    if ($isExplicitlyAllowed) {
+        header('Access-Control-Allow-Origin: ' . $origin);
+    } elseif ($isLocalDevOrigin) {
+        // Allow local frontend dev servers on any localhost port.
+        header('Access-Control-Allow-Origin: ' . $origin);
     }
 }
 

@@ -489,13 +489,16 @@ class InstitutionController
     public function getSettings(array $user, string $uuid): void
     {
         $sanitizedUuid = UuidHelper::sanitize($uuid);
-        if (!$sanitizedUuid) {
-            Response::badRequest('Invalid UUID format');
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
             return;
         }
-
-        // Check if institution exists
-        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
@@ -529,13 +532,16 @@ class InstitutionController
     public function updateSettings(array $user, string $uuid): void
     {
         $sanitizedUuid = UuidHelper::sanitize($uuid);
-        if (!$sanitizedUuid) {
-            Response::badRequest('Invalid UUID format');
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
             return;
         }
-
-        // Check if institution exists
-        $institution = $this->repo->findByUuid($sanitizedUuid);
 
         if (!$institution) {
             Response::notFound('Institution not found');
