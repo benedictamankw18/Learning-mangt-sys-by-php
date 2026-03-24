@@ -333,6 +333,18 @@
       background: #f3e8ff;
       color: #6b21a8;
     }
+    .ppf-chip.quiz-complete {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .ppf-chip.quiz-progress {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .ppf-chip.quiz-not-started {
+      background: #e2e8f0;
+      color: #334155;
+    }
 
     /* === EMPTY STATE === */
     .ppf-empty {
@@ -412,9 +424,19 @@
       color: whitesmoke;
     }
 
+    .ppf-quiz-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
     /* === RESPONSIVE === */
     @media (max-width: 1024px) {
       .ppf-grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .ppf-quiz-grid {
         grid-template-columns: 1fr;
       }
       .ppf-hero-header {
@@ -475,6 +497,10 @@
           <small><i class="fas fa-folder"></i> Materials</small>
           <strong id="ppfMaterialsAccessed">0</strong>
         </div>
+        <div class="ppf-hero-stat">
+          <small><i class="fas fa-list-check"></i> Quiz Completion</small>
+          <strong id="ppfQuizCompletion">0%</strong>
+        </div>
       </div>
     </div>
   </div>
@@ -525,6 +551,57 @@
         id="ppfTrendChart"
         style="min-height: 260px; max-height: 300px"
       ></canvas>
+    </div>
+  </div>
+
+  <div class="ppf-quiz-grid">
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-percent"></i> Quiz Scores By Subject</h3>
+        <small>Average and best quiz score per subject</small>
+      </div>
+      <div class="ppf-card-body ppf-table-wrap">
+        <table class="ppf-table">
+          <thead>
+            <tr>
+              <th>Subject</th>
+              <th>Attempts</th>
+              <th>Average</th>
+              <th>Best</th>
+            </tr>
+          </thead>
+          <tbody id="ppfQuizSubjectScoresTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-flag-checkered"></i> Quiz Completion Status</h3>
+        <small>Assigned, completed, and in-progress quizzes</small>
+      </div>
+      <div class="ppf-card-body" id="ppfQuizCompletionCard"></div>
+    </div>
+  </div>
+
+  <div class="ppf-card" style="margin-bottom: 1.5rem">
+    <div class="ppf-card-header">
+      <h3><i class="fas fa-clock-rotate-left"></i> Recent Quiz Attempts</h3>
+      <small>Latest quiz submissions and progress</small>
+    </div>
+    <div class="ppf-card-body ppf-table-wrap">
+      <table class="ppf-table">
+        <thead>
+          <tr>
+            <th>Quiz</th>
+            <th>Subject</th>
+            <th>Status</th>
+            <th>Score</th>
+            <th>When</th>
+          </tr>
+        </thead>
+        <tbody id="ppfQuizAttemptsTable"></tbody>
+      </table>
     </div>
   </div>
 

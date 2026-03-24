@@ -1,0 +1,254 @@
+<div id="admQuizzesRoot" class="adm-qz-wrap">
+  <style>
+    .adm-qz-wrap {
+      display: grid;
+      gap: 1rem;
+    }
+    .adm-qz-banner {
+      border: 1px solid #c7d2fe;
+      background: #eef2ff;
+      color: #3730a3;
+      border-radius: 12px;
+      padding: 0.85rem 1rem;
+      font-size: 0.9rem;
+    }
+    .adm-qz-toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.6rem;
+      align-items: center;
+    }
+    .adm-qz-toolbar .form-select,
+    .adm-qz-toolbar .form-input {
+      border-radius: 10px;
+      border: 1px solid #dbe2ea;
+      min-height: 38px;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.88rem;
+      width: 100%;
+    }
+    .adm-qz-kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+    .adm-qz-kpi {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: 0.85rem 0.95rem;
+    }
+    .adm-qz-kpi .k {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-weight: 600;
+    }
+    .adm-qz-kpi .v {
+      margin: 0.2rem 0 0;
+      color: #0f172a;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .adm-qz-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    .adm-qz-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .adm-qz-card-h {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 1px solid #eef2f7;
+      padding: 0.85rem 1rem;
+    }
+    .adm-qz-card-h h3 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 1rem;
+    }
+    .adm-qz-card-h p {
+      margin: 0.25rem 0 0;
+      color: #64748b;
+      font-size: 0.8rem;
+    }
+    .adm-qz-card-b {
+      padding: 0.9rem 1rem;
+    }
+    .adm-qz-table-wrap {
+      overflow: auto;
+    }
+    .adm-qz-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    .adm-qz-table th,
+    .adm-qz-table td {
+      border-bottom: 1px solid #eef2f7;
+      padding: 0.55rem 0.45rem;
+      text-align: left;
+      color: #334155;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    .adm-qz-table th {
+      color: #475569;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      background: #f8fafc;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .adm-qz-chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0.18rem 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .adm-qz-chip.active {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .adm-qz-chip.draft {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .adm-qz-chip.inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .adm-qz-progress {
+      height: 8px;
+      width: 120px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+      margin-top: 0.3rem;
+    }
+    .adm-qz-progress > span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #16a34a, #22c55e);
+    }
+    .adm-qz-empty {
+      text-align: center;
+      color: #64748b;
+      padding: 1.1rem;
+      font-size: 0.88rem;
+    }
+    @media (max-width: 980px) {
+      .adm-qz-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .adm-qz-toolbar {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <div class="adm-qz-banner">
+    <i class="fas fa-chart-pie"></i>
+    Admin overview of quiz performance across classes and subjects.
+  </div>
+
+  <div class="adm-qz-toolbar">
+    <input
+      id="admQzSearch"
+      class="form-input"
+      type="text"
+      placeholder="Search quiz title, class, or subject"
+    />
+    <select id="admQzClassFilter" class="form-select">
+      <option value="">All classes</option>
+    </select>
+    <button id="admQzRefreshBtn" class="btn-secondary" type="button">
+      <i class="fas fa-rotate-right"></i> Refresh
+    </button>
+  </div>
+
+  <div class="adm-qz-kpis">
+    <article class="adm-qz-kpi">
+      <p class="k">Total Quizzes</p>
+      <p id="admQzKpiTotal" class="v">0</p>
+    </article>
+    <article class="adm-qz-kpi">
+      <p class="k">Active Quizzes</p>
+      <p id="admQzKpiActive" class="v">0</p>
+    </article>
+    <article class="adm-qz-kpi">
+      <p class="k">Average Score</p>
+      <p id="admQzKpiAverage" class="v">0.0%</p>
+    </article>
+    <article class="adm-qz-kpi">
+      <p class="k">Completion Rate</p>
+      <p id="admQzKpiCompletion" class="v">0.0%</p>
+    </article>
+  </div>
+
+  <div class="adm-qz-grid">
+    <section class="adm-qz-card">
+      <header class="adm-qz-card-h">
+        <div>
+          <h3><i class="fas fa-school"></i> Quiz Statistics By Class</h3>
+          <p>
+            Aggregated quiz attempts, average score, and completion by class
+          </p>
+        </div>
+      </header>
+      <div class="adm-qz-card-b adm-qz-table-wrap">
+        <table class="adm-qz-table">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Quizzes</th>
+              <th>Attempts</th>
+              <th>Avg Score</th>
+              <th>Completion</th>
+            </tr>
+          </thead>
+          <tbody id="admQzClassStatsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="adm-qz-card">
+      <header class="adm-qz-card-h">
+        <div>
+          <h3><i class="fas fa-list-check"></i> All Quizzes Overview</h3>
+          <p>Per-quiz overview with score and completion metrics</p>
+        </div>
+      </header>
+      <div class="adm-qz-card-b adm-qz-table-wrap">
+        <table class="adm-qz-table">
+          <thead>
+            <tr>
+              <th>Quiz</th>
+              <th>Class / Subject</th>
+              <th>Status</th>
+              <th>Attempts</th>
+              <th>Average</th>
+              <th>Completion</th>
+            </tr>
+          </thead>
+          <tbody id="admQzQuizRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>

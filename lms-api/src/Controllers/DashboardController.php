@@ -16,6 +16,7 @@ use App\Repositories\AttendanceRepository;
 use App\Repositories\AssessmentRepository;
 use App\Repositories\AssignmentRepository;
 use App\Repositories\AnnouncementRepository;
+use App\Repositories\QuizRepository;
 
 class DashboardController
 {
@@ -31,6 +32,7 @@ class DashboardController
     private AssignmentRepository $assignmentRepo;
     private AnnouncementRepository $announcementRepo;
     private SubscriptionRepository $subscriptionRepo;
+    private QuizRepository $quizRepo;
 
     public function __construct()
     {
@@ -46,6 +48,7 @@ class DashboardController
         $this->assessmentRepo   = new AssessmentRepository();
         $this->assignmentRepo   = new AssignmentRepository();
         $this->announcementRepo = new AnnouncementRepository();
+        $this->quizRepo         = new QuizRepository();
     }
 
     /**
@@ -372,6 +375,7 @@ class DashboardController
             $childrenData = [];
             $allGrades    = [];
             $allMaterialAccess = [];
+            $allRecentQuizAttempts = [];
             $totalAttendance = 0;
 
             foreach ($children as $child) {
@@ -390,6 +394,9 @@ class DashboardController
                 $recentMaterialAccess = is_array($materialAccess['recent'] ?? null)
                     ? $materialAccess['recent']
                     : [];
+                $quizSubjectScores = $this->quizRepo->getStudentQuizPerformanceBySubject($sid);
+                $quizCompletion = $this->quizRepo->getStudentQuizCompletionStatus($sid);
+                $recentQuizAttempts = $this->quizRepo->getRecentStudentQuizAttempts($sid, 6);
 
                 $childName = $child['first_name'] . ' ' . $child['last_name'];
                 $initials  = strtoupper(substr($child['first_name'], 0, 1) . substr($child['last_name'], 0, 1));
@@ -406,7 +413,15 @@ class DashboardController
                 }
                 unset($materialRow);
 
+                foreach ($recentQuizAttempts as &$quizAttemptRow) {
+                    $quizAttemptRow['student_id'] = $sid;
+                    $quizAttemptRow['child_name'] = $childName;
+                    $quizAttemptRow['child_initials'] = $initials;
+                }
+                unset($quizAttemptRow);
+
                 $allMaterialAccess = array_merge($allMaterialAccess, $recentMaterialAccess);
+                $allRecentQuizAttempts = array_merge($allRecentQuizAttempts, $recentQuizAttempts);
 
                 $allGrades       = array_merge($allGrades, $grades);
                 $totalAttendance += $attendance;
@@ -431,11 +446,15 @@ class DashboardController
                     'optional_materials_accessed' => (int) ($materialAccess['optional_accessed'] ?? 0),
                     'last_material_access_at' => $materialAccess['last_accessed_at'] ?? null,
                     'recent_material_access' => $recentMaterialAccess,
+                    'quiz_subject_scores' => $quizSubjectScores,
+                    'quiz_completion' => $quizCompletion,
+                    'recent_quiz_attempts' => $recentQuizAttempts,
                 ];
             }
 
             usort($allGrades, fn($a, $b) => strcmp($b['graded_at'] ?? '', $a['graded_at'] ?? ''));
             usort($allMaterialAccess, fn($a, $b) => strcmp($b['last_opened_at'] ?? '', $a['last_opened_at'] ?? ''));
+            usort($allRecentQuizAttempts, fn($a, $b) => strcmp($b['submitted_at'] ?? ($b['created_at'] ?? ''), $a['submitted_at'] ?? ($a['created_at'] ?? '')));
             $childCount = count($children);
 
             $stats = [
@@ -444,6 +463,7 @@ class DashboardController
                 'avg_attendance'  => $childCount > 0 ? round($totalAttendance / $childCount, 1) : 0,
                 'recent_grades'   => array_slice($allGrades, 0, 5),
                 'recent_material_access' => array_slice($allMaterialAccess, 0, 12),
+                'recent_quiz_attempts' => array_slice($allRecentQuizAttempts, 0, 12),
                 'upcoming_events' => $this->announcementRepo->getRecentForStudent(5),
                 'pending_fee_status' => $this->buildPendingFeeStatus($childrenData),
             ];

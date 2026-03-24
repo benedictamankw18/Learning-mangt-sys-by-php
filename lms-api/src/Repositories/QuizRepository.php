@@ -507,7 +507,9 @@ class QuizRepository
             }
 
             $maxScore += $question['points'];
-            $isCorrect = ($studentAnswer == $question['correct_answer']);
+            $normalizedStudentAnswer = $this->normalizeAnswerForComparison((string) $studentAnswer, (string) ($question['question_type'] ?? ''));
+            $normalizedCorrectAnswer = $this->normalizeAnswerForComparison((string) ($question['correct_answer'] ?? ''), (string) ($question['question_type'] ?? ''));
+            $isCorrect = strcasecmp($normalizedStudentAnswer, $normalizedCorrectAnswer) === 0;
             $pointsEarned = $isCorrect ? $question['points'] : 0;
             $totalScore += $pointsEarned;
 
@@ -558,6 +560,30 @@ class QuizRepository
     }
 
     /**
+     * Normalize answer format before comparison.
+     * True/False questions may come in as A/B while correct answers are stored as true/false.
+     */
+    private function normalizeAnswerForComparison(string $value, string $questionType): string
+    {
+        $normalizedType = strtolower(trim($questionType));
+        $normalizedValue = strtolower(trim($value));
+
+        if ($normalizedType !== 'true_false') {
+            return $normalizedValue;
+        }
+
+        if (in_array($normalizedValue, ['a', 'true', '1', 't', 'yes'], true)) {
+            return 'true';
+        }
+
+        if (in_array($normalizedValue, ['b', 'false', '0', 'f', 'no'], true)) {
+            return 'false';
+        }
+
+        return $normalizedValue;
+    }
+
+    /**
      * Get submission by ID
      */
     public function getSubmissionById(int $id): ?array
@@ -568,18 +594,30 @@ class QuizRepository
                 q.course_id,
                 c.institution_id,
                 c.teacher_id,
-                s.student_number,
-                CONCAT(s.first_name, ' ', s.last_name) as student_name
+                s.student_id_number,
+                CONCAT(u.first_name, ' ', u.last_name) as student_name
             FROM quiz_submissions qs
             INNER JOIN quizzes q ON qs.quiz_id = q.quiz_id
             INNER JOIN class_subjects c ON q.course_id = c.course_id
             INNER JOIN students s ON qs.student_id = s.student_id
+            LEFT JOIN users u ON u.user_id = s.user_id
             WHERE qs.submission_id = :id
         ");
 
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
+    }
+
+    /**
+     * Get submission answers joined with question metadata for review UI
+     */
+    public function getSubmissionAnswerDetails(int $submissionId): array
+    {
+        $stmt = $this->db->prepare("\n            SELECT\n                q.question_id,\n                q.question_text,\n                q.correct_answer,\n                q.explanation,\n                q.order_index,\n                q.question_type,\n                q.points,\n                sa.answer AS student_answer,\n                sa.is_correct,\n                sa.points_earned\n            FROM quiz_submission_answers sa\n            INNER JOIN quiz_questions q ON q.question_id = sa.question_id\n            WHERE sa.submission_id = :submission_id\n            ORDER BY q.order_index ASC, q.question_id ASC\n        ");
+
+        $stmt->execute(['submission_id' => $submissionId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
@@ -661,6 +699,56 @@ class QuizRepository
         ");
 
         $stmt->execute(['quiz_id' => $quizId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Parent dashboard: per-subject quiz score summary for a student
+     */
+    public function getStudentQuizPerformanceBySubject(int $studentId): array
+    {
+        $stmt = $this->db->prepare("\n            SELECT\n                COALESCE(s.subject_name, CONCAT('Course ', q.course_id)) AS subject_name,\n                COUNT(*) AS submitted_attempts,\n                ROUND(AVG(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 END), 1) AS avg_percentage,\n                ROUND(MAX(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 END), 1) AS best_percentage\n            FROM quiz_submissions qs\n            INNER JOIN quizzes q ON q.quiz_id = qs.quiz_id\n            LEFT JOIN class_subjects cs ON cs.course_id = q.course_id\n            LEFT JOIN subjects s ON s.subject_id = cs.subject_id\n            WHERE qs.student_id = :student_id\n              AND qs.status = 'submitted'\n            GROUP BY COALESCE(s.subject_name, CONCAT('Course ', q.course_id))\n            ORDER BY avg_percentage DESC, subject_name ASC\n        ");
+
+        $stmt->execute(['student_id' => $studentId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Parent dashboard: quiz completion status summary for a student
+     */
+    public function getStudentQuizCompletionStatus(int $studentId): array
+    {
+        $stmt = $this->db->prepare("\n            SELECT\n                COUNT(DISTINCT q.quiz_id) AS assigned_quizzes,\n                COUNT(DISTINCT CASE WHEN subm.status = 'submitted' THEN q.quiz_id END) AS completed_quizzes,\n                COUNT(DISTINCT CASE WHEN subm.status = 'in_progress' THEN q.quiz_id END) AS in_progress_quizzes,\n                COUNT(DISTINCT subm.submission_id) AS total_attempts\n            FROM students st\n            INNER JOIN class_subjects cs\n                ON cs.class_id = st.class_id\n               AND LOWER(COALESCE(cs.status, '')) = 'active'\n            INNER JOIN quizzes q ON q.course_id = cs.course_id\n            LEFT JOIN quiz_submissions subm\n                ON subm.quiz_id = q.quiz_id\n               AND subm.student_id = st.student_id\n            WHERE st.student_id = :student_id\n              AND LOWER(COALESCE(q.status, '')) = 'active'\n        ");
+
+        $stmt->execute(['student_id' => $studentId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $assigned = (int) ($row['assigned_quizzes'] ?? 0);
+        $completed = (int) ($row['completed_quizzes'] ?? 0);
+        $inProgress = (int) ($row['in_progress_quizzes'] ?? 0);
+        $attempts = (int) ($row['total_attempts'] ?? 0);
+        $completionRate = $assigned > 0 ? round(($completed / $assigned) * 100, 1) : 0.0;
+
+        return [
+            'assigned_quizzes' => $assigned,
+            'completed_quizzes' => $completed,
+            'in_progress_quizzes' => $inProgress,
+            'total_attempts' => $attempts,
+            'completion_rate' => $completionRate,
+        ];
+    }
+
+    /**
+     * Parent dashboard: recent quiz attempts for a student
+     */
+    public function getRecentStudentQuizAttempts(int $studentId, int $limit = 6): array
+    {
+        $stmt = $this->db->prepare("\n            SELECT\n                qs.submission_id,\n                qs.quiz_id,\n                q.title AS quiz_title,\n                COALESCE(s.subject_name, CONCAT('Course ', q.course_id)) AS subject_name,\n                qs.attempt,\n                qs.status,\n                qs.score,\n                qs.max_score,\n                ROUND(CASE WHEN qs.max_score > 0 THEN (qs.score / qs.max_score) * 100 ELSE NULL END, 1) AS percentage,\n                qs.submitted_at,\n                qs.created_at\n            FROM quiz_submissions qs\n            INNER JOIN quizzes q ON q.quiz_id = qs.quiz_id\n            LEFT JOIN class_subjects cs ON cs.course_id = q.course_id\n            LEFT JOIN subjects s ON s.subject_id = cs.subject_id\n            WHERE qs.student_id = :student_id\n            ORDER BY COALESCE(qs.submitted_at, qs.created_at) DESC, qs.submission_id DESC\n            LIMIT :limit\n        ");
+
+        $stmt->bindValue(':student_id', $studentId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

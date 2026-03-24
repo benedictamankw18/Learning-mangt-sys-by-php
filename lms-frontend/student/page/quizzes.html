@@ -1,0 +1,560 @@
+<style>
+  .sq-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+  .sq-toolbar {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr auto auto auto;
+  }
+  .sq-search {
+    position: relative;
+    min-width: 220px;
+  }
+  .sq-search i {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.82rem;
+  }
+  .sq-search input {
+    width: 100%;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem 0.55rem 2rem;
+    font-size: 0.86rem;
+  }
+  .sq-select,
+  .sq-btn {
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid #dbe3ee;
+    background: #fff;
+    color: #334155;
+    font-size: 0.84rem;
+    padding: 0 0.75rem;
+  }
+  .sq-btn {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .sq-btn:hover {
+    border-color: #93c5fd;
+  }
+
+  .sq-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .sq-tab {
+    border: 1px solid #dbe3ee;
+    background: #fff;
+    color: #334155;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    font-weight: 700;
+  }
+  .sq-tab.active {
+    border-color: #2563eb;
+    color: #1d4ed8;
+    background: #eff6ff;
+  }
+
+  .sq-stats {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .sq-stat {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 0.75rem 0.9rem;
+  }
+  .sq-stat p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.76rem;
+  }
+  .sq-stat h4 {
+    margin: 0.25rem 0 0;
+    color: #0f172a;
+    font-size: 1.15rem;
+  }
+
+  .sq-list {
+    display: grid;
+    gap: 0.9rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  .sq-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .sq-head {
+    padding: 0.85rem 0.95rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+  }
+  .sq-head h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+  .sq-head p {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+  .sq-meta {
+    padding: 0.75rem 0.95rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+  .sq-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: #334155;
+  }
+  .sq-row strong {
+    color: #0f172a;
+    text-align: right;
+  }
+
+  .sq-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.62rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+  .sq-badge.available {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .sq-badge.upcoming {
+    background: #fef3c7;
+    color: #92400e;
+  }
+  .sq-badge.ended {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .sq-badge.completed {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .sq-actions {
+    padding: 0.78rem 0.95rem;
+    border-top: 1px solid #eef2f7;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    background: #fbfdff;
+  }
+
+  .sq-loading,
+  .sq-empty,
+  .sq-error {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: #64748b;
+    grid-column: 1 / -1;
+  }
+  .sq-error {
+    color: #b91c1c;
+  }
+
+  .sq-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.56);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 1rem;
+  }
+  .sq-modal-backdrop.show {
+    display: flex;
+  }
+  .sq-modal {
+    width: min(940px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(2, 6, 23, 0.32);
+  }
+  .sq-modal-header,
+  .sq-modal-footer {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .sq-modal-footer {
+    border-top: 1px solid #e2e8f0;
+    border-bottom: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.55rem;
+  }
+  .sq-modal-body {
+    padding: 0.95rem 1rem;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .sq-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+  .sq-panel {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+  }
+  .sq-panel h5 {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1px solid #eef2f7;
+    font-size: 0.86rem;
+    color: #0f172a;
+  }
+  .sq-panel-body {
+    padding: 0.75rem 0.9rem;
+  }
+
+  .sq-attempt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .sq-attempt-table th,
+  .sq-attempt-table td {
+    border-bottom: 1px solid #eef2f7;
+    text-align: left;
+    padding: 0.5rem 0.4rem;
+  }
+  .sq-attempt-table th {
+    color: #475569;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .sq-take-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .sq-timer {
+    font-weight: 800;
+    color: #b91c1c;
+    font-size: 1rem;
+  }
+  .sq-qnav {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .sq-qbtn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #dbe3ee;
+    border-radius: 8px;
+    background: #fff;
+    color: #334155;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+  .sq-qbtn.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+  .sq-qbtn.answered {
+    border-color: #16a34a;
+    color: #166534;
+  }
+
+  .sq-question {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.9rem;
+  }
+  .sq-question h4 {
+    margin: 0 0 0.55rem;
+    font-size: 0.96rem;
+    color: #0f172a;
+  }
+  .sq-options {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .sq-option {
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    padding: 0.58rem 0.65rem;
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    cursor: pointer;
+  }
+  .sq-option input {
+    margin-top: 0.15rem;
+  }
+  .sq-option.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+  .sq-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #dbe3ee;
+    border-radius: 10px;
+    padding: 0.65rem;
+    font-size: 0.86rem;
+    resize: vertical;
+  }
+
+  .sq-result-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .sq-result-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+  }
+  .sq-result-card p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.74rem;
+  }
+  .sq-result-card h4 {
+    margin: 0.2rem 0 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .sq-review-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.7rem;
+    margin-bottom: 0.6rem;
+  }
+  .sq-review-item h6 {
+    margin: 0 0 0.35rem;
+    font-size: 0.84rem;
+    color: #0f172a;
+  }
+  .sq-review-item p {
+    margin: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 980px) {
+    .sq-toolbar {
+      grid-template-columns: 1fr;
+    }
+    .sq-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sq-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    .sq-result-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<section id="sqRoot" class="sq-wrap">
+  <div class="card">
+    <div class="card-body">
+      <div class="sq-toolbar">
+        <div class="sq-search">
+          <i class="fas fa-search"></i>
+          <input
+            id="sqSearchInput"
+            type="search"
+            placeholder="Search quizzes by title, subject, class"
+          />
+        </div>
+        <select id="sqSubjectFilter" class="sq-select">
+          <option value="">All subjects</option>
+        </select>
+        <select id="sqStatusFilter" class="sq-select">
+          <option value="all">All status</option>
+          <option value="available">Available</option>
+          <option value="locked">Locked</option>
+          <option value="completed">Completed</option>
+        </select>
+        <button id="sqRefreshBtn" class="sq-btn">
+          <i class="fas fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+
+      <div id="sqStatusTabs" class="sq-tabs" style="margin-top: 0.8rem">
+        <button class="sq-tab active" data-status="all">All</button>
+        <button class="sq-tab" data-status="available">Available</button>
+        <button class="sq-tab" data-status="locked">Locked</button>
+        <button class="sq-tab" data-status="completed">Completed</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sq-stats">
+    <div class="sq-stat">
+      <p>Available Quizzes</p>
+      <h4 id="sqStatAvailable">0</h4>
+    </div>
+    <div class="sq-stat">
+      <p>Completed Quizzes</p>
+      <h4 id="sqStatCompleted">0</h4>
+    </div>
+    <div class="sq-stat">
+      <p>Average Score</p>
+      <h4 id="sqStatAverage">0%</h4>
+    </div>
+    <div class="sq-stat">
+      <p>Best Score</p>
+      <h4 id="sqStatBest">0%</h4>
+    </div>
+  </div>
+
+  <div id="sqQuizList" class="sq-list">
+    <div class="sq-loading">
+      <i class="fas fa-circle-notch fa-spin"></i> Loading quizzes...
+    </div>
+  </div>
+</section>
+
+<div id="sqDetailModal" class="sq-modal-backdrop" aria-hidden="true">
+  <div class="sq-modal">
+    <div class="sq-modal-header">
+      <h4 id="sqDetailTitle" style="margin: 0; color: #0f172a">Quiz Details</h4>
+    </div>
+    <div class="sq-modal-body">
+      <div class="sq-grid-2">
+        <section class="sq-panel">
+          <h5>Quiz Information</h5>
+          <div id="sqDetailInfo" class="sq-panel-body">-</div>
+        </section>
+        <section class="sq-panel">
+          <h5>Attempt Summary</h5>
+          <div id="sqDetailSummary" class="sq-panel-body">-</div>
+        </section>
+      </div>
+      <section class="sq-panel">
+        <h5>Attempt History</h5>
+        <div id="sqAttemptHistory" class="sq-panel-body">No attempts yet.</div>
+      </section>
+    </div>
+    <div class="sq-modal-footer">
+      <button id="sqDetailCloseBtn" class="sq-btn">Close</button>
+      <button
+        id="sqStartQuizBtn"
+        class="sq-btn"
+        style="background: #2563eb; border-color: #2563eb; color: #fff"
+      >
+        Start Quiz
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="sqTakeModal" class="sq-modal-backdrop" aria-hidden="true">
+  <div class="sq-modal">
+    <div class="sq-modal-header">
+      <div class="sq-take-header">
+        <h4 id="sqTakeTitle" style="margin: 0; color: #0f172a">Take Quiz</h4>
+        <div class="sq-timer" id="sqTimer">00:00</div>
+      </div>
+      <div id="sqQuestionNav" class="sq-qnav" style="margin-top: 0.7rem"></div>
+    </div>
+    <div class="sq-modal-body">
+      <section class="sq-question">
+        <h4 id="sqQuestionTitle">Question</h4>
+        <div
+          id="sqQuestionMeta"
+          style="font-size: 0.78rem; color: #64748b; margin-bottom: 0.5rem"
+        ></div>
+        <div
+          id="sqQuestionImageWrap"
+          style="display: none; margin-bottom: 0.6rem"
+        >
+          <img
+            id="sqQuestionImage"
+            alt="Question image"
+            style="
+              max-width: 100%;
+              border-radius: 10px;
+              border: 1px solid #e2e8f0;
+            "
+          />
+        </div>
+        <div id="sqQuestionOptions" class="sq-options"></div>
+      </section>
+    </div>
+    <div class="sq-modal-footer" style="justify-content: space-between">
+      <div style="display: flex; gap: 0.5rem">
+        <button id="sqPrevQuestionBtn" class="sq-btn">
+          <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        <button id="sqNextQuestionBtn" class="sq-btn">
+          Next <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+      <div style="display: flex; gap: 0.5rem">
+        <button id="sqSaveDraftBtn" class="sq-btn">Save Draft</button>
+        <button
+          id="sqSubmitQuizBtn"
+          class="sq-btn"
+          style="background: #16a34a; border-color: #16a34a; color: #fff"
+        >
+          Submit Quiz
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sqResultModal" class="sq-modal-backdrop" aria-hidden="true">
+  <div class="sq-modal">
+    <div class="sq-modal-header">
+      <h4 id="sqResultTitle" style="margin: 0; color: #0f172a">Quiz Result</h4>
+    </div>
+    <div class="sq-modal-body">
+      <div id="sqResultGrid" class="sq-result-grid"></div>
+      <section class="sq-panel">
+        <h5>Review Answers</h5>
+        <div id="sqReviewBody" class="sq-panel-body">
+          Review is not available for this quiz.
+        </div>
+      </section>
+    </div>
+    <div class="sq-modal-footer">
+      <button id="sqResultCloseBtn" class="sq-btn">Close</button>
+    </div>
+  </div>
+</div>

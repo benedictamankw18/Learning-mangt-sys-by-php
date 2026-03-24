@@ -788,7 +788,7 @@
             const percent = maxScore > 0 ? ((score / maxScore) * 100).toFixed(2) : '0.00';
             return [
                 row.student_name || '',
-                row.student_number || '',
+                row.student_id_number || '',
                 String(toNumber(row.attempt, 1)),
                 row.status || '',
                 String(score),

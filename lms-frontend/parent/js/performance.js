@@ -94,6 +94,7 @@
       setText('ppfAttendance', '0%');
       setText('ppfCourses', '0');
       setText('ppfMaterialsAccessed', '0');
+      setText('ppfQuizCompletion', '0%');
       setText('ppfHeroSubtitle', 'Select a child to view their performance overview');
       setText('ppfTrendLabel', 'No child selected');
       return;
@@ -103,9 +104,118 @@
     setText('ppfAttendance', `${Math.round(Number(child.attendance_rate || 0))}%`);
     setText('ppfCourses', String(Number(child.enrolled_courses || 0)));
     setText('ppfMaterialsAccessed', String(Number(child.materials_accessed || 0)));
+    setText('ppfQuizCompletion', `${Number(child.quiz_completion?.completion_rate || 0).toFixed(1)}%`);
     setText('ppfHeroSubtitle', `${childName(child)}'s academic journey`);
     setText('ppfTrendLabel', 'Performance trend');
     setText('ppfTrendChartLabel', `${childName(child)}'s average score progression`);
+  }
+
+  function renderQuizScoresBySubject() {
+    const tbody = document.getElementById('ppfQuizSubjectScoresTable');
+    if (!tbody) return;
+
+    const child = findSelectedChild();
+    const rows = Array.isArray(child?.quiz_subject_scores) ? child.quiz_subject_scores : [];
+
+    if (!child) {
+      tbody.innerHTML = '<tr><td colspan="4" class="ppf-empty"><i class="fas fa-inbox"></i><br>Select a child to see quiz score breakdown</td></tr>';
+      return;
+    }
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" class="ppf-empty"><i class="fas fa-inbox"></i><br>No quiz submissions yet</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map((row) => {
+      return [
+        '<tr>',
+        '<td><strong>' + esc(row.subject_name || '-') + '</strong></td>',
+        '<td>' + esc(String(row.submitted_attempts || 0)) + '</td>',
+        '<td>' + Number(row.avg_percentage || 0).toFixed(1) + '%</td>',
+        '<td>' + Number(row.best_percentage || 0).toFixed(1) + '%</td>',
+        '</tr>'
+      ].join('');
+    }).join('');
+  }
+
+  function renderQuizCompletionCard() {
+    const container = document.getElementById('ppfQuizCompletionCard');
+    if (!container) return;
+
+    const child = findSelectedChild();
+    if (!child) {
+      container.innerHTML = '<div class="ppf-empty"><i class="fas fa-inbox"></i><br>Select a child to view completion status</div>';
+      return;
+    }
+
+    const completion = child.quiz_completion || {};
+    const assigned = Number(completion.assigned_quizzes || 0);
+    const completed = Number(completion.completed_quizzes || 0);
+    const inProgress = Number(completion.in_progress_quizzes || 0);
+    const completionRate = Number(completion.completion_rate || 0);
+
+    let statusChip = '<span class="ppf-chip quiz-not-started">Not started</span>';
+    if (completed > 0 && completed >= assigned && assigned > 0) {
+      statusChip = '<span class="ppf-chip quiz-complete">Completed</span>';
+    } else if (inProgress > 0 || completed > 0) {
+      statusChip = '<span class="ppf-chip quiz-progress">In progress</span>';
+    }
+
+    container.innerHTML = [
+      '<div class="ppf-engagement-grid">',
+      '<div class="ppf-engagement-stat"><small><i class="fas fa-list"></i> Assigned</small><strong>' + assigned + '</strong></div>',
+      '<div class="ppf-engagement-stat"><small><i class="fas fa-check-circle"></i> Completed</small><strong>' + completed + '</strong></div>',
+      '<div class="ppf-engagement-stat"><small><i class="fas fa-hourglass-half"></i> In Progress</small><strong>' + inProgress + '</strong></div>',
+      '</div>',
+      '<div style="margin-top:1rem">',
+      '<div class="ppf-progress-item">',
+      '<div class="ppf-progress-label"><strong>Completion Rate</strong><span class="ppf-progress-value">' + completionRate.toFixed(1) + '%</span></div>',
+      '<div class="ppf-progress-bar"><div class="ppf-progress-fill" style="width:' + completionRate.toFixed(1) + '%"></div></div>',
+      '</div>',
+      '<div style="margin-top:.8rem">' + statusChip + '</div>',
+      '</div>'
+    ].join('');
+  }
+
+  function renderQuizAttemptsTable() {
+    const tbody = document.getElementById('ppfQuizAttemptsTable');
+    if (!tbody) return;
+
+    const child = findSelectedChild();
+    const rows = Array.isArray(child?.recent_quiz_attempts) ? child.recent_quiz_attempts : [];
+
+    if (!child) {
+      tbody.innerHTML = '<tr><td colspan="5" class="ppf-empty"><i class="fas fa-inbox"></i><br>Select a child to view recent quiz attempts</td></tr>';
+      return;
+    }
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="ppf-empty"><i class="fas fa-inbox"></i><br>No quiz attempts yet</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map((row) => {
+      const status = String(row.status || '-').toLowerCase();
+      const statusChip = status === 'submitted'
+        ? '<span class="ppf-chip quiz-complete">Submitted</span>'
+        : status === 'in_progress'
+          ? '<span class="ppf-chip quiz-progress">In Progress</span>'
+          : '<span class="ppf-chip quiz-not-started">' + esc(status || 'unknown') + '</span>';
+      const scoreText = Number(row.max_score || 0) > 0
+        ? `${Number(row.score || 0)} / ${Number(row.max_score || 0)} (${Number(row.percentage || 0).toFixed(1)}%)`
+        : '-';
+
+      return [
+        '<tr>',
+        '<td><strong>' + esc(row.quiz_title || '-') + '</strong></td>',
+        '<td>' + esc(row.subject_name || '-') + '</td>',
+        '<td>' + statusChip + '</td>',
+        '<td>' + esc(scoreText) + '</td>',
+        '<td><small>' + esc(fmtDateTime(row.submitted_at || row.created_at)) + '</small></td>',
+        '</tr>'
+      ].join('');
+    }).join('');
   }
 
   function renderSubjectPerformance() {
@@ -118,7 +228,18 @@
       return;
     }
 
-    const subjects = aggregateSubjectPerformance(Array.isArray(child.recent_material_access) ? child.recent_material_access : []);
+    // Prefer quiz subject averages from API; fallback to material-derived scores when unavailable.
+    const quizSubjects = Array.isArray(child.quiz_subject_scores)
+      ? child.quiz_subject_scores.map((row) => ({
+          name: String(row.subject_name || 'Other'),
+          average: Math.round(Number(row.avg_percentage || 0)),
+          count: Number(row.submitted_attempts || 0),
+        }))
+      : [];
+
+    const subjects = quizSubjects.length
+      ? quizSubjects.sort((a, b) => b.average - a.average)
+      : aggregateSubjectPerformance(Array.isArray(child.recent_material_access) ? child.recent_material_access : []);
 
     if (!subjects.length) {
       container.innerHTML = '<div class="ppf-empty"><i class="fas fa-inbox"></i><br>No subject data available yet</div>';
@@ -157,11 +278,16 @@
     const total = materials.length;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-    // Engagement level based on material access
+    // Engagement level based on both activity volume and completion quality.
     let engagementLevel = 'Low';
     let engagementColor = '#ef4444';
-    if (total > 10) engagementLevel = 'High', engagementColor = '#16a34a';
-    else if (total > 5) engagementLevel = 'Moderate', engagementColor = '#0284c7';
+    if (total >= 8 || (completionRate >= 95 && total >= 4)) {
+      engagementLevel = 'High';
+      engagementColor = '#16a34a';
+    } else if (total >= 4 || (completionRate >= 75 && total >= 2)) {
+      engagementLevel = 'Moderate';
+      engagementColor = '#0284c7';
+    }
 
     container.innerHTML = `
       <div class="ppf-engagement-grid">
@@ -311,6 +437,9 @@
     renderSummary();
     renderSubjectPerformance();
     renderEngagement();
+    renderQuizScoresBySubject();
+    renderQuizCompletionCard();
+    renderQuizAttemptsTable();
     renderTrend();
     renderMaterialsTable();
     renderRecentFeed();

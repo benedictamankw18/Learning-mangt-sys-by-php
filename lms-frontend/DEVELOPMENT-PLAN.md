@@ -904,7 +904,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 - [x] **Create** `teacher/page/quiz-questions.html` + `teacher/js/quiz-questions.js`
   - [x] List of questions for the quiz
-  - [x] Create questions 
+  - [x] Create questions
   - [x] Edit/delete questions
   - [x] View question details
   - [x] Reorder questions (drag and drop)
@@ -927,9 +927,9 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 3-4: Student Quiz Taking**
 
-- [ ] **Create** `student/quizzes.html`
+- [x] **Create** `student/quizzes.html`
   - Available quizzes list
-  - Quiz details (title, duration, totalpoints, Number of attempts allowed, Time limit, Pass mark, Available from/to dates etc.)
+  - Quiz details (title, duration, totalpoints, Number of attempts allowed, Time limit, Available from/to dates etc.)
   - Start quiz button
   - Take quiz interface:
     - Question navigation
@@ -945,12 +945,12 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 5: Admin & Parent Views**
 
-- [ ] **Create** `admin/quizzes.html`
+- [x] **Create** `admin/quizzes.html`
   - All quizzes overview
   - Quiz statistics by class
   - Average scores
   - Completion rates
-- [ ] **Update** `parent/performance.html`
+- [x] **Update** `parent/performance.html`
   - Add quiz results section
   - Quiz scores by subject
   - Completion status

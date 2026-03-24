@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Repositories\QuizRepository;
 use App\Repositories\ClassSubjectRepository;
+use App\Repositories\StudentRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Middleware\RoleMiddleware;
@@ -12,11 +13,36 @@ class QuizController
 {
     private QuizRepository $repo;
     private ClassSubjectRepository $courseRepo;
+    private StudentRepository $studentRepo;
 
     public function __construct()
     {
         $this->repo = new QuizRepository();
         $this->courseRepo = new ClassSubjectRepository();
+        $this->studentRepo = new StudentRepository();
+    }
+
+    /**
+     * Resolve student_id from auth payload; fallback to lookup by user_id.
+     */
+    private function resolveStudentId(array $user): ?int
+    {
+        if (isset($user['student_id']) && is_numeric($user['student_id'])) {
+            $studentId = (int) $user['student_id'];
+            return $studentId > 0 ? $studentId : null;
+        }
+
+        if (!isset($user['user_id']) || !is_numeric($user['user_id'])) {
+            return null;
+        }
+
+        $student = $this->studentRepo->findByUserId((int) $user['user_id']);
+        if (!$student || !isset($student['student_id']) || !is_numeric($student['student_id'])) {
+            return null;
+        }
+
+        $studentId = (int) $student['student_id'];
+        return $studentId > 0 ? $studentId : null;
     }
 
     /**
@@ -40,6 +66,13 @@ class QuizController
         }
 
         $quizzes = $this->repo->getCourseQuizzes($courseId);
+
+        // Student visibility rule: only active quizzes should be visible.
+        if (($user['role'] ?? '') === 'student') {
+            $quizzes = array_values(array_filter($quizzes, static function ($quiz) {
+                return strtolower((string) ($quiz['status'] ?? '')) === 'active';
+            }));
+        }
 
         Response::success([
             'quizzes' => $quizzes,
@@ -489,6 +522,12 @@ class QuizController
             return;
         }
 
+        $studentId = $this->resolveStudentId($user);
+        if ($studentId === null) {
+            Response::forbidden('Student profile not found for this account');
+            return;
+        }
+
         // Check if quiz exists
         $quiz = $this->repo->findById($id);
 
@@ -510,13 +549,13 @@ class QuizController
         }
 
         // Check attempts
-        $attempts = $this->repo->getStudentAttempts($id, $user['student_id']);
+        $attempts = $this->repo->getStudentAttempts($id, $studentId);
         if (count($attempts) >= $quiz['max_attempts']) {
             Response::error('Maximum attempts reached', 400);
             return;
         }
 
-        $submissionId = $this->repo->startQuiz($id, $user['student_id']);
+        $submissionId = $this->repo->startQuiz($id, $studentId);
 
         Response::success([
             'message' => 'Quiz started successfully',
@@ -536,6 +575,12 @@ class QuizController
             return;
         }
 
+        $studentId = $this->resolveStudentId($user);
+        if ($studentId === null) {
+            Response::forbidden('Student profile not found for this account');
+            return;
+        }
+
         // Check if submission exists
         $submission = $this->repo->getSubmissionById($id);
 
@@ -545,7 +590,7 @@ class QuizController
         }
 
         // Verify ownership
-        if ($submission['student_id'] != $user['student_id']) {
+        if ($submission['student_id'] != $studentId) {
             Response::forbidden('This submission does not belong to you');
             return;
         }
@@ -572,7 +617,7 @@ class QuizController
             return;
         }
 
-        $this->repo->submitQuiz($id, $data['answers'], $user['student_id']);
+        $this->repo->submitQuiz($id, $data['answers'], $studentId);
 
         Response::success(['message' => 'Quiz submitted successfully']);
     }
@@ -583,6 +628,15 @@ class QuizController
      */
     public function getSubmissionResults(array $user, int $id): void
     {
+        $studentId = null;
+        if (($user['role'] ?? '') === 'student') {
+            $studentId = $this->resolveStudentId($user);
+            if ($studentId === null) {
+                Response::forbidden('Student profile not found for this account');
+                return;
+            }
+        }
+
         // Check if submission exists
         $submission = $this->repo->getSubmissionById($id);
 
@@ -592,7 +646,7 @@ class QuizController
         }
 
         // Students can only view their own submissions
-        if ($user['role'] === 'student' && $submission['student_id'] != $user['student_id']) {
+        if (($user['role'] ?? '') === 'student' && $submission['student_id'] != $studentId) {
             Response::forbidden('This submission does not belong to you');
             return;
         }
@@ -610,7 +664,34 @@ class QuizController
             }
         }
 
-        Response::success($submission);
+        $answerDetails = $this->repo->getSubmissionAnswerDetails($id);
+        $questions = [];
+        $answers = [];
+
+        foreach ($answerDetails as $row) {
+            $questionId = (int) ($row['question_id'] ?? 0);
+            if ($questionId <= 0) {
+                continue;
+            }
+
+            $questions[] = [
+                'question_id' => $questionId,
+                'question_text' => $row['question_text'] ?? null,
+                'correct_answer' => $row['correct_answer'] ?? null,
+                'explanation' => $row['explanation'] ?? null,
+                'question_type' => $row['question_type'] ?? null,
+                'points' => $row['points'] ?? null,
+                'student_answer' => $row['student_answer'] ?? null,
+                'is_correct' => (int) ($row['is_correct'] ?? 0) === 1,
+                'points_earned' => $row['points_earned'] ?? null,
+            ];
+            $answers[(string) $questionId] = (string) ($row['student_answer'] ?? '');
+        }
+
+        Response::success(array_merge($submission, [
+            'questions' => $questions,
+            'answers' => $answers,
+        ]));
     }
 
     /**
@@ -663,6 +744,12 @@ class QuizController
             return;
         }
 
+        $studentId = $this->resolveStudentId($user);
+        if ($studentId === null) {
+            Response::forbidden('Student profile not found for this account');
+            return;
+        }
+
         // Check if quiz exists
         $quiz = $this->repo->findById($id);
 
@@ -671,7 +758,7 @@ class QuizController
             return;
         }
 
-        $attempts = $this->repo->getStudentAttempts($id, $user['student_id']);
+        $attempts = $this->repo->getStudentAttempts($id, $studentId);
 
         Response::success([
             'attempts' => $attempts,
