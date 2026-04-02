@@ -424,7 +424,10 @@ class TeacherRepository
                 INNER JOIN subjects s          ON csub.subject_id = s.subject_id
                 INNER JOIN classes cl          ON csub.class_id = cl.class_id
                 LEFT JOIN semesters sem        ON csub.semester_id = sem.semester_id
+                                LEFT JOIN institution_settings iset ON csub.institution_id = iset.institution_id
                 WHERE csub.teacher_id = :teacher_id
+                                    AND cs.status = 'active'
+                                    AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(iset.meta, '$.is_timetable_published')), '0')) IN ('1', 'true')
             ";
 
             $params = ['teacher_id' => $teacherId];

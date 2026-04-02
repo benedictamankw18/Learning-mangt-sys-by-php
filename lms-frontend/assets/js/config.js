@@ -8,7 +8,7 @@ const APP_NAME = 'Ghana SHS LMS';
 // Falls back to 'development' / localhost only when env.js is absent.
 const _env        = (typeof window !== 'undefined' && window.ENV_CONFIG) || {};
 const APP_ENV     = _env.APP_ENV      || 'development';
-const API_BASE_URL = _env.API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = _env.API_BASE_URL || 'http://192.168.0.164:8000';
 
 // API Endpoints
 const API_ENDPOINTS = {

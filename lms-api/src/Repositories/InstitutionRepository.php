@@ -1003,6 +1003,8 @@ class InstitutionRepository
     public function updateTimetablePublished(int $institutionId, bool $isPublished): bool
     {
         try {
+            $this->db->beginTransaction();
+
             $stmt = $this->db->prepare(" 
                 UPDATE institution_settings
                 SET meta = JSON_SET(
@@ -1013,11 +1015,42 @@ class InstitutionRepository
                 WHERE institution_id = :institution_id
             ");
 
-            return $stmt->execute([
+            $settingsUpdated = $stmt->execute([
                 'institution_id' => $institutionId,
                 'is_timetable_published' => $isPublished ? 1 : 0
             ]);
+
+            if (!$settingsUpdated) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $statusValue = $isPublished ? 'active' : 'inactive';
+            $schedulesStmt = $this->db->prepare(" 
+                UPDATE course_schedules s
+                INNER JOIN class_subjects cs ON s.course_id = cs.course_id
+                SET s.status = :status,
+                    s.institution_id = cs.institution_id,
+                    s.updated_at = NOW()
+                WHERE cs.institution_id = :institution_id
+            ");
+
+            $schedulesUpdated = $schedulesStmt->execute([
+                'status' => $statusValue,
+                'institution_id' => $institutionId,
+            ]);
+
+            if (!$schedulesUpdated) {
+                $this->db->rollBack();
+                return false;
+            }
+
+            $this->db->commit();
+            return true;
         } catch (\PDOException $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
             error_log("Update Timetable Publish State Error: " . $e->getMessage());
             return false;
         }

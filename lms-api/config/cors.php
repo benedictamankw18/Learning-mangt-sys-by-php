@@ -5,7 +5,7 @@ $allowedOrigins = $_ENV['ALLOWED_ORIGINS'] ?? '*';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
 $isLocalDevOrigin = false;
-if ($origin && preg_match('#^https?://(localhost|127\.0\.0\.1)(:\d+)?$#i', $origin)) {
+if ($origin && preg_match('#^https?://(?:localhost|127\.0\.0\.1|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}|172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(:\d+)?$#i', $origin)) {
     $isLocalDevOrigin = true;
 }
 

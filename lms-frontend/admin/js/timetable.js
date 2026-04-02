@@ -102,6 +102,7 @@
       await loadReferenceData();
       await loadSchedules();
       await loadPeriodSlots();
+       await loadPublishState();
       renderAll();
       toast('Timetable refreshed', 'success');
     });
@@ -1534,7 +1535,22 @@
     try {
       const res = await InstitutionTimetableAPI.getPublishState(institutionKey);
       const payload = (res && res.data) ? res.data : res;
-      S.isPublished = Boolean(payload && payload.is_timetable_published);
+      const stateValue = payload && Object.prototype.hasOwnProperty.call(payload, 'is_timetable_published')
+        ? payload.is_timetable_published
+        : (payload && payload.data && Object.prototype.hasOwnProperty.call(payload.data, 'is_timetable_published')
+          ? payload.data.is_timetable_published
+          : undefined);
+
+      if (typeof stateValue === 'boolean') {
+        S.isPublished = stateValue;
+      } else if (typeof stateValue === 'number') {
+        S.isPublished = stateValue === 1;
+      } else if (typeof stateValue === 'string') {
+        const raw = stateValue.trim().toLowerCase();
+        S.isPublished = raw === '1' || raw === 'true';
+      } else {
+        S.isPublished = false;
+      }
     } catch (_) {
       S.isPublished = false;
     }
@@ -1575,6 +1591,8 @@
       unpublishBtn.style.display = published ? '' : 'none';
       unpublishBtn.setAttribute('aria-hidden', published ? 'false' : 'true');
     }
+
+    renderTable();
   }
 
   function exportPdf(mode) {

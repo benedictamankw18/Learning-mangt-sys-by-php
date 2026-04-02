@@ -344,17 +344,26 @@ class TeacherAssessmentController
                     q.quiz_id AS id,
                     q.title AS name,
                     q.description,
-                    qsub.student_id,
-                    qsub.score,
-                    COALESCE(qsub.max_score, 100) AS max_score,
-                    COALESCE(qsub.graded_at, qsub.submitted_at) AS graded_at
+                    qbest.student_id,
+                    qbest.score,
+                    qbest.max_score,
+                    qbest.graded_at
                 FROM quizzes q
-                INNER JOIN quiz_submissions qsub ON qsub.quiz_id = q.quiz_id
+                INNER JOIN (
+                    SELECT
+                        qs.quiz_id,
+                        qs.student_id,
+                        MAX(qs.score) AS score,
+                        COALESCE(MAX(qs.max_score), 100) AS max_score,
+                        MAX(COALESCE(qs.graded_at, qs.submitted_at)) AS graded_at
+                    FROM quiz_submissions qs
+                    WHERE qs.score IS NOT NULL
+                      AND qs.submitted_at IS NOT NULL
+                    GROUP BY qs.quiz_id, qs.student_id
+                ) qbest ON qbest.quiz_id = q.quiz_id
                 INNER JOIN class_subjects cs ON cs.course_id = q.course_id
                 WHERE q.course_id = :course_id
-                  AND cs.institution_id = :institution_id
-                  AND qsub.score IS NOT NULL
-                  AND qsub.submitted_at IS NOT NULL";
+                  AND cs.institution_id = :institution_id";
 
             $params = [
                 'course_id' => $courseId,
@@ -363,7 +372,7 @@ class TeacherAssessmentController
 
             if ($studentId > 0) {
                 $assignmentSql .= ' AND asub.student_id = :student_id';
-                $quizSql .= ' AND qsub.student_id = :student_id';
+                $quizSql .= ' AND qbest.student_id = :student_id';
                 $params['student_id'] = $studentId;
             }
 

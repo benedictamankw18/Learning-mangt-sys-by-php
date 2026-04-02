@@ -17,33 +17,50 @@ class CourseScheduleRepository
     /**
      * Get all schedules for a course
      */
-    public function getCourseSchedules(int $courseId): array
+    public function getCourseSchedules(int $courseId, ?int $institutionId = null): array
     {
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT *
             FROM course_schedules
             WHERE course_id = :course_id
+        ";
+
+        $params = ['course_id' => $courseId];
+        if ($institutionId !== null) {
+            $sql .= " AND institution_id = :institution_id";
+            $params['institution_id'] = $institutionId;
+        }
+
+        $sql .= "
             ORDER BY 
                 FIELD(day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
                 start_time
-        ");
+        ";
 
-        $stmt->execute(['course_id' => $courseId]);
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Find schedule by ID
      */
-    public function findById(int $id): ?array
+    public function findById(int $id, ?int $institutionId = null): ?array
     {
-        $stmt = $this->db->prepare("
+        $sql = "
             SELECT *
             FROM course_schedules
             WHERE schedule_id = :id
-        ");
+        ";
 
-        $stmt->execute(['id' => $id]);
+        $params = ['id' => $id];
+        if ($institutionId !== null) {
+            $sql .= " AND institution_id = :institution_id";
+            $params['institution_id'] = $institutionId;
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ?: null;
     }
@@ -56,6 +73,7 @@ class CourseScheduleRepository
         $stmt = $this->db->prepare("
             INSERT INTO course_schedules (
                 course_id,
+                institution_id,
                 day_of_week,
                 start_time,
                 end_time,
@@ -65,6 +83,7 @@ class CourseScheduleRepository
                 is_recurring
             ) VALUES (
                 :course_id,
+                :institution_id,
                 :day_of_week,
                 :start_time,
                 :end_time,
@@ -77,6 +96,7 @@ class CourseScheduleRepository
 
         $stmt->execute([
             'course_id' => $data['course_id'],
+            'institution_id' => $data['institution_id'] ?? null,
             'day_of_week' => $data['day_of_week'],
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],

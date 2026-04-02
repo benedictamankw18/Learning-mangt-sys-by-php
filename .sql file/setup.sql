@@ -730,3 +730,8 @@ SELECT 'Teacher (Ama):   username=ama.asante    | password=password | email=ama.
 SELECT 'Student (Kwame): username=kwame.osei    | password=password | email=kwame.osei@student.accrashs.edu.gh' UNION ALL
 SELECT 'Student (Abena): username=abena.adjei   | password=password | email=abena.adjei@student.accrashs.edu.gh' UNION ALL
 SELECT 'Parent (Yaw):    username=yaw.osei      | password=password | email=yaw.osei@parent.accrashs.edu.gh';
+
+
+CREATE USER 'Lms_app'@'%' IDENTIFIED BY 'LMS_GHANA@1234' 
+GRANT ALL PRIVILEGES ON *.* TO 'Lms_app'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;

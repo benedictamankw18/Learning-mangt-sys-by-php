@@ -152,9 +152,21 @@
     };
   }
 
+  function isTruthyPublished(value) {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    const normalized = String(value == null ? "" : value).toLowerCase().trim();
+    return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "published";
+  }
+
   function normalizeAssessment(row, course) {
     const dueDate = row.due_date || row.dueDate || null;
     const type = String(row.assessment_type || row.type || "").toLowerCase();
+    const rawStatus = String(row.status || row.assessment_status || "").toLowerCase().trim();
+    const isPublished =
+      isTruthyPublished(row.is_published) ||
+      isTruthyPublished(row.published) ||
+      rawStatus === "published";
 
     return {
       id: row.assessment_id || row.id || null,
@@ -162,7 +174,7 @@
       type,
       maxScore: row.max_score,
       dueDate,
-      isPublished: Number(row.is_published || 0) === 1,
+      isPublished,
       weight: row.weight_percentage,
       courseId: course.id,
       courseCode: course.code,
@@ -485,7 +497,7 @@
       })
       .map((a) => {
         const typeClass = esc(a.type || "assignment");
-        const status = a.isPublished ? "Published" : "Draft";
+        const status = a.isPublished ? "Teacher Published" : "Teacher Draft";
         return `
           <tr>
             <td>
@@ -688,10 +700,24 @@
     cacheEls();
     if (!el.root) return;
 
+    if (el.root.dataset.initialized === "1") {
+      return;
+    }
+    el.root.dataset.initialized = "1";
+
     bindEvents();
     await loadCategoryWeightsFromDatabase();
     renderWeights();
     await loadAssessmentsData();
+  }
+
+  function bootIfAssessmentsVisible() {
+    const currentHash = String(window.location.hash || "").replace(/^#/, "").trim();
+    if (currentHash === "assessments" || document.getElementById("admAssessmentsRoot")) {
+      initPage().catch((err) => {
+        console.error("Admin assessments init error:", err);
+      });
+    }
   }
 
   document.addEventListener("page:loaded", function (e) {
@@ -701,4 +727,10 @@
       });
     }
   });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootIfAssessmentsVisible);
+  } else {
+    bootIfAssessmentsVisible();
+  }
 })();

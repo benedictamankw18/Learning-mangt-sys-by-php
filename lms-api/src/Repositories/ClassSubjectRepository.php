@@ -1211,6 +1211,7 @@ class ClassSubjectRepository
             SELECT 
                 schedule_id,
                 course_id,
+                institution_id,
                 day_of_week,
                 start_time,
                 end_time,
@@ -1241,6 +1242,7 @@ class ClassSubjectRepository
             SELECT 
                 s.schedule_id,
                 s.course_id,
+                s.institution_id,
                 s.day_of_week,
                 s.start_time,
                 s.end_time,
@@ -1270,6 +1272,7 @@ class ClassSubjectRepository
         $stmt = $this->db->prepare("
             INSERT INTO course_schedules (
                 course_id,
+                institution_id,
                 day_of_week,
                 start_time,
                 end_time,
@@ -1281,6 +1284,7 @@ class ClassSubjectRepository
                 updated_at
             ) VALUES (
                 :course_id,
+                :institution_id,
                 :day_of_week,
                 :start_time,
                 :end_time,
@@ -1295,6 +1299,7 @@ class ClassSubjectRepository
 
         $result = $stmt->execute([
             'course_id' => $data['course_id'],
+            'institution_id' => $data['institution_id'] ?? null,
             'day_of_week' => strtolower($data['day_of_week']),
             'start_time' => $data['start_time'],
             'end_time' => $data['end_time'],

@@ -621,7 +621,10 @@ class ClassRepository
             INNER JOIN subjects s ON cs.subject_id = s.subject_id
             LEFT JOIN teachers t ON cs.teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id
+                        LEFT JOIN institution_settings iset ON cs.institution_id = iset.institution_id
             WHERE cs.class_id = :class_id
+                            AND csch.status = 'active'
+                            AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(iset.meta, '$.is_timetable_published')), '0')) IN ('1', 'true')
             ORDER BY 
                 FIELD(csch.day_of_week, 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'),
                 csch.start_time

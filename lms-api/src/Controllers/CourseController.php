@@ -621,6 +621,15 @@ class CourseController
             return;
         }
 
+        if (
+            $user['role'] !== 'super_admin'
+            && isset($user['institution_id'], $course['institution_id'])
+            && (int) $course['institution_id'] !== (int) $user['institution_id']
+        ) {
+            Response::forbidden('You can only access schedules in your institution');
+            return;
+        }
+
         // Students can only view schedules for enrolled courses
         $roleMiddleware = new RoleMiddleware($user);
         if ($roleMiddleware->isStudent() && !$roleMiddleware->isAdmin()) {
@@ -660,6 +669,15 @@ class CourseController
             return;
         }
 
+        if (
+            $user['role'] !== 'super_admin'
+            && isset($user['institution_id'], $course['institution_id'])
+            && (int) $course['institution_id'] !== (int) $user['institution_id']
+        ) {
+            Response::forbidden('You can only create schedules in your institution');
+            return;
+        }
+
         // Teachers can only create schedules for their own courses
         if ($roleMiddleware->isTeacher() && !$roleMiddleware->isAdmin()) {
             $teacher = $this->teacherRepo->findByUserId($user['user_id']);
@@ -688,6 +706,11 @@ class CourseController
         }
 
         $data['course_id'] = $id;
+        if (isset($course['institution_id'])) {
+            $data['institution_id'] = $course['institution_id'];
+        } elseif (isset($user['institution_id'])) {
+            $data['institution_id'] = $user['institution_id'];
+        }
 
         $scheduleId = $this->scheduleRepo->create($data);
 
@@ -719,6 +742,20 @@ class CourseController
 
         if (!$schedule) {
             Response::notFound('Schedule not found');
+            return;
+        }
+
+        if ((int) $schedule['course_id'] !== (int) $courseId) {
+            Response::error('Schedule does not belong to this course', 400);
+            return;
+        }
+
+        if (
+            $user['role'] !== 'super_admin'
+            && isset($user['institution_id'], $course['institution_id'])
+            && (int) $course['institution_id'] !== (int) $user['institution_id']
+        ) {
+            Response::forbidden('You can only update schedules in your institution');
             return;
         }
 
@@ -776,6 +813,20 @@ class CourseController
 
         if (!$schedule) {
             Response::notFound('Schedule not found');
+            return;
+        }
+
+        if ((int) $schedule['course_id'] !== (int) $courseId) {
+            Response::error('Schedule does not belong to this course', 400);
+            return;
+        }
+
+        if (
+            $user['role'] !== 'super_admin'
+            && isset($user['institution_id'], $course['institution_id'])
+            && (int) $course['institution_id'] !== (int) $user['institution_id']
+        ) {
+            Response::forbidden('You can only delete schedules in your institution');
             return;
         }
 

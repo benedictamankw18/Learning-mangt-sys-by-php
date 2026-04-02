@@ -916,6 +916,7 @@ class ClassSubjectController
 
         $data = json_decode(file_get_contents('php://input'), true);
         $data['course_id'] = $id;
+        $data['institution_id'] = $classSubject['institution_id'] ?? ($user['institution_id'] ?? null);
 
         $validator = new Validator($data);
         $validator->required(['day_of_week', 'start_time', 'end_time'])

@@ -5,8 +5,42 @@
 
 class APIService {
     constructor() {
-        this.baseURL = API_BASE_URL;
+        this.baseURL = this.normalizeBaseURL(API_BASE_URL);
+        this.baseCandidates = this.buildBaseCandidates(this.baseURL);
         this.timeout = REQUEST_TIMEOUT;
+    }
+
+    normalizeBaseURL(url) {
+        return String(url || '').trim().replace(/\/$/, '');
+    }
+
+    buildBaseCandidates(primaryBaseURL) {
+        const candidates = [];
+        const addCandidate = (value) => {
+            const normalized = this.normalizeBaseURL(value);
+            if (normalized && !candidates.includes(normalized)) {
+                candidates.push(normalized);
+            }
+        };
+
+        addCandidate(primaryBaseURL);
+
+        if (typeof window !== 'undefined' && window.location) {
+            const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+            const hostName = String(window.location.hostname || '').trim();
+            if (hostName) {
+                addCandidate(`${protocol}//${hostName}:8000`);
+            }
+        }
+
+        addCandidate('http://localhost:8000');
+        addCandidate('http://127.0.0.1:8000');
+
+        return candidates;
+    }
+
+    isNetworkFetchFailure(error) {
+        return error instanceof TypeError && String(error.message || '').toLowerCase().includes('fetch');
     }
 
     /**
@@ -113,35 +147,56 @@ class APIService {
      * Make HTTP request with timeout
      */
     async request(url, options) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+        let lastNetworkError = null;
 
-        try {
-            const response = await fetch(`${this.baseURL}${url}`, {
-                ...options,
-                signal: controller.signal,
-            });
+        for (const baseURL of this.baseCandidates) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-            clearTimeout(timeoutId);
-            return await this.handleResponse(response);
-        } catch (error) {
-            clearTimeout(timeoutId);
+            try {
+                const response = await fetch(`${baseURL}${url}`, {
+                    ...options,
+                    signal: controller.signal,
+                });
 
-            if (error.name === 'AbortError') {
-                throw new Error('Request timeout. Please try again.');
+                clearTimeout(timeoutId);
+
+                // Persist the first working base URL to avoid repeated fallback attempts.
+                if (baseURL !== this.baseURL) {
+                    this.baseURL = baseURL;
+                }
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                clearTimeout(timeoutId);
+
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timeout. Please try again.');
+                }
+
+                if (this.isNetworkFetchFailure(error)) {
+                    lastNetworkError = error;
+                    continue;
+                }
+
+                throw error;
             }
-
-            // A TypeError with a failed fetch typically means a network error or
-            // a CORS rejection (the browser blocks the request before a response arrives).
-            if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) {
-                const corsHint = APP_ENV === 'development'
-                    ? ' Make sure the API server is running and CORS is configured for this origin.'
-                    : '';
-                throw new Error('Unable to reach the server. Check your connection.' + corsHint);
-            }
-
-            throw error;
         }
+
+        const corsHint = APP_ENV === 'development'
+            ? ' Make sure the API server is running and CORS is configured for this origin.'
+            : '';
+        const configuredHost = this.baseURL ? ` Configured API host: ${this.baseURL}.` : '';
+        const attemptedHosts = this.baseCandidates.length
+            ? ` Tried: ${this.baseCandidates.join(', ')}.`
+            : '';
+        const errorMessage = 'Unable to reach the server. Check your connection.' + configuredHost + attemptedHosts + corsHint;
+
+        const connectionError = new Error(errorMessage);
+        if (lastNetworkError) {
+            connectionError.cause = lastNetworkError;
+        }
+        throw connectionError;
     }
 
     /**
@@ -496,20 +551,14 @@ const SubmissionsAPI = {
     publishGrades: (assignmentId) => API.post(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_PUBLISH(assignmentId), {
         published_at: new Date().toISOString(),
     }),
-    downloadAllSubmissions: (assignmentId) => fetch(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_DOWNLOAD_ALL(assignmentId), {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${Auth.getToken()}` }
-    }).then(async r => {
-        if (r.ok) return r.json();
-        let msg = `Download failed: ${r.status}`;
+    downloadAllSubmissions: async (assignmentId) => {
         try {
-            const payload = await r.json();
-            if (payload?.message) msg = payload.message;
-        } catch (_) {
-            // Keep default message when response is not JSON.
+            return await API.get(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_DOWNLOAD_ALL(assignmentId));
+        } catch (error) {
+            const message = error?.message || 'Download failed';
+            return Promise.reject(new Error(message));
         }
-        return Promise.reject(new Error(msg));
-    }),
+    },
     bulkGradeSubmissions: (assignmentId, updates) => API.post(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_BULK_GRADE(assignmentId), { updates }),
     exportGradesAsCSV: (assignmentId) => fetch(API_ENDPOINTS.ASSIGNMENT_SUBMISSIONS_EXPORT_GRADES(assignmentId), {
         method: 'GET',

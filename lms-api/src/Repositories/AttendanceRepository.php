@@ -445,8 +445,11 @@ class AttendanceRepository
                 SELECT COUNT(*) AS cnt
                 FROM course_schedules cs_sched
                 INNER JOIN class_subjects cs ON cs_sched.course_id = cs.course_id
+                                LEFT JOIN institution_settings iset ON cs.institution_id = iset.institution_id
                 WHERE cs.teacher_id     = :teacher_id
                   AND cs_sched.day_of_week = :day_name
+                                    AND cs_sched.status = 'active'
+                                    AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(iset.meta, '$.is_timetable_published')), '0')) IN ('1', 'true')
             ");
             $stmt->execute(['teacher_id' => $teacherId, 'day_name' => $dayName]);
             return (int) $stmt->fetchColumn();
@@ -502,11 +505,14 @@ class AttendanceRepository
                 INNER JOIN course_schedules cs_sched ON cs.course_id = cs_sched.course_id
                 INNER JOIN subjects s                ON cs.subject_id = s.subject_id
                 INNER JOIN classes cl                ON cs.class_id = cl.class_id
+                                LEFT  JOIN institution_settings iset ON cs.institution_id = iset.institution_id
                 LEFT  JOIN teachers t                ON cs.teacher_id = t.teacher_id
                 LEFT  JOIN users ut                  ON t.user_id = ut.user_id
                 WHERE st.student_id = :student_id
                   AND cs.status = 'active'
+                                    AND cs_sched.status = 'active'
                   AND LOWER(cs_sched.day_of_week) = :day_name
+                                    AND LOWER(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(iset.meta, '$.is_timetable_published')), '0')) IN ('1', 'true')
                 ORDER BY cs_sched.start_time
             ");
             $stmt->execute(['student_id' => $studentId, 'day_name' => $dayName]);
