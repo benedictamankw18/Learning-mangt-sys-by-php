@@ -17,8 +17,10 @@
     filters: {
       academic_year_id: '',
       semester_id: '',
-      class_id: '',
-      subject_id: '',
+      class_a_id: '',
+      subject_a_id: '',
+      class_b_id: '',
+      subject_b_id: '',
       status: '',
     },
     classChart: null,
@@ -46,8 +48,10 @@
     dom.filters = {
       year: document.getElementById('cmpYear'),
       semester: document.getElementById('cmpSemester'),
-      class: document.getElementById('cmpClass'),
-      subject: document.getElementById('cmpSubject'),
+      classA: document.getElementById('cmpClassA'),
+      subjectA: document.getElementById('cmpSubjectA'),
+      classB: document.getElementById('cmpClassB'),
+      subjectB: document.getElementById('cmpSubjectB'),
       status: document.getElementById('cmpStatus'),
     };
     dom.metrics = {
@@ -87,8 +91,10 @@
       const params = readQueryDefaults();
       state.filters.academic_year_id = params.academic_year_id || state.filters.academic_year_id || '';
       state.filters.semester_id = params.semester_id || state.filters.semester_id || '';
-      state.filters.class_id = params.class_id || state.filters.class_id || '';
-      state.filters.subject_id = params.subject_id || state.filters.subject_id || '';
+      state.filters.class_a_id = params.class_a_id || params.class_id || state.filters.class_a_id || '';
+      state.filters.subject_a_id = params.subject_a_id || params.subject_id || state.filters.subject_a_id || '';
+      state.filters.class_b_id = params.class_b_id || state.filters.class_b_id || '';
+      state.filters.subject_b_id = params.subject_b_id || state.filters.subject_b_id || '';
       state.filters.status = params.status || state.filters.status || '';
 
       const [yearsRes, semestersRes, classesRes, subjectsRes, usersRes, scalesRes] = await Promise.all([
@@ -119,6 +125,7 @@
       await loadReports();
       renderAll();
     } catch (error) {
+      destroyCharts();
       showEmpty('Failed to load comparison data: ' + (error?.message || 'Unknown error'));
     } finally {
       state.loading = false;
@@ -164,39 +171,82 @@
   function renderAll() {
     populateFilters();
     const filtered = getFilteredReports();
-    const classRows = buildClassRows(filtered);
-    const subjectRows = buildSubjectRows(filtered);
-    const workflowRows = buildWorkflowRows(filtered);
-    const bandRows = buildBandRows(filtered);
+    const selectionA = buildSelectionStats(state.filters.class_a_id, state.filters.subject_a_id, filtered);
+    const selectionB = buildSelectionStats(state.filters.class_b_id, state.filters.subject_b_id, filtered);
 
-    renderMetrics(classRows, subjectRows, filtered);
-    renderList(dom.classList, classRows, 'class');
-    renderList(dom.subjectList, subjectRows, 'subject');
+    renderMetrics(selectionA, selectionB);
+    renderSelectionList(dom.classList, selectionA, 'A');
+    renderSelectionList(dom.subjectList, selectionB, 'B');
     renderScaleList();
-    renderTable(classRows, subjectRows);
-    renderCharts(classRows, subjectRows, workflowRows, bandRows);
+    renderComparisonTable(selectionA, selectionB);
+    renderCharts(selectionA, selectionB);
   }
 
-  function renderMetrics(classRows, subjectRows, filtered) {
-    setText(dom.metrics.classes, String(classRows.length));
-    setText(dom.metrics.subjects, String(subjectRows.length));
+  function renderMetrics(selectionA, selectionB) {
+    const aAvg = Number.isFinite(selectionA.average) ? selectionA.average : NaN;
+    const bAvg = Number.isFinite(selectionB.average) ? selectionB.average : NaN;
+    const delta = Number.isFinite(aAvg) && Number.isFinite(bAvg) ? (aAvg - bAvg) : NaN;
 
-    const avgGpa = filtered.length ? filtered.reduce(function (sum, report) { return sum + toNumber(report.gpa); }, 0) / filtered.length : 0;
-    setText(dom.metrics.avgGpa, formatNumber(avgGpa, 2));
+    setText(dom.metrics.classes, Number.isFinite(aAvg) ? formatNumber(aAvg, 2) + '%' : '--');
+    setText(dom.metrics.subjects, Number.isFinite(bAvg) ? formatNumber(bAvg, 2) + '%' : '--');
+    setText(dom.metrics.avgGpa, Number.isFinite(delta) ? formatSigned(delta, 2) + '%' : '--');
 
-    const bestClass = classRows[0];
-    setText(dom.metrics.best, bestClass ? bestClass.name : '-');
-  }
-
-  function renderList(container, rows, kind) {
-    if (!container) return;
-    if (!rows.length) {
-      container.innerHTML = '<div class="empty">No ' + kind + ' performance data found.</div>';
+    if (Number.isFinite(delta)) {
+      if (delta > 0) {
+        setText(dom.metrics.best, 'Selection A');
+      } else if (delta < 0) {
+        setText(dom.metrics.best, 'Selection B');
+      } else {
+        setText(dom.metrics.best, 'Tie');
+      }
       return;
     }
 
-    container.innerHTML = rows.slice(0, 6).map(function (row) {
-      return '<div class="list-item"><span><strong>' + esc(row.name) + '</strong><br /><small>' + esc(row.count + ' report(s)') + '</small></span><span class="chip ' + esc(row.trendClass) + '">' + esc(formatNumber(row.average, 2)) + '</span></div>';
+    setText(dom.metrics.best, '-');
+  }
+
+  function renderSelectionList(container, selection, label) {
+    if (!container) return;
+
+    if (!selection || !selection.hasSelection) {
+      container.innerHTML = '<div class="empty">Choose class and subject for selection ' + esc(label) + '.</div>';
+      return;
+    }
+
+    if (!selection.reportCount) {
+      container.innerHTML = '<div class="empty">No report data found for selection ' + esc(label) + '.</div>';
+      return;
+    }
+
+    const workflow = selection.workflow || [0, 0, 0, 0];
+    container.innerHTML = [
+      '<div class="list-item"><span><strong>' + esc(selection.className) + '</strong><br /><small>Class ' + esc(label) + '</small></span><span class="chip muted">Class</span></div>',
+      '<div class="list-item"><span><strong>' + esc(selection.subjectName) + '</strong><br /><small>Subject ' + esc(label) + '</small></span><span class="chip muted">Subject</span></div>',
+      '<div class="list-item"><span><strong>Reports</strong><br /><small>Matched report cards</small></span><span class="chip">' + esc(String(selection.reportCount)) + '</span></div>',
+      '<div class="list-item"><span><strong>Average</strong><br /><small>Subject percentage</small></span><span class="chip ' + esc(selection.trendClass) + '">' + esc(formatNumber(selection.average, 2)) + '%</span></div>',
+      '<div class="list-item"><span><strong>High / Low</strong><br /><small>Observed spread</small></span><span class="chip muted">' + esc(formatNumber(selection.highest, 2)) + '% / ' + esc(formatNumber(selection.lowest, 2)) + '%</span></div>',
+      '<div class="list-item"><span><strong>Workflow</strong><br /><small>Pnd/App/Pub/Fix</small></span><span class="chip muted">' + esc(workflow.join(' / ')) + '</span></div>',
+    ].join('');
+  }
+
+  function renderComparisonTable(selectionA, selectionB) {
+    if (!dom.tableBody) return;
+
+    const rows = [
+      buildMetricRow('Class', selectionA.className, selectionB.className, ''),
+      buildMetricRow('Subject', selectionA.subjectName, selectionB.subjectName, ''),
+      buildMetricRow('Reports', String(selectionA.reportCount), String(selectionB.reportCount), formatSigned(selectionA.reportCount - selectionB.reportCount, 0)),
+      buildMetricRow('Average %', formatMaybePercent(selectionA.average), formatMaybePercent(selectionB.average), formatDeltaPercent(selectionA.average, selectionB.average)),
+      buildMetricRow('Highest %', formatMaybePercent(selectionA.highest), formatMaybePercent(selectionB.highest), formatDeltaPercent(selectionA.highest, selectionB.highest)),
+      buildMetricRow('Lowest %', formatMaybePercent(selectionA.lowest), formatMaybePercent(selectionB.lowest), formatDeltaPercent(selectionA.lowest, selectionB.lowest)),
+      buildMetricRow('Pending', String(selectionA.workflow[0] || 0), String(selectionB.workflow[0] || 0), formatSigned((selectionA.workflow[0] || 0) - (selectionB.workflow[0] || 0), 0)),
+      buildMetricRow('Approved', String(selectionA.workflow[1] || 0), String(selectionB.workflow[1] || 0), formatSigned((selectionA.workflow[1] || 0) - (selectionB.workflow[1] || 0), 0)),
+      buildMetricRow('Published', String(selectionA.workflow[2] || 0), String(selectionB.workflow[2] || 0), formatSigned((selectionA.workflow[2] || 0) - (selectionB.workflow[2] || 0), 0)),
+      buildMetricRow('Needs correction', String(selectionA.workflow[3] || 0), String(selectionB.workflow[3] || 0), formatSigned((selectionA.workflow[3] || 0) - (selectionB.workflow[3] || 0), 0)),
+    ];
+
+    dom.tableBody.innerHTML = rows.map(function (row) {
+      return '<tr><td>' + esc(row.metric) + '</td><td>' + esc(row.a) + '</td><td>' + esc(row.b) + '</td><td>' + esc(row.delta) + '</td></tr>';
     }).join('');
   }
 
@@ -213,78 +263,89 @@
     }).join('');
   }
 
-  function renderTable(classRows, subjectRows) {
-    if (!dom.tableBody) return;
-    const rows = [];
-
-    classRows.forEach(function (row) {
-      rows.push('<tr><td>Class</td><td>' + esc(row.name) + '</td><td>' + esc(row.count) + '</td><td>' + esc(formatNumber(row.average, 2)) + '</td><td>' + esc(formatNumber(row.highest, 2)) + '</td><td>' + esc(formatNumber(row.lowest, 2)) + '</td></tr>');
-    });
-
-    subjectRows.forEach(function (row) {
-      rows.push('<tr><td>Subject</td><td>' + esc(row.name) + '</td><td>' + esc(row.count) + '</td><td>' + esc(formatNumber(row.average, 2)) + '</td><td>' + esc(formatNumber(row.highest, 2)) + '</td><td>' + esc(formatNumber(row.lowest, 2)) + '</td></tr>');
-    });
-
-    dom.tableBody.innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6"><div class="empty">No filtered comparison data available.</div></td></tr>';
-  }
-
-  function renderCharts(classRows, subjectRows, workflowRows, bandRows) {
+  function renderCharts(selectionA, selectionB) {
     if (typeof Chart === 'undefined') return;
 
     destroyCharts();
 
-    state.classChart = new Chart(dom.classCanvas, {
-      type: 'bar',
-      data: {
-        labels: classRows.map(function (row) { return row.name; }),
-        datasets: [{
-          label: 'Average GPA',
-          data: classRows.map(function (row) { return row.average; }),
-          backgroundColor: '#0f766e',
-        }],
-      },
-      options: chartOptions('y'),
-    });
+    const classCanvas = getCanvasContext(dom.classCanvas);
+    const subjectCanvas = getCanvasContext(dom.subjectCanvas);
+    const workflowCanvas = getCanvasContext(dom.workflowCanvas);
+    const bandCanvas = getCanvasContext(dom.bandCanvas);
 
-    state.subjectChart = new Chart(dom.subjectCanvas, {
-      type: 'radar',
-      data: {
-        labels: subjectRows.map(function (row) { return row.name; }),
-        datasets: [{
-          label: 'Average percentage',
-          data: subjectRows.map(function (row) { return row.average; }),
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.18)',
-        }],
-      },
-      options: chartOptions(),
-    });
+    if (classCanvas) {
+      state.classChart = safeCreateChart(classCanvas, {
+        type: 'bar',
+        data: {
+          labels: ['Selection A', 'Selection B'],
+          datasets: [{
+            label: 'Average %',
+            data: [toFiniteNumber(selectionA.average, 0), toFiniteNumber(selectionB.average, 0)],
+            backgroundColor: ['#0f766e', '#f59e0b'],
+          }],
+        },
+        options: chartOptions('bar-vertical'),
+      });
+    }
 
-    state.workflowChart = new Chart(dom.workflowCanvas, {
-      type: 'doughnut',
-      data: {
-        labels: ['Pending', 'Approved', 'Published', 'Needs correction'],
-        datasets: [{
-          data: workflowRows,
-          backgroundColor: ['#f59e0b', '#0ea5e9', '#16a34a', '#be123c'],
-          borderWidth: 0,
-        }],
-      },
-      options: chartOptions(),
-    });
+    if (subjectCanvas) {
+      state.subjectChart = safeCreateChart(subjectCanvas, {
+        type: 'bar',
+        data: {
+          labels: ['Selection A', 'Selection B'],
+          datasets: [{
+            label: 'Highest %',
+            data: [toFiniteNumber(selectionA.highest, 0), toFiniteNumber(selectionB.highest, 0)],
+            backgroundColor: '#16a34a',
+          }, {
+            label: 'Lowest %',
+            data: [toFiniteNumber(selectionA.lowest, 0), toFiniteNumber(selectionB.lowest, 0)],
+            backgroundColor: '#be123c',
+          }],
+        },
+        options: chartOptions('bar-vertical'),
+      });
+    }
 
-    state.bandChart = new Chart(dom.bandCanvas, {
-      type: 'bar',
-      data: {
-        labels: bandRows.map(function (row) { return row.label; }),
-        datasets: [{
-          label: 'Band count',
-          data: bandRows.map(function (row) { return row.count; }),
-          backgroundColor: '#134e4a',
-        }],
-      },
-      options: chartOptions('y'),
-    });
+    if (workflowCanvas) {
+      state.workflowChart = safeCreateChart(workflowCanvas, {
+        type: 'bar',
+        data: {
+          labels: ['Pending', 'Approved', 'Published', 'Needs correction'],
+          datasets: [{
+            label: 'Selection A',
+            data: (selectionA.workflow || []).map(function (value) { return toFiniteNumber(value, 0); }),
+            backgroundColor: '#0f766e',
+          }, {
+            label: 'Selection B',
+            data: (selectionB.workflow || []).map(function (value) { return toFiniteNumber(value, 0); }),
+            backgroundColor: '#f59e0b',
+          }],
+        },
+        options: chartOptions('bar-vertical'),
+      });
+    }
+
+    if (bandCanvas) {
+      const labels = getBandLabels(selectionA, selectionB);
+      const safeLabels = labels.length ? labels : ['No band data'];
+      state.bandChart = safeCreateChart(bandCanvas, {
+        type: 'bar',
+        data: {
+          labels: safeLabels,
+          datasets: [{
+            label: 'Selection A',
+            data: safeLabels.map(function (label) { return toFiniteNumber(selectionA.bandCounts[label], 0); }),
+            backgroundColor: '#134e4a',
+          }, {
+            label: 'Selection B',
+            data: safeLabels.map(function (label) { return toFiniteNumber(selectionB.bandCounts[label], 0); }),
+            backgroundColor: '#fb923c',
+          }],
+        },
+        options: chartOptions('bar-vertical'),
+      });
+    }
   }
 
   function destroyCharts() {
@@ -297,99 +358,144 @@
     state.bandChart = null;
   }
 
-  function chartOptions(indexAxis) {
-    return {
+  function chartOptions(kind) {
+    const base = {
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: indexAxis || 'x',
+      animation: false,
+      normalized: true,
       plugins: {
         legend: {
           position: 'bottom',
         },
       },
-      scales: indexAxis === 'y' ? {
-        x: { beginAtZero: true },
-        y: { beginAtZero: true },
-      } : {
-        r: { beginAtZero: true },
+    };
+
+    if (kind === 'bar-horizontal') {
+      return {
+        ...base,
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true },
+        },
+      };
+    }
+
+    if (kind === 'bar-vertical') {
+      return {
+        ...base,
+        scales: {
+          x: { beginAtZero: true },
+          y: { beginAtZero: true },
+        },
+      };
+    }
+
+    return {
+      ...base,
+      scales: {
         x: { beginAtZero: true },
         y: { beginAtZero: true },
       },
     };
   }
 
-  function buildClassRows(reports) {
-    const map = new Map();
-    reports.forEach(function (report) {
-      const name = report.class_name || 'Unassigned class';
-      if (!map.has(name)) map.set(name, { name: name, count: 0, total: 0, highest: null, lowest: null });
-      const row = map.get(name);
-      row.count += 1;
-      const gpa = toNumber(report.gpa);
-      if (Number.isFinite(gpa)) {
-        row.total += gpa;
-        row.highest = row.highest == null ? gpa : Math.max(row.highest, gpa);
-        row.lowest = row.lowest == null ? gpa : Math.min(row.lowest, gpa);
-      }
-    });
-
-    return Array.from(map.values()).map(function (row) {
-      row.average = row.count ? row.total / row.count : 0;
-      row.trendClass = row.average >= 3 ? 'good' : row.average >= 2 ? 'warn' : 'muted';
-      return row;
-    }).sort(function (a, b) { return b.average - a.average; });
+  function getCanvasContext(canvas) {
+    if (!canvas || typeof canvas.getContext !== 'function') {
+      return null;
+    }
+    return canvas;
   }
 
-  function buildSubjectRows(reports) {
-    const map = new Map();
-    reports.forEach(function (report) {
+  function safeCreateChart(canvas, config) {
+    try {
+      return new Chart(canvas, config);
+    } catch (error) {
+      console.warn('Chart render skipped:', error);
+      return null;
+    }
+  }
+
+  function toFiniteNumber(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : (fallback == null ? 0 : fallback);
+  }
+
+  function buildSelectionStats(classId, subjectId, reports) {
+    const className = selectedClassName(classId);
+    const subjectName = selectedSubjectName(subjectId);
+    const hasSelection = !!className && !!subjectName;
+    const scores = [];
+    const workflow = [0, 0, 0, 0];
+    const bandCounts = {};
+    getBandDefinitions().forEach(function (band) {
+      bandCounts[getBandLabel(band)] = 0;
+    });
+
+    if (!hasSelection) {
+      return {
+        hasSelection: false,
+        className: className || '-',
+        subjectName: subjectName || '-',
+        reportCount: 0,
+        average: NaN,
+        highest: NaN,
+        lowest: NaN,
+        workflow: workflow,
+        bandCounts: bandCounts,
+        trendClass: 'muted',
+      };
+    }
+
+    let reportCount = 0;
+    (Array.isArray(reports) ? reports : []).forEach(function (report) {
+      if (normalizeText(report.class_name) !== normalizeText(className)) {
+        return;
+      }
+
       const details = Array.isArray(report.details) ? report.details : [];
-      details.forEach(function (detail) {
-        const name = detail.subject_name || detail.subject_code || 'Subject';
-        if (!map.has(name)) map.set(name, { name: name, count: 0, total: 0, highest: null, lowest: null });
-        const row = map.get(name);
-        row.count += 1;
-        const percentage = toNumber(detail.percentage);
-        if (Number.isFinite(percentage)) {
-          row.total += percentage;
-          row.highest = row.highest == null ? percentage : Math.max(row.highest, percentage);
-          row.lowest = row.lowest == null ? percentage : Math.min(row.lowest, percentage);
+      const matched = details.filter(function (detail) {
+        return detailMatchesSubject(detail, subjectName);
+      });
+
+      if (!matched.length) {
+        return;
+      }
+
+      reportCount += 1;
+      bumpWorkflow(workflow, deriveStatus(report));
+
+      matched.forEach(function (detail) {
+        const pct = toNumber(detail.percentage);
+        if (!Number.isFinite(pct)) {
+          return;
+        }
+        scores.push(pct);
+        const band = getBandForScore(pct);
+        if (band) {
+          const key = getBandLabel(band);
+          bandCounts[key] = (bandCounts[key] || 0) + 1;
         }
       });
     });
 
-    return Array.from(map.values()).map(function (row) {
-      row.average = row.count ? row.total / row.count : 0;
-      row.trendClass = row.average >= 70 ? 'good' : row.average >= 50 ? 'warn' : 'muted';
-      return row;
-    }).sort(function (a, b) { return b.average - a.average; });
-  }
+    const average = scores.length ? scores.reduce(function (sum, val) { return sum + val; }, 0) / scores.length : NaN;
+    const highest = scores.length ? Math.max.apply(null, scores) : NaN;
+    const lowest = scores.length ? Math.min.apply(null, scores) : NaN;
 
-  function buildWorkflowRows(reports) {
-    const summary = reports.reduce(function (acc, report) {
-      const status = deriveStatus(report);
-      if (status === 'pending') acc[0] += 1;
-      else if (status === 'approved') acc[1] += 1;
-      else if (status === 'published') acc[2] += 1;
-      else if (status === 'rejected') acc[3] += 1;
-      return acc;
-    }, [0, 0, 0, 0]);
-    return summary;
-  }
-
-  function buildBandRows(reports) {
-    const bands = state.activeBands[0] ? state.activeBands[0].rows : [];
-    return bands.map(function (band) {
-      const label = band.grade || band.grade_letter || 'Band';
-      const count = reports.reduce(function (sum, report) {
-        const details = Array.isArray(report.details) ? report.details : [];
-        return sum + details.filter(function (detail) {
-          const pct = toNumber(detail.percentage);
-          return bandMatchesScore(band, pct);
-        }).length;
-      }, 0);
-      return { label: label, count: count };
-    });
+    return {
+      hasSelection: true,
+      className: className,
+      subjectName: subjectName,
+      reportCount: reportCount,
+      average: average,
+      highest: highest,
+      lowest: lowest,
+      workflow: workflow,
+      bandCounts: bandCounts,
+      trendClass: Number.isFinite(average) && average >= 70 ? 'good' : Number.isFinite(average) && average >= 50 ? 'warn' : 'muted',
+    };
   }
 
   function bandMatchesScore(band, value) {
@@ -401,19 +507,8 @@
   }
 
   function getFilteredReports() {
-    const className = selectedClassName();
-    const subjectName = selectedSubjectName();
-
     return state.reports.filter(function (report) {
-      if (state.filters.class_id && normalizeText(report.class_name) !== normalizeText(className)) return false;
       if (state.filters.status && deriveStatus(report) !== state.filters.status) return false;
-      if (state.filters.subject_id) {
-        const details = Array.isArray(report.details) ? report.details : [];
-        const match = details.some(function (detail) {
-          return normalizeText(detail.subject_name).includes(normalizeText(subjectName)) || normalizeText(detail.subject_code).includes(normalizeText(subjectName));
-        });
-        if (!match) return false;
-      }
       return true;
     });
   }
@@ -421,8 +516,8 @@
   function populateFilters() {
     setSelect(dom.filters.year, state.academicYears, state.filters.academic_year_id, function (row) { return row.academic_year_id; }, function (row) { return row.year_name || row.name || row.academic_year_id; }, 'All years');
     setSelect(dom.filters.semester, state.semesters, state.filters.semester_id, function (row) { return row.semester_id; }, function (row) { return row.semester_name || row.name || row.semester_id; }, 'All semesters');
-    setSelect(dom.filters.class, state.classes, state.filters.class_id, function (row) { return row.class_id; }, function (row) { return row.class_name || row.class_code || row.class_id; }, 'All classes');
-    setSelect(dom.filters.subject, state.subjects, state.filters.subject_id, function (row) { return row.subject_id; }, function (row) { return [row.subject_name, row.subject_code].filter(Boolean).join(' - ') || row.subject_id; }, 'All subjects');
+    setSelect(dom.filters.classA, state.classes, state.filters.class_a_id, function (row) { return row.class_id; }, function (row) { return row.class_name || row.class_code || row.class_id; }, 'Select class A');
+    setSelect(dom.filters.classB, state.classes, state.filters.class_b_id, function (row) { return row.class_id; }, function (row) { return row.class_name || row.class_code || row.class_id; }, 'Select class B');
 
     const statusOptions = ['', 'pending', 'approved', 'published', 'rejected'];
     if (dom.filters.status) {
@@ -435,9 +530,96 @@
 
     if (dom.filters.year) dom.filters.year.value = state.filters.academic_year_id || '';
     if (dom.filters.semester) dom.filters.semester.value = state.filters.semester_id || '';
-    if (dom.filters.class) dom.filters.class.value = state.filters.class_id || '';
-    if (dom.filters.subject) dom.filters.subject.value = state.filters.subject_id || '';
+    ensureSelectionDefaults();
+
+    const subjectsForClassA = getSubjectsForClass(state.filters.class_a_id);
+    if (state.filters.subject_a_id && !subjectsForClassA.some(function (item) {
+      return String(item.subject_id) === String(state.filters.subject_a_id);
+    })) {
+      state.filters.subject_a_id = subjectsForClassA.length ? String(subjectsForClassA[0].subject_id) : '';
+    }
+
+    const subjectsForClassB = getSubjectsForClass(state.filters.class_b_id);
+    if (state.filters.subject_b_id && !subjectsForClassB.some(function (item) {
+      return String(item.subject_id) === String(state.filters.subject_b_id);
+    })) {
+      state.filters.subject_b_id = subjectsForClassB.length ? String(subjectsForClassB[0].subject_id) : '';
+    }
+
+    setSelect(dom.filters.subjectA, subjectsForClassA, state.filters.subject_a_id, function (row) { return row.subject_id; }, function (row) { return [row.subject_name, row.subject_code].filter(Boolean).join(' - ') || row.subject_id; }, 'Select subject A');
+    setSelect(dom.filters.subjectB, subjectsForClassB, state.filters.subject_b_id, function (row) { return row.subject_id; }, function (row) { return [row.subject_name, row.subject_code].filter(Boolean).join(' - ') || row.subject_id; }, 'Select subject B');
+
+    if (dom.filters.classA) dom.filters.classA.value = state.filters.class_a_id || '';
+    if (dom.filters.subjectA) dom.filters.subjectA.value = state.filters.subject_a_id || '';
+    if (dom.filters.classB) dom.filters.classB.value = state.filters.class_b_id || '';
+    if (dom.filters.subjectB) dom.filters.subjectB.value = state.filters.subject_b_id || '';
     if (dom.filters.status) dom.filters.status.value = state.filters.status || '';
+  }
+
+  function ensureSelectionDefaults() {
+    if (!state.filters.class_a_id && state.classes.length) {
+      state.filters.class_a_id = String(state.classes[0].class_id || '');
+    }
+    if (!state.filters.subject_a_id && state.subjects.length) {
+      state.filters.subject_a_id = String(state.subjects[0].subject_id || '');
+    }
+
+    if (!state.filters.class_b_id && state.classes.length) {
+      const candidate = state.classes.find(function (item) {
+        return String(item.class_id) !== String(state.filters.class_a_id);
+      });
+      state.filters.class_b_id = String((candidate || state.classes[0]).class_id || '');
+    }
+    if (!state.filters.subject_b_id && state.subjects.length) {
+      const candidate = state.subjects.find(function (item) {
+        return String(item.subject_id) !== String(state.filters.subject_a_id);
+      });
+      state.filters.subject_b_id = String((candidate || state.subjects[0]).subject_id || '');
+    }
+  }
+
+  function getSubjectsForClass(classId) {
+    if (!classId) {
+      return Array.isArray(state.subjects) ? state.subjects.slice() : [];
+    }
+
+    const className = selectedClassName(classId);
+    const offeredById = new Set();
+    const offeredByName = new Set();
+
+    (Array.isArray(state.reports) ? state.reports : []).forEach(function (report) {
+      const sameClassId = report && report.class_id != null
+        && String(report.class_id) === String(classId);
+      const sameClassName = normalizeText(report?.class_name) === normalizeText(className);
+
+      if (!sameClassId && !sameClassName) {
+        return;
+      }
+
+      const details = Array.isArray(report.details) ? report.details : [];
+      details.forEach(function (detail) {
+        if (detail && detail.subject_id != null && String(detail.subject_id).trim() !== '') {
+          offeredById.add(String(detail.subject_id));
+        }
+        const name = normalizeText(detail?.subject_name);
+        const code = normalizeText(detail?.subject_code);
+        if (name) offeredByName.add(name);
+        if (code) offeredByName.add(code);
+      });
+    });
+
+    if (!offeredById.size && !offeredByName.size) {
+      return Array.isArray(state.subjects) ? state.subjects.slice() : [];
+    }
+
+    return (Array.isArray(state.subjects) ? state.subjects : []).filter(function (subject) {
+      const subjectId = String(subject?.subject_id || '');
+      const subjectName = normalizeText(subject?.subject_name);
+      const subjectCode = normalizeText(subject?.subject_code);
+      return offeredById.has(subjectId)
+        || offeredByName.has(subjectName)
+        || offeredByName.has(subjectCode);
+    });
   }
 
   function setSelect(select, items, currentValue, valueGetter, labelGetter, defaultLabel) {
@@ -451,40 +633,66 @@
     if (current) select.value = current;
   }
 
-  function selectedClassName() {
-    const row = state.classes.find(function (item) { return String(item.class_id) === String(state.filters.class_id); });
+  function selectedClassName(classId) {
+    const row = state.classes.find(function (item) { return String(item.class_id) === String(classId); });
     return row ? (row.class_name || row.class_code || '') : '';
   }
 
-  function selectedSubjectName() {
-    const row = state.subjects.find(function (item) { return String(item.subject_id) === String(state.filters.subject_id); });
+  function selectedSubjectName(subjectId) {
+    const row = state.subjects.find(function (item) { return String(item.subject_id) === String(subjectId); });
     return row ? (row.subject_name || row.subject_code || '') : '';
   }
 
-  function onFilterChange() {
+  async function onFilterChange() {
+    const previousYear = state.filters.academic_year_id;
+    const previousSemester = state.filters.semester_id;
+
     state.filters.academic_year_id = dom.filters.year?.value || '';
     state.filters.semester_id = dom.filters.semester?.value || '';
-    state.filters.class_id = dom.filters.class?.value || '';
-    state.filters.subject_id = dom.filters.subject?.value || '';
+    state.filters.class_a_id = dom.filters.classA?.value || '';
+    state.filters.subject_a_id = dom.filters.subjectA?.value || '';
+    state.filters.class_b_id = dom.filters.classB?.value || '';
+    state.filters.subject_b_id = dom.filters.subjectB?.value || '';
     state.filters.status = dom.filters.status?.value || '';
-    renderAll();
+
+    const periodChanged = previousYear !== state.filters.academic_year_id
+      || previousSemester !== state.filters.semester_id;
+
+    if (!periodChanged) {
+      renderAll();
+      return;
+    }
+
+    showLoading();
+    try {
+      await loadReports();
+      renderAll();
+    } catch (error) {
+      destroyCharts();
+      showEmpty('Failed to load comparison data: ' + (error?.message || 'Unknown error'));
+    }
   }
 
   function exportComparison() {
-    const rows = getFilteredReports();
-    if (!rows.length) {
+    const selectionA = buildSelectionStats(state.filters.class_a_id, state.filters.subject_a_id, getFilteredReports());
+    const selectionB = buildSelectionStats(state.filters.class_b_id, state.filters.subject_b_id, getFilteredReports());
+    if (!selectionA.reportCount && !selectionB.reportCount) {
       toast('No comparison data to export.', 'info');
       return;
     }
 
+    const tableRows = [
+      ['Class', selectionA.className, selectionB.className, ''],
+      ['Subject', selectionA.subjectName, selectionB.subjectName, ''],
+      ['Reports', selectionA.reportCount, selectionB.reportCount, selectionA.reportCount - selectionB.reportCount],
+      ['Average %', formatMaybePercent(selectionA.average), formatMaybePercent(selectionB.average), formatDeltaPercent(selectionA.average, selectionB.average)],
+      ['Highest %', formatMaybePercent(selectionA.highest), formatMaybePercent(selectionB.highest), formatDeltaPercent(selectionA.highest, selectionB.highest)],
+      ['Lowest %', formatMaybePercent(selectionA.lowest), formatMaybePercent(selectionB.lowest), formatDeltaPercent(selectionA.lowest, selectionB.lowest)],
+    ];
+
     const csv = [
-      ['Type', 'Name', 'Reports', 'Average', 'Highest', 'Lowest'].join(','),
-      ...buildClassRows(rows).map(function (row) {
-        return ['Class', row.name, row.count, formatNumber(row.average, 2), formatNumber(row.highest, 2), formatNumber(row.lowest, 2)].map(csvCell).join(',');
-      }),
-      ...buildSubjectRows(rows).map(function (row) {
-        return ['Subject', row.name, row.count, formatNumber(row.average, 2), formatNumber(row.highest, 2), formatNumber(row.lowest, 2)].map(csvCell).join(',');
-      }),
+      ['Metric', 'Selection A', 'Selection B', 'Difference'].map(csvCell).join(','),
+      ...tableRows.map(function (row) { return row.map(csvCell).join(','); }),
     ].join('\n');
 
     downloadText(csv, 'grade-comparison.csv', 'text/csv');
@@ -495,10 +703,83 @@
     return {
       academic_year_id: params.get('academic_year_id') || '',
       semester_id: params.get('semester_id') || '',
-      class_id: params.get('class_id') || '',
-      subject_id: params.get('subject_id') || '',
+      class_a_id: params.get('class_a_id') || '',
+      subject_a_id: params.get('subject_a_id') || '',
+      class_b_id: params.get('class_b_id') || '',
+      subject_b_id: params.get('subject_b_id') || '',
       status: params.get('status') || '',
     };
+  }
+
+  function detailMatchesSubject(detail, subjectName) {
+    const name = normalizeText(detail?.subject_name);
+    const code = normalizeText(detail?.subject_code);
+    const target = normalizeText(subjectName);
+    if (!target) return false;
+    return name === target || code === target || name.includes(target) || code.includes(target);
+  }
+
+  function bumpWorkflow(workflow, status) {
+    if (status === 'pending') workflow[0] += 1;
+    else if (status === 'approved') workflow[1] += 1;
+    else if (status === 'published') workflow[2] += 1;
+    else if (status === 'rejected') workflow[3] += 1;
+  }
+
+  function getBandDefinitions() {
+    return state.activeBands[0] ? state.activeBands[0].rows : [];
+  }
+
+  function getBandLabel(band) {
+    return String(band?.grade || band?.grade_letter || 'Band');
+  }
+
+  function getBandForScore(score) {
+    const bands = getBandDefinitions();
+    for (let i = 0; i < bands.length; i += 1) {
+      const band = bands[i];
+      if (bandMatchesScore(band, score)) {
+        return band;
+      }
+    }
+    return null;
+  }
+
+  function getBandLabels(selectionA, selectionB) {
+    const labels = new Set();
+    Object.keys(selectionA.bandCounts || {}).forEach(function (label) { labels.add(label); });
+    Object.keys(selectionB.bandCounts || {}).forEach(function (label) { labels.add(label); });
+    return Array.from(labels.values());
+  }
+
+  function buildMetricRow(metric, a, b, delta) {
+    return {
+      metric: metric,
+      a: a,
+      b: b,
+      delta: delta,
+    };
+  }
+
+  function formatMaybePercent(value) {
+    return Number.isFinite(value) ? formatNumber(value, 2) + '%' : '--';
+  }
+
+  function formatDeltaPercent(a, b) {
+    if (!Number.isFinite(a) || !Number.isFinite(b)) {
+      return '--';
+    }
+    return formatSigned(a - b, 2) + '%';
+  }
+
+  function formatSigned(value, precision) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+      return '--';
+    }
+    const abs = Math.abs(n);
+    const sign = n > 0 ? '+' : n < 0 ? '-' : '';
+    return sign + formatNumber(abs, precision == null ? 2 : precision);
   }
 
   function deriveStatus(report) {
@@ -544,7 +825,7 @@
 
   function showLoading() {
     if (dom.tableBody) {
-      dom.tableBody.innerHTML = '<tr><td colspan="6"><div class="empty">Loading comparison data...</div></td></tr>';
+      dom.tableBody.innerHTML = '<tr><td colspan="4"><div class="empty">Loading comparison data...</div></td></tr>';
     }
     if (dom.classList) dom.classList.innerHTML = '<div class="empty">Loading...</div>';
     if (dom.subjectList) dom.subjectList.innerHTML = '<div class="empty">Loading...</div>';
@@ -553,7 +834,7 @@
 
   function showEmpty(message) {
     if (dom.tableBody) {
-      dom.tableBody.innerHTML = '<tr><td colspan="6"><div class="empty">' + esc(message) + '</div></td></tr>';
+      dom.tableBody.innerHTML = '<tr><td colspan="4"><div class="empty">' + esc(message) + '</div></td></tr>';
     }
     if (dom.classList) dom.classList.innerHTML = '<div class="empty">' + esc(message) + '</div>';
     if (dom.subjectList) dom.subjectList.innerHTML = '<div class="empty">' + esc(message) + '</div>';
@@ -591,7 +872,7 @@
 
   function formatNumber(value, precision) {
     const n = toNumber(value);
-    if (!Number.isFinite(n)) return '0.0';
+    if (!Number.isFinite(n)) return '--';
     return n.toFixed(precision == null ? 1 : precision).replace(/\.0+$/, function () { return precision === 0 ? '' : ''; });
   }
 

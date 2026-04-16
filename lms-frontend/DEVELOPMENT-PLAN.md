@@ -985,7 +985,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
   - Grade overview
   - Grade scales management
   - Grade boundaries configuration
-- [ ] **Create** `admin/grades.html`
+- [x] **Create** `admin/grades.html`
   - **Objective:** Single admin workspace to review, approve, reject, and publish teacher-submitted grades by class, subject, and term.
   - **Primary users:** Admin only (read-only for non-admin roles).
   - **Data policy:** No hardcoded values in UI logic (terms, classes, subjects, statuses, grade bands, weights, labels, IDs). All options and rules must come from API/config.
@@ -1024,7 +1024,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
     - Audit trail entries are visible after each decision.
     - No console errors; works on desktop and mobile breakpoints.
 
-- [ ] **Create** `admin/grade/comparison-performance.html`
+- [x] **Create** `admin/grade/comparison-performance.html`
   - Class performance comparison
   - Subject performance comparison
   - Entry point: top-right `Compare Performance` button on `admin/grades.html`

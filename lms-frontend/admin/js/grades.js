@@ -782,6 +782,7 @@
     }
 
     function onFilterChange() {
+        const previousClassId = state.filters.class_id;
         state.filters.academic_year_id = dom.filters.academicYear?.value || '';
         state.filters.semester_id = dom.filters.semester?.value || '';
         state.filters.class_id = dom.filters.class?.value || '';
@@ -795,6 +796,10 @@
                 toast(error?.message || 'Failed to reload reports', 'error');
             });
             return;
+        }
+
+        if (String(previousClassId) !== String(state.filters.class_id)) {
+            populateFilterOptions();
         }
 
         renderStats();
@@ -821,11 +826,18 @@
             return row.class_name || row.class_code || ('Class ' + row.class_id);
         }, 'All classes');
 
-        setSelectOptions(dom.filters.subject, state.subjects, state.filters.subject_id, function (row) {
+        const subjectOptions = getSubjectsForClass(state.filters.class_id);
+        if (state.filters.subject_id && !subjectOptions.some(function (row) {
+            return String(row.subject_id) === String(state.filters.subject_id);
+        })) {
+            state.filters.subject_id = '';
+        }
+
+        setSelectOptions(dom.filters.subject, subjectOptions, state.filters.subject_id, function (row) {
             return row.subject_id;
         }, function (row) {
             return [row.subject_name, row.subject_code].filter(Boolean).join(' - ') || ('Subject ' + row.subject_id);
-        }, 'All subjects');
+        }, state.filters.class_id ? 'Subjects for selected class' : 'All subjects');
 
         const reportUsers = getGeneratedUsers();
         setSelectOptions(dom.filters.teacher, reportUsers, state.filters.teacher_id, function (row) {
@@ -851,6 +863,50 @@
             dom.filters.status.value = state.filters.status;
         }
         if (dom.filters.search) dom.filters.search.value = state.filters.search || '';
+    }
+
+    function getSubjectsForClass(classId) {
+        if (!classId) {
+            return Array.isArray(state.subjects) ? state.subjects.slice() : [];
+        }
+
+        const classRow = (state.classes || []).find(function (row) {
+            return String(row.class_id) === String(classId);
+        });
+        const className = classRow ? (classRow.class_name || classRow.class_code || '') : '';
+
+        const subjectIds = new Set();
+        const subjectNames = new Set();
+
+        (state.reports || []).forEach(function (report) {
+            const sameClassId = report && report.class_id != null && String(report.class_id) === String(classId);
+            const sameClassName = normalizeText(report?.class_name) === normalizeText(className);
+            if (!sameClassId && !sameClassName) {
+                return;
+            }
+
+            const details = Array.isArray(report.details) ? report.details : [];
+            details.forEach(function (detail) {
+                if (detail && detail.subject_id != null && String(detail.subject_id).trim() !== '') {
+                    subjectIds.add(String(detail.subject_id));
+                }
+                const name = normalizeText(detail?.subject_name);
+                const code = normalizeText(detail?.subject_code);
+                if (name) subjectNames.add(name);
+                if (code) subjectNames.add(code);
+            });
+        });
+
+        if (!subjectIds.size && !subjectNames.size) {
+            return [];
+        }
+
+        return (state.subjects || []).filter(function (subject) {
+            const id = String(subject.subject_id || '');
+            const name = normalizeText(subject.subject_name);
+            const code = normalizeText(subject.subject_code);
+            return subjectIds.has(id) || subjectNames.has(name) || subjectNames.has(code);
+        });
     }
 
     function setSelectOptions(select, items, currentValue, valueGetter, labelGetter, defaultLabel) {
