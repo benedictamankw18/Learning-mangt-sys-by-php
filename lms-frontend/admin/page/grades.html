@@ -1,503 +1,923 @@
-<div class="grades-page">
-  <div class="grades-card">
-    <div class="grades-card-header">
-      <h2>Grade Scales Management</h2>
-      <p>Configure and manage grading scales and assessment rubrics</p>
+<div id="admGradesRoot" class="adm-grades">
+  <style>
+    .adm-grades {
+      --bg: #f6faf9;
+      --panel: #ffffff;
+      --line: #d7e3df;
+      --text: #0f172a;
+      --muted: #5f6f79;
+      --brand: #0f766e;
+      --brand-2: #134e4a;
+      --accent: #f59e0b;
+      --good: #16a34a;
+      --warn: #b45309;
+      --danger: #be123c;
+      color: var(--text);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .adm-grades-shell,
+    .adm-grades-card,
+    .adm-grades-drawer {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), #fff);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 22px;
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
+    }
+
+    .adm-grades-shell {
+      padding: 1.2rem;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(245, 158, 11, 0.12),
+          transparent 24%
+        ),
+        radial-gradient(
+          circle at bottom left,
+          rgba(15, 118, 110, 0.14),
+          transparent 25%
+        ),
+        linear-gradient(135deg, #ffffff, #f8fbfa 58%, #eef6f5);
+    }
+
+    .adm-grades-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .adm-grades-kicker {
+      margin: 0 0 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: var(--brand);
+      font-weight: 800;
+    }
+
+    .adm-grades-hero h2,
+    .adm-grades-card h3,
+    .adm-grades-drawer h3 {
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .adm-grades-hero p,
+    .adm-grades-card p,
+    .adm-grades-drawer p,
+    .adm-grades-card small {
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+    }
+
+    .adm-grades-actions,
+    .adm-grades-toolbar,
+    .adm-grades-filter-row,
+    .adm-grades-inline-actions,
+    .adm-grades-card-actions,
+    .adm-grades-drawer-actions,
+    .adm-grades-chip-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .adm-grades-btn,
+    .adm-grades-input,
+    .adm-grades-select,
+    .adm-grades-textarea {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .adm-grades-btn {
+      padding: 0.82rem 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .adm-grades-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .adm-grades-btn.primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .adm-grades-btn.ghost {
+      background: #fff;
+    }
+
+    .adm-grades-btn.soft {
+      background: #ecfdf5;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .adm-grades-btn.warn {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #9a3412;
+    }
+
+    .adm-grades-btn.danger {
+      background: #fff1f2;
+      border-color: #fecdd3;
+      color: var(--danger);
+    }
+
+    .adm-grades-btn.small {
+      padding: 0.58rem 0.8rem;
+      box-shadow: none;
+      border-radius: 12px;
+    }
+
+    .adm-grades-kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .adm-grades-kpi {
+      padding: 1rem;
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #fff;
+      display: grid;
+      gap: 0.25rem;
+      min-height: 120px;
+    }
+
+    .adm-grades-kpi .icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+
+    .adm-grades-kpi .value {
+      font-size: 1.75rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .adm-grades-kpi .label {
+      font-size: 0.84rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .adm-grades-kpi .sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .adm-grades-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.95fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .adm-grades-card {
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    .adm-grades-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .adm-grades-card-header .meta {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .adm-grades-banner {
+      border: 1px solid rgba(15, 118, 110, 0.15);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 118, 110, 0.09),
+        rgba(245, 158, 11, 0.08)
+      );
+      color: #0f172a;
+      border-radius: 18px;
+      padding: 0.9rem 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .adm-grades-banner strong {
+      color: var(--brand-2);
+    }
+
+    .adm-grades-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.85rem;
+    }
+
+    .adm-grades-field {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .adm-grades-field label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .adm-grades-input,
+    .adm-grades-select,
+    .adm-grades-textarea {
+      width: 100%;
+      padding: 0.82rem 0.9rem;
+      outline: none;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .adm-grades-input:focus,
+    .adm-grades-select:focus,
+    .adm-grades-textarea:focus {
+      border-color: rgba(15, 118, 110, 0.45);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.08);
+    }
+
+    .adm-grades-table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .adm-grades-table {
+      width: 100%;
+      min-width: 1180px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    .adm-grades-table thead th {
+      text-align: left;
+      padding: 0.8rem 1rem;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .adm-grades-table td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #eef2f7;
+      vertical-align: top;
+      color: #334155;
+    }
+
+    .adm-grades-table tr:hover td {
+      background: rgba(15, 118, 110, 0.03);
+    }
+
+    .adm-grades-empty {
+      padding: 1.2rem;
+      text-align: center;
+      color: var(--muted);
+      background: #fff;
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+    }
+
+    .adm-grades-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.22rem 0.62rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      white-space: nowrap;
+      background: #ecfeff;
+      color: #115e59;
+    }
+
+    .adm-grades-chip.pending {
+      background: #fff7ed;
+      color: #9a3412;
+    }
+
+    .adm-grades-chip.approved {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .adm-grades-chip.published {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .adm-grades-chip.rejected {
+      background: #ffe4e6;
+      color: #9f1239;
+    }
+
+    .adm-grades-chip.muted {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .adm-grades-side {
+      display: grid;
+      gap: 1rem;
+      position: sticky;
+      top: 1rem;
+    }
+
+    .adm-grades-chart-card {
+      padding: 1rem;
+      min-height: 280px;
+    }
+
+    .adm-grades-chart-card canvas {
+      width: 100% !important;
+      height: 450px !important;
+    }
+
+    .adm-grades-summary-list {
+      display: grid;
+      gap: 0.7rem;
+      margin-top: 0.85rem;
+    }
+
+    .adm-grades-summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      align-items: center;
+      padding: 0.8rem 0.9rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .adm-grades-summary-item strong {
+      font-size: 0.98rem;
+    }
+
+    .adm-grades-drawer {
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .adm-grades-drawer .drawer-grid {
+      display: grid;
+      gap: 0.85rem;
+    }
+
+    .adm-grades-drawer .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .adm-grades-mini {
+      padding: 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f8fafc;
+    }
+
+    .adm-grades-mini .label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    .adm-grades-mini .value {
+      margin-top: 0.25rem;
+      font-size: 1rem;
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .adm-grades-detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      margin-top: 0.4rem;
+    }
+
+    .adm-grades-detail-table th,
+    .adm-grades-detail-table td {
+      border-bottom: 1px solid #eef2f7;
+      padding: 0.55rem 0.45rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .adm-grades-note {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .adm-grades-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.48);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 9999;
+    }
+
+    .adm-grades-overlay.show {
+      display: flex;
+    }
+
+    .adm-grades-modal {
+      width: min(1080px, 100%);
+      max-height: min(92vh, 980px);
+      overflow: auto;
+    }
+
+    .adm-grades-drawer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .adm-grades-drawer-top .title-stack {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .adm-grades-comment-box {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .adm-grades-comment-box textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .adm-grades-empty-state {
+      padding: 1rem;
+      border-radius: 18px;
+      border: 1px dashed var(--line);
+      background: #fff;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 1200px) {
+      .adm-grades-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .adm-grades-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .adm-grades-side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .adm-grades-filter-grid,
+      .adm-grades-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .adm-grades-drawer .mini-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .adm-grades-shell {
+        padding: 0.85rem;
+      }
+
+      .adm-grades-filter-grid,
+      .adm-grades-kpis {
+        grid-template-columns: 1fr;
+      }
+
+      .adm-grades-card-header,
+      .adm-grades-drawer-top {
+        flex-direction: column;
+      }
+    }
+  </style>
+
+  <div class="adm-grades-shell">
+    <div class="adm-grades-hero">
+      <div>
+        <p class="adm-grades-kicker">Assessment workflow</p>
+        <h2>Admin Grades Review</h2>
+        <p>
+          Review teacher-submitted grade reports, approve or send back for
+          correction, and publish only when the report is ready.
+        </p>
+      </div>
+      <div class="adm-grades-actions">
+        <button
+          id="admGradesCompareBtn"
+          class="adm-grades-btn ghost"
+          type="button"
+        >
+          <i class="fas fa-chart-column"></i>
+          Compare Performance
+        </button>
+        <button
+          id="admGradesRefreshBtn"
+          class="adm-grades-btn ghost"
+          type="button"
+        >
+          <i class="fas fa-rotate"></i>
+          Refresh
+        </button>
+        <button
+          id="admGradesBulkPublishBtn"
+          class="adm-grades-btn soft"
+          type="button"
+        >
+          <i class="fas fa-upload"></i>
+          Publish Selected
+        </button>
+        <button
+          id="admGradesBulkApproveBtn"
+          class="adm-grades-btn soft"
+          type="button"
+        >
+          <i class="fas fa-upload"></i>
+          Approve Selected
+        </button>
+      </div>
     </div>
-    
-    <div class="grades-card-body">
-      
-      <!-- Stats Cards -->
-      <div class="grades-stats">
-        <div class="grades-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <i class="fas fa-ruler"></i>
+
+    <div class="adm-grades-banner">
+      Use the filters to narrow by term, class, subject, or teacher. Approval
+      and publishing are separate steps, and rejection stores a correction note
+      for the teacher workflow.
+    </div>
+
+    <div class="adm-grades-kpis">
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-inbox"></i></div>
+        <div class="value" id="admGradesKpiTotal">0</div>
+        <div class="label">Reports</div>
+        <div class="sub">Current working set</div>
+      </article>
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-hourglass-half"></i></div>
+        <div class="value" id="admGradesKpiPending">0</div>
+        <div class="label">Pending</div>
+        <div class="sub">Not yet approved</div>
+      </article>
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-circle-check"></i></div>
+        <div class="value" id="admGradesKpiApproved">0</div>
+        <div class="label">Approved</div>
+        <div class="sub">Ready for publishing</div>
+      </article>
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-bullhorn"></i></div>
+        <div class="value" id="admGradesKpiPublished">0</div>
+        <div class="label">Published</div>
+        <div class="sub">Visible to parents/students</div>
+      </article>
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-circle-xmark"></i></div>
+        <div class="value" id="admGradesKpiRejected">0</div>
+        <div class="label">Needs correction</div>
+        <div class="sub">Returned to teacher</div>
+      </article>
+      <article class="adm-grades-kpi">
+        <div class="icon"><i class="fas fa-chart-line"></i></div>
+        <div class="value" id="admGradesKpiAverage">0.0</div>
+        <div class="label">Most Grade</div>
+        <div class="sub">Term-wide indicator</div>
+      </article>
+    </div>
+
+    <div class="adm-grades-layout">
+      <section class="adm-grades-card">
+        <div class="adm-grades-card-header">
+          <div class="meta">
+            <h3>Submission Queue</h3>
+            <p>
+              Filter by dynamic term, class, subject, teacher, and workflow
+              state.
+            </p>
           </div>
-          <div class="stat-content">
-            <div class="stat-value">5</div>
-            <div class="stat-label">Active Grade Scales</div>
-            <div class="stat-sublabel">In use across programs</div>
+          <div class="adm-grades-card-actions">
+            <button
+              id="admGradesClearFiltersBtn"
+              class="adm-grades-btn small ghost"
+              type="button"
+            >
+              <i class="fas fa-filter-circle-xmark"></i>
+              Clear filters
+            </button>
+            <button
+              id="admGradesExportBtn"
+              class="adm-grades-btn small ghost"
+              type="button"
+            >
+              <i class="fas fa-file-export"></i>
+              Export view
+            </button>
           </div>
         </div>
-        
-        <div class="grades-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-            <i class="fas fa-graduation-cap"></i>
+
+        <div class="adm-grades-filter-grid" id="admGradesFilters">
+          <div class="adm-grades-field">
+            <label for="admGradesAcademicYear">Academic year</label>
+            <select
+              id="admGradesAcademicYear"
+              class="adm-grades-select"
+            ></select>
           </div>
-          <div class="stat-content">
-            <div class="stat-value">50%</div>
-            <div class="stat-label">Pass Threshold</div>
-            <div class="stat-sublabel">Minimum passing grade</div>
+          <div class="adm-grades-field">
+            <label for="admGradesSemester">Semester</label>
+            <select id="admGradesSemester" class="adm-grades-select"></select>
           </div>
-        </div>
-        
-        <div class="grades-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-            <i class="fas fa-award"></i>
+          <div class="adm-grades-field">
+            <label for="admGradesClass">Class</label>
+            <select id="admGradesClass" class="adm-grades-select"></select>
           </div>
-          <div class="stat-content">
-            <div class="stat-value">9</div>
-            <div class="stat-label">Grade Levels</div>
-            <div class="stat-sublabel">A1 to F9 (Ghana WAEC)</div>
+          <div class="adm-grades-field">
+            <label for="admGradesSubject">Subject</label>
+            <select id="admGradesSubject" class="adm-grades-select"></select>
           </div>
-        </div>
-        
-        <div class="grades-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-            <i class="fas fa-check-double"></i>
+          <div class="adm-grades-field">
+            <label for="admGradesTeacher">Teacher</label>
+            <select id="admGradesTeacher" class="adm-grades-select"></select>
           </div>
-          <div class="stat-content">
-            <div class="stat-value">C6</div>
-            <div class="stat-label">Credit Threshold</div>
-            <div class="stat-sublabel">Minimum for university</div>
+          <div class="adm-grades-field">
+            <label for="admGradesStatus">Status</label>
+            <select id="admGradesStatus" class="adm-grades-select"></select>
           </div>
-        </div>
-      </div>
-      
-      <!-- Toolbar -->
-      <div class="grades-toolbar">
-        <div class="grades-toolbar-left">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search grade scales...">
-          </div>
-          
-          <div class="grades-filter">
-            <select>
-              <option value="">All Types</option>
-              <option value="national">National Standard</option>
-              <option value="school">School Custom</option>
-              <option value="program">Program Specific</option>
-            </select>
-            
-            <select>
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+          <div class="adm-grades-field" style="grid-column: span 2">
+            <label for="admGradesSearch">Search</label>
+            <input
+              id="admGradesSearch"
+              class="adm-grades-input"
+              type="search"
+              placeholder="Search student, class, note, or report id"
+            />
           </div>
         </div>
-        
-        <div class="grades-toolbar-right">
-          <button class="btn-add-scale">
-            <i class="fas fa-plus"></i>
-            Add Grade Scale
+
+        <div style="margin-top: 1rem" class="adm-grades-table-wrap">
+          <table class="adm-grades-table">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    id="admGradesSelectAll"
+                    aria-label="Select all reports"
+                  />
+                </th>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Term</th>
+                <th>Grade</th>
+                <th>Attendance</th>
+                <th>Workflow</th>
+                <th>Generated</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="admGradesQueueBody">
+              <tr>
+                <td colspan="9">
+                  <div class="adm-grades-empty">Loading grade reports...</div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="adm-grades-side">
+        <section class="adm-grades-card adm-grades-chart-card">
+          <div class="adm-grades-card-header" style="margin-bottom: 0.5rem">
+            <div class="meta">
+              <h3>Term Summary</h3>
+              <p>Performance snapshot for the current filter set.</p>
+            </div>
+          </div>
+          <canvas
+            id="admGradesSummaryChart"
+            aria-label="Grade summary chart"
+          ></canvas>
+          <div class="adm-grades-summary-list" id="admGradesSummaryList"></div>
+        </section>
+
+        <section class="adm-grades-card">
+          <div class="adm-grades-card-header" style="margin-bottom: 0.5rem">
+            <div class="meta">
+              <h3>Active Scale</h3>
+              <p>Loaded from the current grading scale configuration.</p>
+            </div>
+          </div>
+          <div class="adm-grades-field" style="margin-bottom: 0.75rem">
+            <label for="admGradesScaleCategory">Grade scale category</label>
+            <select
+              id="admGradesScaleCategory"
+              class="adm-grades-select"
+            ></select>
+          </div>
+          <div id="admGradesScaleStatus" class="adm-grades-empty-state">
+            Loading grade scale configuration...
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <div
+    id="admGradesDrawerOverlay"
+    class="adm-grades-overlay"
+    aria-hidden="true"
+  >
+    <div class="adm-grades-card adm-grades-drawer adm-grades-modal">
+      <div class="adm-grades-drawer-top">
+        <div class="title-stack">
+          <p class="adm-grades-kicker" style="margin-bottom: 0">
+            Report review
+          </p>
+          <h3 id="admGradesDrawerTitle">Select a report</h3>
+          <p id="admGradesDrawerSubtitle">
+            Choose a row from the queue to inspect the report details.
+          </p>
+        </div>
+        <div class="adm-grades-actions">
+          <button
+            id="admGradesDrawerApproveBtn"
+            class="adm-grades-btn soft"
+            type="button"
+          >
+            <i class="fas fa-circle-check"></i>
+            Approve
           </button>
-          <button class="btn-export">
-            <i class="fas fa-download"></i>
-            Export
+          <button
+            id="admGradesDrawerRejectBtn"
+            class="adm-grades-btn warn"
+            type="button"
+          >
+            <i class="fas fa-rotate-left"></i>
+            Send back
+          </button>
+          <button
+            id="admGradesDrawerPublishBtn"
+            class="adm-grades-btn primary"
+            type="button"
+          >
+            <i class="fas fa-upload"></i>
+            Publish
+          </button>
+          <button
+            id="admGradesDrawerCloseBtn"
+            class="adm-grades-btn ghost"
+            type="button"
+          >
+            <i class="fas fa-xmark"></i>
           </button>
         </div>
       </div>
-      
-      <!-- Ghana WAEC Grading Scale (Primary) -->
-      <div class="grade-scale-section">
-        <div class="scale-header">
-          <div class="scale-title">
-            <h3>Ghana WAEC Grading Scale</h3>
-            <span class="scale-badge primary">Primary Scale</span>
-            <span class="scale-badge active">Active</span>
+
+      <div class="drawer-grid">
+        <div class="mini-grid">
+          <div class="adm-grades-mini">
+            <div class="label">Student</div>
+            <div class="value" id="admGradesDrawerStudent">-</div>
           </div>
-          <div class="scale-actions">
-            <button class="btn-edit-scale" title="Edit Scale">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn-duplicate-scale" title="Duplicate Scale">
-              <i class="fas fa-copy"></i>
-            </button>
+          <div class="adm-grades-mini">
+            <div class="label">Class</div>
+            <div class="value" id="admGradesDrawerClass">-</div>
+          </div>
+          <div class="adm-grades-mini">
+            <div class="label">Term</div>
+            <div class="value" id="admGradesDrawerTerm">-</div>
+          </div>
+          <div class="adm-grades-mini">
+            <div class="label">Workflow</div>
+            <div class="value" id="admGradesDrawerWorkflow">-</div>
           </div>
         </div>
-        
-        <div class="scale-description">
-          Official grading scale used by the West African Examinations Council (WAEC) for Ghana SHS assessments. This is the standard scale for end-of-term and WASSCE examinations.
+
+        <div class="mini-grid">
+          <div class="adm-grades-mini">
+            <div class="label">Generated by</div>
+            <div class="value" id="admGradesDrawerGeneratedBy">-</div>
+          </div>
+          <div class="adm-grades-mini">
+            <div class="label">Generated at</div>
+            <div class="value" id="admGradesDrawerGeneratedAt">-</div>
+          </div>
+          <div class="adm-grades-mini">
+            <div class="label">Grade</div>
+            <div class="value" id="admGradesDrawerGpa">-</div>
+          </div>
+          <div class="adm-grades-mini">
+            <div class="label">Attendance</div>
+            <div class="value" id="admGradesDrawerAttendance">-</div>
+          </div>
         </div>
-        
-        <div class="scale-table-container">
-          <table class="scale-table">
-            <thead>
-              <tr>
-                <th>Grade</th>
-                <th>Description</th>
-                <th>Score Range</th>
-                <th>Interpretation</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="grade-excellent">
-                <td><span class="grade-badge a1">A1</span></td>
-                <td><strong>Excellent</strong></td>
-                <td><span class="score-range">75% - 100%</span></td>
-                <td>Outstanding performance</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-very-good">
-                <td><span class="grade-badge b2">B2</span></td>
-                <td><strong>Very Good</strong></td>
-                <td><span class="score-range">70% - 74%</span></td>
-                <td>Very good performance</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-good">
-                <td><span class="grade-badge b3">B3</span></td>
-                <td><strong>Good</strong></td>
-                <td><span class="score-range">65% - 69%</span></td>
-                <td>Good performance</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-credit">
-                <td><span class="grade-badge c4">C4</span></td>
-                <td><strong>Credit</strong></td>
-                <td><span class="score-range">60% - 64%</span></td>
-                <td>Satisfactory credit</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-credit">
-                <td><span class="grade-badge c5">C5</span></td>
-                <td><strong>Credit</strong></td>
-                <td><span class="score-range">55% - 59%</span></td>
-                <td>Credit performance</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-credit">
-                <td><span class="grade-badge c6">C6</span></td>
-                <td><strong>Credit</strong></td>
-                <td><span class="score-range">50% - 54%</span></td>
-                <td>Credit performance</td>
-                <td><span class="status-indicator pass">Pass (Credit)</span></td>
-              </tr>
-              <tr class="grade-pass">
-                <td><span class="grade-badge d7">D7</span></td>
-                <td><strong>Pass</strong></td>
-                <td><span class="score-range">45% - 49%</span></td>
-                <td>Basic pass (not for university)</td>
-                <td><span class="status-indicator pass-weak">Pass</span></td>
-              </tr>
-              <tr class="grade-pass">
-                <td><span class="grade-badge e8">E8</span></td>
-                <td><strong>Pass</strong></td>
-                <td><span class="score-range">40% - 44%</span></td>
-                <td>Weak pass (not for university)</td>
-                <td><span class="status-indicator pass-weak">Pass</span></td>
-              </tr>
-              <tr class="grade-fail">
-                <td><span class="grade-badge f9">F9</span></td>
-                <td><strong>Fail</strong></td>
-                <td><span class="score-range">0% - 39%</span></td>
-                <td>Failure</td>
-                <td><span class="status-indicator fail">Fail</span></td>
-              </tr>
-            </tbody>
-          </table>
+
+        <div>
+          <div
+            class="adm-grades-card-actions"
+            style="justify-content: space-between; margin-bottom: 0.5rem"
+          >
+            <strong>Subject breakdown</strong>
+            <span class="adm-grades-note" id="admGradesDrawerScaleHint"
+              >Scores are matched against the active scale bands.</span
+            >
+          </div>
+          <div class="adm-grades-table-wrap">
+            <table class="adm-grades-detail-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Total score</th>
+                  <th>Percentage</th>
+                  <th>Grade</th>
+                </tr>
+              </thead>
+              <tbody id="admGradesDrawerDetailsBody">
+                <tr>
+                  <td colspan="4">
+                    <div class="adm-grades-empty">
+                      Open a report to view its details.
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        
-        <div class="scale-meta">
-          <div class="meta-item">
-            <i class="fas fa-check-circle"></i>
-            <span>
-              <span class="meta-label">Pass Threshold</span>
-              <strong>40%</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-graduation-cap"></i>
-            <span>
-              <span class="meta-label">Total Grades</span>
-              <strong>9 levels</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-users"></i>
-            <span>
-              <span class="meta-label">Used By</span>
-              <strong>All Programs</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-calendar"></i>
-            <span>
-              <span class="meta-label">Last Updated</span>
-              <strong>Sept 15, 2025</strong>
-            </span>
-          </div>
+
+        <div class="adm-grades-comment-box">
+          <label
+            for="admGradesDrawerComment"
+            style="
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              font-size: 0.78rem;
+              color: #334155;
+            "
+            >Admin comment or correction note</label
+          >
+          <textarea
+            id="admGradesDrawerComment"
+            class="adm-grades-textarea"
+            placeholder="Leave a reason for rejecting or a note for the publication trail."
+          ></textarea>
         </div>
       </div>
-      
-      <!-- Continuous Assessment Scale -->
-      <div class="grade-scale-section">
-        <div class="scale-header">
-          <div class="scale-title">
-            <h3>Continuous Assessment Scale</h3>
-            <span class="scale-badge school">School Scale</span>
-            <span class="scale-badge active">Active</span>
-          </div>
-          <div class="scale-actions">
-            <button class="btn-edit-scale" title="Edit Scale">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn-duplicate-scale" title="Duplicate Scale">
-              <i class="fas fa-copy"></i>
-            </button>
-            <button class="btn-set-inactive" title="Set Inactive">
-              <i class="fas fa-times-circle"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="scale-description">
-          Custom grading scale for class tests, assignments, and quizzes. Used for internal school assessments before official examinations.
-        </div>
-        
-        <div class="scale-table-container">
-          <table class="scale-table">
-            <thead>
-              <tr>
-                <th>Grade</th>
-                <th>Description</th>
-                <th>Score Range</th>
-                <th>GPA Value</th>
-                <th>Interpretation</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="grade-excellent">
-                <td><span class="grade-badge a1">A</span></td>
-                <td><strong>Excellent</strong></td>
-                <td><span class="score-range">85% - 100%</span></td>
-                <td><span class="gpa-value">4.0</span></td>
-                <td>Exceptional work</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-very-good">
-                <td><span class="grade-badge b2">B+</span></td>
-                <td><strong>Very Good</strong></td>
-                <td><span class="score-range">75% - 84%</span></td>
-                <td><span class="gpa-value">3.5</span></td>
-                <td>Above average work</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-good">
-                <td><span class="grade-badge b3">B</span></td>
-                <td><strong>Good</strong></td>
-                <td><span class="score-range">65% - 74%</span></td>
-                <td><span class="gpa-value">3.0</span></td>
-                <td>Good understanding</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-credit">
-                <td><span class="grade-badge c4">C</span></td>
-                <td><strong>Average</strong></td>
-                <td><span class="score-range">55% - 64%</span></td>
-                <td><span class="gpa-value">2.0</span></td>
-                <td>Adequate performance</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-pass">
-                <td><span class="grade-badge d7">D</span></td>
-                <td><strong>Pass</strong></td>
-                <td><span class="score-range">50% - 54%</span></td>
-                <td><span class="gpa-value">1.0</span></td>
-                <td>Minimum pass</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-fail">
-                <td><span class="grade-badge f9">F</span></td>
-                <td><strong>Fail</strong></td>
-                <td><span class="score-range">0% - 49%</span></td>
-                <td><span class="gpa-value">0.0</span></td>
-                <td>Below standard</td>
-                <td><span class="status-indicator fail">Fail</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="scale-meta">
-          <div class="meta-item">
-            <i class="fas fa-check-circle"></i>
-            <span>
-              <span class="meta-label">Pass Threshold</span>
-              <strong>50%</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-graduation-cap"></i>
-            <span>
-              <span class="meta-label">Total Grades</span>
-              <strong>6 levels</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-users"></i>
-            <span>
-              <span class="meta-label">Used By</span>
-              <strong>Class Tests, Assignments</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-calendar"></i>
-            <span>
-              <span class="meta-label">Last Updated</span>
-              <strong>Jan 10, 2026</strong>
-            </span>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Pass/Fail Scale -->
-      <div class="grade-scale-section">
-        <div class="scale-header">
-          <div class="scale-title">
-            <h3>Pass/Fail Scale</h3>
-            <span class="scale-badge school">School Scale</span>
-            <span class="scale-badge active">Active</span>
-          </div>
-          <div class="scale-actions">
-            <button class="btn-edit-scale" title="Edit Scale">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn-duplicate-scale" title="Duplicate Scale">
-              <i class="fas fa-copy"></i>
-            </button>
-            <button class="btn-set-inactive" title="Set Inactive">
-              <i class="fas fa-times-circle"></i>
-            </button>
-          </div>
-        </div>
-        
-        <div class="scale-description">
-          Binary grading scale for participation-based activities, projects, and non-core assessments. Simple pass or fail evaluation.
-        </div>
-        
-        <div class="scale-table-container">
-          <table class="scale-table">
-            <thead>
-              <tr>
-                <th>Grade</th>
-                <th>Description</th>
-                <th>Score Range</th>
-                <th>GPA Value</th>
-                <th>Interpretation</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="grade-excellent">
-                <td><span class="grade-badge a1">P</span></td>
-                <td><strong>Pass</strong></td>
-                <td><span class="score-range">50% - 100%</span></td>
-                <td><span class="gpa-value">-</span></td>
-                <td>Meets requirements</td>
-                <td><span class="status-indicator pass">Pass</span></td>
-              </tr>
-              <tr class="grade-fail">
-                <td><span class="grade-badge f9">F</span></td>
-                <td><strong>Fail</strong></td>
-                <td><span class="score-range">0% - 49%</span></td>
-                <td><span class="gpa-value">-</span></td>
-                <td>Does not meet requirements</td>
-                <td><span class="status-indicator fail">Fail</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        
-        <div class="scale-meta">
-          <div class="meta-item">
-            <i class="fas fa-check-circle"></i>
-            <span>
-              <span class="meta-label">Pass Threshold</span>
-              <strong>50%</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-graduation-cap"></i>
-            <span>
-              <span class="meta-label">Total Grades</span>
-              <strong>2 levels</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-users"></i>
-            <span>
-              <span class="meta-label">Used By</span>
-              <strong>Projects, Participation</strong>
-            </span>
-          </div>
-          <div class="meta-item">
-            <i class="fas fa-calendar"></i>
-            <span>
-              <span class="meta-label">Last Updated</span>
-              <strong>Nov 5, 2025</strong>
-            </span>
-          </div>
-        </div>
-      </div>
-      
     </div>
   </div>
 </div>
-
-<script>
-// Grade scales page functionality
-(function() {
-    // Search functionality
-    const searchInput = document.querySelector('.search-box input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            console.log('Searching for:', searchTerm);
-            // Add search filtering logic
-        });
-    }
-    
-    // Edit scale buttons
-    const editButtons = document.querySelectorAll('.btn-edit-scale');
-    editButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const scaleSection = this.closest('.grade-scale-section');
-            const scaleName = scaleSection.querySelector('h3').textContent;
-            console.log('Editing scale:', scaleName);
-            // Add modal or redirect to edit page
-        });
-    });
-    
-    // Duplicate scale buttons
-    const duplicateButtons = document.querySelectorAll('.btn-duplicate-scale');
-    duplicateButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const scaleSection = this.closest('.grade-scale-section');
-            const scaleName = scaleSection.querySelector('h3').textContent;
-            
-            if (confirm(`Create a copy of "${scaleName}"?`)) {
-                console.log('Duplicating scale:', scaleName);
-                // Add API call to duplicate scale
-            }
-        });
-    });
-    
-    // Set inactive buttons
-    const inactiveButtons = document.querySelectorAll('.btn-set-inactive');
-    inactiveButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const scaleSection = this.closest('.grade-scale-section');
-            const scaleName = scaleSection.querySelector('h3').textContent;
-            
-            if (confirm(`Deactivate "${scaleName}"? This scale will no longer be available for new assessments.`)) {
-                console.log('Deactivating scale:', scaleName);
-                // Add API call to deactivate scale
-            }
-        });
-    });
-    
-    // Add grade scale button
-    const addScaleBtn = document.querySelector('.btn-add-scale');
-    if (addScaleBtn) {
-        addScaleBtn.addEventListener('click', function() {
-            console.log('Adding new grade scale');
-            // Add modal or redirect to create new scale
-        });
-    }
-})();
-</script>

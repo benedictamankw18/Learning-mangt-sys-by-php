@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Config\Database;
 use App\Middleware\RoleMiddleware;
 use App\Repositories\AssessmentCategoryRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\TeacherRepository;
 use App\Utils\Response;
 use PDO;
@@ -13,13 +14,75 @@ class TeacherAssessmentController
 {
     private PDO $db;
     private AssessmentCategoryRepository $categoryRepo;
+    private NotificationRepository $notificationRepo;
     private TeacherRepository $teacherRepo;
 
     public function __construct()
     {
         $this->db = Database::getInstance()->getConnection();
         $this->categoryRepo = new AssessmentCategoryRepository();
+        $this->notificationRepo = new NotificationRepository();
         $this->teacherRepo = new TeacherRepository();
+    }
+
+    /**
+     * Notify all active admins in this institution when assessments are submitted for approval.
+     */
+    private function notifyAdminsForApprovalSubmission(
+        int $institutionId,
+        int $courseId,
+        int $submittedByUserId,
+        int $processedCount,
+        int $studentsCount
+    ): void {
+        if ($institutionId <= 0 || $submittedByUserId <= 0 || $processedCount <= 0) {
+            return;
+        }
+
+        try {
+            $stmtAdmins = $this->db->prepare(
+                "SELECT DISTINCT a.user_id
+                 FROM admins a
+                 WHERE a.institution_id = :institution_id
+                   AND a.user_id IS NOT NULL
+                   AND LOWER(COALESCE(a.status, 'active')) = 'active'"
+            );
+            $stmtAdmins->execute(['institution_id' => $institutionId]);
+            $adminUserIds = array_values(array_unique(array_map('intval', $stmtAdmins->fetchAll(PDO::FETCH_COLUMN))));
+
+            if (!$adminUserIds) {
+                return;
+            }
+
+            $title = 'Teacher submitted assessments for approval';
+            $message = "A teacher submitted {$processedCount} assessment score(s) for approval";
+            if ($studentsCount > 0) {
+                $message .= " across {$studentsCount} student(s)";
+            }
+            if ($courseId > 0) {
+                $message .= " for class subject ID {$courseId}";
+            }
+            $message .= '.';
+
+            foreach ($adminUserIds as $adminUserId) {
+                if ($adminUserId <= 0) {
+                    continue;
+                }
+
+                $this->notificationRepo->create([
+                    'sender_id' => $submittedByUserId,
+                    'user_id' => $adminUserId,
+                    'target_role' => 'admin',
+                    'course_id' => $courseId > 0 ? $courseId : null,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'assessment_approval_submission',
+                    'link' => '/admin/dashboard.html#grades',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('TeacherAssessmentController::notifyAdminsForApprovalSubmission ' . $e->getMessage());
+        }
     }
 
     /**
@@ -406,17 +469,360 @@ class TeacherAssessmentController
      */
     public function saveAssessments(array $user): void
     {
-        $this->persistAssessments($user, false);
+        $this->persistAssessments($user, 'draft');
     }
 
     /**
-     * Publish assessment scores (final mode)
+     * Publish assessment scores immediately
      * POST /teacher/assessments/publish
      * Body: { assessments: [ { student_id, category_id, score, max_score } ] }
      */
     public function publishAssessments(array $user): void
     {
-        $this->persistAssessments($user, true);
+        $this->persistAssessments($user, 'published');
+    }
+
+    /**
+     * Submit assessment scores for admin approval
+     * POST /teacher/assessments/submit-for-approval
+     * Body: { assessments: [ { student_id, category_id, score, max_score } ] }
+     */
+    public function submitAssessmentsForApproval(array $user): void
+    {
+        $this->persistAssessments($user, 'pending_approval');
+    }
+
+        /**
+         * Generate grade reports when grades are submitted for approval
+         */
+        private function generateGradeReportsFromAssessments(
+            int $institutionId,
+            int $courseId,
+            array $studentIds,
+            int $generatedByUserId
+        ): array {
+            $stats = [
+                'students_considered' => 0,
+                'reports_created' => 0,
+                'reports_reused' => 0,
+                'details_created' => 0,
+                'details_updated' => 0,
+                'details_skipped' => 0,
+                'errors' => [],
+            ];
+
+            try {
+                $currentAcademicYearId = $this->getCurrentAcademicYearId();
+                $currentSemesterId = $this->getCurrentSemesterId();
+                if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
+                    $stats['errors'][] = 'Missing current academic year or semester';
+                    return $stats;
+                }
+
+                foreach ($studentIds as $studentId) {
+                    $stats['students_considered']++;
+
+                    // Check if report already exists
+                    $stmt = $this->db->prepare(
+                        "SELECT report_id FROM grade_reports 
+                         WHERE student_id = :student_id 
+                         AND semester_id = :semester_id 
+                         AND academic_year_id = :academic_year_id
+                         AND report_type = 'semester'
+                         LIMIT 1"
+                    );
+                    $stmt->execute([
+                        ':student_id' => $studentId,
+                        ':semester_id' => $currentSemesterId,
+                        ':academic_year_id' => $currentAcademicYearId,
+                    ]);
+                    $reportId = (int) $stmt->fetchColumn();
+
+                    // If no existing report, create one
+                    if ($reportId <= 0) {
+                        $stmtInsert = $this->db->prepare(
+                            "INSERT INTO grade_reports 
+                            (
+                                uuid,
+                                institution_id,
+                                student_id,
+                                semester_id,
+                                academic_year_id,
+                                report_type,
+                                Approved,
+                                is_published,
+                                principal_comment,
+                                generated_at,
+                                generated_by,
+                                created_at
+                            )
+                            VALUES
+                            (
+                                UUID(),
+                                :institution_id,
+                                :student_id,
+                                :semester_id,
+                                :academic_year_id,
+                                'semester',
+                                0,
+                                0,
+                                NULL,
+                                NOW(),
+                                :generated_by,
+                                NOW()
+                            )"
+                        );
+                        $stmtInsert->execute([
+                            ':institution_id' => $institutionId,
+                            ':student_id' => $studentId,
+                            ':semester_id' => $currentSemesterId,
+                            ':academic_year_id' => $currentAcademicYearId,
+                            ':generated_by' => $generatedByUserId > 0 ? $generatedByUserId : null,
+                        ]);
+                        $reportId = (int) $this->db->lastInsertId();
+                        $stats['reports_created']++;
+                    } else {
+                        $stmtUpdateReport = $this->db->prepare(
+                            "UPDATE grade_reports
+                             SET generated_at = NOW(),
+                                 generated_by = :generated_by,
+                                 Approved = 0,
+                                 is_published = 0,
+                                 principal_comment = NULL,
+                                 updated_at = NOW()
+                             WHERE report_id = :report_id"
+                        );
+                        $stmtUpdateReport->execute([
+                            ':generated_by' => $generatedByUserId > 0 ? $generatedByUserId : null,
+                            ':report_id' => $reportId,
+                        ]);
+                        $stats['reports_reused']++;
+                    }
+
+                    $scores = $this->calculateWeightedGradeSummary($studentId, $courseId);
+
+                    if ($scores && $scores['percentage'] !== null) {
+                        $percentage = (float) $scores['percentage'];
+                        $totalScore = (float) $scores['total_score'];
+
+                        // grade_report_details has no unique key for upsert, so update existing row if found.
+                        $detailFindStmt = $this->db->prepare(
+                            "SELECT report_detail_id
+                             FROM grade_report_details
+                             WHERE report_id = :report_id
+                               AND course_id = :course_id
+                             LIMIT 1"
+                        );
+                        $detailFindStmt->execute([
+                            ':report_id' => $reportId,
+                            ':course_id' => $courseId,
+                        ]);
+                        $reportDetailId = (int) $detailFindStmt->fetchColumn();
+
+                        if ($reportDetailId > 0) {
+                            $detailUpdateStmt = $this->db->prepare(
+                                "UPDATE grade_report_details
+                                 SET total_score = :total_score,
+                                     percentage = :percentage,
+                                     updated_at = NOW()
+                                 WHERE report_detail_id = :report_detail_id"
+                            );
+                            $detailUpdateStmt->execute([
+                                ':report_detail_id' => $reportDetailId,
+                                ':total_score' => round($totalScore, 2),
+                                ':percentage' => round($percentage, 2),
+                            ]);
+                            $stats['details_updated']++;
+                        } else {
+                            $detailInsertStmt = $this->db->prepare(
+                                "INSERT INTO grade_report_details
+                                (report_id, course_id, total_score, percentage, created_at)
+                                VALUES (:report_id, :course_id, :total_score, :percentage, NOW())"
+                            );
+                            $detailInsertStmt->execute([
+                                ':report_id' => $reportId,
+                                ':course_id' => $courseId,
+                                ':total_score' => round($totalScore, 2),
+                                ':percentage' => round($percentage, 2),
+                            ]);
+                            $stats['details_created']++;
+                        }
+                    } else {
+                        $stats['details_skipped']++;
+                    }
+                }
+            } catch (\Throwable $e) {
+                error_log('TeacherAssessmentController::generateGradeReportsFromAssessments ' . $e->getMessage());
+                $stats['errors'][] = $e->getMessage();
+            }
+
+            return $stats;
+        }
+
+    /**
+     * Calculate report summary from published assessments.
+     * total_score: raw sum of scores
+     * percentage: weighted score (same formula as grading draft estimate)
+     *
+     * @return array{total_score: float, percentage: float|null}|null
+     */
+    private function calculateWeightedGradeSummary(int $studentId, int $courseId): ?array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT
+                ass.score,
+                a.max_score,
+                ac.weight_percentage
+             FROM assessment_submissions ass
+             INNER JOIN assessments a ON a.assessment_id = ass.assessment_id
+             INNER JOIN assessment_categories ac ON ac.category_id = a.category_id
+             WHERE ass.student_id = :student_id
+               AND a.course_id = :course_id
+               AND ass.status = 'published'"
+        );
+        $stmt->execute([
+            ':student_id' => $studentId,
+            ':course_id' => $courseId,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!$rows) {
+            return null;
+        }
+
+        $rawTotalScore = 0.0;
+        $weightedSum = 0.0;
+        $enteredCount = 0;
+
+        foreach ($rows as $row) {
+            $score = isset($row['score']) ? (float) $row['score'] : null;
+            $maxScore = isset($row['max_score']) ? (float) $row['max_score'] : 0.0;
+            $weight = isset($row['weight_percentage']) ? (float) $row['weight_percentage'] : 0.0;
+
+            if ($score === null || $maxScore <= 0) {
+                continue;
+            }
+
+            $rawTotalScore += $score;
+            $weightedSum += (($score / $maxScore) * $weight);
+            $enteredCount++;
+        }
+
+        if ($enteredCount === 0) {
+            return null;
+        }
+
+        return [
+            'total_score' => round($rawTotalScore, 2),
+            'percentage' => round($weightedSum, 2),
+        ];
+    }
+
+    /**
+     * Admin approval for teacher assessment scores.
+     * POST /teacher/assessments/approve
+     * Body: { class_subject_id, student_id? }
+     */
+    public function approveAssessments(array $user): void
+    {
+        try {
+            $roleMiddleware = new RoleMiddleware($user);
+            if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
+                return;
+            }
+
+            $institutionId = $this->getInstitutionId($user);
+            if ($institutionId <= 0) {
+                Response::error('Institution context required', 400);
+            }
+
+            $input = json_decode((string) file_get_contents('php://input'), true) ?: [];
+            $courseId = isset($input['class_subject_id']) ? (int) $input['class_subject_id'] : (int) ($input['course_id'] ?? 0);
+            $studentId = isset($input['student_id']) ? (int) $input['student_id'] : 0;
+
+            if ($courseId <= 0) {
+                Response::error('class_subject_id is required', 400);
+            }
+
+            $currentAcademicYearId = $this->getCurrentAcademicYearId();
+            $currentSemesterId = $this->getCurrentSemesterId();
+            if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
+                Response::error('No current academic year/semester found', 400);
+            }
+
+            $stmtAssessments = $this->db->prepare(
+                "SELECT a.assessment_id
+                 FROM assessments a
+                 INNER JOIN class_subjects cs ON cs.course_id = a.course_id
+                 WHERE a.course_id = :course_id
+                   AND a.academic_year_id = :academic_year_id
+                   AND a.semester_id = :semester_id
+                   AND a.assessment_type = 'teacher_mode'
+                   AND cs.institution_id = :institution_id"
+            );
+            $stmtAssessments->execute([
+                'course_id' => $courseId,
+                'academic_year_id' => $currentAcademicYearId,
+                'semester_id' => $currentSemesterId,
+                'institution_id' => $institutionId,
+            ]);
+
+            $assessmentIds = array_map('intval', $stmtAssessments->fetchAll(PDO::FETCH_COLUMN));
+            if (!$assessmentIds) {
+                Response::error('No teacher assessments found for this course in current term', 404);
+            }
+
+            $this->db->beginTransaction();
+
+            $placeholders = [];
+            $params = [];
+            foreach ($assessmentIds as $i => $assessmentId) {
+                $key = 'a' . $i;
+                $placeholders[] = ':' . $key;
+                $params[$key] = $assessmentId;
+            }
+
+            $sqlSub =
+                "UPDATE assessment_submissions
+                 SET status = 'published',
+                     graded_at = COALESCE(graded_at, NOW()),
+                     updated_at = NOW()
+                 WHERE assessment_id IN (" . implode(',', $placeholders) . ")
+                   AND status IN ('pending_approval', 'pending_approval')";
+
+            if ($studentId > 0) {
+                $sqlSub .= ' AND student_id = :student_id';
+                $params['student_id'] = $studentId;
+            }
+
+            $stmtUpdateSub = $this->db->prepare($sqlSub);
+            $stmtUpdateSub->execute($params);
+            $approvedRows = $stmtUpdateSub->rowCount();
+
+            $sqlAssess =
+                "UPDATE assessments
+                 SET is_published = 1,
+                     updated_at = NOW()
+                 WHERE assessment_id IN (" . implode(',', $placeholders) . ')';
+            $stmtUpdateAssess = $this->db->prepare($sqlAssess);
+            $stmtUpdateAssess->execute($params);
+            $publishedAssessments = $stmtUpdateAssess->rowCount();
+
+            $this->db->commit();
+
+            Response::success([
+                'approved_submissions' => $approvedRows,
+                'published_assessments' => $publishedAssessments,
+                'course_id' => $courseId,
+                'student_id' => $studentId > 0 ? $studentId : null,
+            ], 'Assessments approved and published');
+        } catch (\Throwable $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            error_log('TeacherAssessmentController::approveAssessments ' . $e->getMessage());
+            Response::serverError('Failed to approve assessments');
+        }
     }
 
     /**
@@ -468,6 +874,7 @@ class TeacherAssessmentController
             $this->db->beginTransaction();
             $processed = 0;
             $errors = [];
+            $processedStudentIds = [];
             $insertedRows = [];
             $notInsertedRows = [];
 
@@ -549,7 +956,8 @@ class TeacherAssessmentController
                     continue;
                 }
 
-                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $publish)) {
+                $importStatus = $publish ? 'pending_approval' : 'draft';
+                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $importStatus)) {
                     $errorMessage = 'failed to persist score';
                     $errors[] = ['line' => $line, 'error' => $errorMessage];
                     $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
@@ -718,11 +1126,12 @@ class TeacherAssessmentController
 
     /**
      * Helper: Save a single assessment score
+        * @param int $courseId
      * @param int $studentId
      * @param int $categoryId
      * @param float $score
      * @param float $maxScore
-     * @param bool $published
+        * @param string $status
      */
     private function saveScore(
         int $courseId,
@@ -730,18 +1139,18 @@ class TeacherAssessmentController
         int $categoryId,
         float $score,
         float $maxScore,
-        bool $published
+        string $status
     ): bool {
-        $assessmentId = $this->ensureCategoryAssessment($courseId, $categoryId, $maxScore, $published);
+        $isPublished = $status === 'published' || $status === 'graded';
+        $assessmentId = $this->ensureCategoryAssessment($courseId, $categoryId, $maxScore, $isPublished);
         if ($assessmentId <= 0) {
             return false;
         }
 
-        $status = $published ? 'graded' : 'draft';
-        $gradedAt = $published ? date('Y-m-d H:i:s') : null;
+        $gradedAt = ($status === 'published' || $status === 'graded') ? date('Y-m-d H:i:s') : null;
 
         $stmtFind = $this->db->prepare(
-            'SELECT submission_id
+            'SELECT submission_id, status
              FROM assessment_submissions
              WHERE assessment_id = :assessment_id AND student_id = :student_id
              ORDER BY submission_id DESC
@@ -751,23 +1160,43 @@ class TeacherAssessmentController
             'assessment_id' => $assessmentId,
             'student_id' => $studentId,
         ]);
-        $submissionId = (int) $stmtFind->fetchColumn();
+        $existingSubmission = $stmtFind->fetch(PDO::FETCH_ASSOC) ?: null;
+        $submissionId = (int) ($existingSubmission['submission_id'] ?? 0);
+        $currentStatus = (string) ($existingSubmission['status'] ?? '');
 
         if ($submissionId > 0) {
             $stmtUpdate = $this->db->prepare(
                 'UPDATE assessment_submissions
                  SET score = :score,
-                     status = :status,
+                     status = CASE
+                         WHEN :status_for_published_check_1 = "published" AND status = "draft" THEN "published"
+                         WHEN :status_for_published_check_2 = "published" THEN status
+                         ELSE :status_for_else
+                     END,
                      submitted_at = NOW(),
-                     graded_at = :graded_at,
+                     graded_at = CASE
+                         WHEN :status_for_published_check_3 = "published" AND status = "draft" THEN :graded_at_for_publish
+                         WHEN :status_for_published_check_4 = "published" THEN graded_at
+                         ELSE :graded_at_for_else
+                     END,
                      updated_at = NOW()
                  WHERE submission_id = :submission_id'
             );
 
+            if ($status === 'published' && in_array($currentStatus, ['pending_approval', 'pending_approve'], true)) {
+                // Preserve pending approval rows exactly as-is during teacher publish.
+                return true;
+            }
+
             return $stmtUpdate->execute([
                 'score' => $score,
-                'status' => $status,
-                'graded_at' => $gradedAt,
+                'status_for_published_check_1' => $status,
+                'status_for_published_check_2' => $status,
+                'status_for_else' => $status,
+                'status_for_published_check_3' => $status,
+                'status_for_published_check_4' => $status,
+                'graded_at_for_publish' => $gradedAt,
+                'graded_at_for_else' => $gradedAt,
                 'submission_id' => $submissionId,
             ]);
         }
@@ -789,13 +1218,9 @@ class TeacherAssessmentController
     }
 
     /**
-     * Helper: Get assessment scores for a specific category
-     * @param int $classId
-     * @param int $subjectId
-     * @param int $categoryId
-     * @return array
+     * Persist assessment entries in draft, pending approval, or graded mode.
      */
-    private function persistAssessments(array $user, bool $publish): void
+    private function persistAssessments(array $user, string $mode): void
     {
         try {
             if (!$this->requireTeacherRole($user)) {
@@ -811,6 +1236,7 @@ class TeacherAssessmentController
             $input = json_decode((string) file_get_contents('php://input'), true) ?: [];
             $assessments = $input['assessments'] ?? null;
             $courseIdFromBody = isset($input['class_subject_id']) ? (int) $input['class_subject_id'] : 0;
+            $generatedByUserId = isset($user['user_id']) ? (int) $user['user_id'] : (isset($user['id']) ? (int) $user['id'] : 0);
 
             if (!is_array($assessments) || !$assessments) {
                 Response::error('Assessments array required', 400);
@@ -819,6 +1245,53 @@ class TeacherAssessmentController
             $this->db->beginTransaction();
             $processed = 0;
             $errors = [];
+            $processedStudentIds = [];
+
+            $publishEligibility = [];
+            if ($mode === 'published') {
+                $submittedCategoriesByStudentCourse = [];
+                $requiredCategoriesByCourse = [];
+
+                foreach ($assessments as $assessment) {
+                    $studentId = isset($assessment['student_id']) ? (int) $assessment['student_id'] : 0;
+                    $categoryId = isset($assessment['category_id']) ? (int) $assessment['category_id'] : 0;
+                    $courseId = isset($assessment['class_subject_id']) ? (int) $assessment['class_subject_id'] : $courseIdFromBody;
+
+                    if ($studentId <= 0 || $categoryId <= 0 || $courseId <= 0) {
+                        continue;
+                    }
+
+                    $key = $studentId . ':' . $courseId;
+                    if (!isset($submittedCategoriesByStudentCourse[$key])) {
+                        $submittedCategoriesByStudentCourse[$key] = [];
+                    }
+                    $submittedCategoriesByStudentCourse[$key][$categoryId] = true;
+
+                    if (!isset($requiredCategoriesByCourse[$courseId])) {
+                        $requiredCategoriesByCourse[$courseId] = $this->getRequiredTeacherModeCategoryIdsForCourse($courseId);
+                    }
+                }
+
+                foreach ($submittedCategoriesByStudentCourse as $key => $submittedCategoryMap) {
+                    [, $courseIdPart] = array_map('intval', explode(':', $key));
+                    $required = $requiredCategoriesByCourse[$courseIdPart] ?? [];
+                    $submitted = array_keys($submittedCategoryMap);
+                    $missing = array_values(array_diff($required, $submitted));
+
+                    if (!$required || !$missing) {
+                        $publishEligibility[$key] = [
+                            'allowed' => true,
+                            'missing' => [],
+                        ];
+                        continue;
+                    }
+
+                    $publishEligibility[$key] = [
+                        'allowed' => false,
+                        'missing' => $missing,
+                    ];
+                }
+            }
 
             foreach ($assessments as $idx => $assessment) {
                 $studentId = isset($assessment['student_id']) ? (int) $assessment['student_id'] : 0;
@@ -847,12 +1320,36 @@ class TeacherAssessmentController
                     continue;
                 }
 
-                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $publish)) {
+                if ($mode === 'published') {
+                    $eligibilityKey = $studentId . ':' . $courseId;
+                    $eligibility = $publishEligibility[$eligibilityKey] ?? null;
+                    if ($eligibility && !$eligibility['allowed']) {
+                        $missingText = implode(',', $eligibility['missing']);
+                        $errors[] = "Assessment {$idx}: student {$studentId} is missing category ids [{$missingText}]";
+                        continue;
+                    }
+                }
+
+                $targetStatus = 'draft';
+                if ($mode === 'pending_approval' || $mode === 'pending_approval') {
+                    $targetStatus = 'pending_approval';
+                } elseif ($mode === 'published') {
+                    $targetStatus = 'published';
+                } elseif ($mode === 'graded') {
+                    $targetStatus = 'graded';
+                }
+
+                if ($mode === 'pending_approval') {
+                    $targetStatus = 'pending_approval';
+                }
+
+                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $targetStatus)) {
                     $errors[] = "Assessment {$idx}: failed to persist score";
                     continue;
                 }
 
                 $processed++;
+                $processedStudentIds[] = $studentId;
             }
 
             if ($errors && $processed === 0) {
@@ -861,18 +1358,101 @@ class TeacherAssessmentController
             }
 
             $this->db->commit();
-            Response::success([
-                $publish ? 'published' : 'saved' => $processed,
+            $message = 'Assessments saved successfully';
+            if ($mode === 'pending_approval' || $mode === 'pending_approval') {
+                $message = 'Assessments submitted for admin approval';
+            } elseif ($mode === 'published') {
+                $message = 'Assessments published successfully';
+            } elseif ($mode === 'graded') {
+                $message = 'Assessments graded successfully';
+            }
+
+            $gradeReportStats = null;
+
+                // Generate/refresh grade reports when teacher submits for admin approval.
+                if (($mode === 'pending_approval' || $mode === 'pending_approval') && $processed > 0) {
+                    $studentIds = array_values(array_unique(array_map('intval', $processedStudentIds)));
+                    $courseId = $courseIdFromBody > 0 ? $courseIdFromBody : (
+                        is_array($assessments) && count($assessments) > 0
+                            ? (int) ($assessments[0]['class_subject_id'] ?? 0)
+                            : 0
+                    );
+                    if ($courseId > 0 && count($studentIds) > 0) {
+                        $gradeReportStats = $this->generateGradeReportsFromAssessments($institutionId, $courseId, $studentIds, $generatedByUserId);
+                    }
+                }
+
+            $responseData = [
+                $mode => $processed,
                 'total' => count($assessments),
                 'errors' => $errors,
-            ], $publish ? 'Assessments published successfully' : 'Assessments saved successfully');
+            ];
+
+            if ($mode === 'pending_approval' || $mode === 'pending_approval') {
+                $responseData['grade_report_stats'] = $gradeReportStats ?: [
+                    'students_considered' => 0,
+                    'reports_created' => 0,
+                    'reports_reused' => 0,
+                    'details_created' => 0,
+                    'details_updated' => 0,
+                    'details_skipped' => 0,
+                    'errors' => [],
+                ];
+
+                $studentCount = count(array_unique(array_map('intval', $processedStudentIds)));
+                $courseIdForNotification = $courseIdFromBody > 0 ? $courseIdFromBody : (
+                    is_array($assessments) && count($assessments) > 0
+                        ? (int) ($assessments[0]['class_subject_id'] ?? 0)
+                        : 0
+                );
+
+                $this->notifyAdminsForApprovalSubmission(
+                    $institutionId,
+                    $courseIdForNotification,
+                    $generatedByUserId,
+                    $processed,
+                    $studentCount
+                );
+            }
+
+            Response::success($responseData, $message);
         } catch (\Throwable $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
             error_log('TeacherAssessmentController::persistAssessments ' . $e->getMessage());
-            Response::serverError($publish ? 'Failed to publish assessments' : 'Failed to save assessments');
+            Response::serverError('Failed to persist assessments');
         }
+    }
+
+    /**
+     * Get required teacher-mode assessment category IDs for a course in the current period.
+     *
+     * @return int[]
+     */
+    private function getRequiredTeacherModeCategoryIdsForCourse(int $courseId): array
+    {
+        $currentAcademicYearId = $this->getCurrentAcademicYearId();
+        $currentSemesterId = $this->getCurrentSemesterId();
+        if ($courseId <= 0 || $currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
+            return [];
+        }
+
+        $stmt = $this->db->prepare(
+            "SELECT DISTINCT category_id
+             FROM assessments
+             WHERE course_id = :course_id
+               AND academic_year_id = :academic_year_id
+               AND semester_id = :semester_id
+               AND assessment_type = 'teacher_mode'"
+        );
+        $stmt->execute([
+            'course_id' => $courseId,
+            'academic_year_id' => $currentAcademicYearId,
+            'semester_id' => $currentSemesterId,
+        ]);
+
+        return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
     private function ensureCategoryAssessment(int $courseId, int $categoryId, float $maxScore, bool $published): int

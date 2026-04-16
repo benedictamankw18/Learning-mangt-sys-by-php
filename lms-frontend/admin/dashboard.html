@@ -89,8 +89,12 @@
           <span>Quizzes</span>
         </a>
         <a href="#" class="nav-item" data-page="grades">
+          <i class="fas fa-square-poll-horizontal"></i>
+          <span>Grade Review</span>
+        </a>
+        <a href="#" class="nav-item" data-page="management-grades">
           <i class="fas fa-chart-line"></i>
-          <span>Grades</span>
+          <span>Grade Scales</span>
         </a>
         <a href="#" class="nav-item" data-page="reports">
           <i class="fas fa-file-alt"></i>
@@ -522,7 +526,11 @@
             document.getElementById("pageTitle").textContent =
               page === "calendar"
                 ? "School Calendar"
-                : page.charAt(0).toUpperCase() + page.slice(1);
+                : page === "grades"
+                  ? "Grade Review"
+                  : page === "management-grades"
+                    ? "Grade Scales"
+                    : page.charAt(0).toUpperCase() + page.slice(1);
             setActiveNav(page);
             // Hide default overview section when showing other pages
             const overviewSection = document.getElementById("overview-section");
@@ -591,6 +599,8 @@
     <script src="../common/js/calendar.js"></script>
     <script src="./js/assessments.js?v=20260323"></script>
     <script src="./js/quizzes.js?v=20260324"></script>
+    <script src="./js/grades.js?v=20260414"></script>
+    <script src="./js/management-grades.js?v=20260405b"></script>
     <!-- jsPDF and autoTable for timetable PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>

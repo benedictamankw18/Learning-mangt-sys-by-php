@@ -528,8 +528,46 @@ const AssessmentCategoryAPI = {
 const GradeAPI = {
     getAll: (params) => API.get(API_ENDPOINTS.GRADES, params),
     getStudentGrades: (studentId) => API.get(API_ENDPOINTS.STUDENT_GRADES(studentId)),
+    getFinalScore: (courseId, studentId, params) => API.get(API_ENDPOINTS.COURSE_STUDENT_FINAL_SCORE(courseId, studentId), params),
     create: (data) => API.post(API_ENDPOINTS.GRADES, data),
     update: (id, data) => API.put(`${API_ENDPOINTS.GRADES}/${id}`, data),
+};
+
+/**
+ * Grade Category APIs
+ */
+const GradeCategoryAPI = {
+    getAll: () => API.get(API_ENDPOINTS.GRADE_CATEGORIES),
+    getById: (id) => API.get(API_ENDPOINTS.GRADE_CATEGORY_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.GRADE_CATEGORIES, data),
+    update: (id, data) => API.put(API_ENDPOINTS.GRADE_CATEGORY_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.GRADE_CATEGORY_BY_ID(id)),
+};
+
+/**
+ * Grade Scale APIs
+ */
+const GradeScaleAPI = {
+    getAll: () => API.get(API_ENDPOINTS.GRADE_SCALES),
+    getById: (id) => API.get(API_ENDPOINTS.GRADE_SCALE_BY_ID(id)),
+    create: (data) => API.post(API_ENDPOINTS.GRADE_SCALES, data),
+    update: (id, data) => API.put(API_ENDPOINTS.GRADE_SCALE_BY_ID(id), data),
+    delete: (id) => API.delete(API_ENDPOINTS.GRADE_SCALE_BY_ID(id)),
+};
+
+/**
+ * Grade Report APIs
+ */
+const GradeReportAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.GRADE_REPORTS, params),
+    getById: (uuid) => API.get(API_ENDPOINTS.GRADE_REPORT_BY_UUID(uuid)),
+    getStatistics: (params) => API.get(API_ENDPOINTS.GRADE_REPORTS_STATS, params),
+    getClassReports: (classId, params) => API.get(API_ENDPOINTS.GRADE_REPORTS_CLASS(classId), params),
+    getReportCard: (studentId, params) => API.get(API_ENDPOINTS.GRADE_REPORTS_STUDENT_REPORT_CARD(studentId), params),
+    getTranscript: (studentId, params) => API.get(API_ENDPOINTS.GRADE_REPORTS_STUDENT_TRANSCRIPT(studentId), params),
+    generate: (data) => API.post(API_ENDPOINTS.GRADE_REPORTS_GENERATE, data),
+    bulkGenerate: (data) => API.post(API_ENDPOINTS.GRADE_REPORTS_BULK_GENERATE, data),
+    publish: (uuid, published) => API.put(API_ENDPOINTS.GRADE_REPORTS_PUBLISH(uuid), { published }),
 };
 
 /**
@@ -779,4 +817,6 @@ const TeacherAssessmentAPI = {
     getAssignmentsAndQuizzes: (params) => API.get(API_ENDPOINTS.TEACHER_ASSIGNMENTS_QUIZZES, params),
     saveAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_SAVE_ASSESSMENTS, data),
     publishAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_PUBLISH_ASSESSMENTS, data),
+    submitAssessmentsForApproval: (data) => API.post(API_ENDPOINTS.TEACHER_SUBMIT_FOR_APPROVAL_ASSESSMENTS, data),
+    approveAssessments: (data) => API.post(API_ENDPOINTS.TEACHER_APPROVE_ASSESSMENTS, data),
 };

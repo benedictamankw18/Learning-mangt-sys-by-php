@@ -8,11 +8,36 @@ class GradeReportRepository extends BaseRepository
 {
     protected $table = 'grade_reports';
     protected $primaryKey = 'report_id';
+    private $tableColumns = [];
+    private $attendanceCache = [];
+
+    public function findByUuid(string $uuid): ?array
+    {
+        $sql = "SELECT gr.*, 
+                s.student_id as student_number,
+                s.student_id_number,
+                s.student_id_number as student_number_id
+                FROM {$this->table} gr
+                LEFT JOIN students s ON gr.student_id = s.student_id
+                WHERE gr.uuid = :uuid
+                LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':uuid' => $uuid]);
+        $report = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$report) {
+            return null;
+        }
+
+        return $this->attachComputedAttendance($report);
+    }
 
     public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT gr.*, 
                 s.student_id as student_number,
+            s.student_id_number,
+            s.student_id_number as student_number_id,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name,
                 c.class_name as class_name,
                 sem.semester_name as semester_name,
@@ -31,6 +56,11 @@ class GradeReportRepository extends BaseRepository
             $params[':student_id'] = $filters['student_id'];
         }
 
+        if (!empty($filters['class_id'])) {
+            $sql .= " AND s.class_id = :class_id";
+            $params[':class_id'] = $filters['class_id'];
+        }
+
         if (!empty($filters['semester_id'])) {
             $sql .= " AND gr.semester_id = :semester_id";
             $params[':semester_id'] = $filters['semester_id'];
@@ -39,6 +69,19 @@ class GradeReportRepository extends BaseRepository
         if (!empty($filters['academic_year_id'])) {
             $sql .= " AND gr.academic_year_id = :academic_year_id";
             $params[':academic_year_id'] = $filters['academic_year_id'];
+        }
+
+        if (!empty($filters['generated_by'])) {
+            $sql .= " AND gr.generated_by = :generated_by";
+            $params[':generated_by'] = $filters['generated_by'];
+        }
+
+        if (isset($filters['has_feedback']) && $filters['has_feedback'] !== '' && $filters['has_feedback'] !== null) {
+            if ((string) $filters['has_feedback'] === '1') {
+                $sql .= " AND TRIM(COALESCE(gr.principal_comment, '')) <> ''";
+            } else {
+                $sql .= " AND TRIM(COALESCE(gr.principal_comment, '')) = ''";
+            }
         }
 
         $sql .= " ORDER BY gr.created_at DESC LIMIT :limit OFFSET :offset";
@@ -55,27 +98,54 @@ class GradeReportRepository extends BaseRepository
         }
         $stmt->execute();
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($reports as &$report) {
+            $report = $this->attachComputedAttendance($report);
+        }
+        unset($report);
+
+        return $reports;
     }
 
     public function count(array $filters = []): int
     {
-        $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE 1=1";
+        $sql = "SELECT COUNT(*) as total
+                FROM {$this->table} gr
+                LEFT JOIN students s ON gr.student_id = s.student_id
+                WHERE 1=1";
         $params = [];
 
         if (!empty($filters['student_id'])) {
-            $sql .= " AND student_id = :student_id";
+            $sql .= " AND gr.student_id = :student_id";
             $params[':student_id'] = $filters['student_id'];
         }
 
+        if (!empty($filters['class_id'])) {
+            $sql .= " AND s.class_id = :class_id";
+            $params[':class_id'] = $filters['class_id'];
+        }
+
         if (!empty($filters['semester_id'])) {
-            $sql .= " AND semester_id = :semester_id";
+            $sql .= " AND gr.semester_id = :semester_id";
             $params[':semester_id'] = $filters['semester_id'];
         }
 
         if (!empty($filters['academic_year_id'])) {
-            $sql .= " AND academic_year_id = :academic_year_id";
+            $sql .= " AND gr.academic_year_id = :academic_year_id";
             $params[':academic_year_id'] = $filters['academic_year_id'];
+        }
+
+        if (!empty($filters['generated_by'])) {
+            $sql .= " AND gr.generated_by = :generated_by";
+            $params[':generated_by'] = $filters['generated_by'];
+        }
+
+        if (isset($filters['has_feedback']) && $filters['has_feedback'] !== '' && $filters['has_feedback'] !== null) {
+            if ((string) $filters['has_feedback'] === '1') {
+                $sql .= " AND TRIM(COALESCE(gr.principal_comment, '')) <> ''";
+            } else {
+                $sql .= " AND TRIM(COALESCE(gr.principal_comment, '')) = ''";
+            }
         }
 
         $stmt = $this->db->prepare($sql);
@@ -87,15 +157,19 @@ class GradeReportRepository extends BaseRepository
 
     public function getReportDetails($reportId)
     {
-        $sql = "SELECT grd.*, 
-                sub.subject_name as subject_name,
-                sub.subject_code as subject_code,
-                gs.grade as grade_letter,
-                gs.remark as grade_remark
+        $sql = "SELECT grd.report_detail_id,
+                grd.report_id,
+                grd.course_id,
+                grd.total_score,
+                grd.percentage,
+                grd.created_at,
+                grd.updated_at,
+                sub.subject_name,
+                sub.subject_code
                 FROM grade_report_details grd
-                LEFT JOIN subjects sub ON grd.subject_id = sub.subject_id
-                LEFT JOIN grade_scales gs ON grd.grade_scale_id = gs.grade_scale_id
-                WHERE grd.grade_report_id = :report_id
+                LEFT JOIN class_subjects cs ON grd.course_id = cs.course_id
+                LEFT JOIN subjects sub ON cs.subject_id = sub.subject_id
+                WHERE grd.report_id = :report_id
                 ORDER BY sub.subject_name ASC";
 
         $stmt = $this->db->prepare($sql);
@@ -257,6 +331,8 @@ class GradeReportRepository extends BaseRepository
     {
         $sql = "SELECT gr.*, 
                 s.student_id as student_number,
+                s.student_id_number,
+            s.student_id_number as student_number_id,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name,
                 u.email,
                 s.date_of_birth,
@@ -298,7 +374,8 @@ class GradeReportRepository extends BaseRepository
 
         if ($report) {
             // Get details
-            $report['details'] = $this->getReportDetails($report['id']);
+            $report['details'] = $this->getReportDetails($report['report_id']);
+            $report = $this->attachComputedAttendance($report);
         }
 
         return $report;
@@ -329,7 +406,9 @@ class GradeReportRepository extends BaseRepository
         // Get details for each report
         foreach ($reports as &$report) {
             $report['details'] = $this->getReportDetails($report['report_id']);
+            $report = $this->attachComputedAttendance($report);
         }
+        unset($report);
 
         // Get student info
         $studentSql = "SELECT s.*, 
@@ -360,6 +439,8 @@ class GradeReportRepository extends BaseRepository
     {
         $sql = "SELECT gr.*, 
                 s.student_id as student_number,
+                s.student_id_number,
+            s.student_id_number as student_number_id,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name
                 FROM {$this->table} gr
                 JOIN students s ON gr.student_id = s.student_id
@@ -382,7 +463,13 @@ class GradeReportRepository extends BaseRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($reports as &$report) {
+            $report = $this->attachComputedAttendance($report);
+        }
+        unset($report);
+
+        return $reports;
     }
 
     public function bulkGenerateForClass($classId, $semesterId, $academicYearId, $generatedBy = null)
@@ -426,7 +513,7 @@ class GradeReportRepository extends BaseRepository
         // Assign positions
         $position = 1;
         foreach ($reports as $report) {
-            $updateSql = "UPDATE {$this->table} SET position = :position WHERE report_id = :report_id";
+            $updateSql = "UPDATE {$this->table} SET class_rank = :position WHERE report_id = :report_id";
             $updateStmt = $this->db->prepare($updateSql);
             $updateStmt->execute([
                 ':position' => $position,
@@ -438,14 +525,20 @@ class GradeReportRepository extends BaseRepository
 
     public function getStatistics($institutionId = null, $semesterId = null, $academicYearId = null)
     {
+        $gpaExpr = $this->hasColumn($this->table, 'gpa') ? 'AVG(gr.gpa)' : 'NULL';
+        $highestGpaExpr = $this->hasColumn($this->table, 'gpa') ? 'MAX(gr.gpa)' : 'NULL';
+        $lowestGpaExpr = $this->hasColumn($this->table, 'gpa') ? 'MIN(gr.gpa)' : 'NULL';
+        $cgpaExpr = $this->hasColumn($this->table, 'cgpa') ? 'AVG(gr.cgpa)' : 'NULL';
+        $attendanceExpr = $this->hasColumn($this->table, 'attendance_percentage') ? 'AVG(gr.attendance_percentage)' : 'NULL';
+
         $sql = "SELECT 
                 COUNT(DISTINCT gr.report_id) as total_reports,
                 COUNT(DISTINCT gr.student_id) as total_students,
-                AVG(gr.gpa) as average_gpa,
-                MAX(gr.gpa) as highest_gpa,
-                MIN(gr.gpa) as lowest_gpa,
-                AVG(gr.cgpa) as average_cgpa,
-                AVG(gr.attendance_percentage) as average_attendance
+            {$gpaExpr} as average_gpa,
+            {$highestGpaExpr} as highest_gpa,
+            {$lowestGpaExpr} as lowest_gpa,
+            {$cgpaExpr} as average_cgpa,
+            {$attendanceExpr} as average_attendance
                 FROM {$this->table} gr";
 
         $joins = [];
@@ -480,5 +573,90 @@ class GradeReportRepository extends BaseRepository
         $stmt->execute($params);
 
         return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function hasColumn(string $table, string $column): bool
+    {
+        if (!array_key_exists($table, $this->tableColumns)) {
+            $stmt = $this->db->prepare(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table"
+            );
+            $stmt->execute([':table' => $table]);
+            $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $this->tableColumns[$table] = array_fill_keys($columns ?: [], true);
+        }
+
+        return isset($this->tableColumns[$table][$column]);
+    }
+
+    private function attachComputedAttendance(array $report): array
+    {
+        $studentId = isset($report['student_id']) ? (int) $report['student_id'] : 0;
+        if ($studentId <= 0) {
+            $report['attendance_percentage'] = 0;
+            return $report;
+        }
+
+        $semesterId = isset($report['semester_id']) && $report['semester_id'] !== ''
+            ? (int) $report['semester_id']
+            : null;
+        $academicYearId = isset($report['academic_year_id']) && $report['academic_year_id'] !== ''
+            ? (int) $report['academic_year_id']
+            : null;
+
+        $report['attendance_percentage'] = $this->calculateAttendancePercentage(
+            $studentId,
+            $semesterId,
+            $academicYearId
+        );
+
+        return $report;
+    }
+
+    private function calculateAttendancePercentage(int $studentId, ?int $semesterId, ?int $academicYearId): float
+    {
+        $cacheKey = $studentId . ':' . ($semesterId ?? 'all') . ':' . ($academicYearId ?? 'all');
+        if (array_key_exists($cacheKey, $this->attendanceCache)) {
+            return $this->attendanceCache[$cacheKey];
+        }
+
+        $sql = "SELECT
+                COUNT(*) AS total_records,
+                SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('present', 'late') THEN 1 ELSE 0 END) AS attended_records
+                FROM attendance a
+                INNER JOIN class_subjects cs ON a.course_id = cs.course_id
+                WHERE a.student_id = :student_id
+            AND (:semester_id_is_null IS NULL OR cs.semester_id = :semester_id_value)
+            AND (:academic_year_id_is_null IS NULL OR cs.academic_year_id = :academic_year_id_value)";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':student_id', $studentId, PDO::PARAM_INT);
+        if ($semesterId === null) {
+            $stmt->bindValue(':semester_id_is_null', null, PDO::PARAM_NULL);
+            $stmt->bindValue(':semester_id_value', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':semester_id_is_null', $semesterId, PDO::PARAM_INT);
+            $stmt->bindValue(':semester_id_value', $semesterId, PDO::PARAM_INT);
+        }
+        if ($academicYearId === null) {
+            $stmt->bindValue(':academic_year_id_is_null', null, PDO::PARAM_NULL);
+            $stmt->bindValue(':academic_year_id_value', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':academic_year_id_is_null', $academicYearId, PDO::PARAM_INT);
+            $stmt->bindValue(':academic_year_id_value', $academicYearId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $total = isset($row['total_records']) ? (int) $row['total_records'] : 0;
+        $attended = isset($row['attended_records']) ? (int) $row['attended_records'] : 0;
+
+        $percentage = $total > 0 ? round(($attended / $total) * 100, 1) : 0.0;
+        $this->attendanceCache[$cacheKey] = $percentage;
+
+        return $percentage;
     }
 }

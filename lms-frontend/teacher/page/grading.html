@@ -1,6 +1,1002 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-clipboard-check"></i> Grading</h3></div>
-  <div class="card-body">
-    <p>Grade submissions and provide feedback to students here.</p>
-  </div>
+<style>
+  .gr-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .gr-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #082f49 0%, #0f766e 52%, #1d4ed8 100%);
+    color: #f8fafc;
+    padding: 1.15rem 1.2rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  }
+
+  .gr-hero::after {
+    content: "";
+    position: absolute;
+    inset: auto -50px -60px auto;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    filter: blur(8px);
+  }
+
+  .gr-hero-inner {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .gr-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .gr-hero-copy {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .gr-kicker {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(248, 250, 252, 0.75);
+    font-weight: 700;
+  }
+
+  .gr-hero h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #fff;
+  }
+
+  .gr-hero p {
+    margin: 0;
+    max-width: 72ch;
+    color: rgba(248, 250, 252, 0.88);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .gr-periods {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .gr-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.34rem 0.68rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+  }
+
+  .gr-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(2, 6, 23, 0.05);
+    overflow: hidden;
+  }
+
+  .gr-panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .gr-panel-head h4 {
+    margin: 0;
+    font-size: 0.96rem;
+    color: #0f172a;
+  }
+
+  .gr-panel-head p {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .gr-toolbar {
+    padding: 1rem;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .gr-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.95fr) minmax(0, 1.15fr);
+    gap: 0.85rem;
+    align-items: start;
+  }
+
+  .gr-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  #gradingCategoryField {
+    display: none;
+  }
+
+  .gr-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .gr-field select,
+  .gr-field input {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.54rem 0.7rem;
+    font-size: 0.88rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .gr-field select:focus,
+  .gr-field input:focus,
+  .gr-checklist:focus-within {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+  }
+
+  .gr-field--view {
+    background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.85rem;
+  }
+
+  .gr-checklist {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.65rem 0.7rem;
+    min-height: 148px;
+    max-height: 220px;
+    overflow: auto;
+    display: grid;
+    gap: 0.45rem;
+    background: #fff;
+  }
+
+  .gr-check-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    padding: 0.1rem 0;
+    font-size: 0.84rem;
+    color: #334155;
+  }
+
+  .gr-check-item input {
+    margin-top: 0.18rem;
+  }
+
+  .gr-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+    padding-top: 0.1rem;
+  }
+
+  .gr-actions .btn {
+    box-shadow: none;
+  }
+
+  .gr-note {
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #cde7df;
+    background: #f0fdfa;
+    color: #14532d;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .gr-legend {
+    display: grid;
+    gap: 0.4rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    border-radius: 10px;
+    font-size: 0.8rem;
+  }
+
+  .gr-legend-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .gr-stats {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .gr-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.85rem 0.95rem;
+    background: #fff;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .gr-stat strong {
+    font-size: 1.25rem;
+    color: #0f172a;
+  }
+
+  .gr-stat span {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .gr-status {
+    display: none;
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: pre-line;
+  }
+
+  .gr-status.show {
+    display: block;
+  }
+
+  .gr-status.info {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+  }
+
+  .gr-status.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  .gr-status.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .gr-sheet {
+    display: none;
+    gap: 1rem;
+  }
+
+  .gr-table-wrap {
+    overflow: auto;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .gr-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.84rem;
+  }
+
+  .gr-table th,
+  .gr-table td {
+    border-bottom: 1px solid #edf2f7;
+    border-right: 1px solid #edf2f7;
+    padding: 0.55rem 0.65rem;
+    vertical-align: top;
+  }
+
+  .gr-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .gr-table th:first-child,
+  .gr-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #fff;
+  }
+
+  .gr-table th:first-child {
+    z-index: 3;
+    background: #f8fafc;
+  }
+
+  .gr-student-cell {
+    min-width: 190px;
+  }
+
+  .gr-name {
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+  }
+
+  .gr-meta {
+    margin-top: 0.2rem;
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .gr-cell-wrap {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 160px;
+  }
+
+  .gr-cell-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  .gr-cat-name {
+    font-size: 0.73rem;
+    color: #334155;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .gr-weight {
+    font-size: 0.69rem;
+    color: #0f766e;
+    font-weight: 700;
+    background: #ecfeff;
+    padding: 0.18rem 0.42rem;
+    border-radius: 999px;
+  }
+
+  .gr-input,
+  .gr-max-input {
+    width: 100%;
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.42rem 0.5rem;
+    font-size: 0.82rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .gr-input:focus,
+  .gr-max-input:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  }
+
+  .gr-input.invalid,
+  .gr-max-input.invalid {
+    border-color: #ef4444;
+    background: #fef2f2;
+  }
+
+  .gr-mini {
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.35;
+  }
+
+  .gr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.22rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .gr-badge.ok {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .gr-badge.warn {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+
+  .gr-badge.bad {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .gr-insight-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 1rem;
+  }
+
+  .gr-chart-wrap {
+    position: relative;
+    min-height: 280px;
+  }
+
+  .gr-searchbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    background: #fff;
+    min-width: 260px;
+    max-width: 100%;
+  }
+
+  .gr-searchbox i {
+    color: #64748b;
+    flex: 0 0 auto;
+  }
+
+  .gr-searchbox input {
+    border: 0;
+    padding: 0;
+    font-size: 0.88rem;
+    width: 100%;
+    outline: none;
+    background: transparent;
+  }
+
+  .gr-searchbox:focus-within {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  }
+
+  .gr-subtle-card {
+    border: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 0.85rem;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .gr-subtle-card strong {
+    font-size: 0.84rem;
+    color: #0f172a;
+  }
+
+  .gr-subtle-card p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .gr-section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.76rem;
+    color: #0f766e;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+  }
+
+  .gr-empty {
+    padding: 2.2rem 1rem;
+    text-align: center;
+    color: #64748b;
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .gr-empty i {
+    font-size: 1.8rem;
+    color: #94a3b8;
+  }
+
+  .gr-feedback {
+    display: none;
+    gap: 0.75rem;
+  }
+
+  .gr-feedback.show {
+    display: grid;
+  }
+
+  .gr-feedback-head {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .gr-feedback-head h4 {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+
+  .gr-feedback-head p {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .gr-feedback-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .gr-feedback-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .gr-feedback-box.ok {
+    border-color: #bbf7d0;
+  }
+
+  .gr-feedback-box.bad {
+    border-color: #fecaca;
+  }
+
+  .gr-feedback-title {
+    margin: 0;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+    background: #f8fafc;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .gr-feedback-box.ok .gr-feedback-title {
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .gr-feedback-box.bad .gr-feedback-title {
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  .gr-feedback-table-wrap {
+    overflow: auto;
+    max-height: 220px;
+  }
+
+  .gr-feedback-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+
+  .gr-feedback-table th,
+  .gr-feedback-table td {
+    border-bottom: 1px solid #edf2f7;
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    vertical-align: top;
+  }
+
+  .gr-feedback-table th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1080px) {
+    .gr-filters,
+    .gr-insight-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .gr-stats {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .gr-legend-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .gr-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .gr-legend-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .gr-feedback-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="gr-shell" id="gradingPageRoot">
+  <section class="gr-hero">
+    <div class="gr-hero-inner">
+      <div class="gr-hero-top">
+        <div class="gr-hero-copy">
+          <div class="gr-kicker">Teacher grading workflow</div>
+          <h3>Grade Sheet</h3>
+          <p>
+            Enter category scores, review the published-only final percentage,
+            and submit the sheet for approval once the assessment set is
+            complete.
+          </p>
+        </div>
+        <div class="gr-periods">
+          <span class="gr-pill"
+            ><i class="fas fa-calendar-alt"></i>
+            <span id="gradingAcademicYearValue"
+              >Academic year not set</span
+            ></span
+          >
+          <span class="gr-pill"
+            ><i class="fas fa-clock"></i>
+            <span id="gradingSemesterValue">Semester not set</span></span
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gr-panel">
+    <div class="gr-panel-head">
+      <div>
+        <h4><i class="fas fa-filter"></i> Grade Sheet Filters</h4>
+        <p>Select a class/subject to load the grade sheet.</p>
+      </div>
+      <button class="btn btn-outline btn-sm" id="gradingRefreshBtn">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+    </div>
+    <div class="gr-toolbar">
+      <div class="gr-filters">
+        <div class="gr-field gr-field--view">
+          <div class="gr-section-label">
+            <i class="fas fa-school"></i> Work Context
+          </div>
+          <label for="gradingClassSubjectSelect">Class / Subject</label>
+          <select id="gradingClassSubjectSelect">
+            <option value="">-- Select class and subject --</option>
+          </select>
+          <div class="gr-mini">
+            Choose the class and subject you want to review.
+          </div>
+        </div>
+
+        <div class="gr-field gr-field--view">
+          <div class="gr-section-label">
+            <i class="fas fa-layer-group"></i> Grade Setup
+          </div>
+          <label for="gradingGradeCategorySelect">Grade Category</label>
+          <select id="gradingGradeCategorySelect">
+            <option value="">Loading grade categories...</option>
+          </select>
+          <div class="gr-mini" id="gradingGradeCategoryHint">
+            Checking grade category scales...
+          </div>
+        </div>
+
+        <div class="gr-field gr-field--view">
+          <div class="gr-section-label">
+            <i class="fas fa-eye"></i> Current View
+          </div>
+          <div class="gr-note">
+            The sheet uses published-only assessment data for the final
+            percentage. Draft values remain available for review before
+            submission.
+          </div>
+          <div class="gr-subtle-card">
+            <strong>Workflow</strong>
+            <p>
+              Save a draft for work in progress, then submit only when all
+              categories are entered and ready for approval.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="gr-actions">
+        <button class="btn btn-primary btn-sm" id="gradingLoadBtn">
+          <i class="fas fa-table"></i> Load Sheet
+        </button>
+        <button class="btn btn-outline btn-sm" id="gradingOpenAssessmentsBtn">
+          <i class="fas fa-clipboard-list"></i> Open Assessments
+        </button>
+        <button
+          class="btn btn-success btn-sm"
+          id="gradingSaveBtn"
+          style="display: none"
+        >
+          <i class="fas fa-save"></i> Save Draft
+        </button>
+        <button class="btn btn-warning btn-sm" id="gradingSubmitBtn">
+          <i class="fas fa-paper-plane"></i> Submit for Approval
+        </button>
+        <button class="btn btn-outline btn-sm" id="gradingExportCsvBtn">
+          <i class="fas fa-file-excel"></i> Export Excel
+        </button>
+        <button class="btn btn-outline btn-sm" id="gradingExportPdfBtn">
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+      </div>
+
+      <div class="gr-status" id="gradingStatus"></div>
+
+      <div class="gr-panel gr-feedback" id="gradingSubmitFeedback">
+        <div class="gr-toolbar" style="padding: 0.8rem">
+          <div class="gr-feedback-head">
+            <h4>
+              <i class="fas fa-list-check"></i> Submission Precheck Feedback
+            </h4>
+            <p id="gradingSubmitFeedbackSummary">
+              No submission check has been run yet.
+            </p>
+          </div>
+
+          <div class="gr-feedback-grid">
+            <div class="gr-feedback-box ok">
+              <h5 class="gr-feedback-title">Sent (Complete marks)</h5>
+              <div class="gr-feedback-table-wrap">
+                <table class="gr-feedback-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>ID</th>
+                      <th>Categories</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gradingSubmitSentBody">
+                    <tr>
+                      <td colspan="3" class="gr-mini">No records.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="gr-feedback-box bad">
+              <h5 class="gr-feedback-title">Not Sent (Issues found)</h5>
+              <div class="gr-feedback-table-wrap">
+                <table class="gr-feedback-table">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      <th>ID</th>
+                      <th>Issue</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gradingSubmitBlockedBody">
+                    <tr>
+                      <td colspan="3" class="gr-mini">No records.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gr-panel" style="border-radius: 10px">
+        <div class="gr-panel-head" style="padding: 0.7rem 0.8rem">
+          <div>
+            <h4 style="font-size: 0.86rem">
+              <i class="fas fa-diagram-successor"></i> Submission Status
+            </h4>
+            <p style="font-size: 0.74rem">
+              Current workflow state for this class and subject sheet.
+            </p>
+          </div>
+          <span class="gr-badge bad" id="gradingSubmissionStatusBadge"
+            ><i class="fas fa-pen"></i> Draft</span
+          >
+        </div>
+        <div class="gr-toolbar" style="padding: 0.7rem 0.8rem">
+          <div class="gr-mini" id="gradingSubmissionStatusCounts">
+            Draft 0 | Pending 0 | Approved 0
+          </div>
+          <div class="gr-feedback-table-wrap" style="max-height: 170px">
+            <table class="gr-feedback-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>ID</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="gradingSubmissionStatusBody">
+                <tr>
+                  <td colspan="3" class="gr-mini">
+                    Submitted students will appear here.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="gr-panel"
+        style="border-radius: 10px"
+        id="gradingAdminFeedbackSection"
+      >
+        <div class="gr-panel-head" style="padding: 0.7rem 0.8rem">
+          <div>
+            <h4 style="font-size: 0.86rem">
+              <i class="fas fa-comment-dots"></i> Admin Feedback
+            </h4>
+            <p style="font-size: 0.74rem">
+              Correction notes from admin for this class and term.
+            </p>
+          </div>
+        </div>
+        <div class="gr-toolbar" style="padding: 0.7rem 0.8rem">
+          <div class="gr-mini" id="gradingAdminFeedbackSummary">
+            Load a class and subject to view feedback notes.
+          </div>
+          <div class="gr-feedback-table-wrap" style="max-height: 180px">
+            <table class="gr-feedback-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Status</th>
+                  <th>Correction Note</th>
+                </tr>
+              </thead>
+              <tbody id="gradingAdminFeedbackBody">
+                <tr>
+                  <td colspan="3" class="gr-mini">No feedback loaded.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="gr-legend">
+        <strong id="gradingBoundaryTitle">Boundary Guide (-)</strong>
+        <div class="gr-legend-grid" id="gradingBoundaryGuide"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="gr-stats" id="gradingStats">
+    <div class="gr-stat">
+      <strong id="gradingTotalStudents">0</strong><span>Students loaded</span>
+    </div>
+    <div class="gr-stat">
+      <strong id="gradingCompleteCount">0</strong
+      ><span>Complete final scores</span>
+    </div>
+    <div class="gr-stat">
+      <strong id="gradingAverageFinal">0%</strong
+      ><span>Average final score</span>
+    </div>
+    <div class="gr-stat">
+      <strong id="gradingHighestFinal">--</strong
+      ><span>Highest final score</span>
+    </div>
+    <div class="gr-stat">
+      <strong id="gradingLowestFinal">--</strong><span>Lowest final score</span>
+    </div>
+    <div class="gr-stat">
+      <strong id="gradingPassRate">0%</strong><span>Pass rate (>=50%)</span>
+    </div>
+  </section>
+
+  <section class="gr-panel gr-sheet" id="gradingSheetSection">
+    <div class="gr-panel-head">
+      <div>
+        <h4><i class="fas fa-clipboard-check"></i> Grade Table</h4>
+        <p id="gradingSheetSubtitle">No class selected.</p>
+      </div>
+      <label class="gr-searchbox" for="gradingSearchInput">
+        <i class="fas fa-magnifying-glass"></i>
+        <input
+          type="search"
+          id="gradingSearchInput"
+          placeholder="Search student..."
+        />
+      </label>
+    </div>
+    <div class="gr-table-wrap">
+      <table class="gr-table" id="gradingTable">
+        <thead>
+          <tr id="gradingTableHeadRow">
+            <th>Student</th>
+          </tr>
+        </thead>
+        <tbody id="gradingTableBody">
+          <tr>
+            <td colspan="4">
+              <div class="gr-empty">
+                <i class="fas fa-inbox"></i>
+                <div>No grade sheet loaded.</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="gr-insight-grid">
+    <div class="gr-panel">
+      <div class="gr-panel-head">
+        <div>
+          <h4><i class="fas fa-chart-pie"></i> Grade Distribution</h4>
+          <p>Live results converted to the selected grade category bands.</p>
+        </div>
+      </div>
+      <div class="gr-toolbar">
+        <div class="gr-chart-wrap">
+          <canvas id="gradingDistributionChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="gr-panel">
+      <div class="gr-panel-head">
+        <div>
+          <h4><i class="fas fa-chart-line"></i> Final Score Insights</h4>
+          <p>Always-visible result status for the current grade sheet.</p>
+        </div>
+      </div>
+      <div class="gr-toolbar" id="gradingBreakdownList">
+        <div class="gr-empty">
+          <i class="fas fa-signal"></i>
+          <div>Load a class and subject to view final score insights.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>

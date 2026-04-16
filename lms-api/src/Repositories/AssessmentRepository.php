@@ -359,4 +359,127 @@ class AssessmentRepository
             return 0;
         }
     }
+
+    /**
+     * Compute final score for a student in a course using published teacher assessments.
+     * Completeness requires every institution category to have a published score entry.
+     */
+    public function computePublishedFinalScore(
+        int $institutionId,
+        int $courseId,
+        int $studentId,
+        int $academicYearId,
+        int $semesterId
+    ): array {
+        try {
+            $requiredStmt = $this->db->prepare(
+                "SELECT category_id, category_name, COALESCE(weight_percentage, 0) AS weight_percentage
+                 FROM assessment_categories
+                 WHERE institution_id = :institution_id
+                 ORDER BY category_id"
+            );
+            $requiredStmt->execute(['institution_id' => $institutionId]);
+            $requiredCategories = $requiredStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            $scoresStmt = $this->db->prepare(
+                "SELECT
+                    a.category_id,
+                    MAX(ac.category_name) AS category_name,
+                    MAX(COALESCE(ac.weight_percentage, 0)) AS weight_percentage,
+                    SUM(COALESCE(sub.score, 0)) AS student_score,
+                    SUM(COALESCE(a.max_score, 0)) AS category_max_score,
+                    SUM(CASE WHEN sub.submission_id IS NULL THEN 0 ELSE 1 END) AS score_rows
+                 FROM assessments a
+                 INNER JOIN assessment_categories ac ON ac.category_id = a.category_id
+                 LEFT JOIN assessment_submissions sub
+                    ON sub.assessment_id = a.assessment_id
+                   AND sub.student_id = :student_id
+                 WHERE a.course_id = :course_id
+                   AND a.academic_year_id = :academic_year_id
+                   AND a.semester_id = :semester_id
+                   AND a.assessment_type = 'teacher_mode'
+                   AND a.is_published = 1
+                   AND ac.institution_id = :institution_id
+                 GROUP BY a.category_id"
+            );
+
+            $scoresStmt->execute([
+                'student_id' => $studentId,
+                'course_id' => $courseId,
+                'academic_year_id' => $academicYearId,
+                'semester_id' => $semesterId,
+                'institution_id' => $institutionId,
+            ]);
+
+            $publishedByCategory = $scoresStmt->fetchAll(PDO::FETCH_ASSOC);
+            $publishedMap = [];
+            foreach ($publishedByCategory as $row) {
+                $publishedMap[(int) $row['category_id']] = $row;
+            }
+
+            $breakdown = [];
+            $missingCategories = [];
+            $weightedSum = 0.0;
+            $weightSum = 0.0;
+
+            foreach ($requiredCategories as $required) {
+                $categoryId = (int) $required['category_id'];
+                $requiredWeight = (float) $required['weight_percentage'];
+                $actual = $publishedMap[$categoryId] ?? null;
+
+                $scoreRows = $actual ? (int) $actual['score_rows'] : 0;
+                $studentScore = $actual ? (float) $actual['student_score'] : 0.0;
+                $maxScore = $actual ? (float) $actual['category_max_score'] : 0.0;
+                $hasScore = $scoreRows > 0 && $maxScore > 0;
+                $categoryPercentage = $hasScore ? (($studentScore / $maxScore) * 100.0) : null;
+
+                if (!$hasScore) {
+                    $missingCategories[] = [
+                        'category_id' => $categoryId,
+                        'category_name' => (string) $required['category_name'],
+                    ];
+                } else {
+                    $weightedSum += ($categoryPercentage * $requiredWeight) / 100.0;
+                    $weightSum += $requiredWeight;
+                }
+
+                $breakdown[] = [
+                    'category_id' => $categoryId,
+                    'category_name' => (string) $required['category_name'],
+                    'weight_percentage' => $requiredWeight,
+                    'student_score' => $hasScore ? round($studentScore, 2) : null,
+                    'category_max_score' => $hasScore ? round($maxScore, 2) : null,
+                    'category_percentage' => $hasScore ? round($categoryPercentage, 2) : null,
+                    'is_complete' => $hasScore,
+                ];
+            }
+
+            $complete = count($missingCategories) === 0;
+            // Force over-100 scale when complete by dividing weighted sum by 100-based weights.
+            $finalPercentage = $complete ? round($weightedSum, 2) : null;
+
+            return [
+                'complete' => $complete,
+                'missing_categories' => $missingCategories,
+                'required_categories_count' => count($requiredCategories),
+                'breakdown' => $breakdown,
+                'final_percentage' => $finalPercentage,
+                'weights_sum' => round($weightSum, 2),
+                'published_categories_count' => count($publishedByCategory),
+                'formula' => 'SUM((category_score/category_max_score)*category_weight)',
+            ];
+        } catch (\PDOException $e) {
+            error_log("Compute Published Final Score Error: " . $e->getMessage());
+            return [
+                'complete' => false,
+                'missing_categories' => [],
+                'required_categories_count' => 0,
+                'breakdown' => [],
+                'final_percentage' => null,
+                'weights_sum' => 0,
+                'published_categories_count' => 0,
+                'formula' => 'SUM((category_score/category_max_score)*category_weight)',
+            ];
+        }
+    }
 }

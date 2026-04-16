@@ -1,0 +1,679 @@
+<div id="admGradesMgmtRoot" class="adm-gr-mgmt">
+  <style>
+    .adm-gr-mgmt {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --line: #d7e0ea;
+      --text: #0f172a;
+      --muted: #64748b;
+      --brand: #0f766e;
+      --brand-2: #115e59;
+      --danger: #be123c;
+      color: var(--text);
+      display: grid;
+      gap: 1rem;
+    }
+
+    .adm-gr-card,
+    .adm-gr-stat,
+    .adm-gr-modal-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), #fff);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
+    }
+
+    .adm-gr-hero {
+      padding: 1.4rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border-radius: 20px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(245, 158, 11, 0.14),
+          transparent 26%
+        ),
+        radial-gradient(
+          circle at bottom left,
+          rgba(17, 94, 89, 0.14),
+          transparent 24%
+        ),
+        linear-gradient(135deg, #ffffff, #f8fbfd 64%, #eff6f7);
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.06);
+    }
+
+    .adm-gr-kicker {
+      margin: 0 0 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.72rem;
+      color: var(--brand);
+      font-weight: 700;
+    }
+
+    .adm-gr-hero h2,
+    .adm-gr-card h3,
+    .adm-gr-modal-card h3 {
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .adm-gr-hero p,
+    .adm-gr-card p,
+    .adm-gr-modal-card p,
+    .adm-gr-card small {
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+    }
+
+    .adm-gr-actions,
+    .adm-gr-toolbar,
+    .adm-gr-table-actions,
+    .adm-gr-modal-actions,
+    .adm-gr-category-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .adm-gr-btn,
+    .adm-gr-input,
+    .adm-gr-select,
+    .adm-gr-textarea {
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .adm-gr-btn {
+      padding: 0.8rem 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .adm-gr-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .adm-gr-btn.primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .adm-gr-btn.ghost {
+      background: #fff;
+    }
+
+    .adm-gr-btn.danger {
+      background: #fff1f2;
+      color: var(--danger);
+      border-color: #fecdd3;
+    }
+
+    .adm-gr-btn.small {
+      padding: 0.55rem 0.75rem;
+      border-radius: 12px;
+      box-shadow: none;
+    }
+
+    .adm-gr-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .adm-gr-stat {
+      padding: 1rem 1.1rem;
+      display: grid;
+      gap: 0.3rem;
+      min-height: 118px;
+    }
+
+    .adm-gr-stat .label {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .adm-gr-stat .value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .adm-gr-stat .sub {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    .adm-gr-card {
+      padding: 1rem;
+      overflow: hidden;
+    }
+
+    .adm-gr-toolbar {
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .adm-gr-toolbar .adm-gr-field {
+      flex: 1;
+      min-width: 210px;
+    }
+
+    .adm-gr-field {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .adm-gr-input,
+    .adm-gr-select,
+    .adm-gr-textarea {
+      width: 100%;
+      padding: 0.82rem 0.95rem;
+      outline: none;
+      transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+    }
+
+    .adm-gr-input:focus,
+    .adm-gr-select:focus,
+    .adm-gr-textarea:focus {
+      border-color: rgba(17, 94, 89, 0.5);
+      box-shadow: 0 0 0 4px rgba(17, 94, 89, 0.08);
+    }
+
+    .adm-gr-category-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+
+    .adm-gr-category-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 1rem;
+      padding: 0.95rem 1rem;
+      border-bottom: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .adm-gr-badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+
+    .adm-gr-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.32rem 0.58rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: #ecfeff;
+      color: #0f766e;
+    }
+
+    .adm-gr-badge.muted {
+      background: #f1f5f9;
+      color: var(--muted);
+    }
+
+    .adm-gr-badge.inactive {
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .adm-gr-table-wrap {
+      overflow: auto;
+      background: #fff;
+    }
+
+    .adm-gr-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 740px;
+    }
+
+    .adm-gr-table thead th {
+      text-align: left;
+      padding: 0.8rem 1rem;
+      font-size: 0.79rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .adm-gr-table tbody td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid rgba(215, 224, 234, 0.6);
+      vertical-align: top;
+    }
+
+    .adm-gr-table tbody tr:hover {
+      background: #fbfdff;
+    }
+
+    .adm-gr-empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 1.2rem 1rem;
+    }
+
+    .adm-gr-note {
+      padding: 0.8rem 1rem;
+      border-top: 1px solid var(--line);
+      background: #fafafa;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .adm-gr-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(15, 23, 42, 0.46);
+    }
+
+    .adm-gr-modal.show {
+      display: flex;
+    }
+
+    .adm-gr-modal-card {
+      width: min(760px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 1rem;
+      border-radius: 20px;
+    }
+
+    .adm-gr-modal-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .adm-gr-modal-close {
+      border: 0;
+      background: #f8fafc;
+      color: var(--muted);
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .adm-gr-modal-close:hover {
+      background: #eef2f7;
+      color: var(--text);
+    }
+
+    .adm-gr-form-grid {
+      display: grid;
+      gap: 0.9rem;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-bottom: 0.9rem;
+    }
+
+    .adm-gr-form-grid .full {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 1100px) {
+      .adm-gr-stats {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .adm-gr-hero,
+      .adm-gr-toolbar,
+      .adm-gr-actions,
+      .adm-gr-category-head {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .adm-gr-stats,
+      .adm-gr-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
+  <section class="adm-gr-hero">
+    <div>
+      <p class="adm-gr-kicker">Assessment & Reporting</p>
+      <h2>Grade management</h2>
+      <p>
+        Manage grade categories and their report details in table groups,
+        similar to the grade design.
+      </p>
+    </div>
+    <div class="adm-gr-actions">
+      <button
+        id="admGradesMgmtRefreshBtn"
+        class="adm-gr-btn ghost"
+        type="button"
+      >
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+      <button id="admGradesMgmtAddBtn" class="adm-gr-btn primary" type="button">
+        <i class="fas fa-plus"></i> Add grade category
+      </button>
+    </div>
+  </section>
+
+  <section class="adm-gr-stats">
+    <article class="adm-gr-stat">
+      <span class="label">Grade categories</span>
+      <div class="value" id="admGradesScaleCount">0</div>
+      <span class="sub">Total categories for this institution</span>
+    </article>
+    <article class="adm-gr-stat">
+      <span class="label">Highest boundary</span>
+      <div class="value" id="admGradesScaleHigh">0%</div>
+      <span class="sub">Top range in all details</span>
+    </article>
+    <article class="adm-gr-stat">
+      <span class="label">Lowest boundary</span>
+      <div class="value" id="admGradesScaleLow">0%</div>
+      <span class="sub">Lowest range in all details</span>
+    </article>
+    <article class="adm-gr-stat">
+      <span class="label">Average spread</span>
+      <div class="value" id="admGradesScaleSpread">0%</div>
+      <span class="sub">Average score window per detail row</span>
+    </article>
+  </section>
+
+  <section class="adm-gr-card">
+    <div class="adm-gr-toolbar">
+      <div class="adm-gr-field" style="flex: 1 1 320px">
+        <label for="admGradesMgmtSearch">Search</label>
+        <input
+          id="admGradesMgmtSearch"
+          class="adm-gr-input"
+          type="search"
+          placeholder="Filter categories or details"
+        />
+      </div>
+      <div class="adm-gr-field" style="min-width: 220px">
+        <label for="admGradesMgmtSort">Sort categories</label>
+        <select id="admGradesMgmtSort" class="adm-gr-select">
+          <option value="name_asc">Category name A-Z</option>
+          <option value="name_desc">Category name Z-A</option>
+          <option value="details_desc">Most details first</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="admGradesCategoryTables">
+      <div class="adm-gr-empty">Loading grade categories...</div>
+    </div>
+  </section>
+
+  <div id="admGradesCategoryModal" class="adm-gr-modal" aria-hidden="true">
+    <div class="adm-gr-card adm-gr-modal-card">
+      <div class="adm-gr-modal-head">
+        <div>
+          <p class="adm-gr-kicker">Grade Category</p>
+          <h3 id="admGradesCategoryModalTitle">Add grade category</h3>
+          <p id="admGradesCategoryModalHint">
+            Create a category table section.
+          </p>
+        </div>
+        <button
+          id="admGradesCategoryModalCloseBtn"
+          class="adm-gr-modal-close"
+          type="button"
+          aria-label="Close"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="admGradesCategoryForm">
+        <input type="hidden" id="admGradesCategoryEditingId" />
+        <div class="adm-gr-form-grid">
+          <div class="adm-gr-field full">
+            <label for="admGradesCategoryName">Category name</label
+            ><input
+              id="admGradesCategoryName"
+              class="adm-gr-input"
+              type="text"
+              maxlength="50"
+              placeholder="WAEC"
+              required
+            />
+          </div>
+          <div class="adm-gr-field full">
+            <label for="admGradesCategoryDescription">Description</label
+            ><textarea
+              id="admGradesCategoryDescription"
+              class="adm-gr-textarea"
+              rows="3"
+              maxlength="255"
+              placeholder="WAEC grading scale"
+            ></textarea>
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesCategoryPassThreshold">Pass threshold</label
+            ><input
+              id="admGradesCategoryPassThreshold"
+              class="adm-gr-input"
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              placeholder="40"
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesCategoryUsedBy">Used by</label
+            ><input
+              id="admGradesCategoryUsedBy"
+              class="adm-gr-input"
+              type="text"
+              maxlength="50"
+              placeholder="All programs"
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesCategoryStatus">Status</label
+            ><select id="admGradesCategoryStatus" class="adm-gr-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="draft">Draft</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="adm-gr-modal-actions">
+          <button
+            id="admGradesCategorySaveBtn"
+            class="adm-gr-btn primary"
+            type="submit"
+          >
+            <i class="fas fa-save"></i> Save category
+          </button>
+          <button
+            id="admGradesCategoryResetBtn"
+            class="adm-gr-btn ghost"
+            type="button"
+          >
+            Reset
+          </button>
+          <button
+            id="admGradesCategoryDeleteBtn"
+            class="adm-gr-btn danger"
+            type="button"
+            style="display: none"
+          >
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="admGradesDetailModal" class="adm-gr-modal" aria-hidden="true">
+    <div class="adm-gr-card adm-gr-modal-card">
+      <div class="adm-gr-modal-head">
+        <div>
+          <p class="adm-gr-kicker">Report Detail</p>
+          <h3 id="admGradesDetailModalTitle">Add report detail</h3>
+          <p id="admGradesDetailModalHint">
+            Add a grading detail row under the selected category.
+          </p>
+        </div>
+        <button
+          id="admGradesDetailModalCloseBtn"
+          class="adm-gr-modal-close"
+          type="button"
+          aria-label="Close"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="admGradesDetailForm">
+        <input type="hidden" id="admGradesDetailEditingId" />
+        <div class="adm-gr-form-grid">
+          <div class="adm-gr-field full">
+            <label for="admGradesDetailCategoryId">Category</label
+            ><select
+              id="admGradesDetailCategoryId"
+              class="adm-gr-select"
+            ></select>
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesDetailGrade">Grade</label
+            ><input
+              id="admGradesDetailGrade"
+              class="adm-gr-input"
+              type="text"
+              maxlength="10"
+              placeholder="A1"
+              required
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesDetailPoint">Grade point</label
+            ><input
+              id="admGradesDetailPoint"
+              class="adm-gr-input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="1.0"
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesDetailMin">Min score</label
+            ><input
+              id="admGradesDetailMin"
+              class="adm-gr-input"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="75"
+              required
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesDetailMax">Max score</label
+            ><input
+              id="admGradesDetailMax"
+              class="adm-gr-input"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              placeholder="100"
+              required
+            />
+          </div>
+          <div class="adm-gr-field full">
+            <label for="admGradesDetailInterpretation">Interpretation</label
+            ><input
+              id="admGradesDetailInterpretation"
+              class="adm-gr-input"
+              type="text"
+              maxlength="100"
+              placeholder="Outstanding performance"
+            />
+          </div>
+          <div class="adm-gr-field">
+            <label for="admGradesDetailStatus">Status</label
+            ><select id="admGradesDetailStatus" class="adm-gr-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="adm-gr-field full">
+            <label for="admGradesDetailRemark">Remark</label
+            ><textarea
+              id="admGradesDetailRemark"
+              class="adm-gr-textarea"
+              rows="3"
+              maxlength="255"
+              placeholder="Excellent"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="adm-gr-modal-actions">
+          <button
+            id="admGradesDetailSaveBtn"
+            class="adm-gr-btn primary"
+            type="submit"
+          >
+            <i class="fas fa-save"></i> Save report detail
+          </button>
+          <button
+            id="admGradesDetailResetBtn"
+            class="adm-gr-btn ghost"
+            type="button"
+          >
+            Reset
+          </button>
+          <button
+            id="admGradesDetailDeleteBtn"
+            class="adm-gr-btn danger"
+            type="button"
+            style="display: none"
+          >
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

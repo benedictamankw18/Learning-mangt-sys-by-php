@@ -964,25 +964,70 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 **Day 1-2: Grade Entry & Management**
 
 - [ ] **Enhance** `teacher/grades.html`
-  - Select class and subject
-  - Select assessment category
-  - Student list with grade entry
-  - Ghana WAEC grade scale (A1-F9) selector
-  - Enter marks (auto-convert to grade)
-  - Bulk grade entry
-  - Save as draft
-  - Submit grades
-  - Grade statistics (average, highest, lowest)
-  - Grade distribution chart
-  - Export grades to Excel
-- [ ] **Create** `admin/grades.html`
-  - Grade overview by class
-  - Grade scales management (A1-F9)
+      good but the design for the grade is like this
+      the the teacher
+- SELECT Class / Subject and active term (academic year + semester)
+- SELECT grade category to use
+- Show student roster with row-level grade entry and validation
+- Convert marks to the selected grade category with clear boundary display
+- Support bulk actions: fill, clear, and import prepared grade values
+- Save as draft (teacher work in progress)
+- Submit for admin approval (not final publish)
+- academic_yearDisplay submission status: draft, pending approval, approved/published
+- Show class analytics: average, highest, lowest, pass rate
+- Render grade distribution chart (A1-F9)
+- Export current view and approved results to Excel/PDF
+- check the grade category
+
+- [x] **Create** `admin/management-grades.html`
+  - add/edit/delete grading catergory
+  - view Grading Scale
+  - Grade overview
+  - Grade scales management
   - Grade boundaries configuration
-  - Approve teacher-submitted grades
-  - Grade analytics
+- [ ] **Create** `admin/grades.html`
+  - **Objective:** Single admin workspace to review, approve, reject, and publish teacher-submitted grades by class, subject, and term.
+  - **Primary users:** Admin only (read-only for non-admin roles).
+  - **Data policy:** No hardcoded values in UI logic (terms, classes, subjects, statuses, grade bands, weights, labels, IDs). All options and rules must come from API/config.
+  - **Page sections:**
+    - Top filter bar: academic year, semester, class, subject, teacher, submission status (all loaded dynamically from API).
+    - KPI cards: counts grouped by status values returned by backend (not fixed status names in frontend).
+    - Submission queue table: class, subject, teacher, submitted at, students graded, completion %, status, actions.
+    - Review drawer/modal: student grade sheet preview, category weights, score-to-grade mapping, anomalies (missing or outlier scores), and rule source metadata.
+    - Analytics panel: class average, highest, lowest, pass rate, and grade distribution using active grade scale bands from backend.
+    - Audit trail panel: who submitted, who approved/rejected, timestamps, admin comments.
+  - **Core workflows:**
+    - Open queue -> filter to class/subject/term -> inspect submission details.
+    - Click `Compare Performance` button -> navigate to `admin/grade/comparison-performance.html` with current filter state passed as query params.
+    - Approve submission (moves to approved state; keeps publish as separate action).
+    - Reject submission with mandatory reason (returns to teacher for correction).
+    - Publish approved grades (sets visible-to-students/parents state and report visibility).
+    - Bulk actions: approve selected, reject selected (with reason), export selected rows.
+  - **Validation and guardrails:**
+    - Block approve when required categories/weights are incomplete according to active term configuration from backend.
+    - Block publish if submission is not approved.
+    - Show clear warnings for students without complete marks.
+    - Confirm modal before reject/publish to prevent accidental actions.
+  - **API integration plan:**
+    - Fetch queue and filters from assessments/grade reports endpoints (term-scoped), including dynamic lookup values.
+    - Approve endpoint updates approval state only.
+    - Reject endpoint stores reason and resets workflow state to teacher correction.
+    - Publish endpoint marks final visibility and updates published timestamp.
+    - Analytics endpoint (or computed frontend fallback) returns averages + grade-band counts keyed by active scale config.
+  - **Exports:**
+    - Queue export (CSV/Excel): status and workflow metadata.
+    - Approved/published grade sheet export (Excel/PDF): student-level rows + summary metrics.
+  - **Done checklist:**
+    - Admin can approve/reject teacher submissions per class-subject-term.
+    - Admin can publish only approved submissions.
+    - Analytics and WAEC distribution render correctly.
+    - Audit trail entries are visible after each decision.
+    - No console errors; works on desktop and mobile breakpoints.
+
+- [ ] **Create** `admin/grade/comparison-performance.html`
   - Class performance comparison
   - Subject performance comparison
+  - Entry point: top-right `Compare Performance` button on `admin/grades.html`
 
 **Day 3-4: Grade Reports**
 
@@ -1014,8 +1059,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 - [ ] **Enhance** `student/grades.html`
   - Current grades by subject
   - Grade breakdown:
-    - Continuous Assessment (CA) - 40%
-    - End-of-term Exam - 60%
+    - Continuous Assessment (CA) and Exam components from active institution weighting config (no fixed 40/60 assumption)
   - Semester grades
   - Grade trends chart
   - GPA calculation (if applicable)

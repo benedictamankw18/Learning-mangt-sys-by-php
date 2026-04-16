@@ -18,13 +18,15 @@ class GradeScaleController
 
     public function index(array $user): void
     {
-        $scales = $this->repo->getAll();
+        $institutionId = $user['role'] === 'super_admin' ? null : (int) ($user['institution_id'] ?? 0);
+        $scales = $this->repo->getAll($institutionId > 0 ? $institutionId : null);
         Response::success($scales);
     }
 
     public function show(array $user, int $id): void
     {
-        $scale = $this->repo->findById($id);
+        $institutionId = $user['role'] === 'super_admin' ? null : (int) ($user['institution_id'] ?? 0);
+        $scale = $this->repo->findById($id, $institutionId > 0 ? $institutionId : null);
 
         if (!$scale) {
             Response::notFound('Grade scale not found');
@@ -38,7 +40,7 @@ class GradeScaleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->requireRole('admin')) {
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
@@ -46,7 +48,7 @@ class GradeScaleController
 
         $validator = new Validator($data);
         $validator->required(['grade', 'min_score', 'max_score'])
-            ->maxLength('grade', 2)
+            ->maxLength('grade', 10)
             ->numeric('min_score')
             ->numeric('max_score');
 
@@ -54,13 +56,30 @@ class GradeScaleController
             $validator->numeric('grade_point');
         }
 
+        if (isset($data['grade_categories_id'])) {
+            $validator->numeric('grade_categories_id');
+        }
+
+        if (isset($data['Interpretation'])) {
+            $validator->maxLength('Interpretation', 100);
+        }
+
+        if (isset($data['Status'])) {
+            $validator->maxLength('Status', 20);
+        }
+
+        if (isset($data['remark'])) {
+            $validator->maxLength('remark', 255);
+        }
+
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
         }
 
-        // Add institution_id for multi-tenant support
         if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        } elseif (empty($data['institution_id']) && !empty($user['institution_id'])) {
             $data['institution_id'] = $user['institution_id'];
         }
 
@@ -80,11 +99,12 @@ class GradeScaleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->requireRole('admin')) {
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
-        $scale = $this->repo->findById($id);
+        $institutionId = $user['role'] === 'super_admin' ? null : (int) ($user['institution_id'] ?? 0);
+        $scale = $this->repo->findById($id, $institutionId > 0 ? $institutionId : null);
 
         if (!$scale) {
             Response::notFound('Grade scale not found');
@@ -95,7 +115,7 @@ class GradeScaleController
 
         $validator = new Validator($data);
         if (isset($data['grade'])) {
-            $validator->maxLength('grade', 2);
+            $validator->maxLength('grade', 10);
         }
         if (isset($data['min_score'])) {
             $validator->numeric('min_score');
@@ -105,6 +125,22 @@ class GradeScaleController
         }
         if (isset($data['grade_point'])) {
             $validator->numeric('grade_point');
+        }
+
+        if (isset($data['grade_categories_id'])) {
+            $validator->numeric('grade_categories_id');
+        }
+
+        if (isset($data['Interpretation'])) {
+            $validator->maxLength('Interpretation', 100);
+        }
+
+        if (isset($data['Status'])) {
+            $validator->maxLength('Status', 20);
+        }
+
+        if (isset($data['remark'])) {
+            $validator->maxLength('remark', 255);
         }
 
         if ($validator->fails()) {
@@ -123,18 +159,19 @@ class GradeScaleController
     {
         $roleMiddleware = new RoleMiddleware($user);
 
-        if (!$roleMiddleware->requireRole('admin')) {
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
             return;
         }
 
-        $scale = $this->repo->findById($id);
+        $institutionId = $user['role'] === 'super_admin' ? null : (int) ($user['institution_id'] ?? 0);
+        $scale = $this->repo->findById($id, $institutionId > 0 ? $institutionId : null);
 
         if (!$scale) {
             Response::notFound('Grade scale not found');
             return;
         }
 
-        if ($this->repo->delete($id)) {
+        if ($this->repo->delete($id, $institutionId > 0 ? $institutionId : null)) {
             Response::success(['message' => 'Grade scale deleted successfully']);
         } else {
             Response::serverError('Failed to delete grade scale');

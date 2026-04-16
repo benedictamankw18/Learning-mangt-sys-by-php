@@ -378,6 +378,12 @@ return [
     'DELETE /events/{uuid}' => ['controller' => 'EventController', 'method' => 'delete', 'auth' => true],
 
     // Grade Report routes (Report Cards, Transcripts)
+    'GET /grade-categories' => ['controller' => 'GradeCategoryController', 'method' => 'index', 'auth' => true],
+    'GET /grade-categories/{id}' => ['controller' => 'GradeCategoryController', 'method' => 'show', 'auth' => true],
+    'POST /grade-categories' => ['controller' => 'GradeCategoryController', 'method' => 'create', 'auth' => true],
+    'PUT /grade-categories/{id}' => ['controller' => 'GradeCategoryController', 'method' => 'update', 'auth' => true],
+    'DELETE /grade-categories/{id}' => ['controller' => 'GradeCategoryController', 'method' => 'delete', 'auth' => true],
+
     'GET /grade-reports' => ['controller' => 'GradeReportController', 'method' => 'index', 'auth' => true],
     'GET /grade-reports/stats' => ['controller' => 'GradeReportController', 'method' => 'getStatistics', 'auth' => true],
     'GET /grade-reports/class/{classId}' => ['controller' => 'GradeReportController', 'method' => 'getClassReports', 'auth' => true],
@@ -514,4 +520,9 @@ return [
     'POST /teacher/assessments/save' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
     'POST /teacher/assessments' => ['controller' => 'TeacherAssessmentController', 'method' => 'saveAssessments', 'auth' => true],
     'POST /teacher/assessments/publish' => ['controller' => 'TeacherAssessmentController', 'method' => 'publishAssessments', 'auth' => true],
+    'POST /teacher/assessments/submit-for-approval' => ['controller' => 'TeacherAssessmentController', 'method' => 'submitAssessmentsForApproval', 'auth' => true],
+    'POST /teacher/assessments/approve' => ['controller' => 'TeacherAssessmentController', 'method' => 'approveAssessments', 'auth' => true],
+
+    // Computed final score (published assessments only)
+    'GET /courses/{courseId}/students/{studentId}/final-score' => ['controller' => 'FinalScoreController', 'method' => 'show', 'auth' => true],
 ];

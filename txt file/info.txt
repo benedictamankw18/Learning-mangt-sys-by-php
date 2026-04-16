@@ -27,277 +27,100 @@ Let me know and I'll help implement it!
 
 
 
-
-
-Read skill [add-feature](file:///d%3A/db/.github/skills/add-feature/SKILL.md?vscodeLinkType%3Dskill#1-1), lines 1 to 220
-
-I’ll quickly research the teacher assessment backend/frontend touchpoints and nearest import/export examples, then produce a concrete implementation plan specifically for CSV import and CSV/PDF export on this page.
-
-Teacher assessment backend map
-
-Teacher assessment frontend map
-
-Read [](file:///d%3A/db/lms-frontend/teacher/page/assessments.html#1-1), lines 1 to 200
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#1-1), lines 1 to 150
-
-Searched for files matching `**/*.js`, 50 matches
-
-Search complete: Find export/import patterns
-
-Read memory [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/memory-tool/memories/OWM4YWE3MmEtMGNjZC00ODQyLWE3M2QtMThiMDBhYWFiY2Vh)
-
-Read memory repo
-
-Searched for files matching `**/*CSV*`, no matches
-
-Searched for files matching `**/*PDF*`, no matches
-
-Searched for files matching `**/*Export*`, no matches
-
-Searched for files matching `**/*Import*`, no matches
-
-Searched for regex `csv|pdf|export|import` (`**/*.{ts,tsx,js,jsx}`), 200 results
-
-Read memory import-export-implementations.md
-
-Read memory [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/memory-tool/memories/OWM4YWE3MmEtMGNjZC00ODQyLWE3M2QtMThiMDBhYWFiY2Vh/teacher-assessments-plan.md)
-
-Read memory teacher-submissions-implementation.md
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/timetable.js#400-400), lines 400 to 650
-
-Read [](file:///d%3A/db/lms-frontend/common/js/calendar.js#660-660), lines 660 to 1150
-
-Search complete: Find teacher assessment backend files
-
-Searched for files matching `**/*teacher*assessment*`, no matches
-
-Searched for files matching `**/*teacher*assignment*`, no matches
-
-Searched for files matching `**/*assessment*`, 6 matches
-
-Searched for files matching `**/*assignment*`, 5 matches
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#150-150), lines 150 to 400
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/submissions.js#1-1), lines 1 to 150
-
-Searched for regex `export.*csv|export.*pdf|import.*csv|download|xlsx` (`db` · `lms-frontend/teacher/js/*.js`), 20 results
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/attendance.js#1-1), lines 1 to 150
-
-Searched for files matching `db` · `lms-api/**/*Controller*`, 46 matches
-
-Searched for files matching `db` · `lms-api/**/*Repository*`, 46 matches
-
-Searched for files matching `db` · `lms-api/**/*Route*`, no matches
-
-Searched for files matching `db` · `lms-api/**/*routes*`, no matches
-
-Searched for files matching `db` · `lms-api/**/api.php`, 1 match
-
-Read [](file:///d%3A/db/lms-frontend/teacher/page/assessments.html#1-1), lines 1 to 148
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/timetable.js#400-400), lines 400 to 500
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/attendance.js#160-160), lines 160 to 300
-
-Searched for regex `api\.js|config\.js` (`db` · `lms-frontend/assets/js/*.js`), 1 result
-
-Search complete: Find import/export functionality
-
-Searched for files matching `**/*import*`, 1 match
-
-Searched for files matching `**/*export*`, no matches
-
-Searched for files matching `**/*download*`, 1 match
-
-Searched for files matching `**/*upload*`, no matches
-
-Read [](file:///d%3A/db/lms-frontend/teacher/page/assessments.html#1-1), lines 1 to 1
-
-Read [](file:///d%3A/db/lms-frontend/assets/js/api.js#1-1), lines 1 to 100
-
-Read [](file:///d%3A/db/lms-frontend/assets/js/config.js#1-1), lines 1 to 100
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/timetable.js#500-500), lines 500 to 600
-
-Searched for regex `csv|pdf|import|export|download|upload`, 200 results
-
-Searched for files matching `**/lms-api/**/*Controller.php`, 46 matches
-
-Read [](file:///d%3A/db/lms-frontend/teacher/page)
-
-Read [](file:///d%3A/db/lms-frontend/teacher/page/assessments.html)
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#400-400), lines 400 to 500
-
-Search complete: Find academic year and semester filtering
-
-Searched for text `academic_year_id`, 200 results
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#500-500), lines 500 to 800
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#800-800), lines 800 to 1000
-
-Searched for regex `TeacherAssessmentAPI|function |const.*=.*function` (`db` · `lms-frontend/teacher/js/assessments.js`), 20 results
-
-Searched for files matching `**/lms-api/**/*.php`, 111 matches
-
-Read [](file:///d%3A/db/lms-api/src/Repositories/BaseRepository.php#1-1), lines 1 to 100
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#200-200), lines 200 to 1000
-
-Searched for regex `TeacherAssessmentAPI.*=|const.*TeacherAssessmentAPI` (`db` · `lms-frontend/teacher/js/assessments.js`), 8 results
-
-Searched for regex `^const TeacherAssessmentAPI|^const.*API.*=` (`db` · `lms-frontend/teacher/js/assessments.js`), no results
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#1126-1126), lines 1126 to 1126
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/assessments.js#1100-1100), lines 1100 to 1126
-
-Searched for regex `TeacherAssessmentAPI` (`db` · `lms-frontend/assets/js/*.js`), 1 result
-
-Searched for regex `TeacherAssessmentAPI` (`db` · `lms-frontend/teacher/teacher.js`), no results
-
-Read memory repo
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/TeacherAssessmentController.php#1-1), lines 1 to 150
-
-Read [](file:///d%3A/db/lms-api/src/Routes/api.php#1-1), lines 1 to 100
-
-Searched for regex `teacher/assessment|teacher/import|teacher/export|CSV|PDF download` (`**/lms-api/src/Routes/api.php`), 6 results
-
-Searched for regex `POST.*import|POST.*export|GET.*download.*CSV|GET.*download.*PDF` (`**/lms-api/src/Routes/api.php`), 2 results
-
-Read [](file:///d%3A/db/lms-frontend/assets/js/api.js#693-693), lines 693 to 702
-
-Read memory import-export-implementations.md
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/TeacherAssessmentController.php#150-150), lines 150 to 300
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/TeacherAssessmentController.php#300-300), lines 300 to 500
-
-Searched for regex `import|export|CSV` (`**/lms-api/src/Controllers/UserController.php`), 6 results
-
-Searched for regex `download.*PDF|export|CSV` (`**/lms-api/src/Controllers/AssignmentController.php`), 1 result
-
-Read [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/chat-session-resources/9c8aa72a-0ccd-4842-a73d-18b00aaabcea/toolu_vrtx_011Csku8oGGoGHuRLYYVEydR__vscode-1774299805463/content.txt#1-1), lines 1 to 200
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/TeacherAssessmentController.php#500-500), lines 500 to 700
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/AssignmentController.php#414-414), lines 414 to 500
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/UserController.php#616-616), lines 616 to 800
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/attendance.js#200-200), lines 200 to 400
-
-Read [](file:///d%3A/db/lms-frontend/teacher/js/timetable.js#1-1), lines 1 to 200
-
-Read [](file:///d%3A/db/lms-api/src/Controllers/TeacherAssessmentController.php#700-700), lines 700 to 728
-
-Read [](file:///d%3A/db/lms-api/src/Routes/api.php#490-490), lines 490 to 508
-
-Searched for regex `getAll|academic_year|semester` (`**/lms-api/src/Repositories/TeacherAssessmentRepository.php`), no results
-
-Searched for regex `getByCourse|getAll|academic_year|semester` (`**/lms-api/src/Repositories/AssessmentRepository.php`), 5 results
-
-Read [](file:///d%3A/db/lms-api/src/Repositories/AssessmentRepository.php#50-50), lines 50 to 200
-
-Searched for regex `assignments.*download|quiz.*export|grade.*export|PDF|CSV` (`**/lms-api/src/Routes/api.php`), 1 result
-
-Created memory file [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/memory-tool/memories/OWM4YWE3MmEtMGNjZC00ODQyLWE3M2QtMThiMDBhYWFiY2Vh/teacher-assessments-inspection.md)
-
-Read [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/chat-session-resources/9c8aa72a-0ccd-4842-a73d-18b00aaabcea/call_pW66QsE4smhCJ85gVyLf7QRY__vscode-1774299805391/content.txt#1-1), lines 1 to 260
-
-Read [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/chat-session-resources/9c8aa72a-0ccd-4842-a73d-18b00aaabcea/call_Mi5zxkIKw9eTB5DuIOBPZ7xC__vscode-1774299805392/content.txt#1-1), lines 1 to 320
-
-Analyzing your answers...
-
-Great, your choices are clear. I’ll now produce a concrete, execution-ready plan for teacher assessments with name-based CSV import and filtered CSV/PDF export, then save it to session plan memory.
-
-Deleted memory [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/memory-tool/memories/OWM4YWE3MmEtMGNjZC00ODQyLWE3M2QtMThiMDBhYWFiY2Vh/plan.md)
-
-Created memory file [](file:///c%3A/Users/bened/AppData/Roaming/Code/User/workspaceStorage/362809acef33138bc35e9e795cb8bb09/GitHub.copilot-chat/memory-tool/memories/OWM4YWE3MmEtMGNjZC00ODQyLWE3M2QtMThiMDBhYWFiY2Vh/plan.md)
-
-## Plan: Teacher Assessment CSV/PDF Import Export
-
-Implement import/export directly in the Teacher Assessment workflow with your selected behavior:
-- Import CSV columns by names: `student_name, category_name, score, max_score`
-- Export only current loaded filters
-- If score already exists, update it
-
-**Steps**
-1. Backend design:
-Add endpoints for teacher assessment import and export.
-- `POST /api/teacher/assessments/import`
-- `GET /api/teacher/assessments/export?format=csv|pdf`
-
-2. Backend import implementation:
-In TeacherAssessmentController.php:
-- Parse CSV rows for `student_name, category_name, score, max_score`
-- Resolve student/category names in current class/institution context
-- Reuse existing score validation and ownership checks
-- Enforce current academic year + current semester
-- Update existing scores when matched
-- Return row-level result summary (`imported`, `updated`, `failed`, `errors`)
-
-3. Backend export implementation:
-In TeacherAssessmentController.php:
-- Export only selected class-subject and selected categories
-- Keep current academic year + semester scope
-- CSV output with flat rows
-- PDF output with tabular report (or explicit fallback strategy)
-
-4. Route wiring:
-In api.php:
-- Register import/export routes
-
-5. Frontend API wiring:
-In config.js and api.js:
-- Add endpoint constants
-- Add `TeacherAssessmentAPI.importAssessments(...)`
-- Add `TeacherAssessmentAPI.exportAssessments(...)`
-
-6. Teacher page UI:
-In assessments.html:
-- Add `Import CSV`, `Export CSV`, `Export PDF` buttons
-- Add import modal (file picker, preview, confirm)
-- Optional `Download Template` button
-
-7. Frontend logic:
-In assessments.js:
-- CSV parsing + header validation
-- Import request + row-level feedback UI
-- Refresh table after successful import
-- CSV export trigger
-- PDF export trigger/fallback
-
-8. Safeguards:
-- Disable import/export unless class-subject loaded
-- Disable import submit while processing
-- Show clear errors for unknown names/invalid score ranges
-
-9. Verification:
-- Valid CSV imports correctly
-- Existing rows are updated
-- Invalid rows produce row-level errors
-- Export CSV/PDF match current loaded filters only
-- Current semester/academic year constraints hold
-- Diagnostics pass for touched files
-
-**Relevant files**
-1. TeacherAssessmentController.php
-2. api.php
-3. config.js
-4. api.js
-5. assessments.html
-6. assessments.js
-
-**Decisions captured**
-- Import columns: `student_name, student_id_number, category_name, score, max_score`
-- Export scope: current loaded filters only
-- Duplicate behavior: update existing score
-
-I’ve saved this plan to `/memories/session/plan.md` and it is ready for handoff/approval.
+Teacher grade.html
+first before thr teacher can assign the grade to the student the teacher
+need to assess the student and publish the assessment of the student in each 
+categories.
+
+Then the grades api goes to the assessment pick the assessment which is published
+and show it at the grade page allow the teacher to confirm the grades to be published
+
+But the assessment is in categories so to get the over 100% score use this sql 
+
+`` sql
+
+SELECT 
+    t.student_id,
+    t.course_id,
+
+    ROUND(
+        (
+            SUM(
+                (t.student_score / t.category_max_score) * t.weight_percentage
+            )
+            /
+            NULLIF(SUM(t.weight_percentage), 0)
+        ) * 100
+    , 2) AS final_percentage
+
+FROM (
+    SELECT 
+        ass.student_id,
+        a.course_id,
+        ac.category_id,
+
+        SUM(ass.score) AS student_score,
+        SUM(a.max_score) AS category_max_score,
+        ac.weight_percentage
+
+    FROM assessment_submissions ass
+
+    JOIN assessments a 
+        ON a.assessment_id = ass.assessment_id
+
+    JOIN assessment_categories ac 
+        ON ac.category_id = a.category_id
+    GROUP BY 
+        ass.student_id,
+        a.course_id,
+        ac.category_id
+) t
+
+GROUP BY 
+    t.student_id,
+    t.course_id;
+
+
+good but the design for the grade is like this 
+the the teacher 
+SELECT Class / Subject and active term (academic year + semester)
+SELECT grade category to use
+Show student roster with row-level grade entry and validation
+Convert marks to the selected grade category with clear boundary display
+Support bulk actions: fill, clear, and import prepared grade values
+Save as draft (teacher work in progress)
+Submit for admin approval (not final publish)
+academic_yearDisplay submission status: draft, pending approval, approved/published
+Show class analytics: average, highest, lowest, pass rate
+Render grade distribution chart (A1-F9)
+Export current view and approved results to Excel/PDF
+
+
+
+
+ if (response.success) {
+            const savedCount = Number(
+                (response && response.data && (response.data.saved ?? response.data.processed ?? response.data.count))
+            );
+            const resolvedSavedCount = Number.isFinite(savedCount) ? savedCount : assessments.length;
+            showSuccess(`${resolvedSavedCount} assessments saved successfully`);
+            state.changedScores = {}; // Clear change tracking
+        }
+
+
+do not allow selecting Assessment Categories 
+but just select all show the Assessment Categories and calculate it
+do not allow changing of marks or score in the grade page 
+when submit for approval, send it to the grade_reports and grade_report_details
+when sending for approval send only those who have all assessment categories scores entered
+
+after sent to be approval or if approved saparate them the from those yet sent to be approved
+
+remove this buttons
+Reset Changes,
+
+Bulk Fill,
+
+Bulk Clear,
+
+Import Values,

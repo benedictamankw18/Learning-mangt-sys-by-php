@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Repositories\GradeReportRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\StudentRepository;
 use App\Repositories\ResultRepository;
 use App\Utils\Response;
@@ -11,14 +12,65 @@ use App\Utils\UuidHelper;
 class GradeReportController
 {
     private $gradeReportRepository;
+    private $notificationRepository;
     private $studentRepository;
     private $resultRepository;
 
     public function __construct()
     {
         $this->gradeReportRepository = new GradeReportRepository();
+        $this->notificationRepository = new NotificationRepository();
         $this->studentRepository = new StudentRepository();
         $this->resultRepository = new ResultRepository();
+    }
+
+    private function isSendBackForCorrectionPayload(array $data): bool
+    {
+        if (!array_key_exists('Approved', $data)) {
+            return false;
+        }
+
+        $approved = (int) $data['Approved'];
+        $comment = trim((string) ($data['principal_comment'] ?? ''));
+
+        return $approved === 0 && $comment !== '';
+    }
+
+    private function notifyTeacherForCorrection(array $report, array $user, string $comment): void
+    {
+        $teacherUserId = isset($report['generated_by']) ? (int) $report['generated_by'] : 0;
+        $senderUserId = isset($user['user_id']) ? (int) $user['user_id'] : (isset($user['id']) ? (int) $user['id'] : 0);
+
+        if ($teacherUserId <= 0 || $senderUserId <= 0 || $teacherUserId === $senderUserId) {
+            return;
+        }
+
+        $studentLabel = (string) ($report['student_id_number'] ?? $report['student_id'] ?? 'Unknown Student');
+        $reportUuid = (string) ($report['uuid'] ?? '');
+
+        $title = 'Grade report sent back for correction';
+        $message = 'A grade report was returned for correction by admin.';
+        if ($studentLabel !== '') {
+            $message .= ' Student: ' . $studentLabel . '.';
+        }
+        if ($reportUuid !== '') {
+            $message .= ' Report: ' . $reportUuid . '.';
+        }
+        $message .= ' Note: ' . $comment;
+
+        try {
+            $this->notificationRepository->create([
+                'sender_id' => $senderUserId,
+                'user_id' => $teacherUserId,
+                'target_role' => 'teacher',
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'grade_report_correction',
+                'link' => '/teacher/dashboard.html#grading',
+            ]);
+        } catch (\Throwable $notifyError) {
+            error_log('GradeReportController::notifyTeacherForCorrection ' . $notifyError->getMessage());
+        }
     }
 
     /**
@@ -29,8 +81,11 @@ class GradeReportController
     {
         try {
             $studentId = $_GET['student_id'] ?? null;
+            $classId = $_GET['class_id'] ?? null;
             $semesterId = $_GET['semester_id'] ?? null;
             $academicYearId = $_GET['academic_year_id'] ?? null;
+            $generatedBy = $_GET['generated_by'] ?? null;
+            $hasFeedback = $_GET['has_feedback'] ?? null;
             $page = $_GET['page'] ?? 1;
             $limit = $_GET['limit'] ?? 50;
             $offset = ($page - 1) * $limit;
@@ -38,10 +93,16 @@ class GradeReportController
             $filters = [];
             if ($studentId)
                 $filters['student_id'] = $studentId;
+            if ($classId)
+                $filters['class_id'] = $classId;
             if ($semesterId)
                 $filters['semester_id'] = $semesterId;
             if ($academicYearId)
                 $filters['academic_year_id'] = $academicYearId;
+            if ($generatedBy)
+                $filters['generated_by'] = $generatedBy;
+            if ($hasFeedback !== null && $hasFeedback !== '')
+                $filters['has_feedback'] = $hasFeedback;
 
             $reports = $this->gradeReportRepository->getAll($filters, $limit, $offset);
             $total = $this->gradeReportRepository->count($filters);
@@ -99,7 +160,7 @@ class GradeReportController
     public function generate(array $user): void
     {
         try {
-            $data = $_POST;
+            $data = json_decode((string) file_get_contents('php://input'), true) ?: $_POST;
 
             // Validate required fields
             $required = ['student_id', 'semester_id', 'academic_year_id'];
@@ -194,7 +255,7 @@ class GradeReportController
                 return;
             }
 
-            $data = $_POST;
+            $data = json_decode((string) file_get_contents('php://input'), true) ?: $_POST;
 
             $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
             if (!$report) {
@@ -205,6 +266,11 @@ class GradeReportController
             $reportId = $report['report_id'];
 
             $this->gradeReportRepository->update($reportId, $data);
+
+            if ($this->isSendBackForCorrectionPayload($data)) {
+                $comment = trim((string) ($data['principal_comment'] ?? ''));
+                $this->notifyTeacherForCorrection($report, $user, $comment);
+            }
 
             Response::success(null, 'Grade report updated successfully');
         } catch (\Exception $e) {
@@ -254,7 +320,7 @@ class GradeReportController
                 return;
             }
 
-            $data = $_POST;
+            $data = json_decode((string) file_get_contents('php://input'), true) ?: $_POST;
             $published = $data['published'] ?? true;
 
             $report = $this->gradeReportRepository->findByUuid($sanitizedUuid);
@@ -265,7 +331,7 @@ class GradeReportController
 
             $reportId = $report['report_id'];
 
-            $this->gradeReportRepository->update($reportId, ['published' => $published ? 1 : 0]);
+            $this->gradeReportRepository->update($reportId, ['is_published' => $published ? 1 : 0]);
 
             Response::success(null, $published ? 'Grade report published successfully' : 'Grade report unpublished successfully');
         } catch (\Exception $e) {
@@ -302,7 +368,7 @@ class GradeReportController
     public function bulkGenerate(array $user): void
     {
         try {
-            $data = $_POST;
+            $data = json_decode((string) file_get_contents('php://input'), true) ?: $_POST;
 
             // Validate required fields
             $required = ['class_id', 'semester_id', 'academic_year_id'];

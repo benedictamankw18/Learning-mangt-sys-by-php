@@ -841,6 +841,10 @@ async function saveAllScores() {
         showLoading(true);
 
         const assessments = buildAssessmentPayload();
+        // Set status to 'draft' for all assessments being saved
+        assessments.forEach(assessment => {
+            assessment.status = 'draft';
+        });
         const response = await TeacherAssessmentAPI.saveAssessments({
             class_subject_id: state.selectedClassSubject.class_subject_id,
             assessments: assessments
@@ -848,8 +852,12 @@ async function saveAllScores() {
 
         showLoading(false);
 
-        if (response.success) {
-            showSuccess(`${response.data.saved} assessments saved successfully`);
+         if (response.success) {
+            const savedCount = Number(
+                (response && response.data && (response.data.saved ?? response.data.processed ?? response.data.count))
+            );
+            const resolvedSavedCount = Number.isFinite(savedCount) ? savedCount : assessments.length;
+            showSuccess(`${resolvedSavedCount} assessments saved successfully`);
             state.changedScores = {}; // Clear change tracking
         } else {
             showError(response.message || 'Failed to save assessments');
@@ -877,6 +885,10 @@ async function publishAllScores() {
         showLoading(true);
 
         const assessments = buildAssessmentPayload();
+        // Publish these scores immediately
+        assessments.forEach(assessment => {
+            assessment.status = 'published';
+        });
         const response = await TeacherAssessmentAPI.publishAssessments({
             class_subject_id: state.selectedClassSubject.class_subject_id,
             assessments: assessments
@@ -885,10 +897,14 @@ async function publishAllScores() {
         showLoading(false);
 
         if (response.success) {
-            showSuccess(`${response.data.published} assessments published successfully`, 'success');
+            const publishedCount = Number(
+                (response && response.data && (response.data.published ?? response.data.processed ?? response.data.count))
+            );
+            const resolvedPublishedCount = Number.isFinite(publishedCount) ? publishedCount : assessments.length;
+            showSuccess(`${resolvedPublishedCount} assessments published successfully`, 'success');
             state.changedScores = {};
-            // Optionally reload to show published status
-            setTimeout(() => location.reload(), 2000);
+            // Optionally reload to show updated status
+           // setTimeout(() => location.reload(), 2000);
         } else {
             showError(response.message || 'Failed to publish assessments');
         }

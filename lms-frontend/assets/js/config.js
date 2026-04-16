@@ -8,7 +8,7 @@ const APP_NAME = 'Ghana SHS LMS';
 // Falls back to 'development' / localhost only when env.js is absent.
 const _env        = (typeof window !== 'undefined' && window.ENV_CONFIG) || {};
 const APP_ENV     = _env.APP_ENV      || 'development';
-const API_BASE_URL = _env.API_BASE_URL || 'http://192.168.0.164:8000';
+const API_BASE_URL = _env.API_BASE_URL || 'http://192.168.0.184:8000';
 
 // API Endpoints
 const API_ENDPOINTS = {
@@ -202,6 +202,8 @@ const API_ENDPOINTS = {
     TEACHER_ASSIGNMENTS_QUIZZES: '/api/teacher/assignments-quizzes',
     TEACHER_SAVE_ASSESSMENTS: '/api/teacher/assessments/save',
     TEACHER_PUBLISH_ASSESSMENTS: '/api/teacher/assessments/publish',
+    TEACHER_SUBMIT_FOR_APPROVAL_ASSESSMENTS: '/api/teacher/assessments/submit-for-approval',
+    TEACHER_APPROVE_ASSESSMENTS: '/api/teacher/assessments/approve',
 
     // Submissions
     SUBMISSIONS: '/api/submissions',
@@ -213,6 +215,20 @@ const API_ENDPOINTS = {
     // Grades
     GRADES: '/api/grades',
     STUDENT_GRADES: (studentId) => `/api/grades/student/${studentId}`,
+    GRADE_CATEGORIES: '/api/grade-categories',
+    GRADE_CATEGORY_BY_ID: (id) => `/api/grade-categories/${id}`,
+    GRADE_SCALES: '/api/grade-scales',
+    GRADE_SCALE_BY_ID: (id) => `/api/grade-scales/${id}`,
+    GRADE_REPORTS: '/api/grade-reports',
+    GRADE_REPORTS_STATS: '/api/grade-reports/stats',
+    GRADE_REPORTS_CLASS: (classId) => `/api/grade-reports/class/${classId}`,
+    GRADE_REPORT_BY_UUID: (uuid) => `/api/grade-reports/${uuid}`,
+    GRADE_REPORTS_STUDENT_REPORT_CARD: (studentId) => `/api/grade-reports/student/${studentId}/report-card`,
+    GRADE_REPORTS_STUDENT_TRANSCRIPT: (studentId) => `/api/grade-reports/student/${studentId}/transcript`,
+    GRADE_REPORTS_GENERATE: '/api/grade-reports/generate',
+    GRADE_REPORTS_BULK_GENERATE: '/api/grade-reports/bulk-generate',
+    GRADE_REPORTS_PUBLISH: (uuid) => `/api/grade-reports/${uuid}/publish`,
+    COURSE_STUDENT_FINAL_SCORE: (courseId, studentId) => `/api/courses/${courseId}/students/${studentId}/final-score`,
 
     // Attendance
     ATTENDANCE: '/api/attendance',
