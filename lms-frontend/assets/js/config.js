@@ -50,7 +50,9 @@ const API_ENDPOINTS = {
     CLASS_SUBJECT_BY_ID: (id) => `/api/class-subjects/${id}`,
 
     // Academic Year & Semester
+    ACADEMIC_YEARS: '/api/academic-years',
     ACADEMIC_YEAR_CURRENT: '/api/academic-years/current',
+    SEMESTERS: '/api/semesters',
     SEMESTER_CURRENT: '/api/semesters/current',
 
     // Classes
@@ -228,6 +230,10 @@ const API_ENDPOINTS = {
     GRADE_REPORTS_GENERATE: '/api/grade-reports/generate',
     GRADE_REPORTS_BULK_GENERATE: '/api/grade-reports/bulk-generate',
     GRADE_REPORTS_PUBLISH: (uuid) => `/api/grade-reports/${uuid}/publish`,
+    REPORT_SCHEDULE_TYPES: '/api/report-schedules/types',
+    REPORT_SCHEDULES: '/api/report-schedules',
+    REPORT_SCHEDULE_STATUS: (id) => `/api/report-schedules/${id}/status`,
+    REPORT_SCHEDULE_BY_ID: (id) => `/api/report-schedules/${id}`,
     COURSE_STUDENT_FINAL_SCORE: (courseId, studentId) => `/api/courses/${courseId}/students/${studentId}/final-score`,
 
     // Attendance

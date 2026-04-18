@@ -524,11 +524,12 @@ class TeacherAssessmentController
 
                     // Check if report already exists
                     $stmt = $this->db->prepare(
-                        "SELECT report_id FROM grade_reports 
-                         WHERE student_id = :student_id 
-                         AND semester_id = :semester_id 
-                         AND academic_year_id = :academic_year_id
-                         AND report_type = 'semester'
+                        "SELECT gr.report_id
+                         FROM grade_reports gr
+                         WHERE gr.student_id = :student_id
+                           AND gr.semester_id = :semester_id
+                           AND gr.academic_year_id = :academic_year_id
+                           AND gr.report_type = 'semester'
                          LIMIT 1"
                     );
                     $stmt->execute([
@@ -605,46 +606,26 @@ class TeacherAssessmentController
                         $percentage = (float) $scores['percentage'];
                         $totalScore = (float) $scores['total_score'];
 
-                        // grade_report_details has no unique key for upsert, so update existing row if found.
-                        $detailFindStmt = $this->db->prepare(
-                            "SELECT report_detail_id
-                             FROM grade_report_details
-                             WHERE report_id = :report_id
-                               AND course_id = :course_id
-                             LIMIT 1"
+                        $detailUpsertStmt = $this->db->prepare(
+                            "INSERT INTO grade_report_details
+                            (report_id, course_id, total_score, percentage, created_at, updated_at)
+                            VALUES (:report_id, :course_id, :total_score, :percentage, NOW(), NOW())
+                            ON DUPLICATE KEY UPDATE
+                                total_score = VALUES(total_score),
+                                percentage = VALUES(percentage),
+                                updated_at = NOW()"
                         );
-                        $detailFindStmt->execute([
+                        $detailUpsertStmt->execute([
                             ':report_id' => $reportId,
                             ':course_id' => $courseId,
+                            ':total_score' => round($totalScore, 2),
+                            ':percentage' => round($percentage, 2),
                         ]);
-                        $reportDetailId = (int) $detailFindStmt->fetchColumn();
 
-                        if ($reportDetailId > 0) {
-                            $detailUpdateStmt = $this->db->prepare(
-                                "UPDATE grade_report_details
-                                 SET total_score = :total_score,
-                                     percentage = :percentage,
-                                     updated_at = NOW()
-                                 WHERE report_detail_id = :report_detail_id"
-                            );
-                            $detailUpdateStmt->execute([
-                                ':report_detail_id' => $reportDetailId,
-                                ':total_score' => round($totalScore, 2),
-                                ':percentage' => round($percentage, 2),
-                            ]);
+                        // MySQL returns 1 for insert and 2 for update on ON DUPLICATE KEY UPDATE.
+                        if ($detailUpsertStmt->rowCount() > 1) {
                             $stats['details_updated']++;
                         } else {
-                            $detailInsertStmt = $this->db->prepare(
-                                "INSERT INTO grade_report_details
-                                (report_id, course_id, total_score, percentage, created_at)
-                                VALUES (:report_id, :course_id, :total_score, :percentage, NOW())"
-                            );
-                            $detailInsertStmt->execute([
-                                ':report_id' => $reportId,
-                                ':course_id' => $courseId,
-                                ':total_score' => round($totalScore, 2),
-                                ':percentage' => round($percentage, 2),
-                            ]);
                             $stats['details_created']++;
                         }
                     } else {
@@ -678,7 +659,7 @@ class TeacherAssessmentController
              INNER JOIN assessment_categories ac ON ac.category_id = a.category_id
              WHERE ass.student_id = :student_id
                AND a.course_id = :course_id
-               AND ass.status = 'published'"
+             AND ass.status IN ('published', 'pending_approval')"
         );
         $stmt->execute([
             ':student_id' => $studentId,
@@ -795,6 +776,16 @@ class TeacherAssessmentController
                 $params['student_id'] = $studentId;
             }
 
+            $stmtPendingStudents = $this->db->prepare(
+                "SELECT DISTINCT student_id
+                 FROM assessment_submissions
+                 WHERE assessment_id IN (" . implode(',', $placeholders) . ")
+                   AND status IN ('pending_approval', 'pending_approval')"
+                . ($studentId > 0 ? ' AND student_id = :student_id' : '')
+            );
+            $stmtPendingStudents->execute($params);
+            $approvedStudentIds = array_values(array_unique(array_map('intval', $stmtPendingStudents->fetchAll(PDO::FETCH_COLUMN))));
+
             $stmtUpdateSub = $this->db->prepare($sqlSub);
             $stmtUpdateSub->execute($params);
             $approvedRows = $stmtUpdateSub->rowCount();
@@ -808,6 +799,26 @@ class TeacherAssessmentController
             $stmtUpdateAssess->execute($params);
             $publishedAssessments = $stmtUpdateAssess->rowCount();
 
+            $generatedByUserId = isset($user['user_id']) ? (int) $user['user_id'] : (isset($user['id']) ? (int) $user['id'] : 0);
+            $gradeReportStats = [
+                'students_considered' => 0,
+                'reports_created' => 0,
+                'reports_reused' => 0,
+                'details_created' => 0,
+                'details_updated' => 0,
+                'details_skipped' => 0,
+                'errors' => [],
+            ];
+
+            if ($approvedRows > 0 && $approvedStudentIds) {
+                $gradeReportStats = $this->generateGradeReportsFromAssessments(
+                    $institutionId,
+                    $courseId,
+                    $approvedStudentIds,
+                    $generatedByUserId
+                );
+            }
+
             $this->db->commit();
 
             Response::success([
@@ -815,6 +826,7 @@ class TeacherAssessmentController
                 'published_assessments' => $publishedAssessments,
                 'course_id' => $courseId,
                 'student_id' => $studentId > 0 ? $studentId : null,
+                'grade_report_stats' => $gradeReportStats,
             ], 'Assessments approved and published');
         } catch (\Throwable $e) {
             if ($this->db->inTransaction()) {
@@ -1357,6 +1369,19 @@ class TeacherAssessmentController
                 Response::error('Validation failed', 400, ['errors' => $errors]);
             }
 
+            $gradeReportStats = null;
+            if ($mode === 'pending_approval' && $processed > 0) {
+                $studentIds = array_values(array_unique(array_map('intval', $processedStudentIds)));
+                $courseId = $courseIdFromBody > 0 ? $courseIdFromBody : (
+                    is_array($assessments) && count($assessments) > 0
+                        ? (int) ($assessments[0]['class_subject_id'] ?? 0)
+                        : 0
+                );
+                if ($courseId > 0 && $studentIds) {
+                    $gradeReportStats = $this->generateGradeReportsFromAssessments($institutionId, $courseId, $studentIds, $generatedByUserId);
+                }
+            }
+
             $this->db->commit();
             $message = 'Assessments saved successfully';
             if ($mode === 'pending_approval' || $mode === 'pending_approval') {
@@ -1366,21 +1391,6 @@ class TeacherAssessmentController
             } elseif ($mode === 'graded') {
                 $message = 'Assessments graded successfully';
             }
-
-            $gradeReportStats = null;
-
-                // Generate/refresh grade reports when teacher submits for admin approval.
-                if (($mode === 'pending_approval' || $mode === 'pending_approval') && $processed > 0) {
-                    $studentIds = array_values(array_unique(array_map('intval', $processedStudentIds)));
-                    $courseId = $courseIdFromBody > 0 ? $courseIdFromBody : (
-                        is_array($assessments) && count($assessments) > 0
-                            ? (int) ($assessments[0]['class_subject_id'] ?? 0)
-                            : 0
-                    );
-                    if ($courseId > 0 && count($studentIds) > 0) {
-                        $gradeReportStats = $this->generateGradeReportsFromAssessments($institutionId, $courseId, $studentIds, $generatedByUserId);
-                    }
-                }
 
             $responseData = [
                 $mode => $processed,
@@ -1397,6 +1407,7 @@ class TeacherAssessmentController
                     'details_updated' => 0,
                     'details_skipped' => 0,
                     'errors' => [],
+                    'deferred_until_admin_approval' => true,
                 ];
 
                 $studentCount = count(array_unique(array_map('intval', $processedStudentIds)));

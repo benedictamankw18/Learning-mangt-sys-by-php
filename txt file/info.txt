@@ -124,3 +124,88 @@ Bulk Fill,
 Bulk Clear,
 
 Import Values,
+
+
+
+
+another issue is that, when the submit the same class but differents subject it update the 
+
+
+
+
+
+
+
+
+
+
+
+let redesign the report card
+
+`institution_settings`.`logo_url`(image, left, top)
+`institutions`.`institution_name`(20pt,bold,CAPS)
+`institution_settings`.`motto`(12pt)
+Website: `institutions`.`website`(12pt)
+Email: `institutions`.`email`(12pt)
+Phone: `institutions`.`phone`(12pt)
+Postal Address:`institutions`.`postal_code`(12pt)
+
+STUDENT’S REPORT(bold, 20pt)
+______________________________________________________________________________________________________________________________
+Name(bold): `users`.`title`. `users`.`last_name` `users`.`first_name`			Gender(bold): `users`.`gender` || `students`.`gender`
+Student Index Number(bold): `students`.`student_id_number`	Class(bold): `classes`.`class_name`	 Programme(bold): `programs`.`program_name`
+Academic Year(bold): `academic_years`.`year_name` 	Semester(bold): `semesters`.`semester_name`	Level(bold): `grade_levels`.`grade_level_name`
+Email(bold): `users`.`email` || `students`.`alternative_email` 	Phone(bold): `users`.`phone_number`	 	Address(bold): `users`.`address` || `users`.`city` || `users`.`region`
+
+Student’s Average Mark(bold): 					No. On Roll(bold):  					Position in Class(bold): 
+Last Semester’s Average Mark(if it’s not the first Semester of that Academic year) (bold): 				Last Semester’s Position in Class (if it’s not the first Semester of that Academic year) (bold):
+|_______________________________________________________________________________________________________________________________|
+|	Subjects (12pt, bold)		|     Total(12pt, bold)	|     Percentage(12pt, bold) 	|   Class Average (12pt, bold)	|  Position in(12pt, bold)	| Grade(12pt, bold)  |  Remarks(12pt, bold) 	         |
+|					|			|			|   Score in Subject	|  Subject	|	   |		         |
+________________________________________________________________________________________________________________________________
+| CORE SUBJECTS(bold, 12pt)(if `subjects`.`is_core` = 1):
+|
+|
+|
+|
+|
+|ELECTIVE SUBJECT(bold, 12pt) (if `subjects`.`is_core` = 0)
+|
+|
+|
+|
+|
+|
+|
+|_______________________________________________________________________________________________________________________________|
+|	TOTAL(bold, 12pt): _____________________    					AGGREGATE OF BEST SIX SUBJECTS: (SUM of `grade_scales`.`grade_point`)
+|________________________________________________________________________________________________________________________________|
+
+Attendance: ______ Out of(bold) ________ ;  ______% 
+
+Grade Scale (`grade_categories`.`grade_categories_name` if `grade_categories`.`set_as_primary` = 1):
+|_______________________________________________________________________________
+|  `grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;   `grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+|`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+|`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+|`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+|`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+|`grade_scales`.`min_score` - `grade_scales`.`max_score`: `grade_scales`.`remark`|| `grade_scales`.`Interpretation`;
+________________________________________________________________________________ 
+
+
+should be
+Student's Average Mark(the sum  of each Subjects Total /  the number of subject): 
+Position in Class(display  1st, 2nd, 3rd, 4th, 5th or 22nd ): 
+Class Average Score in Subject(display Class Average Score in Subject)
+Position in Subject(display Class Average Score in Subject)
+TOTAL(display the sum of Subjects Total):
+
+Attendance: (display the number of present in `attendance`.`status`) Out of (display the number of `attendance`.`status`)    42.90% 
+
+
+there are nothing like these in the backend
+class_average (or class_average_score) in detail rows == (  ) 
+position_in_subject in detail rows == ( rank the students for each/ every subject  )
+attendance_present_count and attendance_total_days in report object == (  )
+

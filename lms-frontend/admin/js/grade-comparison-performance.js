@@ -28,6 +28,8 @@
     workflowChart: null,
     bandChart: null,
     activeBands: [],
+    selectedScaleCategoryKey: '',
+    chartReadyPromise: null,
   };
 
   const dom = {};
@@ -63,6 +65,7 @@
     dom.classList = document.getElementById('cmpClassList');
     dom.subjectList = document.getElementById('cmpSubjectList');
     dom.scaleList = document.getElementById('cmpScaleList');
+    dom.scaleCategory = document.getElementById('cmpScaleCategory');
     dom.tableBody = document.getElementById('cmpTableBody');
     dom.classCanvas = document.getElementById('classChart');
     dom.subjectCanvas = document.getElementById('subjectChart');
@@ -76,6 +79,11 @@
     });
 
     dom.exportBtn?.addEventListener('click', exportComparison);
+
+    dom.scaleCategory?.addEventListener('change', function () {
+      state.selectedScaleCategoryKey = String(dom.scaleCategory?.value || '');
+      renderAll();
+    });
 
     Object.values(dom.filters).forEach(function (field) {
       field?.addEventListener('change', onFilterChange);
@@ -121,6 +129,8 @@
       if (!state.filters.academic_year_id) state.filters.academic_year_id = state.currentYearId;
       if (!state.filters.semester_id) state.filters.semester_id = state.currentSemesterId;
 
+      await ensureChartReady();
+      syncSemesterFilterWithYear();
       populateFilters();
       await loadReports();
       renderAll();
@@ -170,6 +180,7 @@
 
   function renderAll() {
     populateFilters();
+    populateScaleCategorySelect();
     const filtered = getFilteredReports();
     const selectionA = buildSelectionStats(state.filters.class_a_id, state.filters.subject_a_id, filtered);
     const selectionB = buildSelectionStats(state.filters.class_b_id, state.filters.subject_b_id, filtered);
@@ -252,7 +263,7 @@
 
   function renderScaleList() {
     if (!dom.scaleList) return;
-    const bands = state.activeBands[0] ? state.activeBands[0].rows : [];
+    const bands = getBandDefinitions();
     if (!bands.length) {
       dom.scaleList.innerHTML = '<div class="empty">No active grading scale available.</div>';
       return;
@@ -345,6 +356,43 @@
         },
         options: chartOptions('bar-vertical'),
       });
+    }
+  }
+
+  async function ensureChartReady() {
+    if (typeof Chart !== 'undefined') {
+      return;
+    }
+
+    if (state.chartReadyPromise) {
+      await state.chartReadyPromise;
+      return;
+    }
+
+    state.chartReadyPromise = new Promise(function (resolve, reject) {
+      const existing = document.querySelector('script[data-chartjs="comparison"]');
+      if (existing) {
+        existing.addEventListener('load', function () { resolve(); }, { once: true });
+        existing.addEventListener('error', function () { reject(new Error('Failed to load Chart.js')); }, { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js';
+      script.async = true;
+      script.dataset.chartjs = 'comparison';
+      script.addEventListener('load', function () { resolve(); }, { once: true });
+      script.addEventListener('error', function () { reject(new Error('Failed to load Chart.js')); }, { once: true });
+      document.head.appendChild(script);
+    });
+
+    try {
+      await state.chartReadyPromise;
+    } catch (error) {
+      toast('Chart library failed to load. Charts may be unavailable.', 'error');
+      throw error;
+    } finally {
+      state.chartReadyPromise = null;
     }
   }
 
@@ -514,8 +562,10 @@
   }
 
   function populateFilters() {
+    const semesterOptions = syncSemesterFilterWithYear();
+
     setSelect(dom.filters.year, state.academicYears, state.filters.academic_year_id, function (row) { return row.academic_year_id; }, function (row) { return row.year_name || row.name || row.academic_year_id; }, 'All years');
-    setSelect(dom.filters.semester, state.semesters, state.filters.semester_id, function (row) { return row.semester_id; }, function (row) { return row.semester_name || row.name || row.semester_id; }, 'All semesters');
+    setSelect(dom.filters.semester, semesterOptions, state.filters.semester_id, function (row) { return row.semester_id || row.id; }, function (row) { return row.semester_name || row.name || row.semester_id || row.id; }, 'All semesters');
     setSelect(dom.filters.classA, state.classes, state.filters.class_a_id, function (row) { return row.class_id; }, function (row) { return row.class_name || row.class_code || row.class_id; }, 'Select class A');
     setSelect(dom.filters.classB, state.classes, state.filters.class_b_id, function (row) { return row.class_id; }, function (row) { return row.class_name || row.class_code || row.class_id; }, 'Select class B');
 
@@ -655,6 +705,12 @@
     state.filters.subject_b_id = dom.filters.subjectB?.value || '';
     state.filters.status = dom.filters.status?.value || '';
 
+    if (this === dom.filters.year) {
+      syncSemesterFilterWithYear();
+      populateFilters();
+      state.filters.semester_id = dom.filters.semester?.value || state.filters.semester_id;
+    }
+
     const periodChanged = previousYear !== state.filters.academic_year_id
       || previousSemester !== state.filters.semester_id;
 
@@ -711,6 +767,45 @@
     };
   }
 
+  function getSemestersForAcademicYear(academicYearId) {
+    const yearId = String(academicYearId || '');
+    const rows = Array.isArray(state.semesters) ? state.semesters.slice() : [];
+    if (!yearId) {
+      return rows;
+    }
+
+    return rows.filter(function (row) {
+      const rowYearId = String(row?.academic_year_id || row?.academicYearId || row?.academic_year?.academic_year_id || '');
+      return rowYearId === yearId;
+    });
+  }
+
+  function syncSemesterFilterWithYear() {
+    const options = getSemestersForAcademicYear(state.filters.academic_year_id);
+    const current = String(state.filters.semester_id || '');
+
+    if (!options.length) {
+      state.filters.semester_id = '';
+      return options;
+    }
+
+    const hasCurrent = options.some(function (row) {
+      return String(row?.semester_id || row?.id || '') === current;
+    });
+
+    if (!hasCurrent) {
+      const preferredCurrent = String(state.currentSemesterId || '');
+      const hasPreferredCurrent = options.some(function (row) {
+        return String(row?.semester_id || row?.id || '') === preferredCurrent;
+      });
+      state.filters.semester_id = hasPreferredCurrent
+        ? preferredCurrent
+        : String(options[0]?.semester_id || options[0]?.id || '');
+    }
+
+    return options;
+  }
+
   function detailMatchesSubject(detail, subjectName) {
     const name = normalizeText(detail?.subject_name);
     const code = normalizeText(detail?.subject_code);
@@ -727,7 +822,58 @@
   }
 
   function getBandDefinitions() {
-    return state.activeBands[0] ? state.activeBands[0].rows : [];
+    if (!Array.isArray(state.activeBands) || !state.activeBands.length) {
+      state.selectedScaleCategoryKey = '';
+      return [];
+    }
+
+    const selected = state.activeBands.find(function (band) {
+      return String(band?.key || '') === String(state.selectedScaleCategoryKey || '');
+    });
+    if (selected) {
+      state.selectedScaleCategoryKey = String(selected.key || '');
+      return selected.rows || [];
+    }
+
+    const primary = state.activeBands.find(function (band) {
+      return band.set_as_primary === 1 || band.set_as_primary === '1';
+    });
+    if (primary) {
+      state.selectedScaleCategoryKey = String(primary.key || '');
+      return primary.rows || [];
+    }
+
+    state.selectedScaleCategoryKey = String(state.activeBands[0]?.key || '');
+    return state.activeBands[0]?.rows || [];
+  }
+
+  function populateScaleCategorySelect() {
+    if (!dom.scaleCategory) return;
+
+    if (!Array.isArray(state.activeBands) || !state.activeBands.length) {
+      dom.scaleCategory.innerHTML = '<option value="">No grade categories</option>';
+      dom.scaleCategory.value = '';
+      state.selectedScaleCategoryKey = '';
+      return;
+    }
+
+    const options = state.activeBands.map(function (band) {
+      return '<option value="' + esc(String(band.key || '')) + '">' + esc(String(band.name || 'Grade category')) + '</option>';
+    }).join('');
+    dom.scaleCategory.innerHTML = options;
+
+    const hasSelected = state.activeBands.some(function (band) {
+      return String(band.key || '') === String(state.selectedScaleCategoryKey || '');
+    });
+
+    if (!hasSelected) {
+      const primary = state.activeBands.find(function (band) {
+        return band.set_as_primary === 1 || band.set_as_primary === '1';
+      });
+      state.selectedScaleCategoryKey = String((primary || state.activeBands[0]).key || '');
+    }
+
+    dom.scaleCategory.value = String(state.selectedScaleCategoryKey || '');
   }
 
   function getBandLabel(band) {
@@ -810,7 +956,9 @@
       const key = String(row.grade_categories_id || row.category_id || 'default');
       if (!groups.has(key)) {
         groups.set(key, {
+          key: key,
           name: row.grade_categories_name || row.category_name || 'Active grading scale',
+          set_as_primary: row.set_as_primary || 0,
           rows: [],
         });
       }
@@ -820,7 +968,12 @@
     return Array.from(groups.values()).map(function (group) {
       group.rows.sort(function (a, b) { return toNumber(b.max_score) - toNumber(a.max_score); });
       return group;
-    }).sort(function (a, b) { return b.rows.length - a.rows.length; });
+    }).sort(function (a, b) {
+      const aPrimary = a?.set_as_primary === 1 || a?.set_as_primary === '1' ? 1 : 0;
+      const bPrimary = b?.set_as_primary === 1 || b?.set_as_primary === '1' ? 1 : 0;
+      if (aPrimary !== bPrimary) return bPrimary - aPrimary;
+      return b.rows.length - a.rows.length;
+    });
   }
 
   function showLoading() {

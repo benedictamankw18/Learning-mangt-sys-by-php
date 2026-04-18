@@ -165,8 +165,27 @@ class GradeReportRepository extends BaseRepository
                 grd.created_at,
                 grd.updated_at,
                 sub.subject_name,
-                sub.subject_code
+                sub.subject_code,
+                sub.is_core,
+                (
+                    SELECT AVG(grd2.percentage)
+                    FROM grade_report_details grd2
+                    LEFT JOIN grade_reports gr_avg ON grd2.report_id = gr_avg.report_id
+                    WHERE grd2.course_id = grd.course_id
+                    AND gr_avg.semester_id = gr_current.semester_id
+                    AND gr_avg.academic_year_id = gr_current.academic_year_id
+                ) as class_average,
+                (
+                    SELECT COUNT(*)
+                    FROM grade_report_details grd2
+                    LEFT JOIN grade_reports gr2 ON grd2.report_id = gr2.report_id
+                    WHERE grd2.course_id = grd.course_id
+                    AND gr2.semester_id = gr_current.semester_id
+                    AND gr2.academic_year_id = gr_current.academic_year_id
+                    AND grd2.percentage > grd.percentage
+                ) + 1 as position_in_subject
                 FROM grade_report_details grd
+                LEFT JOIN grade_reports gr_current ON grd.report_id = gr_current.report_id
                 LEFT JOIN class_subjects cs ON grd.course_id = cs.course_id
                 LEFT JOIN subjects sub ON cs.subject_id = sub.subject_id
                 WHERE grd.report_id = :report_id
@@ -178,8 +197,13 @@ class GradeReportRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function generateReport($studentId, $semesterId, $academicYearId, $remarks = null, $generatedBy = null)
+    public function generateReport($studentId, $semesterId, $academicYearId, $remarks = null, $generatedBy = null, $classId = null, bool $updatePositions = true, $institutionId = null)
     {
+        $institutionId = $institutionId ?? $this->resolveStudentInstitutionId($studentId);
+        if (!$institutionId) {
+            throw new \RuntimeException('Unable to resolve institution for grade report generation');
+        }
+
         // Check if report already exists
         $existing = $this->findByConditions([
             'student_id' => $studentId,
@@ -195,17 +219,22 @@ class GradeReportRepository extends BaseRepository
             // Recalculate totals
             $this->recalculateTotals($reportId);
 
+            if ($updatePositions) {
+                $classId = $classId ?? $this->resolveStudentClassId($studentId);
+                if ($classId) {
+                    $this->calculatePositions((int) $classId, (int) $semesterId, (int) $academicYearId);
+                }
+            }
+
             return $reportId;
         }
 
         // Create new report
         $reportId = $this->create([
+            'institution_id' => $institutionId,
             'student_id' => $studentId,
             'semester_id' => $semesterId,
             'academic_year_id' => $academicYearId,
-            'gpa' => 0,
-            'cgpa' => 0,
-            'class_rank' => null,
             'teacher_comment' => $remarks,
             'generated_by' => $generatedBy,
             'is_published' => 0
@@ -216,6 +245,13 @@ class GradeReportRepository extends BaseRepository
 
         // Calculate totals
         $this->recalculateTotals($reportId);
+
+        if ($updatePositions) {
+            $classId = $classId ?? $this->resolveStudentClassId($studentId);
+            if ($classId) {
+                $this->calculatePositions((int) $classId, (int) $semesterId, (int) $academicYearId);
+            }
+        }
 
         return $reportId;
     }
@@ -250,17 +286,14 @@ class GradeReportRepository extends BaseRepository
     {
         // Get all results for this student in this semester
         $sql = "SELECT 
-                cs.course_id,
-                cs.subject_id,
-                AVG(r.score) as avg_score,
-                AVG(r.percentage) as avg_percentage,
-                SUM(r.score) as total_score
+                r.course_id,
+            AVG(r.total_score) as avg_score,
+            AVG(r.total_score) as avg_percentage,
+            SUM(r.total_score) as total_score
                 FROM results r
-                JOIN assessments a ON r.assessment_id = a.assessment_id
-                JOIN class_subjects cs ON a.class_subject_id = cs.course_id
                 WHERE r.student_id = :student_id
-                AND a.semester_id = :semester_id
-                GROUP BY cs.course_id";
+                AND r.semester_id = :semester_id
+                GROUP BY r.course_id";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -273,8 +306,12 @@ class GradeReportRepository extends BaseRepository
         // Insert details
         foreach ($results as $result) {
             $detailSql = "INSERT INTO grade_report_details 
-                         (report_id, course_id, total_score, percentage, created_at)
-                         VALUES (:report_id, :course_id, :total_score, :percentage, NOW())";
+                         (report_id, course_id, total_score, percentage, created_at, updated_at)
+                         VALUES (:report_id, :course_id, :total_score, :percentage, NOW(), NOW())
+                         ON DUPLICATE KEY UPDATE
+                         total_score = VALUES(total_score),
+                         percentage = VALUES(percentage),
+                         updated_at = NOW()";
 
             $detailStmt = $this->db->prepare($detailSql);
             $detailStmt->execute([
@@ -312,19 +349,54 @@ class GradeReportRepository extends BaseRepository
         $stmt->execute([':report_id' => $reportId]);
         $totals = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // Calculate GPA (assuming 4.0 scale based on percentage)
-        $gpa = $totals['avg_percentage'] ? round(($totals['avg_percentage'] / 100) * 4, 2) : 0;
+        if ($this->hasColumn($this->table, 'gpa')) {
+            // Calculate GPA (assuming 4.0 scale based on percentage)
+            $gpa = $totals['avg_percentage'] ? round(($totals['avg_percentage'] / 100) * 4, 2) : 0;
 
-        // Update report
-        $updateSql = "UPDATE {$this->table} 
-                     SET gpa = :gpa
-                     WHERE report_id = :report_id";
+            $updateSql = "UPDATE {$this->table} 
+                         SET gpa = :gpa
+                         WHERE report_id = :report_id";
 
-        $updateStmt = $this->db->prepare($updateSql);
-        $updateStmt->execute([
-            ':gpa' => $gpa,
-            ':report_id' => $reportId
-        ]);
+            $updateStmt = $this->db->prepare($updateSql);
+            $updateStmt->execute([
+                ':gpa' => $gpa,
+                ':report_id' => $reportId
+            ]);
+        }
+    }
+
+    private function resolveStudentClassId($studentId): ?int
+    {
+        $sql = "SELECT class_id FROM students WHERE student_id = :student_id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':student_id' => $studentId]);
+        $classId = $stmt->fetchColumn();
+
+        return $classId !== false ? (int) $classId : null;
+    }
+
+    private function resolveStudentInstitutionId($studentId): ?int
+    {
+        $sql = "SELECT institution_id FROM students WHERE student_id = :student_id LIMIT 1";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([':student_id' => $studentId]);
+        $institutionId = $stmt->fetchColumn();
+
+        return $institutionId !== false ? (int) $institutionId : null;
+    }
+
+    public function recalculateClassRankForStudentTerm($studentId, $semesterId, $academicYearId): void
+    {
+        if (!$this->hasColumn($this->table, 'class_rank')) {
+            return;
+        }
+
+        $classId = $this->resolveStudentClassId($studentId);
+        if (!$classId || !$semesterId || !$academicYearId) {
+            return;
+        }
+
+        $this->calculatePositions((int) $classId, (int) $semesterId, (int) $academicYearId);
     }
 
     public function getReportCard($studentId, $semesterId = null, $academicYearId = null)
@@ -334,7 +406,16 @@ class GradeReportRepository extends BaseRepository
                 s.student_id_number,
             s.student_id_number as student_number_id,
                 CONCAT(u.first_name, ' ', u.last_name) as student_name,
+                u.title,
+                u.first_name,
+                u.last_name,
+                u.gender as user_gender,
+                u.phone_number,
+                u.address,
+                u.city,
+                u.region,
                 u.email,
+                s.alternative_email,
                 s.date_of_birth,
                 s.gender,
                 c.class_name as class_name,
@@ -343,16 +424,27 @@ class GradeReportRepository extends BaseRepository
                 sem.semester_name as semester_name,
                 ay.year_name as academic_year,
                 i.institution_name as institution_name,
-                i.logo as institution_logo
+                i.website as institution_website,
+                i.email as institution_email,
+                i.phone as institution_phone,
+                i.postal_code as institution_postal_code,
+                iset.logo_url as institution_logo,
+                iset.motto as institution_motto,
+                (
+                    SELECT COUNT(*)
+                    FROM students s2
+                    WHERE s2.class_id = s.class_id
+                ) as class_roll_count
                 FROM {$this->table} gr
                 LEFT JOIN students s ON gr.student_id = s.student_id
                 LEFT JOIN users u ON s.user_id = u.user_id
                 LEFT JOIN classes c ON s.class_id = c.class_id
-                LEFT JOIN programs p ON s.program_id = p.program_id
-                LEFT JOIN grade_levels gl ON s.grade_level_id = gl.grade_level_id
+                LEFT JOIN programs p ON c.program_id = p.program_id
+                LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
                 LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
                 LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
                 LEFT JOIN institutions i ON s.institution_id = i.institution_id
+                LEFT JOIN institution_settings iset ON s.institution_id = iset.institution_id
                 WHERE gr.student_id = :student_id";
         $params = [':student_id' => $studentId];
 
@@ -376,6 +468,19 @@ class GradeReportRepository extends BaseRepository
             // Get details
             $report['details'] = $this->getReportDetails($report['report_id']);
             $report = $this->attachComputedAttendance($report);
+
+            if ($semesterId && $academicYearId && (!isset($report['class_rank']) || $report['class_rank'] === null || $report['class_rank'] === '')) {
+                $computedRank = $this->computeRankForReport(
+                    (int) $studentId,
+                    (int) $report['report_id'],
+                    (int) $semesterId,
+                    (int) $academicYearId
+                );
+
+                if ($computedRank !== null) {
+                    $report['class_rank'] = $computedRank;
+                }
+            }
         }
 
         return $report;
@@ -406,6 +511,20 @@ class GradeReportRepository extends BaseRepository
         // Get details for each report
         foreach ($reports as &$report) {
             $report['details'] = $this->getReportDetails($report['report_id']);
+            if ((!isset($report['class_rank']) || $report['class_rank'] === null || $report['class_rank'] === '')
+                && !empty($report['semester_id'])
+                && !empty($report['academic_year_id'])
+            ) {
+                $computedRank = $this->computeRankForReport(
+                    (int) $studentId,
+                    (int) $report['report_id'],
+                    (int) $report['semester_id'],
+                    (int) $report['academic_year_id']
+                );
+                if ($computedRank !== null) {
+                    $report['class_rank'] = $computedRank;
+                }
+            }
             $report = $this->attachComputedAttendance($report);
         }
         unset($report);
@@ -420,8 +539,8 @@ class GradeReportRepository extends BaseRepository
                       FROM students s
                       LEFT JOIN users u ON s.user_id = u.user_id
                       LEFT JOIN classes c ON s.class_id = c.class_id
-                      LEFT JOIN programs p ON s.program_id = p.program_id
-                      LEFT JOIN grade_levels gl ON s.grade_level_id = gl.grade_level_id
+                      LEFT JOIN programs p ON c.program_id = p.program_id
+                      LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
                       LEFT JOIN institutions i ON s.institution_id = i.institution_id
                       WHERE s.student_id = :student_id";
 
@@ -482,7 +601,7 @@ class GradeReportRepository extends BaseRepository
 
         $count = 0;
         foreach ($students as $student) {
-            $this->generateReport($student['student_id'], $semesterId, $academicYearId, null, $generatedBy);
+            $this->generateReport($student['student_id'], $semesterId, $academicYearId, null, $generatedBy, $classId, false);
             $count++;
         }
 
@@ -494,13 +613,40 @@ class GradeReportRepository extends BaseRepository
 
     private function calculatePositions($classId, $semesterId, $academicYearId)
     {
-        $sql = "SELECT gr.report_id 
+        if (!$this->hasColumn($this->table, 'class_rank')) {
+            return;
+        }
+
+        $hasGpa = $this->hasColumn($this->table, 'gpa');
+        $hasCgpa = $this->hasColumn($this->table, 'cgpa');
+
+        $scoreExpr = $hasGpa
+            ? 'COALESCE(gr.gpa, AVG(grd.percentage), 0)'
+            : 'COALESCE(AVG(grd.percentage), 0)';
+
+        $groupBy = 'gr.report_id';
+        if ($hasGpa) {
+            $groupBy .= ', gr.gpa';
+        }
+        if ($hasCgpa) {
+            $groupBy .= ', gr.cgpa';
+        }
+
+        $orderBy = $scoreExpr . ' DESC';
+        if ($hasCgpa) {
+            $orderBy .= ', gr.cgpa DESC';
+        }
+        $orderBy .= ', gr.report_id ASC';
+
+        $sql = "SELECT gr.report_id
                 FROM {$this->table} gr
                 JOIN students s ON gr.student_id = s.student_id
+                LEFT JOIN grade_report_details grd ON grd.report_id = gr.report_id
                 WHERE s.class_id = :class_id
                 AND gr.semester_id = :semester_id
                 AND gr.academic_year_id = :academic_year_id
-                ORDER BY gr.gpa DESC, gr.cgpa DESC";
+                GROUP BY {$groupBy}
+                ORDER BY {$orderBy}";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([
@@ -521,6 +667,63 @@ class GradeReportRepository extends BaseRepository
             ]);
             $position++;
         }
+    }
+
+    private function computeRankForReport(int $studentId, int $reportId, int $semesterId, int $academicYearId): ?int
+    {
+        $classId = $this->resolveStudentClassId($studentId);
+        if (!$classId) {
+            return null;
+        }
+
+        $hasGpa = $this->hasColumn($this->table, 'gpa');
+        $hasCgpa = $this->hasColumn($this->table, 'cgpa');
+
+        $scoreExpr = $hasGpa
+            ? 'COALESCE(gr.gpa, AVG(grd.percentage), 0)'
+            : 'COALESCE(AVG(grd.percentage), 0)';
+
+        $groupBy = 'gr.report_id';
+        if ($hasGpa) {
+            $groupBy .= ', gr.gpa';
+        }
+        if ($hasCgpa) {
+            $groupBy .= ', gr.cgpa';
+        }
+
+        $orderBy = $scoreExpr . ' DESC';
+        if ($hasCgpa) {
+            $orderBy .= ', gr.cgpa DESC';
+        }
+        $orderBy .= ', gr.report_id ASC';
+
+        $sql = "SELECT gr.report_id
+                FROM {$this->table} gr
+                JOIN students s ON gr.student_id = s.student_id
+                LEFT JOIN grade_report_details grd ON grd.report_id = gr.report_id
+                WHERE s.class_id = :class_id
+                AND gr.semester_id = :semester_id
+                AND gr.academic_year_id = :academic_year_id
+                GROUP BY {$groupBy}
+                ORDER BY {$orderBy}";
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            ':class_id' => $classId,
+            ':semester_id' => $semesterId,
+            ':academic_year_id' => $academicYearId,
+        ]);
+
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $position = 1;
+        foreach ($rows as $row) {
+            if ((int) ($row['report_id'] ?? 0) === $reportId) {
+                return $position;
+            }
+            $position++;
+        }
+
+        return null;
     }
 
     public function getStatistics($institutionId = null, $semesterId = null, $academicYearId = null)
@@ -596,6 +799,8 @@ class GradeReportRepository extends BaseRepository
         $studentId = isset($report['student_id']) ? (int) $report['student_id'] : 0;
         if ($studentId <= 0) {
             $report['attendance_percentage'] = 0;
+            $report['attendance_present_count'] = 0;
+            $report['attendance_total_days'] = 0;
             return $report;
         }
 
@@ -606,16 +811,20 @@ class GradeReportRepository extends BaseRepository
             ? (int) $report['academic_year_id']
             : null;
 
-        $report['attendance_percentage'] = $this->calculateAttendancePercentage(
+        $attendanceData = $this->calculateAttendanceData(
             $studentId,
             $semesterId,
             $academicYearId
         );
 
+        $report['attendance_percentage'] = $attendanceData['percentage'];
+        $report['attendance_present_count'] = $attendanceData['present_count'];
+        $report['attendance_total_days'] = $attendanceData['total_days'];
+
         return $report;
     }
 
-    private function calculateAttendancePercentage(int $studentId, ?int $semesterId, ?int $academicYearId): float
+    private function calculateAttendanceData(int $studentId, ?int $semesterId, ?int $academicYearId): array
     {
         $cacheKey = $studentId . ':' . ($semesterId ?? 'all') . ':' . ($academicYearId ?? 'all');
         if (array_key_exists($cacheKey, $this->attendanceCache)) {
@@ -654,9 +863,15 @@ class GradeReportRepository extends BaseRepository
         $total = isset($row['total_records']) ? (int) $row['total_records'] : 0;
         $attended = isset($row['attended_records']) ? (int) $row['attended_records'] : 0;
 
-        $percentage = $total > 0 ? round(($attended / $total) * 100, 1) : 0.0;
-        $this->attendanceCache[$cacheKey] = $percentage;
+        $percentage = $total > 0 ? round(($attended / $total) * 100, 2) : 0.0;
+        
+        $result = [
+            'percentage' => $percentage,
+            'present_count' => $attended,
+            'total_days' => $total
+        ];
+        $this->attendanceCache[$cacheKey] = $result;
 
-        return $percentage;
+        return $result;
     }
 }

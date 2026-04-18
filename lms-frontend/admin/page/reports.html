@@ -1,566 +1,546 @@
-<div class="reports-page">
-  <div class="reports-card">
-    <div class="reports-card-header">
-      <h2>Reports & Analytics</h2>
-      <p>Generate, view, and export comprehensive academic and administrative reports</p>
+<style>
+  .adm-rpt-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .adm-rpt-hero {
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    color: #ecfeff;
+    background: linear-gradient(135deg, #042f2e 0%, #0369a1 55%, #0f172a 100%);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.2);
+  }
+
+  .adm-rpt-hero h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .adm-rpt-hero p {
+    margin: 0.35rem 0 0;
+    color: rgba(236, 254, 255, 0.88);
+    font-size: 0.86rem;
+  }
+
+  .adm-rpt-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(2, 6, 23, 0.05);
+  }
+
+  .adm-rpt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .adm-rpt-head h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+
+  .adm-rpt-head p {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .adm-rpt-body {
+    display: grid;
+    gap: 0.85rem;
+    padding: 0.95rem 1rem;
+  }
+
+  .adm-rpt-filters {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .adm-rpt-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .adm-rpt-field label {
+    font-size: 0.73rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .adm-rpt-field input,
+  .adm-rpt-field select {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.54rem 0.66rem;
+    font-size: 0.88rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .adm-rpt-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .adm-rpt-status {
+    display: none;
+    border-radius: 10px;
+    padding: 0.72rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: pre-line;
+  }
+
+  .adm-rpt-status.show {
+    display: block;
+  }
+
+  .adm-rpt-status.info {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+  }
+
+  .adm-rpt-status.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  .adm-rpt-status.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .adm-rpt-kpis {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.72rem;
+  }
+
+  .adm-rpt-kpi {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem;
+    background: #fff;
+  }
+
+  .adm-rpt-kpi strong {
+    display: block;
+    font-size: 1.05rem;
+    color: #0f172a;
+  }
+
+  .adm-rpt-kpi span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .adm-rpt-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+  }
+
+  .adm-rpt-chart-wrap {
+    height: 270px;
+    position: relative;
+  }
+
+  .adm-rpt-builder {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+    align-items: end;
+  }
+
+  .adm-rpt-table-wrap {
+    overflow: auto;
+  }
+
+  .adm-rpt-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.83rem;
+  }
+
+  .adm-rpt-table th,
+  .adm-rpt-table td {
+    border-bottom: 1px solid #edf2f7;
+    border-right: 1px solid #edf2f7;
+    padding: 0.55rem 0.64rem;
+    vertical-align: top;
+  }
+
+  .adm-rpt-table th {
+    background: #f8fafc;
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #334155;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .adm-rpt-empty {
+    padding: 1rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    color: #64748b;
+    background: #fff;
+    text-align: center;
+  }
+
+  .adm-rpt-schedules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .adm-rpt-schedule-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.72rem;
+    background: #f8fafc;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .adm-rpt-schedule-item small {
+    color: #475569;
+  }
+
+  .adm-rpt-schedule-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.45rem;
+  }
+
+  @media (max-width: 1200px) {
+    .adm-rpt-filters,
+    .adm-rpt-kpis,
+    .adm-rpt-builder,
+    .adm-rpt-grid,
+    .adm-rpt-schedules {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .adm-rpt-filters,
+    .adm-rpt-kpis,
+    .adm-rpt-builder,
+    .adm-rpt-grid,
+    .adm-rpt-schedules {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<section id="adminReportsRoot" class="adm-rpt-shell">
+  <div class="adm-rpt-hero">
+    <h3>
+      <i class="fas fa-file-chart-column"></i> Admin Reports Control Center
+    </h3>
+    <p>
+      Generate school-wide intelligence: performance by class/program,
+      attendance, enrollment, WASSCE readiness, and export-ready leadership
+      reports.
+    </p>
+  </div>
+
+  <div class="adm-rpt-card">
+    <div class="adm-rpt-head">
+      <div>
+        <h4><i class="fas fa-sliders"></i> Report Filters & Exports</h4>
+        <p>
+          Choose a report family, then build or export your current analytics
+          view.
+        </p>
+      </div>
     </div>
-    
-    <div class="reports-card-body">
-      
-      <!-- Stats Cards -->
-      <div class="reports-stats">
-        <div class="reports-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <i class="fas fa-file-alt"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">142</div>
-            <div class="stat-label">Total Reports</div>
-            <div class="stat-sublabel">Generated this term</div>
-          </div>
+    <div class="adm-rpt-body">
+      <div class="adm-rpt-filters">
+        <div class="adm-rpt-field">
+          <label for="admRptAcademicYear">Academic Year</label>
+          <select id="admRptAcademicYear"></select>
         </div>
-        
-        <div class="reports-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-            <i class="fas fa-download"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">87</div>
-            <div class="stat-label">Recent Exports</div>
-            <div class="stat-sublabel">Last 30 days</div>
-          </div>
+        <div class="adm-rpt-field">
+          <label for="admRptSemester">Semester</label>
+          <select id="admRptSemester"></select>
         </div>
-        
-        <div class="reports-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">12</div>
-            <div class="stat-label">Scheduled Reports</div>
-            <div class="stat-sublabel">Automated monthly</div>
-          </div>
+        <div class="adm-rpt-field">
+          <label for="admRptType">Report Family</label>
+          <select id="admRptType">
+            <option value="all">All Reports</option>
+            <option value="class">Academic by Class</option>
+            <option value="program">Academic by Program</option>
+            <option value="semester">Semester Reports</option>
+            <option value="annual">Annual Reports</option>
+            <option value="wassce">WASSCE Preparation</option>
+            <option value="progress">Student Progress</option>
+            <option value="teacher">Teacher Performance</option>
+            <option value="attendance">Attendance Reports</option>
+            <option value="enrollment">Enrollment Reports</option>
+            <option value="custom">Custom Builder Output</option>
+          </select>
         </div>
-        
-        <div class="reports-stat-card">
-          <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-            <i class="fas fa-chart-line"></i>
-          </div>
-          <div class="stat-content">
-            <div class="stat-value">23</div>
-            <div class="stat-label">Templates</div>
-            <div class="stat-sublabel">Available formats</div>
-          </div>
+        <div class="adm-rpt-field">
+          <label for="admRptSearch">Search</label>
+          <input
+            id="admRptSearch"
+            type="search"
+            placeholder="Class, program, student, teacher..."
+          />
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptFormat">Export Format</label>
+          <select id="admRptFormat">
+            <option value="pdf">PDF</option>
+            <option value="csv">Excel (CSV)</option>
+          </select>
         </div>
       </div>
-      
-      <!-- Toolbar -->
-      <div class="reports-toolbar">
-        <div class="reports-toolbar-left">
-          <div class="search-box">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search reports...">
-          </div>
-          
-          <div class="date-range-filter">
-            <i class="fas fa-calendar"></i>
-            <input type="date" value="2025-09-01">
-            <span>to</span>
-            <input type="date" value="2026-03-02">
-          </div>
-        </div>
-        
-        <div class="reports-toolbar-right">
-          <button class="btn-schedule-report">
-            <i class="fas fa-clock"></i>
-            Schedule Report
-          </button>
-          <button class="btn-export-all">
-            <i class="fas fa-file-export"></i>
-            Export All
-          </button>
-        </div>
+
+      <div class="adm-rpt-actions">
+        <button class="btn btn-primary btn-sm" id="admRptLoadBtn" type="button">
+          <i class="fas fa-arrows-rotate"></i> Load Data
+        </button>
+        <button
+          class="btn btn-outline btn-sm"
+          id="admRptExportBtn"
+          type="button"
+        >
+          <i class="fas fa-file-export"></i> Export Current
+        </button>
+        <button
+          class="btn btn-outline btn-sm"
+          id="admRptExportAllBtn"
+          type="button"
+        >
+          <i class="fas fa-box-archive"></i> Export All Reports
+        </button>
       </div>
-      
-      <!-- Quick Reports Section -->
-      <div class="quick-reports-section">
-        <h3 class="section-title">
-          <i class="fas fa-bolt"></i>
-          Quick Reports
-        </h3>
-        
-        <div class="quick-reports-grid">
-          <div class="quick-report-card" data-report="academic">
-            <div class="report-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
-              <i class="fas fa-graduation-cap"></i>
-            </div>
-            <div class="report-info">
-              <h4>Academic Performance</h4>
-              <p>Student grades and assessment results</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-          
-          <div class="quick-report-card" data-report="attendance">
-            <div class="report-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-              <i class="fas fa-user-check"></i>
-            </div>
-            <div class="report-info">
-              <h4>Attendance Summary</h4>
-              <p>Class attendance rates and trends</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-          
-          <div class="quick-report-card" data-report="progress">
-            <div class="report-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-              <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="report-info">
-              <h4>Student Progress</h4>
-              <p>Individual student performance tracking</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-          
-          <div class="quick-report-card" data-report="waec">
-            <div class="report-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-              <i class="fas fa-certificate"></i>
-            </div>
-            <div class="report-info">
-              <h4>WASSCE Preparation</h4>
-              <p>SHS 3 exam readiness analysis</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-          
-          <div class="quick-report-card" data-report="class">
-            <div class="report-icon" style="background: linear-gradient(135deg, #ec4899, #db2777);">
-              <i class="fas fa-users"></i>
-            </div>
-            <div class="report-info">
-              <h4>Class Performance</h4>
-              <p>Program and class comparative analysis</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-          
-          <div class="quick-report-card" data-report="teacher">
-            <div class="report-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
-              <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-            <div class="report-info">
-              <h4>Teacher Statistics</h4>
-              <p>Faculty workload and performance</p>
-            </div>
-            <button class="btn-generate">
-              <i class="fas fa-play"></i>
-              Generate
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Recent Reports Section -->
-      <div class="recent-reports-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <i class="fas fa-history"></i>
-            Recent Reports
-          </h3>
-          <button class="btn-view-all">View All</button>
-        </div>
-        
-        <div class="reports-table-container">
-          <table class="reports-table">
-            <thead>
-              <tr>
-                <th>Report Name</th>
-                <th>Type</th>
-                <th>Generated By</th>
-                <th>Date</th>
-                <th>Size</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-pdf report-file-icon pdf"></i>
-                    <span>SHS 3 Science WASSCE Analysis - Term 2</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge academic">Academic</span></td>
-                <td>Dr. Mensah K.</td>
-                <td>Mar 1, 2026</td>
-                <td>2.4 MB</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Download">
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn-action" title="Share">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-action" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-excel report-file-icon excel"></i>
-                    <span>February Attendance Summary - All Programs</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge attendance">Attendance</span></td>
-                <td>Admin User</td>
-                <td>Mar 1, 2026</td>
-                <td>1.8 MB</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Download">
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn-action" title="Share">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-action" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-pdf report-file-icon pdf"></i>
-                    <span>End of Term Assessment Report - SHS 1 Business</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge academic">Academic</span></td>
-                <td>Mrs. Osei A.</td>
-                <td>Feb 28, 2026</td>
-                <td>3.1 MB</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Download">
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn-action" title="Share">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-action" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr class="processing-row">
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-pdf report-file-icon pdf"></i>
-                    <span>Student Progress Reports - All SHS 2 Students</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge progress">Progress</span></td>
-                <td>Admin User</td>
-                <td>Mar 2, 2026</td>
-                <td>-</td>
-                <td><span class="status-badge processing">Processing</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Cancel" disabled>
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-csv report-file-icon csv"></i>
-                    <span>Teacher Workload Analysis - Term 2</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge teacher">Teacher</span></td>
-                <td>Headmaster</td>
-                <td>Feb 27, 2026</td>
-                <td>456 KB</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Download">
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn-action" title="Share">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-action" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              
-              <tr>
-                <td>
-                  <div class="report-name">
-                    <i class="fas fa-file-pdf report-file-icon pdf"></i>
-                    <span>Class Comparison - Science vs Business Programs</span>
-                  </div>
-                </td>
-                <td><span class="report-type-badge class">Class</span></td>
-                <td>Dr. Mensah K.</td>
-                <td>Feb 26, 2026</td>
-                <td>1.2 MB</td>
-                <td><span class="status-badge completed">Completed</span></td>
-                <td>
-                  <div class="report-actions">
-                    <button class="btn-action" title="Download">
-                      <i class="fas fa-download"></i>
-                    </button>
-                    <button class="btn-action" title="Share">
-                      <i class="fas fa-share-alt"></i>
-                    </button>
-                    <button class="btn-action" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      
-      <!-- Scheduled Reports Section -->
-      <div class="scheduled-reports-section">
-        <div class="section-header">
-          <h3 class="section-title">
-            <i class="fas fa-calendar-alt"></i>
-            Scheduled Reports
-          </h3>
-          <button class="btn-add-schedule">
-            <i class="fas fa-plus"></i>
-            Add Schedule
-          </button>
-        </div>
-        
-        <div class="scheduled-reports-grid">
-          <div class="scheduled-report-card active">
-            <div class="schedule-header">
-              <div class="schedule-title">
-                <i class="fas fa-sync"></i>
-                <h4>Monthly Attendance Report</h4>
-              </div>
-              <span class="schedule-status active">Active</span>
-            </div>
-            <div class="schedule-details">
-              <div class="schedule-detail">
-                <i class="fas fa-calendar"></i>
-                <span>Every 1st of the month</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-file-alt"></i>
-                <span>Format: Excel (.xlsx)</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-envelope"></i>
-                <span>Send to: admin@school.edu.gh</span>
-              </div>
-            </div>
-            <div class="schedule-actions">
-              <button class="btn-edit-schedule">
-                <i class="fas fa-edit"></i>
-                Edit
-              </button>
-              <button class="btn-pause-schedule">
-                <i class="fas fa-pause"></i>
-                Pause
-              </button>
-            </div>
-          </div>
-          
-          <div class="scheduled-report-card active">
-            <div class="schedule-header">
-              <div class="schedule-title">
-                <i class="fas fa-sync"></i>
-                <h4>Weekly Class Performance</h4>
-              </div>
-              <span class="schedule-status active">Active</span>
-            </div>
-            <div class="schedule-details">
-              <div class="schedule-detail">
-                <i class="fas fa-calendar"></i>
-                <span>Every Friday at 5:00 PM</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-file-alt"></i>
-                <span>Format: PDF</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-envelope"></i>
-                <span>Send to: teachers@school.edu.gh</span>
-              </div>
-            </div>
-            <div class="schedule-actions">
-              <button class="btn-edit-schedule">
-                <i class="fas fa-edit"></i>
-                Edit
-              </button>
-              <button class="btn-pause-schedule">
-                <i class="fas fa-pause"></i>
-                Pause
-              </button>
-            </div>
-          </div>
-          
-          <div class="scheduled-report-card paused">
-            <div class="schedule-header">
-              <div class="schedule-title">
-                <i class="fas fa-sync"></i>
-                <h4>Term End WAEC Analysis</h4>
-              </div>
-              <span class="schedule-status paused">Paused</span>
-            </div>
-            <div class="schedule-details">
-              <div class="schedule-detail">
-                <i class="fas fa-calendar"></i>
-                <span>End of each term</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-file-alt"></i>
-                <span>Format: PDF</span>
-              </div>
-              <div class="schedule-detail">
-                <i class="fas fa-envelope"></i>
-                <span>Send to: headmaster@school.edu.gh</span>
-              </div>
-            </div>
-            <div class="schedule-actions">
-              <button class="btn-edit-schedule">
-                <i class="fas fa-edit"></i>
-                Edit
-              </button>
-              <button class="btn-resume-schedule">
-                <i class="fas fa-play"></i>
-                Resume
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
+
+      <div id="admRptStatus" class="adm-rpt-status info"></div>
     </div>
   </div>
-</div>
 
-<script>
-// Reports page functionality
-(function() {
-    // Search functionality
-    const searchInput = document.querySelector('.reports-page .search-box input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            console.log('Searching for:', searchTerm);
-            // Add search filtering logic
-        });
-    }
-    
-    // Quick report generation
-    const generateButtons = document.querySelectorAll('.quick-report-card .btn-generate');
-    generateButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const reportCard = this.closest('.quick-report-card');
-            const reportType = reportCard.getAttribute('data-report');
-            const reportName = reportCard.querySelector('h4').textContent;
-            
-            console.log('Generating report:', reportName, reportType);
-            // Add modal or API call to generate report with parameters
-        });
-    });
-    
-    // Report actions (download, share, delete)
-    const downloadButtons = document.querySelectorAll('.report-actions .btn-action');
-    downloadButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const action = this.getAttribute('title').toLowerCase();
-            const row = this.closest('tr');
-            const reportName = row.querySelector('.report-name span').textContent;
-            
-            if (action === 'delete') {
-                if (confirm(`Delete report "${reportName}"?`)) {
-                    console.log('Deleting report:', reportName);
-                    // Add API call to delete report
-                }
-            } else {
-                console.log(`${action} report:`, reportName);
-                // Add download/share functionality
-            }
-        });
-    });
-    
-    // Schedule report button
-    const scheduleBtn = document.querySelector('.btn-schedule-report');
-    if (scheduleBtn) {
-        scheduleBtn.addEventListener('click', function() {
-            console.log('Opening schedule report modal');
-            // Add modal to create new scheduled report
-        });
-    }
-    
-    // Edit schedule buttons
-    const editScheduleButtons = document.querySelectorAll('.btn-edit-schedule');
-    editScheduleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const scheduleCard = this.closest('.scheduled-report-card');
-            const scheduleName = scheduleCard.querySelector('h4').textContent;
-            console.log('Editing schedule:', scheduleName);
-            // Add modal to edit schedule
-        });
-    });
-    
-    // Pause/Resume schedule buttons
-    const pauseResumeButtons = document.querySelectorAll('.btn-pause-schedule, .btn-resume-schedule');
-    pauseResumeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const scheduleCard = this.closest('.scheduled-report-card');
-            const scheduleName = scheduleCard.querySelector('h4').textContent;
-            const action = this.classList.contains('btn-pause-schedule') ? 'pause' : 'resume';
-            
-            if (confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} schedule "${scheduleName}"?`)) {
-                console.log(`${action} schedule:`, scheduleName);
-                // Add API call to pause/resume schedule
-            }
-        });
-    });
-})();
-</script>
+  <div class="adm-rpt-kpis" id="admRptKpis">
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiStudents">0</strong><span>Total Students</span>
+    </article>
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiTeachers">0</strong><span>Total Teachers</span>
+    </article>
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiClasses">0</strong><span>Total Classes</span>
+    </article>
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiPrograms">0</strong><span>Total Programs</span>
+    </article>
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiPassRate">0%</strong><span>Pass Rate</span>
+    </article>
+    <article class="adm-rpt-kpi">
+      <strong id="admRptKpiAttendance">0%</strong><span>Attendance Rate</span>
+    </article>
+  </div>
+
+  <div class="adm-rpt-grid">
+    <div class="adm-rpt-card">
+      <div class="adm-rpt-head">
+        <div>
+          <h4><i class="fas fa-chart-column"></i> Class Performance</h4>
+          <p>Average outcomes by class for current term.</p>
+        </div>
+      </div>
+      <div class="adm-rpt-body">
+        <div class="adm-rpt-chart-wrap">
+          <canvas id="admRptClassChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="adm-rpt-card">
+      <div class="adm-rpt-head">
+        <div>
+          <h4><i class="fas fa-chart-pie"></i> Program Performance</h4>
+          <p>Comparative distribution and trend by program.</p>
+        </div>
+      </div>
+      <div class="adm-rpt-body">
+        <div class="adm-rpt-chart-wrap">
+          <canvas id="admRptProgramChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-rpt-card">
+    <div class="adm-rpt-head">
+      <div>
+        <h4>
+          <i class="fas fa-wand-magic-sparkles"></i> Custom Report Builder
+        </h4>
+        <p>Create your own view for leadership meetings and audits.</p>
+      </div>
+    </div>
+    <div class="adm-rpt-body">
+      <div class="adm-rpt-builder">
+        <div class="adm-rpt-field">
+          <label for="admRptBuilderSource">Source</label>
+          <select id="admRptBuilderSource">
+            <option value="class">Class Performance</option>
+            <option value="program">Program Performance</option>
+            <option value="attendance">Attendance</option>
+            <option value="enrollment">Enrollment</option>
+          </select>
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptBuilderMetric">Metric</label>
+          <select id="admRptBuilderMetric">
+            <option value="average">Average Score</option>
+            <option value="count">Count</option>
+            <option value="pass_rate">Pass Rate</option>
+          </select>
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptBuilderTop">Top Rows</label>
+          <select id="admRptBuilderTop">
+            <option value="5">Top 5</option>
+            <option value="10">Top 10</option>
+            <option value="20">Top 20</option>
+          </select>
+        </div>
+        <div class="adm-rpt-actions">
+          <button
+            class="btn btn-outline btn-sm"
+            id="admRptBuildBtn"
+            type="button"
+          >
+            <i class="fas fa-gears"></i> Build Custom Report
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-rpt-card">
+    <div class="adm-rpt-head">
+      <div>
+        <h4><i class="fas fa-table"></i> Report Output</h4>
+        <p>
+          Includes semester, annual, WASSCE, student progress, teacher,
+          attendance and enrollment views.
+        </p>
+      </div>
+    </div>
+    <div class="adm-rpt-body">
+      <div class="adm-rpt-table-wrap">
+        <table class="adm-rpt-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Name</th>
+              <th>Group</th>
+              <th>Average %</th>
+              <th>Pass Rate</th>
+              <th>Count</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="admRptTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="adm-rpt-empty">
+                  Load reports to display school-wide analytics.
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="adm-rpt-card">
+    <div class="adm-rpt-head">
+      <div>
+        <h4><i class="fas fa-clock"></i> Automated Report Schedules</h4>
+        <p>Configure recurring report jobs and delivery recipients.</p>
+      </div>
+    </div>
+    <div class="adm-rpt-body">
+      <div class="adm-rpt-builder">
+        <div class="adm-rpt-field">
+          <label for="admRptScheduleName">Schedule Name</label>
+          <input
+            id="admRptScheduleName"
+            type="text"
+            placeholder="Monthly Admin Pack"
+          />
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptScheduleType">Report Type</label>
+          <select id="admRptScheduleType">
+            <option value="semester">Semester Reports</option>
+            <option value="annual">Annual Reports</option>
+            <option value="attendance">Attendance Reports</option>
+            <option value="enrollment">Enrollment Reports</option>
+          </select>
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptScheduleFreq">Frequency</label>
+          <select id="admRptScheduleFreq">
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="term_end">Term End</option>
+            <option value="year_end">Year End</option>
+          </select>
+        </div>
+        <div class="adm-rpt-field">
+          <label for="admRptScheduleEmail">Recipient Email</label>
+          <input
+            id="admRptScheduleEmail"
+            type="email"
+            placeholder="admin@school.edu.gh"
+          />
+        </div>
+      </div>
+
+      <div class="adm-rpt-actions">
+        <button
+          class="btn btn-outline btn-sm"
+          id="admRptScheduleAddBtn"
+          type="button"
+        >
+          <i class="fas fa-plus"></i> Add Schedule
+        </button>
+      </div>
+
+      <div class="adm-rpt-schedules" id="admRptSchedules">
+        <div class="adm-rpt-empty">No automated schedules yet.</div>
+      </div>
+    </div>
+  </div>
+</section>

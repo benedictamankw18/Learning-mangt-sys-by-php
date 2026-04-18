@@ -396,6 +396,13 @@ return [
     'PUT /grade-reports/{uuid}/publish' => ['controller' => 'GradeReportController', 'method' => 'publish', 'auth' => true],
     'DELETE /grade-reports/{uuid}' => ['controller' => 'GradeReportController', 'method' => 'delete', 'auth' => true],
 
+    // Report Schedule routes (automated report jobs)
+    'GET /report-schedules/types' => ['controller' => 'ReportScheduleController', 'method' => 'getTypes', 'auth' => true],
+    'GET /report-schedules' => ['controller' => 'ReportScheduleController', 'method' => 'index', 'auth' => true],
+    'POST /report-schedules' => ['controller' => 'ReportScheduleController', 'method' => 'create', 'auth' => true],
+    'PUT /report-schedules/{id}/status' => ['controller' => 'ReportScheduleController', 'method' => 'updateStatus', 'auth' => true],
+    'DELETE /report-schedules/{id}' => ['controller' => 'ReportScheduleController', 'method' => 'delete', 'auth' => true],
+
     // User Activity routes (Activity Tracking & Audit Trail)
     'GET /user-activity' => ['controller' => 'UserActivityController', 'method' => 'index', 'auth' => true],
     'GET /user-activity/recent' => ['controller' => 'UserActivityController', 'method' => 'getRecent', 'auth' => true],

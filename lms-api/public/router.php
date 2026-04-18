@@ -18,6 +18,11 @@ if (preg_match('#^/api/#', $uri)) {
 if (preg_match('#^/uploads/#', $uri)) {
     $filePath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $uri);
     if (file_exists($filePath)) {
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if ($origin) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        }
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         $mimeMap = [
             'png'  => 'image/png',
@@ -43,6 +48,11 @@ if (preg_match('#^/materials/#', $uri)) {
     $legacyPath = '/uploads' . $uri;
     $filePath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $legacyPath);
     if (file_exists($filePath)) {
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        if ($origin) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        }
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         $mimeMap = [
             'png'  => 'image/png',

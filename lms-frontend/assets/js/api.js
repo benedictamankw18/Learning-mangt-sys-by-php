@@ -571,6 +571,19 @@ const GradeReportAPI = {
 };
 
 /**
+ * Report Schedule APIs
+ */
+const ReportScheduleAPI = {
+    getTypes: () => API.get(API_ENDPOINTS.REPORT_SCHEDULE_TYPES),
+    getAll: () => API.get(API_ENDPOINTS.REPORT_SCHEDULES),
+    create: (data) => API.post(API_ENDPOINTS.REPORT_SCHEDULES, data),
+    updateStatus: (id, isActive) => API.put(API_ENDPOINTS.REPORT_SCHEDULE_STATUS(id), {
+        is_active: isActive ? 1 : 0,
+    }),
+    delete: (id) => API.delete(API_ENDPOINTS.REPORT_SCHEDULE_BY_ID(id)),
+};
+
+/**
  * Submissions APIs
  */
 const SubmissionsAPI = {

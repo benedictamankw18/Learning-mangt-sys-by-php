@@ -60,7 +60,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 cd /d %API_DIR%
-start "PHP API" cmd /k php -S localhost:%API_PORT%
+start "PHP API" cmd /k php -S localhost:%API_PORT% router.php
 
 echo API started.
 pause

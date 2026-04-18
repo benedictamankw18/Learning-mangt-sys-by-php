@@ -96,7 +96,7 @@ if %ERRORLEVEL% EQU 0 (
 )
 
 cd /d D:\db\lms-api\public
-start "PHP API" cmd /k php -S localhost:%API_PORT%
+start "PHP API" cmd /k php -S localhost:%API_PORT% router.php
 
 timeout /t 2 >nul
 

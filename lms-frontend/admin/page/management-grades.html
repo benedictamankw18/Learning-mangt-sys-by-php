@@ -344,6 +344,90 @@
       grid-column: 1 / -1;
     }
 
+    .adm-gr-switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.9rem;
+      padding: 0.72rem 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .adm-gr-switch-copy {
+      display: grid;
+      gap: 0.2rem;
+    }
+
+    .adm-gr-switch-label {
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .adm-gr-switch-hint {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .adm-gr-switch {
+      --switch-w: 48px;
+      --switch-h: 28px;
+      position: relative;
+      width: var(--switch-w);
+      height: var(--switch-h);
+      flex: 0 0 auto;
+    }
+
+    .adm-gr-switch input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 2;
+    }
+
+    .adm-gr-switch-track {
+      position: absolute;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 999px;
+      transition: background-color 0.2s ease;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.1);
+    }
+
+    .adm-gr-switch-track::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s ease;
+    }
+
+    .adm-gr-switch input:checked + .adm-gr-switch-track {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    }
+
+    .adm-gr-switch input:checked + .adm-gr-switch-track::after {
+      transform: translateX(20px);
+    }
+
+    .adm-gr-switch input:focus-visible + .adm-gr-switch-track {
+      box-shadow:
+        inset 0 0 0 1px rgba(15, 23, 42, 0.1),
+        0 0 0 4px rgba(17, 94, 89, 0.18);
+    }
+
     @media (max-width: 1100px) {
       .adm-gr-stats {
         grid-template-columns: 1fr 1fr;
@@ -511,6 +595,25 @@
               <option value="inactive">Inactive</option>
               <option value="draft">Draft</option>
             </select>
+          </div>
+          <div class="adm-gr-field full">
+            <div class="adm-gr-switch-row">
+              <div class="adm-gr-switch-copy">
+                <label
+                  class="adm-gr-switch-label"
+                  for="admGradesCategoryPrimary"
+                  >Primary category</label
+                >
+                <span class="adm-gr-switch-hint"
+                  >Use this as the default grading scale for this
+                  institution.</span
+                >
+              </div>
+              <div class="adm-gr-switch">
+                <input id="admGradesCategoryPrimary" type="checkbox" />
+                <span class="adm-gr-switch-track" aria-hidden="true"></span>
+              </div>
+            </div>
           </div>
         </div>
 

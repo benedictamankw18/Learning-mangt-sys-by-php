@@ -44,6 +44,14 @@ class GradeCategoryController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        if (array_key_exists('set_as_primary', $data)) {
+            $data['set_as_primary'] = $this->normalizePrimaryInput($data['set_as_primary']);
+        }
+
         $validator = new Validator($data);
         $validator->required(['grade_categories_name'])->maxLength('grade_categories_name', 50);
 
@@ -74,6 +82,13 @@ class GradeCategoryController
             return;
         }
 
+        $status = strtolower(trim((string) ($data['status'] ?? 'active')));
+        $setAsPrimary = (int) ($data['set_as_primary'] ?? 0);
+        if ($this->isInvalidPrimaryStatusCombination($status, $setAsPrimary)) {
+            Response::badRequest('Primary category must be active. Inactive categories cannot be set as primary.');
+            return;
+        }
+
         $id = $this->repo->create($data);
         if (!$id) {
             Response::serverError('Failed to create grade category');
@@ -99,8 +114,15 @@ class GradeCategoryController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            $data = [];
+        }
 
-        $validator = new Validator($data ?? []);
+        if (array_key_exists('set_as_primary', $data)) {
+            $data['set_as_primary'] = $this->normalizePrimaryInput($data['set_as_primary']);
+        }
+
+        $validator = new Validator($data);
         if (isset($data['grade_categories_name'])) {
             $validator->maxLength('grade_categories_name', 50);
         }
@@ -122,7 +144,19 @@ class GradeCategoryController
             return;
         }
 
-        if (!$this->repo->update($id, $data ?? [])) {
+        $nextStatus = array_key_exists('status', $data)
+            ? strtolower(trim((string) $data['status']))
+            : strtolower(trim((string) ($row['status'] ?? 'active')));
+        $nextPrimary = array_key_exists('set_as_primary', $data)
+            ? (int) $data['set_as_primary']
+            : (int) ($row['set_as_primary'] ?? 0);
+
+        if ($this->isInvalidPrimaryStatusCombination($nextStatus, $nextPrimary)) {
+            Response::badRequest('Primary category must be active. Inactive categories cannot be set as primary.');
+            return;
+        }
+
+        if (!$this->repo->update($id, $data)) {
             Response::serverError('Failed to update grade category');
             return;
         }
@@ -151,5 +185,24 @@ class GradeCategoryController
         }
 
         Response::success(['message' => 'Grade category deleted successfully']);
+    }
+
+    private function normalizePrimaryInput($value): int
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        if (is_numeric($value)) {
+            return ((int) $value) === 1 ? 1 : 0;
+        }
+
+        $text = strtolower(trim((string) $value));
+        return in_array($text, ['1', 'true', 'yes', 'on'], true) ? 1 : 0;
+    }
+
+    private function isInvalidPrimaryStatusCombination(string $status, int $setAsPrimary): bool
+    {
+        return $setAsPrimary === 1 && $status === 'inactive';
     }
 }

@@ -1,0 +1,258 @@
+<?php
+/**
+ * Report schedule worker
+ *
+ * Run manually:
+ *   php scripts/report_schedule_worker.php
+ *
+ * Example cron (every 15 minutes):
+ *   Run the worker every 15 minutes with your scheduler.
+ */
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Dotenv\Dotenv;
+use App\Repositories\ReportScheduleRepository;
+use App\Services\EmailService;
+
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->safeLoad();
+
+date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'UTC');
+
+$repo = new ReportScheduleRepository();
+$mailer = new EmailService();
+
+$now = date('Y-m-d H:i:s');
+echo '[' . $now . "] Report schedule worker started\n";
+
+$due = $repo->getDueSchedules($now);
+if (empty($due)) {
+    echo '[' . date('Y-m-d H:i:s') . "] No due schedules\n";
+    exit(0);
+}
+
+echo '[' . date('Y-m-d H:i:s') . "] Due schedules: " . count($due) . "\n";
+
+foreach ($due as $schedule) {
+    $scheduleId = (int) ($schedule['schedule_id'] ?? 0);
+    $institutionId = (int) ($schedule['institution_id'] ?? 0);
+    $recipient = (string) ($schedule['recipient_email'] ?? '');
+    $type = (string) ($schedule['report_type'] ?? 'semester');
+    $name = (string) ($schedule['schedule_name'] ?? ('Schedule #' . $scheduleId));
+
+    if ($scheduleId <= 0 || $institutionId <= 0 || $recipient === '') {
+        echo '[' . date('Y-m-d H:i:s') . "] Skipping invalid schedule payload\n";
+        continue;
+    }
+
+    try {
+        $payload = $repo->generateReportPayload($institutionId, $type);
+
+        $subject = 'LMS Automated Report: ' . $name;
+        $body = buildEmailBody($name, $payload);
+        $altBody = buildAltBody($name, $payload);
+
+        $sent = $mailer->send($recipient, $subject, $body, null, $altBody);
+
+        if ($sent) {
+            $repo->markRunResult($scheduleId, true, 'Report generated and emailed successfully', $payload);
+            echo '[' . date('Y-m-d H:i:s') . "] Schedule {$scheduleId} sent to {$recipient}\n";
+        } else {
+            $repo->markRunResult($scheduleId, false, 'Email sending failed', $payload);
+            echo '[' . date('Y-m-d H:i:s') . "] Schedule {$scheduleId} failed (email send failed)\n";
+        }
+    } catch (Throwable $e) {
+        $repo->markRunResult($scheduleId, false, 'Worker exception: ' . $e->getMessage(), []);
+        echo '[' . date('Y-m-d H:i:s') . "] Schedule {$scheduleId} failed: {$e->getMessage()}\n";
+    }
+}
+
+echo '[' . date('Y-m-d H:i:s') . "] Worker finished\n";
+exit(0);
+
+function buildEmailBody(string $scheduleName, array $payload): string
+{
+    $totals = $payload['totals'] ?? [];
+    $perf = $payload['performance'] ?? [];
+    $att = $payload['attendance'] ?? [];
+    $period = $payload['period'] ?? [];
+    $type = (string) ($payload['report_type'] ?? 'report');
+    $generated = (string) ($payload['generated_at'] ?? date('Y-m-d H:i:s'));
+    $startDate = (string) ($period['start_date'] ?? '-');
+    $endDate = (string) ($period['end_date'] ?? '-');
+
+    $students = (int) ($totals['total_students'] ?? 0);
+    $teachers = (int) ($totals['total_teachers'] ?? 0);
+    $classes = (int) ($totals['total_classes'] ?? 0);
+    $programs = (int) ($totals['total_programs'] ?? 0);
+    $avgPerf = number_format((float) ($perf['average_percentage'] ?? 0), 1);
+    $passRate = number_format((float) ($perf['pass_rate'] ?? 0), 1);
+    $attRate = number_format((float) ($att['rate'] ?? 0), 1);
+
+    return '<!DOCTYPE html>'
+        . '<html>'
+        . '<head>'
+        . '<meta charset="UTF-8">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        . '<style type="text/css">'
+        . 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; background: #f5f5f5; }'
+        . '.container { max-width: 600px; margin: 0 auto; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }'
+        . '.header { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 40px 30px; text-align: center; }'
+        . '.header h1 { margin: 0 0 5px 0; font-size: 28px; font-weight: 600; }'
+        . '.header p { margin: 0; font-size: 14px; opacity: 0.95; }'
+        . '.content { padding: 40px 30px; }'
+        . '.info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }'
+        . '.info-box { background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #2563eb; }'
+        . '.info-box label { display: block; font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }'
+        . '.info-box value { display: block; font-size: 16px; font-weight: 500; color: #333; }'
+        . '.metrics { margin: 30px 0; }'
+        . '.metrics-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #2563eb; }'
+        . '.metric-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 30px; }'
+        . '.metric-card { background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }'
+        . '.metric-card.secondary { background: linear-gradient(135deg, #059669 0%, #047857 100%); }'
+        . '.metric-card.accent { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); }'
+        . '.metric-card-value { font-size: 32px; font-weight: 700; margin: 10px 0; }'
+        . '.metric-card-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.95; }'
+        . '.metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }'
+        . '.metric-item { background: #f0f9ff; padding: 15px; border-radius: 6px; border-left: 3px solid #2563eb; }'
+        . '.metric-item.success { border-left-color: #059669; background: #f0fdf4; }'
+        . '.metric-item-label { font-size: 13px; color: #666; margin-bottom: 5px; font-weight: 500; }'
+        . '.metric-item-value { font-size: 22px; font-weight: 700; color: #2563eb; }'
+        . '.metric-item.success .metric-item-value { color: #059669; }'
+        . '.divider { height: 1px; background: #e5e7eb; margin: 30px 0; }'
+        . '.footer { background: #f8fafc; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb; }'
+        . '.footer p { margin: 8px 0; font-size: 12px; color: #666; }'
+        . '.footer-brand { font-weight: 600; color: #2563eb; }'
+        . '@media (max-width: 600px) {'
+        . '.metric-grid { grid-template-columns: 1fr; }'
+        . '.info-row { grid-template-columns: 1fr; }'
+        . '.metric-row { grid-template-columns: 1fr; }'
+        . '.header { padding: 30px 20px; }'
+        . '.content { padding: 20px; }'
+        . '}'
+        . '</style>'
+        . '</head>'
+        . '<body>'
+        . '<div class="container">'
+        . '<div class="header">'
+        . '<h1>📊 ' . esc($scheduleName) . '</h1>'
+        . '<p>Automated Institutional Report</p>'
+        . '</div>'
+        . '<div class="content">'
+        . '<div class="info-row">'
+        . '<div class="info-box">'
+        . '<label>Report Type</label>'
+        . '<value>' . esc(ucwords(str_replace('_', ' ', $type))) . '</value>'
+        . '</div>'
+        . '<div class="info-box">'
+        . '<label>Generated</label>'
+        . '<value>' . esc($generated) . '</value>'
+        . '</div>'
+        . '</div>'
+        . '<div class="info-box" style="grid-column: 1 / -1;">'
+        . '<label>Reporting Period</label>'
+        . '<value>' . esc($startDate) . ' to ' . esc($endDate) . '</value>'
+        . '</div>'
+        . '<div class="divider"></div>'
+        . '<div class="metrics">'
+        . '<h2 class="metrics-title">📈 Key Metrics</h2>'
+        . '<div class="metric-grid">'
+        . '<div class="metric-card">'
+        . '<div class="metric-card-label">Total Students</div>'
+        . '<div class="metric-card-value">' . esc((string) $students) . '</div>'
+        . '</div>'
+        . '<div class="metric-card secondary">'
+        . '<div class="metric-card-label">Total Teachers</div>'
+        . '<div class="metric-card-value">' . esc((string) $teachers) . '</div>'
+        . '</div>'
+        . '<div class="metric-card accent">'
+        . '<div class="metric-card-label">Total Classes</div>'
+        . '<div class="metric-card-value">' . esc((string) $classes) . '</div>'
+        . '</div>'
+        . '</div>'
+        . '<div class="metric-grid">'
+        . '<div class="metric-card">'
+        . '<div class="metric-card-label">Programs</div>'
+        . '<div class="metric-card-value">' . esc((string) $programs) . '</div>'
+        . '</div>'
+        . '<div class="metric-card secondary">'
+        . '<div class="metric-card-label">Avg Performance</div>'
+        . '<div class="metric-card-value">' . esc($avgPerf) . '%</div>'
+        . '</div>'
+        . '<div class="metric-card accent">'
+        . '<div class="metric-card-label">Attendance Rate</div>'
+        . '<div class="metric-card-value">' . esc($attRate) . '%</div>'
+        . '</div>'
+        . '</div>'
+        . '<div class="metric-row">'
+        . '<div class="metric-item">'
+        . '<div class="metric-item-label">Pass Rate</div>'
+        . '<div class="metric-item-value">' . esc($passRate) . '%</div>'
+        . '</div>'
+        . '<div class="metric-item success">'
+        . '<div class="metric-item-label">Status</div>'
+        . '<div class="metric-item-value" style="color: #059669;">✓ Success</div>'
+        . '</div>'
+        . '</div>'
+        . '</div>'
+        . '</div>'
+        . '<div class="footer">'
+        . '<p>This is an automated report from your <span class="footer-brand">Learning Management System</span></p>'
+        . '<p style="margin-top: 15px; color: #999; font-size: 11px;">Report generated by automated scheduler | Do not reply to this email</p>'
+        . '</div>'
+        . '</div>'
+        . '</body>'
+        . '</html>';
+}
+
+function buildAltBody(string $scheduleName, array $payload): string
+{
+    $totals = $payload['totals'] ?? [];
+    $perf = $payload['performance'] ?? [];
+    $att = $payload['attendance'] ?? [];
+    $period = $payload['period'] ?? [];
+
+    $type = (string) ($payload['report_type'] ?? 'report');
+    $generated = (string) ($payload['generated_at'] ?? date('Y-m-d H:i:s'));
+    $startDate = (string) ($period['start_date'] ?? '-');
+    $endDate = (string) ($period['end_date'] ?? '-');
+
+    $students = (int) ($totals['total_students'] ?? 0);
+    $teachers = (int) ($totals['total_teachers'] ?? 0);
+    $classes = (int) ($totals['total_classes'] ?? 0);
+    $programs = (int) ($totals['total_programs'] ?? 0);
+    $avgPerf = number_format((float) ($perf['average_percentage'] ?? 0), 1);
+    $passRate = number_format((float) ($perf['pass_rate'] ?? 0), 1);
+    $attRate = number_format((float) ($att['rate'] ?? 0), 1);
+
+    return "================================================================================\n"
+        . "                    AUTOMATED INSTITUTIONAL REPORT\n"
+        . "================================================================================\n\n"
+        . "REPORT: {$scheduleName}\n"
+        . "TYPE: " . ucwords(str_replace('_', ' ', $type)) . "\n"
+        . "GENERATED: {$generated}\n"
+        . "PERIOD: {$startDate} to {$endDate}\n\n"
+        . "================================================================================\n"
+        . "KEY METRICS\n"
+        . "================================================================================\n\n"
+        . "ENROLLMENT:\n"
+        . "  Total Students ........... {$students}\n"
+        . "  Total Teachers ........... {$teachers}\n"
+        . "  Total Classes ............ {$classes}\n"
+        . "  Total Programs ........... {$programs}\n\n"
+        . "ACADEMIC PERFORMANCE:\n"
+        . "  Average Performance ...... {$avgPerf}%\n"
+        . "  Pass Rate ................ {$passRate}%\n\n"
+        . "ATTENDANCE:\n"
+        . "  Attendance Rate .......... {$attRate}%\n\n"
+        . "================================================================================\n"
+        . "This is an automated report from your Learning Management System.\n"
+        . "Please do not reply to this email.\n"
+        . "================================================================================\n";
+}
+
+function esc(string $value): string
+{
+    return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}

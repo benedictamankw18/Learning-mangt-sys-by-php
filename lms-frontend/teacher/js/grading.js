@@ -210,6 +210,58 @@
     return 'Pending';
   }
 
+  function buildPublishedFinalLabel(report) {
+    if (toBool(report?.is_published) || !!report?.published_at) {
+      return 'Published';
+    }
+    if (toBool(report?.Approved)) {
+      return 'Approved (Not Published)';
+    }
+    if (String(report?.principal_comment || '').trim().length > 0) {
+      return 'Need Correction';
+    }
+    return 'Pending';
+  }
+
+  function resolveApprovedResultPercentage(report) {
+    if (!toBool(report?.Approved)) {
+      return null;
+    }
+
+    const details = Array.isArray(report?.details) ? report.details : [];
+    const selectedClassSubjectId = Number(state.selectedClassSubject?.class_subject_id || 0);
+    const selectedSubjectName = normalizeHeader(state.selectedClassSubject?.subject_name || '');
+
+    let targetDetail = null;
+
+    if (selectedClassSubjectId > 0) {
+      targetDetail = details.find((detail) => Number(detail?.class_subject_id || 0) === selectedClassSubjectId) || null;
+    }
+
+    if (!targetDetail && selectedSubjectName) {
+      targetDetail = details.find((detail) => {
+        const detailName = normalizeHeader(detail?.subject_name || detail?.subject_code || '');
+        return !!detailName && (detailName === selectedSubjectName || detailName.includes(selectedSubjectName));
+      }) || null;
+    }
+
+    if (!targetDetail && details.length === 1) {
+      targetDetail = details[0];
+    }
+
+    const detailPercentage = Number(targetDetail?.percentage);
+    if (Number.isFinite(detailPercentage)) {
+      return detailPercentage;
+    }
+
+    const fallbackPercentage = Number(report?.average_percentage);
+    if (Number.isFinite(fallbackPercentage)) {
+      return fallbackPercentage;
+    }
+
+    return null;
+  }
+
   function renderAdminFeedbackTable() {
     const summary = document.getElementById('gradingAdminFeedbackSummary');
     const body = document.getElementById('gradingAdminFeedbackBody');
@@ -283,6 +335,7 @@
       const allReports = normalizeApiList(allReportsRes);
 
       const latestByStudent = new Map();
+      const latestReports = [];
       allReports
         .slice()
         .sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime())
@@ -292,20 +345,32 @@
             return;
           }
 
-          if (toBool(report?.is_published) || !!report?.published_at) {
-            latestByStudent.set(studentId, { status: 'published', label: 'Published' });
-            return;
-          }
-
-          if (toBool(report?.Approved)) {
-            latestByStudent.set(studentId, { status: 'approved', label: 'Approved (Not Published)' });
-            return;
-          }
-
-          if (String(report?.principal_comment || '').trim().length > 0) {
-            latestByStudent.set(studentId, { status: 'needs_correction', label: 'Needs Correction' });
-          }
+          latestByStudent.set(studentId, { status: 'pending', label: 'Pending' });
+          latestReports.push(report);
         });
+
+      await hydrateReportsWithDetails(latestReports);
+
+      latestReports.forEach((report) => {
+        const studentId = Number(report?.student_id);
+        if (!Number.isFinite(studentId) || studentId <= 0) {
+          return;
+        }
+
+        const isPublished = toBool(report?.is_published) || !!report?.published_at;
+        const isApproved = toBool(report?.Approved);
+        const approvedResult = resolveApprovedResultPercentage(report);
+
+        latestByStudent.set(studentId, {
+          status: isPublished
+            ? 'published'
+            : (isApproved ? 'approved' : (String(report?.principal_comment || '').trim().length > 0 ? 'needs_correction' : 'pending')),
+          label: buildPublishedFinalLabel(report),
+          is_published: isPublished,
+          approved: isApproved,
+          approved_result_percentage: Number.isFinite(Number(approvedResult)) ? Number(approvedResult) : null,
+        });
+      });
 
       state.gradeReportStatusByStudent = latestByStudent;
 
@@ -326,6 +391,39 @@
       if (body) {
         body.innerHTML = '<tr><td colspan="3" class="gr-mini">Failed to load feedback.</td></tr>';
       }
+    }
+  }
+
+  async function hydrateReportsWithDetails(reports) {
+    const list = Array.isArray(reports) ? reports : [];
+    const chunkSize = 8;
+
+    for (let index = 0; index < list.length; index += chunkSize) {
+      const chunk = list.slice(index, index + chunkSize);
+      const details = await Promise.all(chunk.map((report) => {
+        if (Array.isArray(report?.details) && report.details.length) {
+          return report;
+        }
+
+        const uuid = String(report?.uuid || '').trim();
+        if (!uuid) {
+          return null;
+        }
+
+        return GradeReportAPI.getById(uuid).then((response) => response?.data || response || null).catch(() => null);
+      }));
+
+      details.forEach((detail, offset) => {
+        const report = chunk[offset];
+        if (!report || !detail) {
+          return;
+        }
+
+        report.details = Array.isArray(detail.details) ? detail.details : [];
+        report.average_percentage = detail.average_percentage ?? report.average_percentage;
+        report.Approved = detail.Approved ?? report.Approved;
+        report.is_published = detail.is_published ?? report.is_published;
+      });
     }
   }
 
@@ -1518,6 +1616,10 @@
   function updateFinalScoreRow(studentId) {
     const result = state.finalScores[studentId];
     const display = getStudentResultForDisplay(studentId);
+    const reportStatus = state.gradeReportStatusByStudent.get(Number(studentId)) || null;
+    const publishedFinalLabel = reportStatus?.label || 'Pending';
+    const approvedResultPercentage = Number(reportStatus?.approved_result_percentage);
+    const hasApprovedResult = Number.isFinite(approvedResultPercentage);
     const scoreCell = document.querySelector(`[data-final-cell="${studentId}"]`);
     const gradeCell = document.querySelector(`[data-final-grade-cell="${studentId}"]`);
     const statusCell = document.querySelector(`[data-status-cell="${studentId}"]`);
@@ -1528,34 +1630,32 @@
     }
 
     if (!result) {
-      scoreCell.textContent = 'Loading...';
+      scoreCell.textContent = publishedFinalLabel;
       gradeCell.className = 'gr-badge warn';
-      gradeCell.textContent = 'Loading';
+      gradeCell.textContent = hasApprovedResult ? getGradeBandLabel(approvedResultPercentage) : 'N/A';
       statusCell.className = 'gr-badge warn';
-      statusCell.innerHTML = '<i class="fas fa-clock"></i> Loading';
+      statusCell.innerHTML = '<i class="fas fa-clock"></i> Pending';
       return;
     }
 
-    if (display.available && Number.isFinite(Number(display.score))) {
-      const finalValue = Number(display.score);
-      const bandDetails = getGradeBandDetails(finalValue);
+    if (hasApprovedResult) {
+      const bandDetails = getGradeBandDetails(approvedResultPercentage);
       const band = bandDetails.band;
-      scoreCell.textContent = `${formatNumber(finalValue)}%`;
+      scoreCell.textContent = publishedFinalLabel;
       gradeCell.className = `gr-badge ${getBandBadgeClass(band)}`;
       gradeCell.textContent = `${band} (${formatNumber(bandDetails.min, 0)}-${formatNumber(bandDetails.max, 0)})`;
-      if (display.source === 'published') {
+      if (reportStatus?.is_published) {
         statusCell.className = 'gr-badge ok';
         statusCell.innerHTML = '<i class="fas fa-circle-check"></i> Published';
+      } else if (reportStatus?.approved) {
+        statusCell.className = 'gr-badge ok';
+        statusCell.innerHTML = '<i class="fas fa-check"></i> Approved';
       } else {
         statusCell.className = 'gr-badge warn';
-        statusCell.innerHTML = '<i class="fas fa-pen"></i> Draft result';
+        statusCell.innerHTML = '<i class="fas fa-pen"></i> Pending';
       }
       if (detailCell) {
-        if (display.source === 'published') {
-          detailCell.textContent = `Weights total ${formatNumber(result.weights_sum)}% | Published categories ${result.published_categories_count}`;
-        } else {
-          detailCell.textContent = 'Live estimate from entered category marks.';
-        }
+        detailCell.textContent = `Approved result: ${formatNumber(approvedResultPercentage)}%`;
       }
     } else {
       const missingPublished = Array.isArray(result.missing_categories) ? result.missing_categories.length : 0;
@@ -1565,9 +1665,9 @@
 
       gradeCell.className = 'gr-badge bad';
       gradeCell.textContent = 'N/A';
+      scoreCell.textContent = publishedFinalLabel;
 
       if (missingInput > 0) {
-        scoreCell.textContent = `Incomplete (${missingInput})`;
         statusCell.className = 'gr-badge bad';
         statusCell.innerHTML = `<i class="fas fa-triangle-exclamation"></i> Missing ${missingInput}`;
         if (detailCell) {
@@ -1578,13 +1678,8 @@
         const draftBand = estimate.hasEstimate ? getGradeBandDetails(estimate.weightedSum) : null;
         const draftBandCode = draftBand?.band || 'N/A';
 
-        scoreCell.textContent = 'Awaiting publish';
         statusCell.className = 'gr-badge warn';
-        statusCell.innerHTML = '<i class="fas fa-hourglass-half"></i> All scores entered';
-        gradeCell.className = `gr-badge ${getBandBadgeClass(draftBandCode)}`;
-        gradeCell.textContent = estimate.hasEstimate
-          ? `${draftBandCode} (${formatNumber(draftBand.min, 0)}-${formatNumber(draftBand.max, 0)})`
-          : 'N/A';
+        statusCell.innerHTML = '<i class="fas fa-hourglass-half"></i> Awaiting approval';
         if (detailCell) {
           detailCell.textContent = missingPublished > 0
             ? 'All categories have marks. Result will remain as draft until published.'
@@ -2108,8 +2203,15 @@
   }
 
   function getExportRows() {
+    const studentStatusMap = getStudentSubmissionStatusMap();
+
     return state.students.map((student) => {
       const finalScore = state.finalScores[student.student_id] || {};
+      const studentStatus = String(studentStatusMap.get(Number(student.student_id))?.status || 'draft');
+      const reportStatus = state.gradeReportStatusByStudent.get(Number(student.student_id)) || null;
+      const publishedFinalLabel = reportStatus?.label || 'Pending';
+      const approvedResultPercentage = Number(reportStatus?.approved_result_percentage);
+      const hasApprovedResult = Number.isFinite(approvedResultPercentage);
       const row = {
         student: `${student.first_name || ''} ${student.last_name || ''}`.trim(),
         student_id: student.student_id_number || student.student_id || '',
@@ -2140,16 +2242,10 @@
         });
         return enteredCount > 0 ? `${formatNumber(weightedSum)}%` : '';
       })();
-      row.submission_status = state.submissionSummary?.status || 'draft';
-      row.published_final = finalScore.complete && Number.isFinite(Number(finalScore.final_percentage)) ? `${formatNumber(finalScore.final_percentage)}%` : 'Incomplete';
-      row.approved_result = (
-        state.submissionSummary?.status === 'approved' &&
-        finalScore.complete &&
-        Number.isFinite(Number(finalScore.final_percentage))
-      )
-        ? `${formatNumber(finalScore.final_percentage)}%`
-        : '';
-      row.band = finalScore.complete && Number.isFinite(Number(finalScore.final_percentage)) ? getGradeBandLabel(Number(finalScore.final_percentage)) : 'N/A';
+      row.submission_status = studentStatus;
+      row.published_final = publishedFinalLabel;
+      row.approved_result = hasApprovedResult ? `${formatNumber(approvedResultPercentage)}%` : '';
+      row.band = hasApprovedResult ? getGradeBandLabel(approvedResultPercentage) : 'N/A';
 
       return row;
     });

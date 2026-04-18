@@ -419,13 +419,7 @@ function initCharts() {
                 labels: [],
                 datasets: [{
                     data: [],
-                    backgroundColor: [
-                        '#006a3f',
-                        '#008c54',
-                        '#d4af37',
-                        '#10b981',
-                        '#3090cf',
-                    ],
+                    backgroundColor: [],
                 }]
             },
             options: {
@@ -456,8 +450,32 @@ function updateCharts(data) {
     if (courseDistributionChart && data.course_distribution) {
         courseDistributionChart.data.labels = data.course_distribution.labels || [];
         courseDistributionChart.data.datasets[0].data = data.course_distribution.data || [];
+        courseDistributionChart.data.datasets[0].backgroundColor = getDynamicChartColors(courseDistributionChart.data.labels.length);
         courseDistributionChart.update();
     }
+}
+
+function getDynamicChartColors(count) {
+    const total = Math.max(0, Number(count) || 0);
+    if (!total) return [];
+
+    const base = ['#006a3f', '#008c54', '#d4af37', '#10b981', '#3090cf'];
+    const colors = [];
+    const goldenAngle = 137.508;
+
+    for (let i = 0; i < total; i++) {
+        if (i < base.length) {
+            colors.push(base[i]);
+            continue;
+        }
+
+        const hue = Math.round((i * goldenAngle) % 360);
+        const saturation = 68;
+        const lightness = 52;
+        colors.push('hsl(' + hue + ', ' + saturation + '%, ' + lightness + '%)');
+    }
+
+    return colors;
 }
 
 /**

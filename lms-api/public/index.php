@@ -41,6 +41,9 @@ if ($uri === '') {
     $uri = '/';
 }
 
+// Auto-trigger report scheduler in background (cross-platform fallback)
+maybeAutoTriggerReportScheduler($method, $uri);
+
 // Load routes
 $routes = require_once __DIR__ . '/../src/Routes/api.php';
 
@@ -138,4 +141,70 @@ try {
 } catch (Exception $e) {
     error_log("Controller Error: " . $e->getMessage());
     Response::serverError('An error occurred processing your request');
+}
+
+function maybeAutoTriggerReportScheduler(string $method, string $uri): void
+{
+    if (PHP_SAPI === 'cli') {
+        return;
+    }
+
+    if ($method === 'OPTIONS') {
+        return;
+    }
+
+    $enabled = filter_var($_ENV['REPORT_SCHEDULER_AUTO_TRIGGER'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
+    if (!$enabled) {
+        return;
+    }
+
+    // Keep overhead low by throttling trigger attempts.
+    $cooldownSeconds = (int) ($_ENV['REPORT_SCHEDULER_TRIGGER_COOLDOWN_SECONDS'] ?? 120);
+    if ($cooldownSeconds < 15) {
+        $cooldownSeconds = 15;
+    }
+
+    $lockFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'lms_report_scheduler_last_trigger.txt';
+    $fp = @fopen($lockFile, 'c+');
+    if (!$fp) {
+        return;
+    }
+
+    if (!@flock($fp, LOCK_EX | LOCK_NB)) {
+        fclose($fp);
+        return;
+    }
+
+    $raw = stream_get_contents($fp);
+    $lastTrigger = (int) trim((string) $raw);
+    $now = time();
+
+    if ($lastTrigger > 0 && ($now - $lastTrigger) < $cooldownSeconds) {
+        @flock($fp, LOCK_UN);
+        fclose($fp);
+        return;
+    }
+
+    rewind($fp);
+    ftruncate($fp, 0);
+    fwrite($fp, (string) $now);
+    fflush($fp);
+    @flock($fp, LOCK_UN);
+    fclose($fp);
+
+    $workerPath = realpath(__DIR__ . '/../scripts/report_schedule_worker.php');
+    if (!$workerPath || !is_file($workerPath)) {
+        return;
+    }
+
+    $phpBinary = defined('PHP_BINARY') && PHP_BINARY ? PHP_BINARY : 'php';
+
+    if (DIRECTORY_SEPARATOR === '\\') {
+        $cmd = 'start /B "" ' . escapeshellarg($phpBinary) . ' ' . escapeshellarg($workerPath) . ' > NUL 2>&1';
+        @pclose(@popen($cmd, 'r'));
+        return;
+    }
+
+    $cmd = escapeshellarg($phpBinary) . ' ' . escapeshellarg($workerPath) . ' > /dev/null 2>&1 &';
+    @exec($cmd);
 }

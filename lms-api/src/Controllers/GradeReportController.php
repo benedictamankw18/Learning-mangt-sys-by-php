@@ -189,7 +189,10 @@ class GradeReportController
                 $data['semester_id'],
                 $data['academic_year_id'],
                 $data['remarks'] ?? null,
-                $data['generated_by'] ?? null
+                $data['generated_by'] ?? null,
+                $student['class_id'] ?? null,
+                true,
+                $student['institution_id'] ?? null
             );
 
             Response::success(['id' => $reportId], 'Grade report generated successfully');
@@ -219,6 +222,20 @@ class GradeReportController
                 return;
             }
 
+            if ($semesterId && $academicYearId && (!isset($reportCard['class_rank']) || $reportCard['class_rank'] === null || $reportCard['class_rank'] === '')) {
+                $this->gradeReportRepository->recalculateClassRankForStudentTerm(
+                    $studentId,
+                    (int) $semesterId,
+                    (int) $academicYearId
+                );
+
+                $reportCard = $this->gradeReportRepository->getReportCard(
+                    $studentId,
+                    $semesterId,
+                    $academicYearId
+                );
+            }
+
             Response::success($reportCard);
         } catch (\Exception $e) {
             Response::serverError('Failed to fetch report card: ' . $e->getMessage());
@@ -232,7 +249,9 @@ class GradeReportController
     public function getTranscript(array $user, int $studentId): void
     {
         try {
-            $academicYearId = $_GET['academic_year_id'] ?? null;
+            $allTerms = isset($_GET['all_terms'])
+                && in_array(strtolower((string) $_GET['all_terms']), ['1', 'true', 'yes'], true);
+            $academicYearId = $allTerms ? null : ($_GET['academic_year_id'] ?? null);
 
             $transcript = $this->gradeReportRepository->getTranscript($studentId, $academicYearId);
 

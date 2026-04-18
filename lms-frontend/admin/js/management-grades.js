@@ -63,6 +63,7 @@
       passThreshold: document.getElementById('admGradesCategoryPassThreshold'),
       usedBy: document.getElementById('admGradesCategoryUsedBy'),
       status: document.getElementById('admGradesCategoryStatus'),
+      primary: document.getElementById('admGradesCategoryPrimary'),
       resetBtn: document.getElementById('admGradesCategoryResetBtn'),
       deleteBtn: document.getElementById('admGradesCategoryDeleteBtn'),
     };
@@ -119,6 +120,15 @@
     dom.categoryModal.closeBtn?.addEventListener('click', closeCategoryModal);
     dom.categoryModal.overlay?.addEventListener('click', function (event) {
       if (event.target === dom.categoryModal.overlay) closeCategoryModal();
+    });
+
+    dom.categoryModal.status?.addEventListener('change', syncPrimaryToggleForStatus);
+    dom.categoryModal.primary?.addEventListener('change', function () {
+      const status = String(dom.categoryModal.status?.value || 'active').toLowerCase();
+      if (status === 'inactive' && dom.categoryModal.primary?.checked) {
+        dom.categoryModal.primary.checked = false;
+        toast('Inactive categories cannot be set as primary.', 'error');
+      }
     });
 
     dom.detailModal.form?.addEventListener('submit', function (event) {
@@ -284,6 +294,7 @@
               '<p>' + esc(category.grade_categories_description || 'No description provided.') + '</p>' +
               '<div class="adm-gr-badges">' +
                 '<span class="adm-gr-badge' + statusClass + '">' + esc(status || 'draft') + '</span>' +
+                (Number(category.set_as_primary) === 1 ? '<span class="adm-gr-badge">Primary</span>' : '') +
                 '<span class="adm-gr-badge muted">Details: ' + rows.length + '</span>' +
                 '<span class="adm-gr-badge muted">Pass: ' + esc(category.Pass_Threshold ?? '-') + '</span>' +
               '</div>' +
@@ -389,6 +400,11 @@
     setValue(dom.categoryModal.passThreshold, category ? category.Pass_Threshold : '');
     setValue(dom.categoryModal.usedBy, category ? category.Used_By : '');
     setValue(dom.categoryModal.status, category ? (category.status || 'active') : 'active');
+    if (dom.categoryModal.primary) {
+      dom.categoryModal.primary.checked = category ? Number(category.set_as_primary) === 1 : false;
+    }
+
+    syncPrimaryToggleForStatus();
 
     if (category) {
       setText(dom.categoryModal.title, 'Edit grade category');
@@ -409,10 +425,17 @@
       Pass_Threshold: dom.categoryModal.passThreshold?.value === '' ? null : Number(dom.categoryModal.passThreshold?.value),
       Used_By: (dom.categoryModal.usedBy?.value || '').trim() || null,
       status: (dom.categoryModal.status?.value || 'active').trim(),
+      set_as_primary: dom.categoryModal.primary?.checked ? 1 : 0,
     };
 
     if (!payload.grade_categories_name) {
       toast('Category name is required', 'error');
+      return;
+    }
+
+    const isInactive = String(payload.status || '').toLowerCase() === 'inactive';
+    if (isInactive && Number(payload.set_as_primary) === 1) {
+      toast('Primary category must be active. Inactive categories cannot be primary.', 'error');
       return;
     }
 
@@ -452,6 +475,11 @@
 
     const current = String(category.status || 'draft').toLowerCase();
     const next = current === 'active' ? 'inactive' : 'active';
+
+    if (next === 'inactive' && Number(category.set_as_primary) === 1) {
+      toast('Primary category cannot be set to inactive. Unset primary first.', 'error');
+      return;
+    }
 
     try {
       await apiCategoryUpdate(categoryId, { status: next });
@@ -575,6 +603,19 @@
 
   function getCurrentCategoryId() {
     return Number(dom.detailModal.categoryId?.value || 0) || null;
+  }
+
+  function syncPrimaryToggleForStatus() {
+    if (!dom.categoryModal.primary || !dom.categoryModal.status) return;
+
+    const status = String(dom.categoryModal.status.value || 'active').toLowerCase();
+    if (status === 'inactive') {
+      dom.categoryModal.primary.checked = false;
+      dom.categoryModal.primary.disabled = true;
+      return;
+    }
+
+    dom.categoryModal.primary.disabled = false;
   }
 
   function getDetailsForCategory(categoryId, source) {

@@ -1,0 +1,470 @@
+<style>
+  .trp-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .trp-hero {
+    border-radius: 16px;
+    padding: 1rem 1.1rem;
+    color: #f8fafc;
+    background: linear-gradient(135deg, #0f172a 0%, #0f766e 55%, #1d4ed8 100%);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.2);
+  }
+
+  .trp-hero h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .trp-hero p {
+    margin: 0.35rem 0 0;
+    color: rgba(248, 250, 252, 0.88);
+    font-size: 0.85rem;
+  }
+
+  .trp-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(2, 6, 23, 0.05);
+  }
+
+  .trp-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  .trp-card-head h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+
+  .trp-card-head p {
+    margin: 0.2rem 0 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .trp-toolbar {
+    display: grid;
+    gap: 0.8rem;
+    padding: 0.95rem 1rem;
+  }
+
+  .trp-filters {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .trp-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .trp-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .trp-field select,
+  .trp-field input {
+    border: 1px solid #dbe4ef;
+    border-radius: 10px;
+    padding: 0.54rem 0.66rem;
+    font-size: 0.88rem;
+    color: #0f172a;
+    background: #fff;
+    outline: none;
+  }
+
+  .trp-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .trp-current-info {
+    justify-self: end;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #eff6ff 0%, #ecfeff 100%);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15);
+  }
+
+  .trp-current-info span {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.28rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    white-space: nowrap;
+  }
+
+  .trp-status {
+    display: none;
+    border-radius: 10px;
+    padding: 0.72rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    white-space: pre-line;
+  }
+
+  .trp-status.show {
+    display: block;
+  }
+
+  .trp-status.info {
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+  }
+
+  .trp-status.success {
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  .trp-status.error {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .trp-stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.72rem;
+  }
+
+  .trp-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem;
+    background: #fff;
+  }
+
+  .trp-stat strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+
+  .trp-stat span {
+    font-size: 0.76rem;
+    color: #64748b;
+  }
+
+  .trp-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 0.7fr;
+    gap: 0.9rem;
+  }
+
+  .trp-chart-wrap {
+    height: 280px;
+    position: relative;
+  }
+
+  .trp-table-wrap {
+    overflow: auto;
+  }
+
+  .trp-table {
+    width: 100%;
+    min-width: 860px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.84rem;
+  }
+
+  .trp-table th,
+  .trp-table td {
+    border-bottom: 1px solid #edf2f7;
+    border-right: 1px solid #edf2f7;
+    padding: 0.55rem 0.64rem;
+    vertical-align: top;
+  }
+
+  .trp-table th {
+    background: #f8fafc;
+    text-align: left;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #334155;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .trp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+
+  .trp-badge.pending {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #9a3412;
+  }
+
+  .trp-badge.approved {
+    background: #ecfeff;
+    border-color: #bae6fd;
+    color: #155e75;
+  }
+
+  .trp-badge.published {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+
+  .trp-badge.rejected {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+
+  .trp-empty {
+    padding: 1rem;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    color: #64748b;
+    background: #fff;
+    text-align: center;
+  }
+
+  @media (max-width: 1100px) {
+    .trp-filters,
+    .trp-stats,
+    .trp-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .trp-filters,
+    .trp-stats,
+    .trp-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .trp-current-info {
+      justify-self: start;
+      margin-left: 0;
+    }
+  }
+</style>
+
+<section id="teacherReportsRoot" class="trp-shell">
+  <div class="trp-hero">
+    <h3><i class="fas fa-chart-column"></i> Teacher Reports Workspace</h3>
+    <p>
+      Build class-subject analysis, student progress reports, and printable
+      report cards for the active term.
+    </p>
+  </div>
+
+  <div class="trp-card">
+    <div class="trp-card-head">
+      <div>
+        <h4><i class="fas fa-filter"></i> Report Filters</h4>
+        <p>Choose class-subject and report mode before generating outputs.</p>
+      </div>
+    </div>
+    <div class="trp-toolbar">
+      <div class="trp-filters">
+        <div class="trp-field">
+          <label for="trpAcademicYear">Academic Year</label>
+          <select id="trpAcademicYear">
+            <option value="">Loading years...</option>
+          </select>
+        </div>
+        <div class="trp-field">
+          <label for="trpSemester">Semester</label>
+          <select id="trpSemester">
+            <option value="">Loading semesters...</option>
+          </select>
+        </div>
+        <div class="trp-field">
+          <label for="trpClassSubject">Class / Subject</label>
+          <select id="trpClassSubject">
+            <option value="">Loading options...</option>
+          </select>
+        </div>
+        <div class="trp-field">
+          <label for="trpReportMode">Report Type</label>
+          <select id="trpReportMode">
+            <option value="">Loading report types...</option>
+          </select>
+        </div>
+        <div class="trp-field">
+          <label for="trpStudent">Student (Report Card)</label>
+          <select id="trpStudent">
+            <option value="">Select student</option>
+          </select>
+        </div>
+        <div class="trp-field">
+          <label for="trpSearch">Search Student</label>
+          <input id="trpSearch" type="search" placeholder="Type name or ID" />
+        </div>
+      </div>
+
+      <div class="trp-actions">
+        <button class="btn btn-primary btn-sm" id="trpLoadBtn" type="button">
+          <i class="fas fa-arrows-rotate"></i> Load Reports
+        </button>
+        <button
+          class="btn btn-outline btn-sm"
+          id="trpReportCardBtn"
+          type="button"
+        >
+          <i class="fas fa-file-lines"></i> Generate Report Card
+        </button>
+        <button
+          class="btn btn-outline btn-sm"
+          id="trpExportPdfBtn"
+          type="button"
+        >
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+        <button class="btn btn-outline btn-sm" id="trpPrintBtn" type="button">
+          <i class="fas fa-print"></i> Print View
+        </button>
+      </div>
+
+      <div class="trp-current-info">
+        <span class="trp-current-semester">Current semester: </span>
+        <span class="trp-current-term">Current Academic Year: </span>
+      </div>
+      <div id="trpStatus" class="trp-status info"></div>
+    </div>
+  </div>
+
+  <div class="trp-stats" id="trpStats">
+    <article class="trp-stat">
+      <strong id="trpAvg">0%</strong>
+      <span>Average Score</span>
+    </article>
+    <article class="trp-stat">
+      <strong id="trpHighest">0%</strong>
+      <span>Highest Score</span>
+    </article>
+    <article class="trp-stat">
+      <strong id="trpLowest">0%</strong>
+      <span>Lowest Score</span>
+    </article>
+    <article class="trp-stat">
+      <strong id="trpPassRate">0%</strong>
+      <span>Pass Rate (>=50%)</span>
+    </article>
+    <article class="trp-stat">
+      <strong id="trpCount">0</strong>
+      <span>Students with Reports</span>
+    </article>
+  </div>
+
+  <div class="trp-grid">
+    <div class="trp-card">
+      <div class="trp-card-head">
+        <div>
+          <h4>
+            <i class="fas fa-chart-bar"></i> Student Progress Distribution
+          </h4>
+          <p>Top student percentages for the selected class-subject.</p>
+        </div>
+      </div>
+      <div class="trp-toolbar">
+        <div class="trp-chart-wrap">
+          <canvas id="trpProgressChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="trp-card">
+      <div class="trp-card-head">
+        <div>
+          <h4><i class="fas fa-diagram-project"></i> Workflow Mix</h4>
+          <p>Pending, approved, published and correction-needed counts.</p>
+        </div>
+      </div>
+      <div class="trp-toolbar">
+        <div class="trp-chart-wrap">
+          <canvas id="trpStatusChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="trp-card">
+    <div class="trp-card-head">
+      <div>
+        <h4><i class="fas fa-table"></i> Student Report Table</h4>
+        <p>Performance details and report workflow state per student.</p>
+      </div>
+
+      <div class="trp-field">
+        <select id="trpGradeCategory">
+          <option value="">Loading grade categories...</option>
+        </select>
+      </div>
+    </div>
+    <div class="trp-toolbar">
+      <div class="trp-table-wrap">
+        <table class="trp-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Student ID</th>
+              <th>Average %</th>
+              <th>Grade</th>
+              <th>Status</th>
+              <th>Generated</th>
+              <th>Comment</th>
+            </tr>
+          </thead>
+          <tbody id="trpTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="trp-empty">
+                  Load a class-subject to view report rows.
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

@@ -202,6 +202,8 @@
             if (!state.filters.academic_year_id) state.filters.academic_year_id = state.currentYearId;
             if (!state.filters.semester_id) state.filters.semester_id = state.currentSemesterId;
 
+            syncSemesterFilterWithAcademicYear();
+
             populateFilterOptions();
             await loadReports();
             renderAll();
@@ -791,6 +793,12 @@
         state.filters.status = dom.filters.status?.value || '';
         state.filters.search = dom.filters.search?.value || '';
 
+        if (this === dom.filters.academicYear) {
+            syncSemesterFilterWithAcademicYear();
+            populateFilterOptions();
+            state.filters.semester_id = dom.filters.semester?.value || state.filters.semester_id;
+        }
+
         if (this === dom.filters.academicYear || this === dom.filters.semester) {
             loadReports().then(renderAll).catch(function (error) {
                 toast(error?.message || 'Failed to reload reports', 'error');
@@ -808,16 +816,18 @@
     }
 
     function populateFilterOptions() {
+        const semesterOptions = syncSemesterFilterWithAcademicYear();
+
         setSelectOptions(dom.filters.academicYear, state.academicYears, state.filters.academic_year_id, function (row) {
             return row.academic_year_id;
         }, function (row) {
             return row.year_name || row.name || ('Academic year ' + row.academic_year_id);
         }, 'All academic years');
 
-        setSelectOptions(dom.filters.semester, state.semesters, state.filters.semester_id, function (row) {
-            return row.semester_id;
+        setSelectOptions(dom.filters.semester, semesterOptions, state.filters.semester_id, function (row) {
+            return row.semester_id || row.id;
         }, function (row) {
-            return row.semester_name || row.name || ('Semester ' + row.semester_id);
+            return row.semester_name || row.name || ('Semester ' + (row.semester_id || row.id));
         }, 'All semesters');
 
         setSelectOptions(dom.filters.class, state.classes, state.filters.class_id, function (row) {
@@ -920,6 +930,43 @@
         });
         select.innerHTML = options.join('');
         if (current) select.value = current;
+    }
+
+    function getSemestersForAcademicYear(academicYearId) {
+        const yearId = String(academicYearId || '');
+        const rows = Array.isArray(state.semesters) ? state.semesters.slice() : [];
+        if (!yearId) return rows;
+
+        return rows.filter(function (row) {
+            const rowYearId = String(row?.academic_year_id || row?.academicYearId || row?.academic_year?.academic_year_id || '');
+            return rowYearId === yearId;
+        });
+    }
+
+    function syncSemesterFilterWithAcademicYear() {
+        const options = getSemestersForAcademicYear(state.filters.academic_year_id);
+        const current = String(state.filters.semester_id || '');
+
+        if (!options.length) {
+            state.filters.semester_id = '';
+            return options;
+        }
+
+        const hasCurrent = options.some(function (row) {
+            return String(row?.semester_id || row?.id || '') === current;
+        });
+
+        if (!hasCurrent) {
+            const preferredCurrent = String(state.currentSemesterId || '');
+            const hasPreferredCurrent = options.some(function (row) {
+                return String(row?.semester_id || row?.id || '') === preferredCurrent;
+            });
+            state.filters.semester_id = hasPreferredCurrent
+                ? preferredCurrent
+                : String(options[0]?.semester_id || options[0]?.id || '');
+        }
+
+        return options;
     }
 
     function getVisibleReports() {
@@ -1034,6 +1081,7 @@
                 grouped.set(key, {
                     key: key,
                     name: row.grade_categories_name || row.category_name || row.category || row.grade_category_name || 'Active grading scale',
+                    set_as_primary: row.set_as_primary || 0,
                     rows: [],
                 });
             }
@@ -1075,6 +1123,13 @@
     }
 
     function resolveDefaultScaleCategoryKey(groups) {
+        // Prioritize the category marked as primary
+        const primary = groups.find(function (group) {
+            return group.set_as_primary === 1 || group.set_as_primary === '1';
+        });
+        if (primary) return String(primary.key);
+
+        // Fall back to GPA/CGPA category
         const preferred = groups.find(function (group) {
             const name = String(group.name || '').toLowerCase();
             return name.includes('gpa') || name.includes('cgpa');

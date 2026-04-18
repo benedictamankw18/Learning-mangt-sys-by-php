@@ -1031,15 +1031,15 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 3-4: Grade Reports**
 
-- [ ] **Create** `teacher/reports.html`
-  - Class performance reports
-  - Subject analysis
+- [x] **Create** `teacher/reports.html` _(implemented as `teacher/page/reports.html` + `teacher/js/reports.js`)_
+  - Class-Subject performance reports
+  - Class-Subject analysis
   - Student progress reports
   - Generate report cards
   - Export to PDF
   - Print-friendly view
   - Semester summary reports
-- [ ] **Create** `admin/reports.html`
+- [x] **Create** `admin/reports.html` _(implemented as `admin/page/reports.html` + `admin/js/reports.js`)_
   - School-wide reports
   - Academic performance by class
   - Academic performance by program
@@ -1056,19 +1056,17 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 
 **Day 5: Student & Parent Grade Views**
 
-- [ ] **Enhance** `student/grades.html`
+- [x] **Enhance** `student/grades.html`
   - Current grades by subject
-  - Grade breakdown:
-    - Continuous Assessment (CA) and Exam components from active institution weighting config (no fixed 40/60 assumption)
   - Semester grades
   - Grade trends chart
-  - GPA calculation (if applicable)
+  - Grade calculation (if applicable)
   - Class ranking (if enabled)
   - Download report card
   - Print report card
 - [ ] **Complete** `parent/performance.html`
   - Child's academic performance
-  - Grades by subject (WAEC scale)
+  - Grades by subject 
   - Grade trends over time
   - Progress tracking
   - Comparison with class average
