@@ -1071,9 +1071,8 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
   - Progress tracking
   - Comparison with class average
   - Strengths and weaknesses
-  - Teacher comments
   - Download report card
-  - Historical reports
+  - Historical reports(previous semesters/years)
 
 ---
 
@@ -1087,7 +1086,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
 - [ ] Teachers can create quizzes with multiple question types
 - [ ] Students can take quizzes
 - [ ] Quizzes auto-grade multiple choice questions
-- [ ] Teachers can enter grades using WAEC scale
+- [ ] Teachers can enter grades using school grade scale
 - [ ] Report cards generate with correct Ghana format
 - [ ] Parents can view child's grades and reports
 

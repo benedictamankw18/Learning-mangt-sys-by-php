@@ -209,3 +209,27 @@ class_average (or class_average_score) in detail rows == (  )
 position_in_subject in detail rows == ( rank the students for each/ every subject  )
 attendance_present_count and attendance_total_days in report object == (  )
 
+
+
+why is ( Position
+N/A, Best Six
+N/A ,  Historical Reports
+Semester history and rank progression
+Semester	Average	Rank	GPA	Attendance	Status
+First Term
+2025-2027 	46.6%	1st	N/A	42.9%	Draft  )
+
+
+Generated on 18/04/2026, 18:11:59
+320.00
+68.5%
+240.00
+39.1%
+1st
+49.6% 48.0%
+2nd
+GPA
+Rank
+2025-2027 1
+N/A
+1s

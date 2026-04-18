@@ -273,6 +273,102 @@
       text-align: right;
       min-width: 50px;
     }
+    .ppf-subject-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.45rem;
+    }
+    .ppf-subject-head small {
+      display: block;
+      color: #64748b;
+      font-size: 0.75rem;
+      margin-top: 0.15rem;
+    }
+    .ppf-subject-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 0.35rem 0 0.6rem;
+      font-size: 0.75rem;
+      color: #475569;
+    }
+    .ppf-subject-meta span {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+    }
+
+    /* === REPORT CARD SNAPSHOT === */
+    .ppf-report-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .ppf-report-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .ppf-metric-mini {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+    }
+    .ppf-metric-mini small {
+      display: block;
+      color: #64748b;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.35rem;
+    }
+    .ppf-metric-mini strong {
+      font-size: 1.05rem;
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .ppf-strength-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+    }
+    .ppf-strength-grid h4 {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      color: #0f172a;
+    }
+    .ppf-insight-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.45rem;
+    }
+    .ppf-insight-list li {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0.55rem 0.7rem;
+      background: #fff;
+      font-size: 0.82rem;
+      color: #334155;
+    }
+    .ppf-insight-list strong {
+      color: #0f172a;
+    }
+    .ppf-report-card-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .ppf-history-table-wrap {
+      overflow-x: auto;
+    }
 
     /* === TABLE === */
     .ppf-table-wrap {
@@ -439,6 +535,9 @@
       .ppf-quiz-grid {
         grid-template-columns: 1fr;
       }
+      .ppf-report-card-grid {
+        grid-template-columns: 1fr;
+      }
       .ppf-hero-header {
         flex-direction: column;
       }
@@ -551,6 +650,42 @@
         id="ppfTrendChart"
         style="min-height: 260px; max-height: 300px"
       ></canvas>
+    </div>
+  </div>
+
+  <div class="ppf-report-card-grid">
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-file-alt"></i> Report Card Snapshot</h3>
+        <small>Current term summary, strengths, and focus areas</small>
+      </div>
+      <div class="ppf-card-body" id="ppfReportCardSnapshot">
+        <div class="ppf-empty">
+          <i class="fas fa-inbox"></i><br />No report card loaded yet
+        </div>
+      </div>
+    </div>
+
+    <div class="ppf-card">
+      <div class="ppf-card-header">
+        <h3><i class="fas fa-clock-rotate-left"></i> Historical Reports</h3>
+        <small>Semester history and rank progression</small>
+      </div>
+      <div class="ppf-card-body ppf-history-table-wrap">
+        <table class="ppf-table">
+          <thead>
+            <tr>
+              <th>Semester</th>
+              <th>Average</th>
+              <th>Rank</th>
+              <th>Grade</th>
+              <th>Attendance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ppfHistoricalReportsTable"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
