@@ -1064,7 +1064,7 @@ Build the complete assessment, grading, and reporting system with Ghana WAEC com
   - Class ranking (if enabled)
   - Download report card
   - Print report card
-- [ ] **Complete** `parent/performance.html`
+- [x] **Complete** `parent/performance.html`
   - Child's academic performance
   - Grades by subject 
   - Grade trends over time
@@ -1155,17 +1155,17 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Search messages
   - Mark as read/unread
   - Message thread view
-  - Bulk messaging (to classes, departments)
+  - Bulk messaging (to classes, departments, programs, etc.)
 - [ ] **Create** `teacher/messages.html`
   - Similar to admin messages
-  - Send to students (individual/class)
+  - Send to students (individual/assigned class)
   - Send to parents
   - Send to admin
   - Read receipts
 - [ ] **Create** `student/messages.html`
   - Inbox
   - Send to teachers
-  - Send to classmates (if enabled)
+  - Send to classmates
   - Reply to messages
 - [ ] **Create** `parent/messages.html`
   - Inbox

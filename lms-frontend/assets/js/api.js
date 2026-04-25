@@ -693,7 +693,33 @@ const DashboardAPI = {
  */
 const MessageAPI = {
     getAll: (params) => API.get(API_ENDPOINTS.MESSAGES, params),
-    send: (data) => API.post(API_ENDPOINTS.SEND_MESSAGE, data),
+    getInbox: (params) => API.get(API_ENDPOINTS.MESSAGES_INBOX, params),
+    getSent: (params) => API.get(API_ENDPOINTS.MESSAGES_SENT, params),
+    getUnreadCount: () => API.get(API_ENDPOINTS.MESSAGES_UNREAD_COUNT),
+    getConversation: (userId) => API.get(API_ENDPOINTS.MESSAGE_CONVERSATION(userId)),
+    getByUuid: (uuid) => API.get(API_ENDPOINTS.MESSAGE_BY_UUID(uuid)),
+    markAsRead: (uuid) => API.put(API_ENDPOINTS.MESSAGE_MARK_READ(uuid)),
+    delete: (uuid) => API.delete(API_ENDPOINTS.MESSAGE_DELETE(uuid)),
+    send: (data) => API.post(API_ENDPOINTS.MESSAGES, data),
+};
+
+/**
+ * Chat Room APIs
+ */
+const ChatAPI = {
+    getRooms: (params) => API.get(API_ENDPOINTS.CHAT_ROOMS, params),
+    getRoom: (uuid) => API.get(API_ENDPOINTS.CHAT_ROOM_BY_UUID(uuid)),
+    updateRoom: (uuid, data) => API.put(API_ENDPOINTS.CHAT_ROOM_BY_UUID(uuid), data),
+    createRoom: (data) => API.post(API_ENDPOINTS.CHAT_ROOMS, data),
+    addMembers: (uuid, data) => API.post(API_ENDPOINTS.CHAT_ROOM_MEMBERS(uuid), data),
+    removeMember: (uuid, userId) => API.delete(API_ENDPOINTS.CHAT_ROOM_MEMBER_BY_USER(uuid, userId)),
+    getMessages: (uuid, params) => API.get(API_ENDPOINTS.CHAT_ROOM_MESSAGES(uuid), params),
+    sendMessage: (uuid, data) => API.post(API_ENDPOINTS.CHAT_ROOM_MESSAGES(uuid), data),
+    editMessage: (uuid, data) => API.put(API_ENDPOINTS.CHAT_MESSAGE_EDIT(uuid), data),
+    replyToMessage: (uuid, data) => API.post(API_ENDPOINTS.CHAT_MESSAGE_REPLY(uuid), data),
+    forwardMessage: (uuid, data) => API.post(API_ENDPOINTS.CHAT_MESSAGE_FORWARD(uuid), data),
+    markAsRead: (uuid) => API.put(API_ENDPOINTS.CHAT_MESSAGE_MARK_READ(uuid)),
+    deleteMessage: (uuid) => API.delete(API_ENDPOINTS.CHAT_MESSAGE_DELETE(uuid)),
 };
 
 /**

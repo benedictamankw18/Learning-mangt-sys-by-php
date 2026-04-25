@@ -152,6 +152,11 @@ class NotificationRepository
             $data['uuid'] = UuidHelper::generate();
         }
 
+        $senderId = isset($data['sender_id']) ? (int) $data['sender_id'] : 0;
+        if ($senderId <= 0 && isset($data['user_id'])) {
+            $senderId = (int) $data['user_id'];
+        }
+
         $stmt = $this->db->prepare("
             INSERT INTO notifications (
                 uuid,
@@ -178,7 +183,7 @@ class NotificationRepository
 
         $stmt->execute([
             ':uuid' => $data['uuid'],
-            ':sender_id' => $data['sender_id'],
+            ':sender_id' => $senderId,
             ':user_id' => $data['user_id'] ?? null,
             ':target_role' => $data['target_role'] ?? null,
             ':course_id' => $data['course_id'] ?? null,

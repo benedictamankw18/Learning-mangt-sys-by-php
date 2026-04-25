@@ -102,6 +102,17 @@ class NotificationController
         }
 
         $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::validationError(['payload' => 'Invalid notification payload']);
+            return;
+        }
+
+        // Ensure sender is always the authenticated admin creating the notification.
+        $data['sender_id'] = (int) ($user['user_id'] ?? 0);
+        if ($data['sender_id'] <= 0) {
+            Response::error('Unable to resolve notification sender', 400);
+            return;
+        }
 
         $validator = new Validator($data);
         $validator->required(['user_id', 'title', 'message']);

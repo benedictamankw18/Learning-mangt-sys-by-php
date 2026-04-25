@@ -102,6 +102,21 @@ return [
     'DELETE /notifications/read' => ['controller' => 'NotificationController', 'method' => 'deleteAllRead', 'auth' => true],
     'DELETE /notifications/{uuid}' => ['controller' => 'NotificationController', 'method' => 'delete', 'auth' => true],
 
+    // Chat routes (Room-based messaging)
+    'GET /chat/rooms' => ['controller' => 'ChatController', 'method' => 'index', 'auth' => true],
+    'POST /chat/rooms' => ['controller' => 'ChatController', 'method' => 'store', 'auth' => true],
+    'GET /chat/rooms/{roomUuid}' => ['controller' => 'ChatController', 'method' => 'show', 'auth' => true],
+    'PUT /chat/rooms/{roomUuid}' => ['controller' => 'ChatController', 'method' => 'updateRoom', 'auth' => true],
+    'POST /chat/rooms/{roomUuid}/members' => ['controller' => 'ChatController', 'method' => 'addMembers', 'auth' => true],
+    'DELETE /chat/rooms/{roomUuid}/members/{userId}' => ['controller' => 'ChatController', 'method' => 'removeMember', 'auth' => true],
+    'GET /chat/rooms/{roomUuid}/messages' => ['controller' => 'ChatController', 'method' => 'messages', 'auth' => true],
+    'POST /chat/rooms/{roomUuid}/messages' => ['controller' => 'ChatController', 'method' => 'sendMessage', 'auth' => true],
+    'PUT /chat/messages/{messageUuid}' => ['controller' => 'ChatController', 'method' => 'updateMessage', 'auth' => true],
+    'POST /chat/messages/{messageUuid}/reply' => ['controller' => 'ChatController', 'method' => 'replyToMessage', 'auth' => true],
+    'POST /chat/messages/{messageUuid}/forward' => ['controller' => 'ChatController', 'method' => 'forwardMessage', 'auth' => true],
+    'PUT /chat/messages/{messageUuid}/read' => ['controller' => 'ChatController', 'method' => 'markAsRead', 'auth' => true],
+    'DELETE /chat/messages/{messageUuid}' => ['controller' => 'ChatController', 'method' => 'deleteMessage', 'auth' => true],
+
     // Announcement routes
     'GET /announcements' => ['controller' => 'AnnouncementController', 'method' => 'index', 'auth' => true],
     'GET /announcements/{uuid}' => ['controller' => 'AnnouncementController', 'method' => 'show', 'auth' => true],

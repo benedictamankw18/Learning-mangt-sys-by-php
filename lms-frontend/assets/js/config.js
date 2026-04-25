@@ -253,7 +253,26 @@ const API_ENDPOINTS = {
 
     // Messages
     MESSAGES: '/api/messages',
-    SEND_MESSAGE: '/api/messages/send',
+    MESSAGES_INBOX: '/api/messages/inbox',
+    MESSAGES_SENT: '/api/messages/sent',
+    MESSAGES_UNREAD_COUNT: '/api/messages/unread-count',
+    MESSAGE_CONVERSATION: (userId) => `/api/messages/conversation/${userId}`,
+    MESSAGE_BY_UUID: (uuid) => `/api/messages/${uuid}`,
+    MESSAGE_MARK_READ: (uuid) => `/api/messages/${uuid}/read`,
+    MESSAGE_DELETE: (uuid) => `/api/messages/${uuid}`,
+    SEND_MESSAGE: '/api/messages',
+
+    // Chat rooms
+    CHAT_ROOMS: '/api/chat/rooms',
+    CHAT_ROOM_BY_UUID: (uuid) => `/api/chat/rooms/${uuid}`,
+    CHAT_ROOM_MEMBERS: (uuid) => `/api/chat/rooms/${uuid}/members`,
+    CHAT_ROOM_MEMBER_BY_USER: (uuid, userId) => `/api/chat/rooms/${uuid}/members/${userId}`,
+    CHAT_ROOM_MESSAGES: (uuid) => `/api/chat/rooms/${uuid}/messages`,
+    CHAT_MESSAGE_EDIT: (uuid) => `/api/chat/messages/${uuid}`,
+    CHAT_MESSAGE_REPLY: (uuid) => `/api/chat/messages/${uuid}/reply`,
+    CHAT_MESSAGE_FORWARD: (uuid) => `/api/chat/messages/${uuid}/forward`,
+    CHAT_MESSAGE_MARK_READ: (uuid) => `/api/chat/messages/${uuid}/read`,
+    CHAT_MESSAGE_DELETE: (uuid) => `/api/chat/messages/${uuid}`,
 
     // Notifications
     NOTIFICATIONS: '/api/notifications',
