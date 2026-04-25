@@ -237,7 +237,7 @@
       .messages-viewer-placeholder { color:#cbd5e1; padding:2rem; text-align:center; }
       .messages-action-modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; padding:1rem; background: rgba(15,23,42,.56); z-index: 10001;}
       .messages-action-modal.open { display:flex; }
-      .messages-action-card { width:min(520px, 100%); background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 20px 50px rgba(15,23,42,.24); overflow:hidden; }
+      .messages-action-card { width:min(520px, 100%); background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 20px 50px rgba(15,23,42,.24); overflow:auto; height: auto; max-height: 90vh; display:grid; grid-template-rows:auto 1fr auto; }
       .messages-action-head { padding: .95rem 1rem; border-bottom: 1px solid #eef2f7; }
       .messages-action-head h3 { margin:0; color:#0f172a; font-size:1rem; }
       .messages-action-body { padding: 1rem; display:grid; gap:.75rem; }
@@ -1705,119 +1705,125 @@
       return;
     }
 
-    const roomResponse = await ChatAPI.getRoom(roomUuid).catch(function () { return null; });
-    const roomDetails = roomResponse?.data?.room || roomResponse?.room || room || null;
-    const members = Array.isArray(roomDetails?.members) ? roomDetails.members : [];
-    const isSystemAdmin = isAdminLikeUser(STATE.currentUser);
-    const memberRole = String(members.find(function (member) {
-      return Number(member?.user_id || 0) === currentUserId;
-    })?.member_role || '').trim().toLowerCase();
-    const canManage =  memberRole === 'admin';
-    const roomName = String(roomDetails?.display_name || roomDetails?.room_name || 'Group chat').trim() || 'Group chat';
-    const roomDescription = String(roomDetails?.room_description || 'No description yet.').trim() || 'No description yet.';
-    const roomAvatar = buildUploadUrl(roomDetails?.display_avatar || roomDetails?.room_avatar || '');
-    const avatarInitial = roomName.charAt(0).toUpperCase() || 'G';
-    const lastActivity = roomDetails?.last_message_created_at ? fmtDateTime(roomDetails.last_message_created_at) : 'No messages yet';
-    const memberSearchId = 'admMessagesGroupMemberSearchField';
-    const memberListId = 'admMessagesGroupMemberList';
-    const groupActionsHtml = canManage
-      ? '<div class="messages-actions-row" style="justify-content:flex-start; margin-top:.85rem">'
-        + '<button type="button" class="btn-secondary" data-group-action="edit-group">Edit group details</button>'
-        + '<button type="button" class="btn-secondary" data-group-action="add-members">Add members</button>'
-        + '<button type="button" class="btn-secondary" data-group-action="remove-members">Remove members</button>'
-        + '<button type="button" class="btn-secondary" data-group-action="make-admin">Make admin</button>'
-        + '</div>'
-      : '';
+    while (true) {
+      const roomResponse = await ChatAPI.getRoom(roomUuid).catch(function () { return null; });
+      const roomDetails = roomResponse?.data?.room || roomResponse?.room || room || null;
+      const members = Array.isArray(roomDetails?.members) ? roomDetails.members : [];
+      const memberRole = String(members.find(function (member) {
+        return Number(member?.user_id || 0) === currentUserId;
+      })?.member_role || '').trim().toLowerCase();
+      const canManage = memberRole === 'admin';
+      const roomName = String(roomDetails?.display_name || roomDetails?.room_name || 'Group chat').trim() || 'Group chat';
+      const roomDescription = String(roomDetails?.room_description || 'No description yet.').trim() || 'No description yet.';
+      const roomAvatar = buildUploadUrl(roomDetails?.display_avatar || roomDetails?.room_avatar || '');
+      const avatarInitial = roomName.charAt(0).toUpperCase() || 'G';
+      const lastActivity = roomDetails?.last_message_created_at ? fmtDateTime(roomDetails.last_message_created_at) : 'No messages yet';
+      const memberSearchId = 'admMessagesGroupMemberSearchField';
+      const memberListId = 'admMessagesGroupMemberList';
+      const groupActionsHtml = canManage
+        ? '<div class="messages-actions-row" style="justify-content:flex-start; margin-top:.85rem">'
+          + '<button type="button" class="btn-secondary" data-group-action="edit-group">Edit group details</button>'
+          + '<button type="button" class="btn-secondary" data-group-action="add-members">Add members</button>'
+          + '<button type="button" class="btn-secondary" data-group-action="remove-members">Remove members</button>'
+          + '<button type="button" class="btn-secondary" data-group-action="make-admin">Make admin</button>'
+          + '<button type="button" class="btn-secondary" data-group-action="remove-admin">Remove admin</button>'
+          + '</div>'
+        : '';
 
-      console.log("canManage:", canManage);
-      console.log("isSystemAdmin", isSystemAdmin)
-      console.log("memberRole", memberRole)
-      console.log("groupActionsHtml", groupActionsHtml)
-
-    const selectedAction = await openActionDialog({
-      title: 'Chat Information',
-      messageHtml: buildGroupInfoHtml({
-        name: roomName,
-        description: roomDescription,
-        avatarUrl: roomAvatar,
-        avatarInitial: avatarInitial,
-        roomType: 'Group',
-        lastActivity: lastActivity,
-        members: members,
-        canManage: canManage,
-        memberSearchId: memberSearchId,
-        memberListId: memberListId,
-        groupActionsHtml: groupActionsHtml,
-      }),
-      mode: 'confirm',
-      confirmText: 'Close',
-      onOpen: function () {
-        const modal = DOM.actionModal;
-        const searchInput = modal?.querySelector('#' + memberSearchId);
-        const memberList = modal?.querySelector('#' + memberListId);
-        const roomInfo = {
-          uuid: roomUuid,
-          room_id: Number(roomDetails?.room_id || room.room_id || 0),
+      const selectedAction = await openActionDialog({
+        title: 'Chat Information',
+        messageHtml: buildGroupInfoHtml({
           name: roomName,
           description: roomDescription,
-          avatar: roomDetails?.room_avatar || roomDetails?.display_avatar || '',
+          avatarUrl: roomAvatar,
+          avatarInitial: avatarInitial,
+          roomType: 'Group',
+          lastActivity: lastActivity,
           members: members,
-        };
+          canManage: canManage,
+          memberSearchId: memberSearchId,
+          memberListId: memberListId,
+          groupActionsHtml: groupActionsHtml,
+        }),
+        mode: 'confirm',
+        confirmText: 'Close',
+        onOpen: function () {
+          const modal = DOM.actionModal;
+          const searchInput = modal?.querySelector('#' + memberSearchId);
+          const memberList = modal?.querySelector('#' + memberListId);
 
-        if (searchInput && memberList) {
-          searchInput.addEventListener('input', function () {
-            renderGroupMemberRows(memberList, members, String(searchInput.value || ''));
+          if (searchInput && memberList) {
+            searchInput.addEventListener('input', function () {
+              renderGroupMemberRows(memberList, members, String(searchInput.value || ''));
+            });
+            renderGroupMemberRows(memberList, members, '');
+          }
+
+          modal?.querySelectorAll('[data-group-main-action]').forEach(function (button) {
+            button.addEventListener('click', function () {
+              const action = String(button.getAttribute('data-group-main-action') || '').trim();
+              closeActionDialog(action);
+            });
           });
-          renderGroupMemberRows(memberList, members, '');
-        }
 
-        modal?.querySelectorAll('[data-group-main-action]').forEach(function (button) {
-          button.addEventListener('click', function () {
-            const action = String(button.getAttribute('data-group-main-action') || '').trim();
-            closeActionDialog(null);
-            window.setTimeout(function () {
-              if (action === 'view-media') {
-                viewSelectedRoomMedia();
-              } else if (action === 'report-group') {
-                reportGroupToInstitutionAdmins(roomDetails);
-              }
-            }, 0);
+          modal?.querySelectorAll('[data-group-action]').forEach(function (button) {
+            button.addEventListener('click', function () {
+              const action = String(button.getAttribute('data-group-action') || '').trim();
+              closeActionDialog(action);
+            });
           });
-        });
+        },
+      });
 
-        modal?.querySelectorAll('[data-group-action]').forEach(function (button) {
-          button.addEventListener('click', function () {
-            const action = String(button.getAttribute('data-group-action') || '').trim();
-            closeActionDialog(null);
-            if (action === 'edit-group') {
-              window.setTimeout(function () { handleEditGroupDetails(roomInfo); }, 0);
-              return;
-            }
-            if (action === 'add-members') {
-              window.setTimeout(function () { handleAddGroupMembers(roomInfo); }, 0);
-              return;
-            }
-            if (action === 'remove-members') {
-              window.setTimeout(function () { handleRemoveGroupMembers(roomInfo); }, 0);
-              return;
-            }
-            if (action === 'make-admin') {
-              window.setTimeout(function () { handlePromoteGroupMembers(roomInfo); }, 0);
-            }
-          });
-        });
-      },
-    });
+      if (!selectedAction || selectedAction === true) {
+        return;
+      }
 
-    if (selectedAction !== null && selectedAction !== undefined && selectedAction !== true) {
-      if (selectedAction === 'view_media') {
+      const roomInfo = {
+        uuid: roomUuid,
+        room_id: Number(roomDetails?.room_id || room.room_id || 0),
+        name: roomName,
+        description: roomDescription,
+        avatar: roomDetails?.room_avatar || roomDetails?.display_avatar || '',
+        members: members,
+      };
+
+      if (selectedAction === 'view-media') {
         await viewSelectedRoomMedia();
-        return;
+        continue;
       }
-      if (selectedAction === 'report_group') {
+
+      if (selectedAction === 'report-group') {
         await reportGroupToInstitutionAdmins(roomDetails);
-        return;
+        continue;
       }
+
+      if (selectedAction === 'edit-group') {
+        await handleEditGroupDetails(roomInfo);
+        continue;
+      }
+
+      if (selectedAction === 'add-members') {
+        await handleAddGroupMembers(roomInfo);
+        continue;
+      }
+
+      if (selectedAction === 'remove-members') {
+        await handleRemoveGroupMembers(roomInfo);
+        continue;
+      }
+
+      if (selectedAction === 'make-admin') {
+        await handlePromoteGroupMembers(roomInfo);
+        continue;
+      }
+
+      if (selectedAction === 'remove-admin') {
+        await handleDemoteGroupAdmins(roomInfo);
+        continue;
+      }
+
+      return;
     }
   }
 
@@ -2006,6 +2012,39 @@
     if (STATE.selectedRoom?.uuid) await selectRoom(STATE.selectedRoom.uuid, true);
   }
 
+  async function handleDemoteGroupAdmins(roomInfo) {
+    if (!roomInfo?.uuid) return;
+
+    const currentUserId = Number(STATE.currentUser?.user_id || 0);
+    const admins = (Array.isArray(roomInfo.members) ? roomInfo.members : []).filter(function (member) {
+      const memberId = Number(member?.user_id || 0);
+      const role = String(member?.member_role || '').trim().toLowerCase();
+      return memberId > 0 && memberId !== currentUserId && role === 'admin';
+    });
+
+    if (!admins.length) {
+      showToastIfAvailable('No other admins available to remove.', 'info');
+      return;
+    }
+
+    const selectedIds = await openSelectionDialog('Remove Admin', 'Select admins to demote to member:', admins, true);
+    if (!selectedIds || !selectedIds.length) return;
+
+    const response = await ChatAPI.addMembers(roomInfo.uuid, {
+      member_ids: selectedIds,
+      member_role: 'member',
+    }).catch(function () { return null; });
+
+    if (!response?.success) {
+      showToastIfAvailable(response?.message || 'Failed to remove admin role.', 'error');
+      return;
+    }
+
+    showToastIfAvailable('Admin role removed.', 'success');
+    await loadData();
+    if (STATE.selectedRoom?.uuid) await selectRoom(STATE.selectedRoom.uuid, true);
+  }
+
   async function reportGroupToInstitutionAdmins(roomDetails) {
     const admins = (STATE.users || []).filter(function (user) {
       if (Number(user?.user_id || 0) === Number(STATE.currentUser?.user_id || 0)) return false;
@@ -2099,40 +2138,48 @@
     const avatarUrl = buildUploadUrl(peer?.profile_photo || room.display_avatar || room.room_avatar || '');
     const lastActivity = room.last_message_created_at ? fmtDateTime(room.last_message_created_at) : 'No messages yet';
 
-    const selectedAction = await openActionDialog({
-      title: 'Chat Information',
-      messageHtml: buildDirectInfoHtml({
-        name: peerName,
-        email: peerEmail,
-        avatarUrl: avatarUrl,
-        avatarInitial: peerName.charAt(0).toUpperCase() || 'U',
-        lastActivity: lastActivity,
-      }),
-      mode: 'options',
-      allowMultiple: false,
-      confirmText: 'Open',
-      searchPlaceholder: 'Search actions...',
-      options: [
-        { value: 'view_media', label: 'View Chat Media', meta: 'Open shared attachments in this chat' },
-        { value: 'create_group', label: 'Create Group with User', meta: 'Start a new group chat with this user' },
-        { value: 'report_user', label: 'Report User', meta: 'Send report notification to institution admins' },
-      ],
-    });
+    while (true) {
+      const selectedAction = await openActionDialog({
+        title: 'Chat Information',
+        messageHtml: buildDirectInfoHtml({
+          name: peerName,
+          email: peerEmail,
+          avatarUrl: avatarUrl,
+          avatarInitial: peerName.charAt(0).toUpperCase() || 'U',
+          lastActivity: lastActivity,
+        }),
+        mode: 'options',
+        allowMultiple: false,
+        confirmText: 'Open',
+        searchPlaceholder: 'Search actions...',
+        options: [
+          { value: 'view_media', label: 'View Chat Media', meta: 'Open shared attachments in this chat' },
+          { value: 'create_group', label: 'Create Group with ' + peerName, meta: 'Start a new group chat with this user' },
+          { value: 'report_user', label: 'Report ' + peerName, meta: 'Send report notification to institution admins' },
+        ],
+      });
 
-    if (!selectedAction) return;
+      if (!selectedAction) {
+        return;
+      }
 
-    if (selectedAction === 'view_media') {
-      await viewSelectedRoomMedia();
-      return;
-    }
+      if (selectedAction === 'view_media') {
+        await viewSelectedRoomMedia();
+        continue;
+      }
 
-    if (selectedAction === 'create_group') {
-      await createGroupWithDirectUser(peerUserId, peerName);
-      return;
-    }
+      if (selectedAction === 'report_user') {
+        await reportDirectUserToInstitutionAdmins(peerUserId, peerName, room);
+        continue;
+      }
 
-    if (selectedAction === 'report_user') {
-      await reportDirectUserToInstitutionAdmins(peerUserId, peerName, room);
+      if (selectedAction === 'create_group') {
+        const groupResult = await createGroupWithDirectUser(peerUserId, peerName);
+        if (groupResult === 'cancelled') {
+          continue;
+        }
+        return;
+      }
     }
   }
 
@@ -2202,10 +2249,31 @@
         name: item.fileName,
         type: item.type,
       });
+      await waitForAttachmentViewerClose();
       return;
     }
 
     window.open(item.url, '_blank', 'noopener,noreferrer');
+  }
+
+  function waitForAttachmentViewerClose() {
+    return new Promise(function (resolve) {
+      const modal = DOM.viewerModal;
+      if (!modal || !modal.classList.contains('open')) {
+        resolve();
+        return;
+      }
+
+      const observer = new MutationObserver(function () {
+        const stillOpen = modal.classList.contains('open') && modal.getAttribute('aria-hidden') !== 'true';
+        if (!stillOpen) {
+          observer.disconnect();
+          resolve();
+        }
+      });
+
+      observer.observe(modal, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
+    });
   }
 
   function collectRoomMediaItems() {
@@ -2245,24 +2313,24 @@
     const memberUserId = Number(peerUserId || 0);
     if (memberUserId <= 0) {
       showToastIfAvailable('Unable to identify this user for group creation.', 'error');
-      return;
+      return 'error';
     }
 
     const defaultName = String(peerName || 'New Group').trim() || 'New Group';
     const groupNameInput = await openActionDialog({
-      title: 'Create Group with User',
+      title: 'Create Group with ' + peerName,
       message: 'Enter group name:',
       mode: 'input',
       initialValue: defaultName,
       confirmText: 'Create',
     });
 
-    if (groupNameInput === null) return;
+    if (groupNameInput === null) return 'cancelled';
 
     const groupName = String(groupNameInput || '').trim();
     if (!groupName) {
       showToastIfAvailable('Group name is required.', 'error');
-      return;
+      return 'invalid';
     }
 
     const response = await ChatAPI.createRoom({
@@ -2274,7 +2342,7 @@
 
     if (!response?.success) {
       showToastIfAvailable(response?.message || 'Failed to create group chat.', 'error');
-      return;
+      return 'error';
     }
 
     await loadData();
@@ -2283,6 +2351,7 @@
       await selectRoom(String(createdRoom.uuid), true);
     }
     showToastIfAvailable('Group chat created successfully.', 'success');
+    return 'created';
   }
 
   async function reportDirectUserToInstitutionAdmins(peerUserId, peerName, room) {
@@ -2307,7 +2376,7 @@
     }
 
     const ok = await openActionDialog({
-      title: 'Report User',
+      title: 'Report ' + peerName,
       message: 'Send this user report to institution admins?',
       mode: 'confirm',
       confirmText: 'Report',

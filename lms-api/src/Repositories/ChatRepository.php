@@ -155,7 +155,7 @@ class ChatRepository
     public function getRoomMembers(int $roomId): array
     {
         try {
-            $stmt = $this->db->prepare("\n                SELECT\n                    rm.room_member_id,\n                    rm.room_id,\n                    rm.user_id,\n                    rm.member_role,\n                    rm.joined_at,\n                    rm.left_at,\n                    rm.is_muted,\n                    rm.is_archived,\n                    rm.last_read_message_id,\n                    rm.last_read_at,\n                    u.uuid,\n                    u.username,\n                    u.email,\n                    u.first_name,\n                    u.last_name,\n                    u.profile_photo\n                FROM chat_room_members rm\n                INNER JOIN users u ON u.user_id = rm.user_id\n                WHERE rm.room_id = :room_id\n                ORDER BY rm.member_role DESC, u.first_name ASC, u.last_name ASC\n            ");
+            $stmt = $this->db->prepare("\n                SELECT\n                    rm.room_member_id,\n                    rm.room_id,\n                    rm.user_id,\n                    rm.member_role,\n                    rm.joined_at,\n                    rm.left_at,\n                    rm.is_muted,\n                    rm.is_archived,\n                    rm.last_read_message_id,\n                    rm.last_read_at,\n                    u.uuid,\n                    u.username,\n                    u.email,\n                    u.first_name,\n                    u.last_name,\n                    u.profile_photo\n                FROM chat_room_members rm\n                INNER JOIN users u ON u.user_id = rm.user_id\n                WHERE rm.room_id = :room_id\n                  AND rm.left_at IS NULL\n                ORDER BY CASE WHEN rm.member_role = 'admin' THEN 0 ELSE 1 END, u.first_name ASC, u.last_name ASC\n            ");
             $stmt->execute(['room_id' => $roomId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
@@ -199,7 +199,6 @@ class ChatRepository
             return null;
         }
     }
-
     public function createDirectRoom(int $userId, int $otherUserId, ?int $institutionId = null): int
     {
         try {
