@@ -20,6 +20,9 @@
     editContext: null,
     loading: false,
     sending: false,
+    pollTimerId: null,
+    pollInFlight: false,
+    pollEnabled: false,
   };
 
   const DOM = {};
@@ -37,6 +40,16 @@
 
   document.addEventListener('DOMContentLoaded', bootIfVisible);
   window.addEventListener('hashchange', bootIfVisible);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      STATE.pollEnabled = false;
+    } else {
+      STATE.pollEnabled = true;
+      if (STATE.pollTimerId !== null && !STATE.loading && !STATE.sending) {
+        window.setTimeout(pollTick, 0);
+      }
+    }
+  });
   bootIfVisible();
   scheduleBootRetries();
 
@@ -44,6 +57,8 @@
     const currentHash = String(window.location.hash || '').replace(/^#/, '').trim();
     if (currentHash === 'messages' || document.getElementById('admMessagesRoot')) {
       initIfVisible();
+    } else {
+      stopPolling();
     }
   }
 
@@ -77,6 +92,65 @@
     cacheDom();
     bindEvents();
     loadData();
+  }
+
+  function stopPolling() {
+    if (STATE.pollTimerId !== null) {
+      window.clearInterval(STATE.pollTimerId);
+      STATE.pollTimerId = null;
+    }
+    STATE.pollEnabled = false;
+  }
+
+  function startPolling() {
+    stopPolling();
+    STATE.pollEnabled = !document.hidden;
+    STATE.pollTimerId = window.setInterval(pollTick, 3000);
+  }
+
+  async function pollTick() {
+    if (STATE.pollInFlight || !STATE.pollEnabled || STATE.loading || STATE.sending) return;
+
+    STATE.pollInFlight = true;
+    try {
+      const roomsResponse = await ChatAPI.getRooms().catch(function () { return null; });
+      const newRooms = extractRooms(roomsResponse);
+      const newUnreadCount = Number(roomsResponse?.data?.unread_count ?? roomsResponse?.unread_count ?? 0);
+
+      const roomsChanged = JSON.stringify(STATE.rooms) !== JSON.stringify(newRooms) || STATE.unreadCount !== newUnreadCount;
+      if (roomsChanged) {
+        STATE.rooms = newRooms;
+        STATE.unreadCount = newUnreadCount;
+
+        const selectedUuid = String(STATE.selectedRoom?.uuid || '');
+        const updatedRoom = STATE.rooms.find(function (room) {
+          return String(room?.uuid || '') === selectedUuid;
+        }) || null;
+        if (updatedRoom) {
+          STATE.selectedRoom = updatedRoom;
+        }
+
+        updateStats();
+        renderRooms();
+        if (STATE.selectedRoom?.uuid) {
+          renderThreadHeader(STATE.selectedRoom);
+        }
+      }
+
+      if (STATE.selectedRoom?.uuid) {
+        const messagesResponse = await ChatAPI.getMessages(STATE.selectedRoom.uuid, { limit: 100 }).catch(function () { return null; });
+        const newMessages = extractMessages(messagesResponse);
+        const messagesChanged = JSON.stringify(STATE.messages) !== JSON.stringify(newMessages);
+        if (messagesChanged) {
+          STATE.messages = newMessages;
+          renderMessages();
+        }
+      }
+    } catch (error) {
+      console.warn('Poll tick error:', error);
+    } finally {
+      STATE.pollInFlight = false;
+    }
   }
 
   function injectStyles() {
@@ -690,6 +764,7 @@
       showToastIfAvailable('Failed to load chats.', 'error');
     } finally {
       STATE.loading = false;
+      startPolling();
     }
   }
 
