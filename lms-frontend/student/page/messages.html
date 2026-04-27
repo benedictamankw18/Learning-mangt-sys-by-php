@@ -1,6 +1,368 @@
-<div class="card">
-  <div class="card-header"><h3><i class="fas fa-comments"></i> Messages</h3></div>
-  <div class="card-body">
-    <p>Inbox and message composer for student communications.</p>
-  </div>
-</div>
+<style>
+    .messages-page-shell { display: grid; gap: 1rem; }
+      .messages-topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+      .messages-topbar h2 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+      .messages-topbar p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
+      .messages-top-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+      .messages-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+      @media (max-width: 1024px) { .messages-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      @media (max-width: 640px) { .messages-stats { grid-template-columns: 1fr; } }
+      .messages-stat-card, .messages-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+      .messages-stat-card { display: flex; align-items: center; gap: .85rem; padding: 1rem 1.1rem; }
+      .messages-stat-icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+      .messages-stat-info h3 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+      .messages-stat-info p { margin: .15rem 0 0; color: #64748b; font-size: .78rem; }
+      .messages-workbench { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 1rem; min-height: 72vh; }
+      @media (max-width: 1180px) { .messages-workbench { grid-template-columns: 1fr; } }
+      .messages-panel-head { padding: 1rem; border-bottom: 1px solid #eef2f7; background: linear-gradient(180deg,#f8fafc,#fff); }
+      .messages-panel-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+      .messages-panel-head p { margin: .2rem 0 0; color: #64748b; font-size: .8rem; }
+      .messages-toolbar { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .85rem; }
+      .messages-search, .messages-select, .messages-input, .messages-textarea { width: 100%; border: 1px solid #dbe3ea; border-radius: 10px; background: #fff; color: #0f172a; outline: none; box-sizing: border-box; }
+      .messages-search, .messages-select { padding: .58rem .75rem; font-size: .875rem; }
+      .messages-search:focus, .messages-select:focus, .messages-input:focus, .messages-textarea:focus { border-color: #006a3f; box-shadow: 0 0 0 3px rgba(0,106,63,.08); }
+      .messages-room-list { height: 58vh; overflow: auto; }
+      .messages-room-item { display: flex; gap: .85rem; align-items: flex-start; padding: 1rem; border-bottom: 1px solid #eef2f7; cursor: pointer; transition: background .15s ease; }
+      .messages-room-item:hover { background: #f8fafc; }
+      .messages-room-item.active { background: #f0fdf4; }
+      .messages-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg,#0f766e,#006a3f); color: #fff; display: grid; place-items: center; flex-shrink: 0; font-weight: 700; overflow: hidden; }
+      .messages-avatar img { width: 100%; height: 100%; object-fit: cover; }
+      .messages-room-main { min-width: 0; flex: 1; }
+      .messages-room-top { display:flex; justify-content:space-between; gap:.5rem; }
+      .messages-room-title { margin:0; font-weight:700; color:#0f172a; font-size:.93rem; }
+      .messages-room-meta { margin:.2rem 0 0; color:#64748b; font-size:.8rem; }
+      .messages-room-preview { margin:.25rem 0 0; color:#334155; font-size:.84rem; line-height:1.45; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .messages-badge { background:#dcfce7; color:#166534; padding:.2rem .55rem; border-radius:999px; font-size:.72rem; font-weight:700; }
+      .messages-badge.unread { background:#dbeafe; color:#1d4ed8; }
+      .messages-thread { display:grid; grid-template-rows:auto auto 1fr auto; min-height:72vh; }
+      .messages-thread-header { padding:1rem; border-bottom:1px solid #eef2f7; display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
+      .messages-thread-header h3 { margin:0; font-size:1rem; color:#0f172a; }
+      .messages-thread-header p { margin:.2rem 0 0; color:#64748b; font-size:.8rem; }
+      .messages-thread-actions { display:flex; gap:.45rem; flex-wrap:wrap; position: relative; }
+      .messages-load-more-btn { display: none; position: absolute; top: .7rem; margin-left: auto; margin-right: 1rem; width: 50px; height: 50px; text-align: center; align-items: center; justify-content: center; border: 1px solid #dbe3ea; border-radius: 50px; z-index: 66; }
+       /* .messages-message-list {  } */
+      .messages-message-viewer { padding:1rem; overflow:auto; background: linear-gradient(180deg,#f8fafc,#fff); height: 58vh; }
+      .messages-message-item { max-width:min(720px, 92%); border-radius:16px; padding:.85rem 1rem; margin-bottom:.75rem; border:1px solid #e2e8f0; background:#fff; }
+      .messages-message-item.outbound { margin-left:auto; background:#f0fdf4; border-color:rgba(0,106,63,.18); }
+      .messages-message-item.inbound { margin-right:auto; }
+      .messages-message-head { display:flex; justify-content:space-between; gap:1rem; margin-bottom:.35rem; }
+      .messages-message-head strong { color:#0f172a; font-size:.88rem; }
+      .messages-message-meta { display:inline-flex; align-items:center; gap:.35rem; }
+      .messages-edit-status { font-size:.7rem; font-weight:700; padding:.16rem .42rem; border-radius:999px; text-transform:uppercase; letter-spacing:.02em; }
+      .messages-edit-status.sent { background:#e2e8f0; color:#334155; }
+      .messages-edit-status.edited { background:#fef3c7; color:#92400e; }
+      .messages-reply-preview { margin: 0 0 .45rem; padding: .5rem .65rem; border-left: 3px solid #94a3b8; border-radius: 10px; background: #f8fafc; color:#475569; font-size:.8rem; line-height:1.45; }
+      .messages-reply-preview.clickable { cursor: pointer; }
+      .messages-reply-preview.clickable:hover { background:#f1f5f9; border-left-color:#64748b; }
+      .messages-reply-preview strong { display:block; color:#334155; font-size:.76rem; font-weight:700; margin-bottom:.15rem; text-transform: uppercase; letter-spacing: .02em; }
+      .messages-reply-preview span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .messages-message-body { color:#334155; white-space:pre-wrap; line-height:1.55; font-size:.92rem; overflow-wrap: break-word; }
+      .messages-message-item.reply-target-highlight { box-shadow: 0 0 0 3px rgba(2,132,199,.24); border-color: rgba(2,132,199,.55); transition: box-shadow .2s ease, border-color .2s ease; }
+      .messages-unread-divider { display:flex; align-items:center; gap:.65rem; margin:.35rem 0 .8rem; }
+      .messages-unread-divider::before,
+      .messages-unread-divider::after { content:''; height:1px; background:#cbd5e1; flex:1; }
+      .messages-unread-badge { background:#dbeafe; color:#1d4ed8; font-size:.72rem; font-weight:700; border-radius:999px; padding:.2rem .55rem; white-space:nowrap; }
+      .messages-message-actions { display:flex; align-items:center; justify-content:flex-end; gap:.25rem; margin-top:.55rem; }
+      .messages-msg-action-btn { border:1px solid #dbe3ea; background:#fff; color:#475569; width:28px; height:28px; border-radius:8px; cursor:pointer; display:grid; place-items:center; }
+      .messages-msg-action-btn:hover { background:#f8fafc; color:#0f172a; }
+      .messages-message-item.outbound .messages-msg-action-btn { background:#f0fdf4; }
+      .messages-empty, .messages-thread-empty { padding: 2rem 1rem; text-align:center; color:#64748b; align-self: center; display: flex; flex-direction: column; align-items: center; gap: .75rem; justify-content: center; height: 100%; }
+      .messages-empty i, .messages-thread-empty i { font-size: 3rem; }
+      .messages-composer { display: grid; border-top: 1px solid #eef2f7; padding: 1rem; grid-template-columns: minmax(auto, 2.5fr) minmax(0, 0.5fr); background: #fff; grid-auto-flow: column; align-content: center; column-gap: 10px;}
+      .messages-actions-row { display:flex; justify-content:flex-end; gap:.5rem; flex-wrap:wrap; margin-top:.85rem; }
+      .messages-actions-chat-button  { display: flex; justify-content: flex-end; gap: .5rem; flex-wrap: nowrap; margin-top: .85rem; align-items: flex-end;}
+      .messages-reply-composer { display:flex; align-items:flex-start; justify-content:space-between; gap:.6rem; padding:.55rem .65rem; border-left:3px solid #006a3f; border-radius:10px; background:#f0fdf4; margin-bottom:.65rem; }
+      .messages-reply-composer strong { display:block; font-size:.75rem; color:#166534; text-transform:uppercase; letter-spacing:.02em; margin-bottom:.12rem; }
+      .messages-reply-composer p { margin:0; color:#14532d; font-size:.82rem; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .messages-reply-clear { border:1px solid #bbf7d0; background:#fff; color:#166534; width:26px; height:26px; border-radius:8px; cursor:pointer; flex-shrink:0; }
+      .messages-reply-clear:hover { background:#dcfce7; }
+      .messages-edit-composer { display:flex; align-items:flex-start; justify-content:space-between; gap:.6rem; padding:.55rem .65rem; border-left:3px solid #f59e0b; border-radius:10px; background:#fffbeb; margin-bottom:.65rem; }
+      .messages-edit-composer strong { display:block; font-size:.75rem; color:#92400e; text-transform:uppercase; letter-spacing:.02em; margin-bottom:.12rem; }
+      .messages-edit-composer p { margin:0; color:#78350f; font-size:.82rem; line-height:1.4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .messages-edit-clear { border:1px solid #fde68a; background:#fff; color:#92400e; width:26px; height:26px; border-radius:8px; cursor:pointer; flex-shrink:0; }
+      .messages-edit-clear:hover { background:#fef3c7; }
+      .messages-attachment-note { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem .85rem; border:2px dashed #dbe3ea; border-radius:12px; background:#f8fafc; color:#475569; font-size:.83rem; margin-bottom: .75rem; }
+      .messages-attachment-note strong { color:#0f172a; }
+      .messages-attachment-preview { display:grid; gap:.5rem; margin-bottom:.75rem; }
+      .messages-attachment-preview-item { display:flex; align-items:center; gap:.7rem; padding:.6rem .7rem; border:1px solid #dbe3ea; border-radius:12px; background:#fff; }
+      .messages-attachment-preview-thumb { width:42px; height:42px; border-radius:10px; background:#f1f5f9; overflow:hidden; flex-shrink:0; display:grid; place-items:center; color:#64748b; font-size:1rem; }
+      .messages-attachment-preview-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+      .messages-attachment-preview-thumb button { width:100%; height:100%; border:none; background:transparent; color:#0f172a; cursor:pointer; display:grid; place-items:center; }
+      .messages-attachment-preview-thumb button:hover { background: rgba(0,0,0,.04); }
+      .messages-attachment-preview-body { min-width:0; flex:1; }
+      .messages-attachment-preview-body strong { display:block; color:#0f172a; font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .messages-attachment-preview-meta { color:#64748b; font-size:.74rem; margin-top:.15rem; }
+      .messages-attachment-list { display:grid; gap:.4rem; margin-top:.55rem; overflow: auto;}
+      .messages-attachment-item { display:flex; align-items:center; gap:.5rem; padding:.55rem .7rem; border:1px solid #dbe3ea; border-radius:10px; background:#f8fafc; color:#334155; }
+      .messages-attachment-item i { color:#006a3f; }
+      .messages-attachment-item a { color:#0f172a; text-decoration:none; font-weight:600; }
+      .messages-attachment-item a:hover { text-decoration:underline; }
+      .messages-attachment-clickable { cursor: pointer; }
+      .messages-message-attachment-preview { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: #eef2f7; display: grid; place-items: center; color: #64748b; margin-bottom: .45rem; }
+      .messages-message-attachment-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .messages-message-attachment-preview button { width: 100%; height: 100%; border: none; background: transparent; color: #0f172a; cursor: pointer; display: grid; place-items: center; }
+      .messages-message-attachment-preview button:hover { background: rgba(0,0,0,.04); }
+      .messages-message-attachment-preview .messages-audio-play { font-size: 1.1rem; }
+      .messages-audio-timeline { display:grid; grid-template-columns:auto 1fr auto; gap:.45rem; align-items:center; margin-top:.35rem; }
+      .messages-audio-range { width:100%; accent-color:#006a3f; }
+      .messages-audio-current, .messages-audio-duration { font-size:.72rem; color:#64748b; min-width:36px; text-align:center; }
+      .messages-attachment-meta { color:#64748b; font-size:.75rem; }
+      .messages-modal { position: fixed; inset: 0; background: rgba(15,23,42,.56); display:none; align-items:center; justify-content:center; z-index:9999; padding:1rem; }
+      .messages-modal.open { display:flex; }
+      .messages-modal-card { width:min(820px,100%); max-height:92vh; overflow:auto; background:#fff; border-radius:18px; border:1px solid #e2e8f0; box-shadow:0 20px 60px rgba(15,23,42,.25); }
+      .messages-modal-head { padding:1rem; border-bottom:1px solid #eef2f7; display:flex; justify-content:space-between; gap:1rem; align-items:flex-start; }
+      .messages-modal-head h3 { margin:0; color:#0f172a; }
+      .messages-modal-head p { margin:.2rem 0 0; color:#64748b; font-size:.8rem; }
+      .messages-modal-body { padding:1rem; display:grid; gap:1rem; }
+      .messages-modal-tabs { display:flex; gap:.45rem; flex-wrap:wrap; }
+      .messages-tab { border:1px solid #dbe3ea; background:#fff; color:#334155; border-radius:999px; padding:.42rem .8rem; cursor:pointer; font-size:.82rem; font-weight:700; }
+      .messages-tab.active { background:#006a3f; border-color:#006a3f; color:#fff; }
+      .messages-user-grid { display:block; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:.65rem; max-height: 240px; overflow:auto; padding-right:.25rem; }
+      @media (max-width: 720px) { .messages-user-grid { grid-template-columns: 1fr; } }
+      .messages-user-chip { display:flex; align-items:center; gap:.55rem; padding:.65rem .75rem; border:1px solid #e2e8f0; border-radius:12px; cursor:pointer; }
+      .messages-user-chip.selected { border-color:#006a3f; background:#f0fdf4; }
+      .messages-user-chip input { margin:0; }
+      .messages-user-chip small { color:#64748b; display:block; }
+      .messages-note { border-radius:12px; border:1px dashed #cbd5e1; background:#f8fafc; color:#475569; padding:.8rem .9rem; font-size:.83rem; }
+      .messages-hidden { display:none !important; }
+      .messages-hambger-three-dot{ position: relative; padding: .25rem; border-radius: 6px; cursor: pointer; }
+      .hambger-three-dot {cursor: pointer; border: none; background: transparent; color: #334155; font-size: 1.1rem; display: grid; place-items: center; }
+      .hambger-three-dot:hover { background: rgba(0,0,0,.05); }
+      .messages-thread-action-menu.messages-hidden{ display: none !important; }
+      .messages-thread-action-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.15); z-index: 1000; min-width: 180px; }
+      .messages-thread-action-btn { width: 100%; padding: .65rem 1rem; background: transparent; border: none; text-align: left; color: #334155; font-size: .875rem; cursor: pointer; }
+      .messages-thread-action-btn:hover { background: rgba(0,0,0,.05); }
+      .messages-thread-action-btn i { margin-right: .5rem; color: #64748b; }
+      .send-btn, .attach-btn {align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+      .messages-viewer-modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; padding:1rem; background: rgba(2,6,23,.75); z-index: 10000; }
+      .messages-viewer-modal.open { display:flex; }
+      .messages-viewer-card { width:min(1100px, 100%); max-height: 92vh; background:#0f172a; border:1px solid rgba(255,255,255,.12); border-radius:18px; box-shadow:0 30px 80px rgba(15,23,42,.45); overflow:hidden; display:grid; grid-template-rows:auto 1fr; }
+      .messages-viewer-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding: .9rem 1rem; background: rgba(15,23,42,.96); color:#e2e8f0; }
+      .messages-viewer-head h3 { margin:0; font-size: .98rem; color:#fff; }
+      .messages-viewer-head p { margin:.15rem 0 0; font-size:.78rem; color:#94a3b8; }
+      .messages-viewer-close { border:none; background:rgba(255,255,255,.08); color:#fff; width:40px; height:40px; border-radius:10px; cursor:pointer; }
+      .messages-viewer-close:hover { background: rgba(255,255,255,.14); }
+      .messages-viewer-body { background:#020617; display:grid; place-items:center; min-height: 80vh; }
+      .messages-viewer-body img, .messages-viewer-body video, .messages-viewer-body iframe, .messages-viewer-body audio { max-width:100%; width:100%; height:100%; border:0; background:#000; }
+      .messages-viewer-body img { object-fit: contain; }
+      .messages-viewer-body video { max-height: 84vh; }
+      .messages-viewer-body audio { width: 100%; height: auto; }
+      .messages-viewer-frame { width: 100%; height: min(84vh, 900px); }
+      .messages-viewer-placeholder { color:#cbd5e1; padding:2rem; text-align:center; }
+      .messages-action-modal { position: fixed; inset: 0; display:none; align-items:center; justify-content:center; padding:1rem; background: rgba(15,23,42,.56); z-index: 10001;}
+      .messages-action-modal.open { display:flex; }
+      .messages-action-card { width:min(520px, 100%); background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 20px 50px rgba(15,23,42,.24); overflow:auto; height: auto; max-height: 90vh; display:grid; grid-template-rows:auto 1fr auto; }
+      .messages-action-head { padding: .95rem 1rem; border-bottom: 1px solid #eef2f7; }
+      .messages-action-head h3 { margin:0; color:#0f172a; font-size:1rem; }
+      .messages-action-body { padding: 1rem; display:grid; gap:.75rem; }
+      .messages-action-body p { margin:0; color:#475569; }
+      .messages-action-input { width:100%; border:1px solid #dbe3ea; border-radius:10px; padding:.62rem .72rem; font-size:.92rem; color:#0f172a; box-sizing:border-box; }
+      .messages-action-select { width:100%; border:1px solid #dbe3ea; border-radius:10px; padding:.62rem .72rem; font-size:.92rem; color:#0f172a; box-sizing:border-box; background:#fff; }
+      .messages-action-search { width:100%; border:1px solid #dbe3ea; border-radius:10px; padding:.58rem .75rem; font-size:.875rem; color:#0f172a; box-sizing:border-box; }
+      .messages-action-options { grid-template-columns: 1fr; max-height: 240px; overflow: auto; }
+      .messages-action-option { display:flex; align-items:flex-start; gap:.55rem; padding:.65rem .75rem; border:1px solid #e2e8f0; border-radius:12px; cursor:pointer; }
+      .messages-action-option.selected { border-color:#006a3f; background:#f0fdf4; }
+      .messages-action-option input { margin-top:.2rem; }
+      .messages-action-option small { color:#64748b; display:block; margin-top:.12rem; }
+      .messages-action-option .messages-avatar { width:36px; height:36px; font-size:.82rem; flex-shrink:0; }
+      .messages-chat-info-card { display:flex; gap:.75rem; align-items:center; padding:.75rem; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; }
+      .messages-chat-info-card .messages-avatar { width:42px; height:42px; font-size:.92rem; }
+      .messages-chat-info-name { margin:0; color:#0f172a; font-weight:700; font-size:.92rem; }
+      .messages-chat-info-email { margin:.15rem 0 0; color:#64748b; font-size:.82rem; }
+      .messages-chat-info-meta { margin:.55rem 0 0; color:#475569; font-size:.82rem; }
+      .messages-group-member-list { display:grid; gap:.5rem; max-height: 260px; overflow:auto; margin-top:.85rem; }
+      .messages-action-input:focus { border-color:#006a3f; box-shadow: 0 0 0 3px rgba(0,106,63,.08); outline:none; }
+      .messages-action-select:focus { border-color:#006a3f; box-shadow: 0 0 0 3px rgba(0,106,63,.08); outline:none; }
+      .messages-action-search:focus { border-color:#006a3f; box-shadow: 0 0 0 3px rgba(0,106,63,.08); outline:none; }
+      .messages-action-footer { padding: 0 1rem 1rem; display:flex; justify-content:flex-end; gap:.5rem; }
+    
+</style>
+<div id="admMessagesRoot">
+<div class="messages-page-shell">
+        <div class="messages-topbar">
+          <div>
+            <h2>Messages</h2>
+            <p>Room-based chat for direct conversations and group chats across the LMS.</p>
+          </div>
+          <div class="messages-top-actions">
+            <button class="btn-secondary" type="button" id="admMessagesRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+            <button class="btn-primary" type="button" id="admMessagesComposeBtn"><i class="fas fa-pen-to-square"></i> New chat</button>
+          </div>
+        </div>
+
+        <div class="messages-stats">
+          <div class="messages-stat-card"><div class="messages-stat-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-comments"></i></div><div class="messages-stat-info"><h3 id="admMessagesRoomCount">0</h3><p>Rooms</p></div></div>
+          <div class="messages-stat-card"><div class="messages-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-envelope-open"></i></div><div class="messages-stat-info"><h3 id="admMessagesUnreadCount">0</h3><p>Unread</p></div></div>
+          <div class="messages-stat-card"><div class="messages-stat-icon" style="background:linear-gradient(135deg,#0f766e,#115e59)"><i class="fas fa-user-group"></i></div><div class="messages-stat-info"><h3 id="admMessagesDirectCount">0</h3><p>Direct</p></div></div>
+          <div class="messages-stat-card"><div class="messages-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="fas fa-people-group"></i></div><div class="messages-stat-info"><h3 id="admMessagesGroupCount">0</h3><p>Groups</p></div></div>
+        </div>
+
+        <div class="messages-workbench">
+          <div class="messages-panel">
+            <div class="messages-panel-head">
+              <div>
+                <h3>Chats</h3>
+                <p>Search conversations and switch between direct and group rooms.</p>
+                <div class="messages-toolbar">
+                  <select class="messages-select" id="admMessagesRoomFilter" style="min-width: 160px">
+                    <option value="all">All rooms</option>
+                    <option value="direct">Direct chats</option>
+                    <option value="group">Group chats</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div style="padding:1rem 1rem 0">
+              <div class="messages-toolbar">
+                <input class="messages-search" id="admMessagesSearch" type="search" placeholder="Search rooms, users, or preview"/>
+              </div>
+            </div>
+            <div class="messages-room-list" id="admMessagesRoomList">
+              <div class="messages-empty">Loading chats...</div>
+            </div>
+            <button class="btn-primary" type="button" id="admMessagesComposefloatBtn" style="position: relative; float: right; bottom: 4.5rem; right: 1.5rem; border-radius: 50%; width: 48px; height: 48px; display: grid; place-items: center; padding: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(15,23,42,.15);"><i class="fa-solid fa-plus"></i></button>
+
+          </div>
+
+          <div class="messages-panel messages-thread">
+            <div class="messages-thread-header" id="admMessagesThreadHeader">
+              <div>
+                <h3 id="admMessagesThreadTitle">No chat selected</h3>
+                <p id="admMessagesThreadSubtitle">Select a room to open the conversation.</p>
+              </div>
+              
+              <div class="messages-thread-actions messages-hidden" id="admMessagesThreadActions">
+                <diV class="messages-hambger-three-dot">
+                  <button class="hambger-three-dot">
+                    <i class="fa-solid fa-ellipsis-vertical"></i> 
+                  </button>
+                </div>
+                <div id="admMessagesThreadActionMenu" class="messages-thread-action-menu messages-hidden">
+                  <button class="messages-thread-action-btn" id="admMessagesMarkReadBtn"><i class="fa-solid fa-check"></i> Mark as read</button>
+                  <button class="messages-thread-action-btn" id="admMessagesDeleteBtn"><i class="fa-solid fa-trash"></i> Leave chat</button>
+                  <button class="messages-thread-action-btn" id="admMessagesCloseBtn"><i class="fa-solid fa-times"></i> Close chat</button>
+                  <button class="messages-thread-action-btn" id="admMessagesInfoBtn"><i class="fa-solid fa-info-circle"></i> Chat Information</button>
+                </div>
+              </div>
+            </div>
+
+             <div class="messages-message-viewer" id="admMessagesMessagesviewer" style="position: relative;"> 
+              <div class="messages-message-list" id="admMessagesMessagesList">
+                <div class="messages-thread-empty">Conversation will appear here.</div>
+              </div>
+              <div class="messages-float-load-more" style="display: flex; justify-content: right; margin-top: .75rem; position: sticky; bottom: 90px; z-index: 66; float: right; background-color: #0909e552; width: 100%; padding-right: 0px;">
+                <button class="btn-secondary messages-load-more-btn" type="button" id="admMessagesLoadMoreBtn"><i class="fa-solid fa-chevron-down"></i></button>
+              </div>
+             </div> 
+            <div class="messages-composer">
+              <div class="messages-actions-row">
+              <div id="admMessagesReplyPreview" class="messages-reply-composer messages-hidden">
+                <div>
+                  <strong id="admMessagesReplyLabel">Replying</strong>
+                  <p id="admMessagesReplyText"></p>
+                </div>
+                <button id="admMessagesReplyClearBtn" class="messages-reply-clear" type="button" aria-label="Cancel reply"><i class="fas fa-times"></i></button>
+              </div>
+              <div id="admMessagesEditPreview" class="messages-edit-composer messages-hidden">
+                <div>
+                  <strong id="admMessagesEditLabel">Editing message</strong>
+                  <p id="admMessagesEditText"></p>
+                </div>
+                <button id="admMessagesEditClearBtn" class="messages-edit-clear" type="button" aria-label="Cancel edit"><i class="fas fa-times"></i></button>
+              </div>
+              <div id="admMessagesAttachmentSummary" class="messages-attachment-note messages-hidden"></div>
+              <div id="admMessagesAttachmentPreview" class="messages-attachment-preview messages-hidden"></div>
+                <textarea id="admMessagesBody" class="messages-textarea" placeholder="Write a message..." style="min-height:50px; width:100%; resize: vertical; min-height: 50px;"></textarea>
+              </div>
+              <input id="admMessagesAttachmentInput" class="messages-hidden" type="file" />
+              <div class=" messages-actions-chat-button">
+                <button class="btn-secondary attach-btn" type="button" id="admMessagesAttachBtn"><i class="fa fa-paperclip" aria-hidden="true"></i></button>
+                <button class="btn-primary send-btn" type="button" id="admMessagesSendBtn"><i class="fas fa-paper-plane"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages-modal" id="admMessagesComposeModal" aria-hidden="true">
+          <div class="messages-modal-card" role="dialog" aria-modal="true" aria-labelledby="admMessagesComposeTitle">
+            <div class="messages-modal-head">
+              <div>
+                <h3 id="admMessagesComposeTitle">Start a chat</h3>
+                <p>Open a direct chat or create a group room.</p>
+              </div>
+              <button class="btn-secondary" type="button" id="admMessagesCloseComposeBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="messages-modal-body">
+              <div class="messages-modal-tabs">
+                <button class="messages-tab active" type="button" data-compose-tab="direct">Direct</button>
+                <button class="messages-tab" type="button" data-compose-tab="group">Group</button>
+              </div>
+
+              <div class="messages-compose-section" data-compose-section="direct">
+                <div class="messages-compose-row">
+                  <label>Search user</label>
+                  <input id="admMessagesUserSearch" class="messages-input" type="search" placeholder="Search by name, email, or role" style="padding: 10px; margin-bottom: 10px;"/>
+                </div>
+                <div class="messages-user-grid" id="admMessagesUserGrid"></div>
+              </div>
+
+              <div class="messages-compose-section messages-hidden" data-compose-section="group">
+                <div class="messages-compose-row">
+                  <label>Group name</label>
+                  <input id="admMessagesGroupName" class="messages-input" type="text" maxlength="200" placeholder="e.g. SHS 1 Science A" />
+                </div>
+                <div class="messages-compose-row" style="margin-top:.9rem">
+                  <label>Select members</label>
+                  <input id="admMessagesGroupMemberSearch" class="messages-input" type="search" placeholder="Search members to include" style="padding: 10px; margin-bottom: 10px;"/>
+                </div>
+                <div class="messages-user-grid" id="admMessagesGroupMemberGrid"></div>
+                <div class="messages-note" id="admMessagesGroupSummary">Select members to preview the room recipients.</div>
+              </div>
+
+              <div class="messages-compose-row">
+                <label>Initial message</label>
+                <textarea id="admMessagesComposeBody" class="messages-textarea" placeholder="Type the first message for this room..."></textarea>
+              </div>
+            </div>
+            <div class="messages-actions-row" style="padding:0 1rem 1rem">
+              <button class="btn-secondary" type="button" id="admMessagesCancelComposeBtn">Cancel</button>
+              <button class="btn-primary" type="button" id="admMessagesCreateRoomBtn"><i class="fas fa-paper-plane"></i> Start chat</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages-viewer-modal" id="admMessagesViewerModal" aria-hidden="true">
+          <div class="messages-viewer-card" role="dialog" aria-modal="true" aria-labelledby="admMessagesViewerTitle">
+            <div class="messages-viewer-head">
+              <div>
+                <h3 id="admMessagesViewerTitle">Attachment preview</h3>
+                <p id="admMessagesViewerMeta">View images, videos, and PDFs in place.</p>
+              </div>
+              <button class="messages-viewer-close" type="button" id="admMessagesViewerCloseBtn" aria-label="Close preview"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="messages-viewer-body" id="admMessagesViewerBody">
+              <div class="messages-viewer-placeholder">Select an attachment to preview it here.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="messages-action-modal" id="admMessagesActionModal" aria-hidden="true">
+          <div class="messages-action-card" role="dialog" aria-modal="true" aria-labelledby="admMessagesActionTitle">
+            <div class="messages-action-head">
+              <h3 id="admMessagesActionTitle">Action</h3>
+            </div>
+            <div class="messages-action-body">
+              <p id="admMessagesActionMessage"></p>
+              <input id="admMessagesActionInput" class="messages-action-input messages-hidden" type="text" />
+              <select id="admMessagesActionSelect" class="messages-action-select messages-hidden"></select>
+              <input id="admMessagesActionSearch" class="messages-action-search messages-hidden" type="search" placeholder="Search chats..." />
+              <div id="admMessagesActionOptions" class="messages-user-grid messages-action-options messages-hidden"></div>
+            </div>
+            <div class="messages-action-footer">
+              <button class="btn-secondary" type="button" id="admMessagesActionCancelBtn">Cancel</button>
+              <button class="btn-primary" type="button" id="admMessagesActionOkBtn">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

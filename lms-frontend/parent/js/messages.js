@@ -69,7 +69,7 @@
   function initIfVisible() {
     const root = document.getElementById('admMessagesRoot');
     if (!root || root.dataset.bound === '1') return;
-    if (typeof Auth !== 'undefined' && !Auth.requireAuth([USER_ROLES.ADMIN])) return;
+    if (typeof Auth !== 'undefined' && !Auth.requireAuth([USER_ROLES.PARENT])) return;
 
     root.dataset.bound = '1';
     injectStyles();
