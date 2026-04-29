@@ -1141,37 +1141,24 @@ Complete messaging, announcements, analytics, and final polish for production re
 
 **Day 1-2: Messaging System (All Roles)**
 
-- [ ] **Create** `admin/messages.html`
-  - Inbox (received messages)
-  - Sent messages
-  - Compose message:
-    - Recipient selector (individual/group)
-    - Subject and body
-    - Attach files
-    - Send button
-  - Reply to message
-  - Forward message
-  - Delete message
-  - Search messages
-  - Mark as read/unread
-  - Message thread view
-  - Bulk messaging (to classes, departments, programs, etc.)
-- [ ] **Create** `teacher/messages.html`
-  - Similar to admin messages
-  - Send to students (individual/assigned class)
-  - Send to parents
-  - Send to admin
-  - Read receipts
-- [ ] **Create** `student/messages.html`
-  - Inbox
-  - Send to teachers
-  - Send to classmates
-  - Reply to messages
-- [ ] **Create** `parent/messages.html`
-  - Inbox
-  - Send to teachers
-  - Send to admin
-  - Messages about linked children
+- [x] **Complete** `admin/messages.html`
+  - Room-based inbox with direct and group conversations
+  - Compose modal for new chats with recipient filters and search
+  - Reply, forward, delete, and mark-read actions in thread view
+  - Attachment support, message search, unread handling, and polling refresh
+  - Bulk chat support for eligible users and groups
+- [x] **Complete** `teacher/messages.html`
+  - Same room-based chat experience as admin
+  - Direct chat to students, classmates, parents, and admin users
+  - Read receipts, periodic refresh, and filtered recipient lookup
+- [x] **Complete** `student/messages.html`
+  - Inbox for direct and group chats
+  - Send to teachers and classmates only
+  - Reply flow, unread divider behavior, and periodic refresh
+- [x] **Complete** `parent/messages.html`
+  - Inbox for direct and group chats
+  - Send to teachers and admin users only
+  - Linked-child-aware chat list, reply flow, and periodic refresh
 
 **Day 3-4: Announcements & Events**
 

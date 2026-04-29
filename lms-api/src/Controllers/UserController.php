@@ -134,6 +134,41 @@ class UserController
         // accept per_page or limit for compatibility
         $limit = isset($_GET['per_page']) ? (int) $_GET['per_page'] : (isset($_GET['limit']) ? (int) $_GET['limit'] : 10);
 
+        // support a limited "for_chat" mode that returns chat-eligible users
+        $forChat = isset($_GET['for_chat']) && (string) $_GET['for_chat'] === '1';
+        $search = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
+        if ($forChat) {
+            $institutionId = isset($user['institution_id']) ? (int) $user['institution_id'] : 0;
+            $exclude = (int) $user['user_id'];
+            $classFilter = '';
+            if (isset($_GET['class']) && trim((string) $_GET['class']) !== '') {
+                $classFilter = trim((string) $_GET['class']);
+            } elseif (isset($_GET['class_name']) && trim((string) $_GET['class_name']) !== '') {
+                $classFilter = trim((string) $_GET['class_name']);
+            } elseif (isset($_GET['class_code']) && trim((string) $_GET['class_code']) !== '') {
+                $classFilter = trim((string) $_GET['class_code']);
+            }
+
+            $programFilter = '';
+            if (isset($_GET['program']) && trim((string) $_GET['program']) !== '') {
+                $programFilter = trim((string) $_GET['program']);
+            } elseif (isset($_GET['program_name']) && trim((string) $_GET['program_name']) !== '') {
+                $programFilter = trim((string) $_GET['program_name']);
+            } elseif (isset($_GET['program_code']) && trim((string) $_GET['program_code']) !== '') {
+                $programFilter = trim((string) $_GET['program_code']);
+            }
+            $role = isset($_GET['role']) ? trim((string) $_GET['role']) : '';
+            $excludeRole = '';
+            if ($roleMiddleware->isStudent()) {
+                $excludeRole = 'parent';
+            }
+
+            $candidates = $this->userRepo->getChatCandidates($institutionId, $page, $limit, $search, $exclude, $classFilter, $programFilter, $role, $excludeRole);
+            $total = $this->userRepo->countChatCandidates($institutionId, $search, $exclude, $classFilter, $programFilter, $role, $excludeRole);
+            Response::paginated($candidates, $total, $page, $limit);
+            return;
+        }
+
         // Super admins may only view admin users (paginated)
         if (!empty($user['is_super_admin'])) {
             $filters = [];

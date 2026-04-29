@@ -23,6 +23,11 @@
     pollTimerId: null,
     pollInFlight: false,
     pollEnabled: false,
+    composeFilters: {
+      classFilter: '',
+      programFilter: '',
+      role: '',
+    },
   };
 
   const DOM = {};
@@ -469,6 +474,19 @@
                   <label>Search user</label>
                   <input id="admMessagesUserSearch" class="messages-input" type="search" placeholder="Search by name, email, or role" style="padding: 10px; margin-bottom: 10px;"/>
                 </div>
+                <div class="messages-compose-row" style="margin-top:.5rem">
+                  <label>Filter users (optional)</label>
+                  <div class="messages-toolbar" style="margin-top:.5rem">
+                    <input id="admMessagesComposeClassFilter" class="messages-input" type="text" placeholder="Class name or code" />
+                    <input id="admMessagesComposeProgramFilter" class="messages-input" type="text" placeholder="Program name or code" />
+                    <select id="admMessagesComposeRoleFilter" class="messages-select" style="min-width: 170px">
+                      <option value="">Any role</option>
+                      <option value="student">Student</option>
+                      <option value="teacher">Teacher</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                </div>
                 <div class="messages-user-grid" id="admMessagesUserGrid"></div>
               </div>
 
@@ -592,6 +610,9 @@
     DOM.cancelComposeBtn = document.getElementById('admMessagesCancelComposeBtn');
     DOM.createRoomBtn = document.getElementById('admMessagesCreateRoomBtn');
     DOM.userSearch = document.getElementById('admMessagesUserSearch');
+    DOM.composeClassFilter = document.getElementById('admMessagesComposeClassFilter');
+    DOM.composeProgramFilter = document.getElementById('admMessagesComposeProgramFilter');
+    DOM.composeRoleFilter = document.getElementById('admMessagesComposeRoleFilter');
     DOM.userGrid = document.getElementById('admMessagesUserGrid');
     DOM.groupName = document.getElementById('admMessagesGroupName');
     DOM.groupMemberSearch = document.getElementById('admMessagesGroupMemberSearch');
@@ -666,6 +687,13 @@
     DOM.userSearch?.addEventListener('input', renderDirectUsers);
     DOM.groupMemberSearch?.addEventListener('input', renderGroupMembers);
     DOM.createRoomBtn?.addEventListener('click', createRoomAndSendFirstMessage);
+    const onComposeFilterChange = function () {
+      if (!DOM.composeModal?.classList.contains('open')) return;
+      loadComposeUsersWithFilters();
+    };
+    DOM.composeClassFilter?.addEventListener('input', onComposeFilterChange);
+    DOM.composeProgramFilter?.addEventListener('input', onComposeFilterChange);
+    DOM.composeRoleFilter?.addEventListener('change', onComposeFilterChange);
 
     DOM.attachmentPreview?.addEventListener('click', handleAttachmentPreviewClick);
     DOM.messagesList?.addEventListener('click', handleMessageAttachmentClick);
@@ -768,7 +796,7 @@
     }
   }
 
-  async function loadAllUsers() {
+  async function loadAllUsers(filters = {}) {
     const rows = [];
     let page = 1;
     const limit = 100;
@@ -776,7 +804,7 @@
     const currentUserId = Number(STATE.currentUser?.user_id || 0);
 
     while (page <= 50) {
-      const response = await UserAPI.getAll({ page: page, limit: limit }).catch(function () { return null; });
+      const response = await UserAPI.getAll(Object.assign({ page: page, limit: limit, for_chat: 1 }, filters)).catch(function () { return null; });
       const batch = extractUsers(response);
       const pagination = extractPagination(response);
       const startCount = rows.length;
@@ -828,6 +856,36 @@
     setText('admMessagesUnreadCount', String(STATE.unreadCount));
     setText('admMessagesDirectCount', String(STATE.rooms.filter(function (room) { return String(room.room_type || '') === 'direct'; }).length));
     setText('admMessagesGroupCount', String(STATE.rooms.filter(function (room) { return String(room.room_type || '') !== 'direct'; }).length));
+  }
+
+  function getComposeFilterParams() {
+    const classFilterRaw = String(DOM.composeClassFilter?.value || '').trim();
+    const programFilterRaw = String(DOM.composeProgramFilter?.value || '').trim();
+    const roleRaw = String(DOM.composeRoleFilter?.value || '').trim().toLowerCase();
+
+    STATE.composeFilters = {
+      classFilter: classFilterRaw,
+      programFilter: programFilterRaw,
+      role: roleRaw,
+    };
+
+    const params = {};
+    if (classFilterRaw) params.class = classFilterRaw;
+    if (programFilterRaw) params.program = programFilterRaw;
+    if (roleRaw) params.role = roleRaw;
+
+    return params;
+  }
+
+  async function loadComposeUsersWithFilters() {
+    const users = await loadAllUsers(getComposeFilterParams()).catch(function (error) {
+      console.warn('Unable to load filtered users for compose modal:', error);
+      return [];
+    });
+
+    STATE.users = Array.isArray(users) ? users : [];
+    renderDirectUsers();
+    renderGroupMembers();
   }
 
   function renderRooms() {
@@ -2848,12 +2906,11 @@
     return 'Original message is unavailable.';
   }
 
-  function openComposeModal() {
+  async function openComposeModal() {
     resetComposeState();
     DOM.composeModal?.classList.add('open');
     DOM.composeModal?.setAttribute('aria-hidden', 'false');
-    renderDirectUsers();
-    renderGroupMembers();
+    await loadComposeUsersWithFilters();
   }
 
   function closeComposeModal() {
@@ -3089,9 +3146,13 @@
     STATE.selectedGroupMemberIds = new Set();
     STATE.pendingAttachments = [];
     if (DOM.userSearch) DOM.userSearch.value = '';
+    if (DOM.composeClassFilter) DOM.composeClassFilter.value = '';
+    if (DOM.composeProgramFilter) DOM.composeProgramFilter.value = '';
+    if (DOM.composeRoleFilter) DOM.composeRoleFilter.value = '';
     if (DOM.groupMemberSearch) DOM.groupMemberSearch.value = '';
     if (DOM.groupName) DOM.groupName.value = '';
     if (DOM.composeBody) DOM.composeBody.value = '';
+    STATE.composeFilters = { classFilter: '', programFilter: '', role: '' };
     syncAttachmentSummary();
   }
 

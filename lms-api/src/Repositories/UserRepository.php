@@ -998,7 +998,7 @@ class UserRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT COUNT(DISTINCT u.user_id) 
+                SELECT COUNT(DISTINCT u.user_id)
                 FROM users u
                 INNER JOIN user_roles ur ON u.user_id = ur.user_id
                 INNER JOIN roles r ON ur.role_id = r.role_id
@@ -1009,6 +1009,172 @@ class UserRepository
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Users By Role Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Return chat-eligible users scoped to an institution and optional search.
+     * Excludes the requesting user by default.
+     */
+    public function getChatCandidates(int $institutionId = 0, int $page = 1, int $limit = 20, string $search = '', int $excludeUserId = 0, string $classFilter = '', string $programFilter = '', string $role = '', string $excludeRole = ''): array
+    {
+        try {
+            $offset = ($page - 1) * $limit;
+
+            $sql = "SELECT u.user_id, u.uuid, u.username, u.first_name, u.last_name, u.email, u.profile_photo, GROUP_CONCAT(DISTINCT r.role_name) as roles
+                FROM users u
+                LEFT JOIN user_roles ur ON u.user_id = ur.user_id
+                LEFT JOIN roles r ON ur.role_id = r.role_id
+                WHERE u.deleted_at IS NULL AND u.is_active = 1";
+
+            $params = [];
+            if ($institutionId > 0) {
+                $sql .= " AND u.institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($excludeUserId > 0) {
+                $sql .= " AND u.user_id != :exclude_user";
+                $params['exclude_user'] = $excludeUserId;
+            }
+            if ($classFilter !== '') {
+                $sql .= " AND EXISTS (
+                    SELECT 1
+                    FROM students s
+                    INNER JOIN classes c ON c.class_id = s.class_id
+                    WHERE s.user_id = u.user_id
+                      AND (c.class_name LIKE :class_filter_name OR c.class_code LIKE :class_filter_code)
+                )";
+                $params['class_filter_name'] = "%{$classFilter}%";
+                $params['class_filter_code'] = "%{$classFilter}%";
+            }
+            if ($programFilter !== '') {
+                $sql .= " AND EXISTS (
+                    SELECT 1
+                    FROM students s2
+                    INNER JOIN classes c2 ON c2.class_id = s2.class_id
+                    INNER JOIN programs p2 ON p2.program_id = c2.program_id
+                    WHERE s2.user_id = u.user_id
+                      AND (p2.program_name LIKE :program_filter_name OR p2.program_code LIKE :program_filter_code)
+                )";
+                $params['program_filter_name'] = "%{$programFilter}%";
+                $params['program_filter_code'] = "%{$programFilter}%";
+            }
+            if ($role !== '') {
+                $sql .= " AND EXISTS (SELECT 1 FROM user_roles ur2 INNER JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = :role_name)";
+                $params['role_name'] = $role;
+            }
+            if ($excludeRole !== '') {
+                if (strtolower($excludeRole) === 'parent') {
+                    $sql .= " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 INNER JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND LOWER(r3.role_name) IN ('parent', 'guardian'))";
+                } else {
+                    $sql .= " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 INNER JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND LOWER(r3.role_name) = LOWER(:exclude_role))";
+                    $params['exclude_role'] = $excludeRole;
+                }
+            }
+            if ($search !== '') {
+                $sql .= " AND (u.first_name LIKE :search_first OR u.last_name LIKE :search_last OR u.email LIKE :search_email OR u.username LIKE :search_username)";
+                $params['search_first'] = "%{$search}%";
+                $params['search_last'] = "%{$search}%";
+                $params['search_email'] = "%{$search}%";
+                $params['search_username'] = "%{$search}%";
+            }
+
+            $sql .= " GROUP BY u.user_id ORDER BY u.first_name ASC, u.last_name ASC LIMIT :limit OFFSET :offset";
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $k => $v) {
+                if (in_array($k, ['institution_id', 'exclude_user'], true)) {
+                    $stmt->bindValue(':' . $k, $v, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue(':' . $k, $v, PDO::PARAM_STR);
+                }
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($users as &$user) {
+                $user['roles'] = $user['roles'] ? array_map('strtolower', explode(',', $user['roles'])) : [];
+                unset($user['password_hash']);
+            }
+
+            return $users;
+        } catch (\PDOException $e) {
+            error_log('getChatCandidates error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function countChatCandidates(int $institutionId = 0, string $search = '', int $excludeUserId = 0, string $classFilter = '', string $programFilter = '', string $role = '', string $excludeRole = ''): int
+    {
+        try {
+            $sql = "SELECT COUNT(DISTINCT u.user_id) FROM users u WHERE u.deleted_at IS NULL AND u.is_active = 1";
+            $params = [];
+            if ($institutionId > 0) {
+                $sql .= " AND u.institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+            if ($excludeUserId > 0) {
+                $sql .= " AND u.user_id != :exclude_user";
+                $params['exclude_user'] = $excludeUserId;
+            }
+            if ($classFilter !== '') {
+                $sql .= " AND EXISTS (
+                    SELECT 1
+                    FROM students s
+                    INNER JOIN classes c ON c.class_id = s.class_id
+                    WHERE s.user_id = u.user_id
+                      AND (c.class_name LIKE :class_filter_name OR c.class_code LIKE :class_filter_code)
+                )";
+                $params['class_filter_name'] = "%{$classFilter}%";
+                $params['class_filter_code'] = "%{$classFilter}%";
+            }
+            if ($programFilter !== '') {
+                $sql .= " AND EXISTS (
+                    SELECT 1
+                    FROM students s2
+                    INNER JOIN classes c2 ON c2.class_id = s2.class_id
+                    INNER JOIN programs p2 ON p2.program_id = c2.program_id
+                    WHERE s2.user_id = u.user_id
+                      AND (p2.program_name LIKE :program_filter_name OR p2.program_code LIKE :program_filter_code)
+                )";
+                $params['program_filter_name'] = "%{$programFilter}%";
+                $params['program_filter_code'] = "%{$programFilter}%";
+            }
+            if ($role !== '') {
+                $sql .= " AND EXISTS (SELECT 1 FROM user_roles ur2 INNER JOIN roles r2 ON ur2.role_id = r2.role_id WHERE ur2.user_id = u.user_id AND r2.role_name = :role_name)";
+                $params['role_name'] = $role;
+            }
+            if ($excludeRole !== '') {
+                if (strtolower($excludeRole) === 'parent') {
+                    $sql .= " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 INNER JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND LOWER(r3.role_name) IN ('parent', 'guardian'))";
+                } else {
+                    $sql .= " AND NOT EXISTS (SELECT 1 FROM user_roles ur3 INNER JOIN roles r3 ON ur3.role_id = r3.role_id WHERE ur3.user_id = u.user_id AND LOWER(r3.role_name) = LOWER(:exclude_role))";
+                    $params['exclude_role'] = $excludeRole;
+                }
+            }
+            if ($search !== '') {
+                $sql .= " AND (u.first_name LIKE :search_first OR u.last_name LIKE :search_last OR u.email LIKE :search_email OR u.username LIKE :search_username)";
+                $params['search_first'] = "%{$search}%";
+                $params['search_last'] = "%{$search}%";
+                $params['search_email'] = "%{$search}%";
+                $params['search_username'] = "%{$search}%";
+            }
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $k => $v) {
+                if (in_array($k, ['institution_id', 'exclude_user'], true)) {
+                    $stmt->bindValue(':' . $k, $v, PDO::PARAM_INT);
+                } else {
+                    $stmt->bindValue(':' . $k, $v, PDO::PARAM_STR);
+                }
+            }
+            $stmt->execute();
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log('countChatCandidates error: ' . $e->getMessage());
             return 0;
         }
     }
