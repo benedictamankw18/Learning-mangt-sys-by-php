@@ -46,3 +46,41 @@ if click on the continue teaching it navigate you to a page with buttons like ()
 
 
 ok seen the misunderstanding, here there is no enrollment here, this is how it works, if the student is assigned a class all the subjects(courses) assigned to that class the subject is automatically offer it no need the enroll in courses using this file
+
+
+Pages to add
+move(promote/repeat) student(s) to the next stage/level 
+
+Set active Academic year and Semester (list, Create, Update, Delete)
+
+Announcement(list, Create, Update, Delete)
+
+Subscrition(Admin / super_admin)
+
+Page to edit System settings
+
+Notification 
+
+Analytics
+
+Subscription
+
+Reports
+
+Activity-logs
+
+Api-Management
+
+Platform-Announcement
+
+Institution-settings
+
+System-logs
+
+Exams
+
+help
+
+Support
+
+

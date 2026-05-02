@@ -1282,34 +1282,78 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Broadcast messages
   - System notifications
 
+**Day 3-4: Administrative Management Pages**
+
+- [x] **Create** `admin/promote-students.html` (implemented)
+  - Promote selected students to next class/level
+  - Repeat/retain selected students in current level
+  - Bulk move by class, program, or year
+  - Validation for academic year and semester status
+- [ ] **Create** `admin/academic-years.html`
+  - List academic years
+  - Create academic year
+  - Update academic year
+  - Delete academic year
+  - Activate/deactivate current academic year
+- [ ] **Create** `admin/semesters.html`
+  - List semesters
+  - Create semester
+  - Update semester
+  - Delete semester
+  - Activate/deactivate current semester
+- [ ] **Create** `admin/subscriptions.html`
+  - Subscription management for admin and super admin
+  - Assign, renew, suspend, and review subscriptions
+- [ ] **Create** `admin/system-settings.html`
+  - Edit system settings
+  - School-level configuration and defaults
+  - Notification and integration settings
+- [ ] **Create** `admin/institution-settings.html`
+  - Institution profile settings
+  - Logo, contact, address, and branding
+- [ ] **Create** `admin/notifications.html`
+  - Notification center
+  - Unread badge and filters
+  - Mark read/unread and delete
+- [ ] **Create** `admin/analytics.html`
+  - School-wide analytics dashboard
+  - Enrollment, attendance, grades, and performance trends
+- [ ] **Create** `admin/reports.html`
+  - School reports dashboard
+  - Exportable academic and operational reports
+- [ ] **Create** `admin/activity-logs.html`
+  - Activity log list
+  - Filter by user, date, action, and institution
+- [ ] **Create** `admin/api-management.html`
+  - API key management
+  - Webhook and integration controls
+- [ ] **Create** `superadmin/platform-announcements.html`
+  - Platform-wide announcement list
+  - Create, update, delete, publish, and broadcast announcements
+
+**Day 5: Support & Operations**
+
+- [ ] **Create** `admin/system-logs.html`
+  - System log list
+  - Error log review
+  - Audit trail export
+- [ ] **Create** `admin/exams.html`
+  - Exam schedule and timetable
+  - Internal and mock exam management
+- [ ] **Create** `common/help.html`
+  - User guides by role
+  - FAQs and tutorials
+- [ ] **Create** `common/support.html`
+  - Support ticket submission
+  - Ticket tracking and knowledge base search
+
 **Day 4: Admin Settings & Logs**
 
-- [ ] **Create** `admin/settings.html`
-  - Institution information
-  - School logo upload
-  - Academic year settings
-  - Semester dates
-  - Notification preferences
-  - SMS/Email gateway config
-  - Integration settings
-  - Backup settings
-- [ ] **Create** `admin/system-logs.html`
-  - Login activity (institution users)
-  - User activity logs
-  - System errors
-  - Audit trail
-  - Export logs
+- See the administrative management pages above for `admin/system-settings.html`, `admin/institution-settings.html`, and `admin/system-logs.html`.
 
 **Day 5: Exams Management**
 
-- [ ] **Create** `admin/exams.html`
-  - Exam schedule
-  - Create exam timetable
-  - Invigilation assignments
-  - Exam halls allocation
-  - WASSCE mock exams
-  - Internal assessments
-  - Exam results aggregation
+- See the support and operations pages above for `admin/exams.html`.
 
 ---
 
@@ -1319,18 +1363,7 @@ Complete messaging, announcements, analytics, and final polish for production re
 
 **Day 1: Help & Support**
 
-- [ ] **Create** `common/help.html`
-  - User guides by role
-  - FAQs
-  - Video tutorials
-  - Feature documentation
-  - Contact support
-  - Troubleshooting
-- [ ] **Create** `common/support.html`
-  - Submit support ticket
-  - Ticket list
-  - Ticket status tracking
-  - Knowledge base search
+- See the support pages above for `common/help.html` and `common/support.html`.
 
 **Day 2-3: Responsive Design & Browser Testing**
 

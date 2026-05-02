@@ -175,6 +175,11 @@ class StudentController
                 Response::validationError(['class_id' => 'Selected class does not exist']);
                 return;
             }
+
+            if ($user['role'] !== 'super_admin' && (int) $class['institution_id'] !== (int) $user['institution_id']) {
+                Response::forbidden('Selected class belongs to a different institution');
+                return;
+            }
         }
 
         // Create user first
@@ -239,6 +244,24 @@ class StudentController
         $studentFields = ['student_id_number', 'enrollment_date', 'class_id', 'gender', 'status',
                           'parent_name', 'parent_phone', 'parent_email', 'emergency_contact'];
         $updateStudentData = array_intersect_key($data, array_flip($studentFields));
+
+        if (!empty($updateStudentData['class_id'])) {
+            $class = $this->classRepo->findById((int) $updateStudentData['class_id']);
+            if (!$class) {
+                Response::validationError(['class_id' => 'Selected class does not exist']);
+                return;
+            }
+
+            if ($user['role'] !== 'super_admin' && (int) $class['institution_id'] !== (int) $user['institution_id']) {
+                Response::forbidden('Selected class belongs to a different institution');
+                return;
+            }
+
+            if ($user['role'] !== 'super_admin' && (int) $student['institution_id'] !== (int) $user['institution_id']) {
+                Response::forbidden('Access denied');
+                return;
+            }
+        }
 
         if (empty($updateStudentData) || $this->studentRepo->update($studentId, $updateStudentData)) {
             $updated = $this->studentRepo->findByUuid($sanitizedUuid);

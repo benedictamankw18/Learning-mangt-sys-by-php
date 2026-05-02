@@ -49,6 +49,7 @@
     function setupEventListeners() {
         // Add student
         on('addStudentBtn', 'click', () => openStudentModal(null));
+        on('promoteStudentsBtn', 'click', () => { window.location.hash = '#promote-students'; });
 
         // Export
         on('exportStudentsBtn', 'click', exportStudents);

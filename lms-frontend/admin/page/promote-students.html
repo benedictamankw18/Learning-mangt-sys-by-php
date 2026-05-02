@@ -1,0 +1,434 @@
+<style>
+.promote-page { padding: 0; }
+.promote-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+.promote-page-header h2 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+}
+.promote-page-header p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary, #64748b);
+}
+.promote-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.promote-status-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+@media (max-width: 1024px) { .promote-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .promote-status-grid { grid-template-columns: 1fr; } }
+.promote-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+.promote-card .label { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.35rem; }
+.promote-card .value { font-size: 1.2rem; font-weight: 700; color: #0f172a; }
+.promote-card .meta { margin-top: 0.25rem; font-size: 0.8rem; color: #64748b; }
+.promote-alert {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    background: linear-gradient(135deg, #eff6ff, #f8fafc);
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    margin-bottom: 1rem;
+}
+.promote-alert i { font-size: 1rem; margin-top: 0.15rem; }
+.promote-layout {
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 1100px) { .promote-layout { grid-template-columns: 1fr; } }
+.promote-panel {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+.promote-panel-header {
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+.promote-panel-header h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.promote-panel-header p { margin: 0.2rem 0 0; font-size: 0.84rem; color: #64748b; }
+.promote-panel-body { padding: 1rem 1.1rem; }
+.promote-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+}
+.promote-form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.promote-form-group label { font-size: 0.8rem; font-weight: 600; color: #475569; }
+.promote-form-group select,
+.promote-form-group input {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.62rem 0.75rem;
+    font-size: 0.92rem;
+    outline: none;
+    background: #fff;
+    color: #0f172a;
+}
+.promote-form-group select:focus,
+.promote-form-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+.promote-note {
+    font-size: 0.8rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    line-height: 1.5;
+}
+.promote-year-panel {
+    margin-top: 0.9rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #fff;
+    overflow: hidden;
+}
+.promote-year-panel-header {
+    padding: 0.85rem 0.95rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+.promote-year-panel-header h4 { margin: 0; font-size: 0.92rem; color: #0f172a; }
+.promote-year-panel-header p { margin: 0.2rem 0 0; font-size: 0.78rem; color: #64748b; }
+.promote-year-list { display: flex; flex-direction: column; }
+.promote-year-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem 0.95rem;
+    border-top: 1px solid #f1f5f9;
+}
+.promote-year-item:first-child { border-top: none; }
+.promote-year-item.current { background: #eff6ff; }
+.promote-year-main { min-width: 0; }
+.promote-year-name { font-weight: 600; color: #0f172a; }
+.promote-year-dates { font-size: 0.78rem; color: #64748b; margin-top: 0.15rem; }
+.promote-list-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+}
+.promote-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+.promote-toolbar-left { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+.promote-toolbar-right { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.promote-search {
+    min-width: 220px;
+    position: relative;
+}
+.promote-search i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.promote-search input {
+    width: 100%;
+    padding: 0.58rem 0.75rem 0.58rem 2.2rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    outline: none;
+}
+.promote-search input:focus { border-color: #3b82f6; }
+.promote-table-wrap { overflow-x: auto; }
+.promote-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.promote-table thead tr { background: #f8fafc; }
+.promote-table th {
+    padding: 0.78rem 0.95rem;
+    text-align: left;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+.promote-table td {
+    padding: 0.85rem 0.95rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #0f172a;
+}
+.promote-table tbody tr:hover { background: #f8fafc; }
+.student-cell { display: flex; align-items: center; gap: 0.75rem; }
+.student-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(135deg, #0f766e, #2563eb);
+    flex-shrink: 0;
+}
+.student-name { font-weight: 600; color: #0f172a; }
+.student-meta { font-size: 0.78rem; color: #64748b; }
+.students-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.badge-active { background: #dcfce7; color: #15803d; }
+.badge-inactive { background: #fef9c3; color: #854d0e; }
+.badge-withdrawn { background: #fee2e2; color: #b91c1c; }
+.promote-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.95rem 1.1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    flex-wrap: wrap;
+}
+.promote-selection {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #475569;
+    font-size: 0.85rem;
+}
+.promote-empty {
+    padding: 2.4rem 1rem;
+    text-align: center;
+    color: #64748b;
+}
+.promote-empty i { font-size: 2.3rem; margin-bottom: 0.8rem; color: #cbd5e1; }
+.promote-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: #475569;
+    font-size: 0.85rem;
+}
+.promote-progress-bar {
+    width: 150px;
+    height: 8px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+.promote-progress-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #0f766e, #2563eb);
+    transition: width 0.2s ease;
+}
+.promote-toolbar .btn,
+.promote-footer .btn { white-space: nowrap; }
+</style>
+
+<div class="promote-page">
+    <div class="promote-page-header">
+        <div>
+            <h2><i class="fas fa-arrow-up" style="margin-right:.5rem;color:var(--primary,#3b82f6)"></i>Promote Students</h2>
+            <p>Move students to the next class, repeat them in the same level, or bulk reassign by class, program, or year.</p>
+        </div>
+        <div class="promote-header-actions">
+            <button class="btn btn-outline btn-sm" id="promoteBackBtn"><i class="fas fa-users"></i> Back to Students</button>
+            <button class="btn btn-primary btn-sm" id="promoteRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+    </div>
+
+    <div class="promote-status-grid">
+        <div class="promote-card">
+            <div class="label">Current Academic Year</div>
+            <div class="value" id="promoteAcademicYear">Loading…</div>
+            <div class="meta" id="promoteAcademicYearMeta">Checking active year</div>
+        </div>
+        <div class="promote-card">
+            <div class="label">Current Semester</div>
+            <div class="value" id="promoteSemester">Loading…</div>
+            <div class="meta" id="promoteSemesterMeta">Checking active semester</div>
+        </div>
+        <div class="promote-card">
+            <div class="label">Students Loaded</div>
+            <div class="value" id="promoteLoadedCount">0</div>
+            <div class="meta" id="promoteLoadedMeta">Use the filters to narrow the source list</div>
+        </div>
+        <div class="promote-card">
+            <div class="label">Selected for Move</div>
+            <div class="value" id="promoteSelectedCount">0</div>
+            <div class="meta" id="promoteSelectedMeta">Choose one or more students to continue</div>
+        </div>
+    </div>
+
+    <div class="promote-alert" id="promoteAlert">
+        <i class="fas fa-circle-info"></i>
+        <div>
+            <strong>Promotion window:</strong> Load a source class, select students, then choose the target class. Promotion only updates class placement; it does not rewrite student history fields.
+        </div>
+    </div>
+
+    <div class="promote-layout">
+        <aside class="promote-panel">
+            <div class="promote-panel-header">
+                <h3>Source and Target</h3>
+                <p>Pick the source group first, then choose where the selected students should go.</p>
+            </div>
+            <div class="promote-panel-body">
+                <div class="promote-form-grid">
+                    <div class="promote-form-group">
+                        <label for="promoteAcademicYearSelect">Academic Year</label>
+                        <select id="promoteAcademicYearSelect">
+                            <option value="">All academic years</option>
+                        </select>
+                    </div>
+                    <div class="promote-form-group">
+                        <label for="promoteProgramSelect">Program</label>
+                        <select id="promoteProgramSelect">
+                            <option value="">All programs</option>
+                        </select>
+                    </div>
+                    <div class="promote-form-group">
+                        <label for="promoteSourceClassSelect">Source Class</label>
+                        <select id="promoteSourceClassSelect">
+                            <option value="">Select source class</option>
+                        </select>
+                    </div>
+                    <div class="promote-form-group">
+                        <label for="promoteActionSelect">Action</label>
+                        <select id="promoteActionSelect">
+                            <option value="promote">Promote to next level</option>
+                            <option value="repeat">Repeat in current level</option>
+                            <option value="move">Move to a different class</option>
+                        </select>
+                    </div>
+
+                    <div class="promote-form-group">
+                        <label for="promoteTargetClassSelect">Target Class</label>
+                        <select id="promoteTargetClassSelect">
+                            <option value="">Select target class</option>
+                        </select>
+                    </div>
+                    <div class="promote-note" id="promoteTargetHint">
+                        Select a source class to auto-suggest a target class.
+                    </div>
+
+                    <div class="promote-year-panel">
+                        <div class="promote-year-panel-header">
+                            <h4 id="promoteAcademicYearsTitle">Academic Years</h4>
+                            <p id="promoteAcademicYearsNote">All years loaded from the database, with the current year highlighted.</p>
+                        </div>
+                        <div class="promote-year-list" id="promoteAcademicYearsList">
+                            <div class="promote-empty" style="padding:1rem">
+                                <p style="margin:0">Loading academic years…</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem">
+                    <button class="btn btn-outline btn-sm" id="promoteSelectSameLevelBtn"><i class="fas fa-layer-group"></i> Match Level</button>
+                    <button class="btn btn-outline btn-sm" id="promoteSelectNextBtn"><i class="fas fa-arrow-up"></i> Next Level</button>
+                    <button class="btn btn-outline btn-sm" id="promoteClearSelectionBtn"><i class="fas fa-broom"></i> Clear Selection</button>
+                </div>
+            </div>
+        </aside>
+
+        <section class="promote-list-card">
+            <div class="promote-toolbar">
+                <div class="promote-toolbar-left">
+                    <div class="promote-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="promoteSearchInput" placeholder="Search students by name, email, or ID…">
+                    </div>
+                    <select id="promoteStatusFilter" class="students-filter-select">
+                        <option value="active">Active students</option>
+                        <option value="">All statuses</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="withdrawn">Withdrawn</option>
+                    </select>
+                </div>
+                <div class="promote-toolbar-right">
+                    <span class="promote-selection">Source list: <strong id="promoteSourceLabel">No class selected</strong></span>
+                </div>
+            </div>
+
+            <div class="promote-table-wrap">
+                <table class="promote-table">
+                    <thead>
+                        <tr>
+                            <th style="width:42px"><input type="checkbox" id="promoteSelectAll"></th>
+                            <th>Student</th>
+                            <th>ID Number</th>
+                            <th>Current Class</th>
+                            <th>Program</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promoteStudentsBody">
+                        <tr>
+                            <td colspan="6">
+                                <div class="promote-empty">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <h4 style="margin:0 0 .35rem">Choose a source class</h4>
+                                    <p style="margin:0">Use the filters on the left to load the students you want to promote or repeat.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="promote-footer">
+                <div class="promote-progress">
+                    <div class="promote-progress-bar"><span id="promoteProgressBar"></span></div>
+                    <span id="promoteProgressText">Idle</span>
+                </div>
+                <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                    <button class="btn btn-outline btn-sm" id="promoteReloadBtn"><i class="fas fa-rotate"></i> Reload Students</button>
+                    <button class="btn btn-primary btn-sm" id="promoteApplyBtn"><i class="fas fa-paper-plane"></i> Apply Promotion</button>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

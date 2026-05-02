@@ -13,18 +13,28 @@ class AcademicYearRepository
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function getAll(int $page = 1, int $limit = 20): array
+    public function getAll(int $page = 1, int $limit = 20, ?int $institutionId = null): array
     {
         try {
             $offset = ($page - 1) * $limit;
-            $stmt = $this->db->prepare("
-                SELECT * FROM academic_years
-                ORDER BY start_date DESC
-                LIMIT :limit OFFSET :offset
-            ");
+            $where = '';
+            $params = [];
+
+            if ($institutionId !== null) {
+                $where = 'WHERE institution_id = :institution_id';
+                $params['institution_id'] = $institutionId;
+            }
+
+            $stmt = $this->db->prepare("SELECT * FROM academic_years $where ORDER BY start_date DESC LIMIT :limit OFFSET :offset");
+
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(':' . $key, $value, \PDO::PARAM_INT);
+            }
+
             $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
             $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
             $stmt->execute();
+
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Get Academic Years Error: " . $e->getMessage());
@@ -32,10 +42,16 @@ class AcademicYearRepository
         }
     }
 
-    public function count(): int
+    public function count(?int $institutionId = null): int
     {
         try {
-            $stmt = $this->db->query("SELECT COUNT(*) as total FROM academic_years");
+            if ($institutionId !== null) {
+                $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM academic_years WHERE institution_id = :institution_id");
+                $stmt->execute(['institution_id' => $institutionId]);
+            } else {
+                $stmt = $this->db->query("SELECT COUNT(*) as total FROM academic_years");
+            }
+
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
@@ -44,11 +60,19 @@ class AcademicYearRepository
         }
     }
 
-    public function findById(int $id): ?array
+    public function findById(int $id, ?int $institutionId = null): ?array
     {
         try {
-            $stmt = $this->db->prepare("SELECT * FROM academic_years WHERE academic_year_id = :id");
-            $stmt->execute(['id' => $id]);
+            $sql = "SELECT * FROM academic_years WHERE academic_year_id = :id";
+            $params = ['id' => $id];
+
+            if ($institutionId !== null) {
+                $sql .= " AND institution_id = :institution_id";
+                $params['institution_id'] = $institutionId;
+            }
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
@@ -60,10 +84,7 @@ class AcademicYearRepository
     public function create(array $data): ?int
     {
         try {
-            $stmt = $this->db->prepare("
-                INSERT INTO academic_years (institution_id, year_name, start_date, end_date, is_current)
-                VALUES (:institution_id, :year_name, :start_date, :end_date, :is_current)
-            ");
+            $stmt = $this->db->prepare("\n                INSERT INTO academic_years (institution_id, year_name, start_date, end_date, is_current)\n                VALUES (:institution_id, :year_name, :start_date, :end_date, :is_current)\n            ");
             $stmt->execute([
                 'institution_id' => $data['institution_id'],
                 'year_name' => $data['year_name'],
@@ -116,10 +137,16 @@ class AcademicYearRepository
         }
     }
 
-    public function getCurrent(): ?array
+    public function getCurrent(?int $institutionId = null): ?array
     {
         try {
-            $stmt = $this->db->query("SELECT * FROM academic_years WHERE is_current = 1 LIMIT 1");
+            if ($institutionId !== null) {
+                $stmt = $this->db->prepare("SELECT * FROM academic_years WHERE is_current = 1 AND institution_id = :institution_id LIMIT 1");
+                $stmt->execute(['institution_id' => $institutionId]);
+            } else {
+                $stmt = $this->db->query("SELECT * FROM academic_years WHERE is_current = 1 LIMIT 1");
+            }
+
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {

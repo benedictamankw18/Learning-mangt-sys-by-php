@@ -20,9 +20,10 @@ class AcademicYearController
     {
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
         $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+        $institutionId = ($user['role'] ?? '') !== 'super_admin' ? (int) ($user['institution_id'] ?? 0) : null;
 
-        $years = $this->repo->getAll($page, $limit);
-        $total = $this->repo->count();
+        $years = $this->repo->getAll($page, $limit, $institutionId);
+        $total = $this->repo->count($institutionId);
 
         Response::success([
             'data' => $years,
@@ -37,7 +38,8 @@ class AcademicYearController
 
     public function show(array $user, int $id): void
     {
-        $year = $this->repo->findById($id);
+        $institutionId = ($user['role'] ?? '') !== 'super_admin' ? (int) ($user['institution_id'] ?? 0) : null;
+        $year = $this->repo->findById($id, $institutionId);
 
         if (!$year) {
             Response::notFound('Academic year not found');
@@ -93,7 +95,8 @@ class AcademicYearController
             return;
         }
 
-        $year = $this->repo->findById($id);
+        $institutionId = ($user['role'] ?? '') !== 'super_admin' ? (int) ($user['institution_id'] ?? 0) : null;
+        $year = $this->repo->findById($id, $institutionId);
 
         if (!$year) {
             Response::notFound('Academic year not found');
@@ -133,7 +136,8 @@ class AcademicYearController
             return;
         }
 
-        $year = $this->repo->findById($id);
+        $institutionId = ($user['role'] ?? '') !== 'super_admin' ? (int) ($user['institution_id'] ?? 0) : null;
+        $year = $this->repo->findById($id, $institutionId);
 
         if (!$year) {
             Response::notFound('Academic year not found');
@@ -149,7 +153,8 @@ class AcademicYearController
 
     public function getCurrent(array $user): void
     {
-        $year = $this->repo->getCurrent();
+        $institutionId = ($user['role'] ?? '') !== 'super_admin' ? (int) ($user['institution_id'] ?? 0) : null;
+        $year = $this->repo->getCurrent($institutionId);
 
         if (!$year) {
             Response::notFound('No current academic year set');
