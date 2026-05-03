@@ -1,0 +1,962 @@
+<!-- Academic Years Management Page -->
+<style>
+.ay-page { padding: 0; }
+
+.ay-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.16), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.14), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.ay-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.ay-content {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .ay-content {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ay-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ay-content {
+    padding: 0.85rem;
+  }
+}
+
+.ay-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .ay-hero { grid-template-columns: 1fr; gap: 0.85rem; }
+}
+
+@media (max-width: 900px) {
+  .ay-hero { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .ay-hero { gap: 0.75rem; margin-bottom: 0.85rem; }
+}
+
+.ay-hero-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 20px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.ay-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .ay-title-row {
+    gap: 0.75rem;
+    flex-direction: column;
+  }
+  .ay-title-row button {
+    width: 100%;
+  }
+}
+
+.ay-title-copy h2 {
+  margin: 0 0 .4rem;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  color: var(--text-primary, #0f172a);
+}
+
+.ay-title-copy p {
+  margin: 0;
+  color: var(--text-secondary, #64748b);
+  font-size: .92rem;
+  max-width: 60ch;
+}
+
+@media (max-width: 768px) {
+  .ay-title-copy h2 {
+    font-size: 1.35rem;
+  }
+  .ay-title-copy p {
+    font-size: .88rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ay-title-copy h2 {
+    font-size: 1.2rem;
+  }
+  .ay-title-copy p {
+    font-size: .85rem;
+    max-width: 100%;
+  }
+}
+
+.ay-meta-row {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.ay-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .75rem;
+  border-radius: 999px;
+  font-size: .78rem;
+  font-weight: 700;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: var(--text-primary, #0f172a);
+  background: #fff;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .ay-pill {
+    font-size: .72rem;
+    padding: .4rem .65rem;
+  }
+}
+
+.ay-pill i { color: var(--primary, #006a3f); }
+
+.ay-hero-panel {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .75rem;
+}
+
+@media (max-width: 1024px) {
+  .ay-hero-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .ay-hero-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; }
+}
+
+@media (max-width: 640px) {
+  .ay-hero-panel { grid-template-columns: 1fr; gap: 0.6rem; }
+}
+
+.ay-stat {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 1rem;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ay-stat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.ay-stat-label {
+  font-size: .76rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-secondary, #64748b);
+  font-weight: 800;
+}
+
+.ay-stat-value {
+  font-size: 1.55rem;
+  line-height: 1;
+  margin: .3rem 0 0;
+  color: var(--text-primary, #0f172a);
+  font-weight: 800;
+}
+
+.ay-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  flex-shrink: 0;
+}
+
+.ay-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.ay-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ay-toolbar-copy {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.ay-toolbar-copy strong {
+  color: var(--text-primary, #0f172a);
+  font-size: .95rem;
+}
+
+.ay-toolbar-copy span {
+  color: var(--text-secondary, #64748b);
+  font-size: .85rem;
+}
+
+.ay-toolbar-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+
+.ay-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  transition: all .2s ease;
+}
+
+.ay-search-box:focus-within {
+  border-color: var(--primary, #006a3f);
+  box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+}
+
+.ay-search-box i {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+}
+
+.ay-search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-primary, #0f172a);
+  min-width: 200px;
+  padding: 0;
+}
+
+.ay-search-input::placeholder {
+  color: var(--text-secondary, #64748b);
+}
+
+@media (max-width: 768px) {
+  .ay-search-input {
+    min-width: 150px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ay-toolbar-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .ay-search-box {
+    width: 100%;
+  }
+  .ay-search-input {
+    min-width: 100%;
+    flex: 1;
+  }
+}
+
+.ay-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  transition: all .2s ease;
+}
+
+.ay-search-box:focus-within {
+  border-color: var(--primary, #006a3f);
+  box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+}
+
+.ay-search-box i {
+  color: var(--text-secondary, #64748b);
+  font-size: 0.9rem;
+}
+
+.ay-search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-primary, #0f172a);
+  min-width: 200px;
+  padding: 0;
+}
+
+.ay-search-input::placeholder {
+  color: var(--text-secondary, #64748b);
+}
+
+@media (max-width: 768px) {
+  .ay-search-input {
+    min-width: 150px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ay-toolbar-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .ay-search-box {
+    width: 100%;
+  }
+  .ay-search-input {
+    min-width: 100%;
+    flex: 1;
+  }
+}
+
+.ay-table-card {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+
+.ay-table-wrap {
+  overflow-x: auto;
+}
+
+.ay-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .ay-table {
+    font-size: 0.85rem;
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ay-table {
+    font-size: 0.8rem;
+    min-width: 500px;
+  }
+}
+
+.ay-table thead tr {
+  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+}
+
+.ay-table th,
+.ay-table td {
+  padding: .95rem 1rem;
+  border-bottom: 1px solid #eef2f7;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.ay-table th {
+  font-size: .75rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-secondary, #64748b);
+  white-space: nowrap;
+}
+
+.ay-table td {
+  color: var(--text-primary, #0f172a);
+  font-size: .92rem;
+}
+
+.ay-table tbody tr:hover { background: #f8fbff; }
+
+.ay-year-cell { display: flex; align-items: center; gap: .85rem; }
+
+.ay-year-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 10px 20px rgba(15, 118, 110, 0.18);
+}
+
+.ay-year-text strong {
+  display: block;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+}
+
+.ay-year-text span {
+  font-size: .78rem;
+  color: var(--text-secondary, #64748b);
+}
+
+.badge-current {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: #dcfce7;
+  color: #15803d;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .76rem;
+}
+
+.badge-current::before {
+  content: "";
+  width: .45rem;
+  height: .45rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.badge-inactive {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: #f1f5f9;
+  color: #475569;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .76rem;
+}
+
+.ay-actions { display: flex; align-items: center; gap: .4rem; }
+
+.ay-actions button {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #64748b);
+  transition: all .15s ease;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .ay-actions button {
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+  }
+}
+
+.ay-actions button:hover { transform: translateY(-1px); background: #f8fafc; border-color: #cbd5e1; }
+
+.ay-actions .btn-edit:hover { color: #0f766e; border-color: #99f6e4; background: #f0fdfa; }
+.ay-actions .btn-delete:hover { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+
+.ay-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-secondary, #64748b);
+}
+
+.ay-empty i { font-size: 2.5rem; margin-bottom: .9rem; color: #94a3b8; }
+.ay-empty h4 { margin: 0 0 .35rem; color: var(--text-primary, #0f172a); }
+.ay-empty p { margin: 0; font-size: .9rem; }
+
+.prog-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn .25s ease;
+}
+
+.prog-modal-overlay.open { display: flex; }
+
+.prog-modal {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 99%);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.25), inset 0 1px 0 rgba(255,255,255,0.6);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  animation: slideUp .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin: 1rem;
+}
+
+@media (max-width: 640px) {
+  .prog-modal {
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .prog-modal {
+    max-width: 100%;
+    border-radius: 12px;
+    margin: 0.75rem;
+  }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(32px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.prog-modal-header {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #f8fafc, #fff);
+  gap: 1rem;
+}
+
+.prog-modal-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+  flex: 1;
+}
+
+@media (max-width: 640px) {
+  .prog-modal-header {
+    padding: 1.25rem 1.5rem;
+  }
+  .prog-modal-header h3 {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .prog-modal-header {
+    padding: 1rem 1.25rem;
+  }
+  .prog-modal-header h3 {
+    font-size: 1rem;
+  }
+}
+
+.prog-modal-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: #f1f5f9;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #64748b);
+  font-size: 1.2rem;
+  transition: all .2s ease;
+}
+
+.prog-modal-close:hover {
+  background: #e2e8f0;
+  color: var(--text-primary, #0f172a);
+  transform: rotate(90deg);
+}
+
+.prog-modal-body {
+  padding: 1.75rem;
+}
+
+@media (max-width: 640px) {
+  .prog-modal-body {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .prog-modal-body {
+    padding: 1.25rem;
+  }
+}
+
+.prog-modal-footer {
+  padding: 1.25rem 1.75rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .prog-modal-footer {
+    padding: 1rem 1.5rem;
+    flex-direction: column-reverse;
+  }
+  .prog-modal-footer button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .prog-modal-footer {
+    padding: 0.85rem 1.25rem;
+    gap: 0.6rem;
+  }
+  .prog-modal-footer button {
+    width: 100%;
+    font-size: 0.9rem;
+  }
+}
+
+.prog-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 520px) {
+  .prog-form-grid { grid-template-columns: 1fr; }
+}
+
+.prog-form-grid .span-2 { grid-column: span 2; }
+
+@media (max-width: 520px) {
+  .prog-form-grid .span-2 { grid-column: span 1; }
+}
+
+.pf-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pf-group label {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-secondary, #64748b);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.pf-group label .req {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.pf-input {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: .92rem;
+  color: var(--text-primary, #0f172a);
+  background: #fff;
+  outline: none;
+  transition: all .2s ease;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.pf-input:focus {
+  border-color: var(--primary, #006a3f);
+  box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  background: #fff;
+}
+
+.pf-error-banner {
+  display: none;
+  grid-column: span 2;
+  padding: 0.85rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  font-size: .85rem;
+  font-weight: 600;
+  animation: shake .3s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@media (max-width: 520px) {
+  .pf-error-banner { grid-column: span 1; }
+}
+
+.ay-response-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem 1rem;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 999px;
+  font-size: .8rem;
+  font-weight: 700;
+  animation: slideInRight .4s ease;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(-16px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.ay-response-badge i {
+  animation: scaleIn .5s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+
+@media (max-width: 768px) {
+  .ay-table th:nth-child(2),
+  .ay-table td:nth-child(2) { display: none; }
+}
+
+@media (max-width: 640px) {
+  .ay-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .ay-toolbar-copy strong {
+    font-size: 0.9rem;
+  }
+  .ay-toolbar-copy span {
+    font-size: 0.8rem;
+  }
+  .ay-table th:nth-child(3),
+  .ay-table td:nth-child(3),
+  .ay-table th:nth-child(4),
+  .ay-table td:nth-child(4) { display: none; }
+  .ay-table th:nth-child(5) { text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .ay-table-wrap {
+    font-size: 0.75rem;
+  }
+  .ay-table th,
+  .ay-table td {
+    padding: 0.7rem 0.6rem;
+  }
+  .ay-actions button {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+}
+</style>
+
+<div class="ay-page">
+  <div class="ay-shell">
+    <div class="ay-content">
+      <div class="ay-hero">
+        <section class="ay-hero-card">
+          <div class="ay-title-row">
+            <div class="ay-title-copy">
+              <h2><i class="fas fa-calendar-alt" style="margin-right:.55rem;color:var(--primary,#006a3f)"></i>Academic Years</h2>
+              <p>Keep the school timeline organized, surface the current cycle, and manage year records without leaving the admin panel.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="addAcademicYearBtn"><i class="fas fa-plus"></i> Add Year</button>
+          </div>
+          <div class="ay-meta-row">
+            <span class="ay-pill"><i class="fas fa-bolt"></i> Fast CRUD</span>
+            <span class="ay-pill"><i class="fas fa-layer-group"></i> Current year highlight</span>
+            <span class="ay-pill"><i class="fas fa-shield-alt"></i> Safe modal editing</span>
+          </div>
+        </section>
+
+        <aside class="ay-hero-card">
+          <div class="ay-hero-panel">
+            <div class="ay-stat">
+              <div class="ay-stat-top">
+                <div>
+                  <div class="ay-stat-label">Total years</div>
+                  <div class="ay-stat-value" id="ayStatTotal">—</div>
+                </div>
+                <div class="ay-stat-icon"><i class="fas fa-calendar-days"></i></div>
+              </div>
+              <span style="font-size:.8rem;color:var(--text-secondary,#64748b)">All academic records in scope</span>
+            </div>
+            <div class="ay-stat">
+              <div class="ay-stat-top">
+                <div>
+                  <div class="ay-stat-label">Current</div>
+                  <div class="ay-stat-value" id="ayStatCurrent">—</div>
+                </div>
+                <div class="ay-stat-icon" style="background:linear-gradient(135deg,#1d4ed8,#38bdf8)"><i class="fas fa-star"></i></div>
+              </div>
+              <span style="font-size:.8rem;color:var(--text-secondary,#64748b)">Marked as active for scheduling</span>
+            </div>
+            <div class="ay-stat">
+              <div class="ay-stat-top">
+                <div>
+                  <div class="ay-stat-label">Timeline</div>
+                  <div class="ay-stat-value" id="ayStatRange">—</div>
+                </div>
+                <div class="ay-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#fb7185)"><i class="fas fa-arrows-left-right"></i></div>
+              </div>
+              <span style="font-size:.8rem;color:var(--text-secondary,#64748b)">Start and end boundaries</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <div class="ay-layout">
+        <div class="ay-toolbar">
+          <div class="ay-toolbar-copy">
+            <strong>Academic year registry</strong>
+            <span>Use the table below to edit names, dates, and current-year status. Changes save instantly.</span>
+          </div>
+          <div class="ay-toolbar-actions">
+            <div class="ay-search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="aySearchInput" class="ay-search-input" placeholder="Search by year name...">
+            </div>
+          </div>
+        </div>
+
+        <div class="ay-table-card">
+          <div class="ay-table-wrap">
+            <table class="ay-table" id="academicYearsTable">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>Start Date</th>
+                  <th>End Date</th>
+                  <th>Status</th>
+                  <th style="width:110px">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="academicYearsTableBody">
+                <tr>
+                  <td colspan="5">
+                    <div class="ay-empty">
+                      <i class="fas fa-spinner fa-spin" style="animation:spin 1s linear infinite"></i>
+                      <h4>Fetching academic years</h4>
+                      <p style="font-size:.85rem;color:var(--text-secondary,#94a3b8)">Connecting to server...</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="academicYearModalOverlay" class="prog-modal-overlay">
+    <div class="prog-modal">
+      <div class="prog-modal-header">
+        <h3 id="academicYearModalTitle">Add Academic Year</h3>
+        <button id="academicYearModalClose" class="prog-modal-close">×</button>
+      </div>
+      <div class="prog-modal-body">
+        <div class="prog-form-grid">
+          <div class="pf-group span-2">
+            <label>Year name <span class="req">*</span></label>
+            <input id="fieldYearName" class="pf-input" placeholder="e.g. 2025/2026">
+          </div>
+          <div class="pf-group">
+            <label>Start date <span class="req">*</span></label>
+            <input id="fieldStartDate" type="date" class="pf-input">
+          </div>
+          <div class="pf-group">
+            <label>End date <span class="req">*</span></label>
+            <input id="fieldEndDate" type="date" class="pf-input">
+          </div>
+          <div class="pf-group">
+            <label>Is current</label>
+            <select id="fieldIsCurrent" class="pf-input">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+          <div id="academicYearFormError" class="pf-error-banner"></div>
+        </div>
+      </div>
+      <div class="prog-modal-footer">
+        <button id="academicYearModalCancel" class="btn btn-outline">Cancel</button>
+        <button id="academicYearModalSave" class="btn btn-primary"><span id="academicYearModalSaveText">Save</span> <span id="academicYearModalSaveSpinner" style="display:none;margin-left:.5rem"><i class="fas fa-spinner fa-spin"></i></span></button>
+      </div>
+    </div>
+  </div>
+
+</div>

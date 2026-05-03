@@ -251,8 +251,13 @@
             const initials = getInitials(s.first_name, s.last_name);
             const fullName = `${s.first_name || ''} ${s.last_name || ''}`.trim();
             const isChecked = S.selectedUuids.has(s.uuid) ? 'checked' : '';
-            const badgeClass = s.status === 'active' ? 'badge-active'
-                             : s.status === 'withdrawn' ? 'badge-withdrawn' : 'badge-inactive';
+            const badgeClass = s.status === 'active'
+                             ? 'badge-active'
+                             : s.status === 'withdrawn'
+                                 ? 'badge-withdrawn'
+                                 : s.status === 'completed'
+                                     ? 'badge-completed'
+                                     : 'badge-inactive';
             const toggleIcon  = s.status === 'active' ? 'fa-user-slash' : 'fa-user-check';
             const toggleTitle = s.status === 'active' ? 'Deactivate' : 'Activate';
             const enrollDate  = s.enrollment_date ? formatDate(s.enrollment_date) : '—';
@@ -841,7 +846,7 @@
         const esc = v => String(v || '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const fmt = d => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); } catch(_){return d;} };
         const badge = s => {
-            const colors = { active:'#15803d;background:#dcfce7', inactive:'#854d0e;background:#fef9c3', withdrawn:'#b91c1c;background:#fee2e2' };
+            const colors = { active:'#15803d;background:#dcfce7', inactive:'#854d0e;background:#fef9c3', withdrawn:'#b91c1c;background:#fee2e2', completed:'#5b21b6;background:#ede9fe' };
             const c = colors[s] || '#64748b;background:#f1f5f9';
             return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;color:${c}">${esc(s)}</span>`;
         };

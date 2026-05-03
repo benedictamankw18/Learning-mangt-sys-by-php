@@ -85,7 +85,7 @@ class StudentController
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
         $newStatus = $data['status'] ?? (($student['status'] === 'active') ? 'inactive' : 'active');
 
-        if (!in_array($newStatus, ['active', 'inactive', 'withdrawn'], true)) {
+        if (!in_array($newStatus, ['active', 'inactive', 'withdrawn', 'completed'], true)) {
             Response::badRequest('Invalid status value');
             return;
         }
@@ -93,11 +93,64 @@ class StudentController
         $isActive = ($newStatus === 'active') ? 1 : 0;
         $this->userRepo->update($student['user_id'], ['is_active' => $isActive]);
 
-        if ($this->studentRepo->update($student['student_id'], ['status' => $newStatus])) {
+        $updateData = ['status' => $newStatus];
+        if ($newStatus === 'completed') {
+            $updateData['completion_date'] = date('Y-m-d H:i:s');
+        }
+
+        if ($this->studentRepo->update($student['student_id'], $updateData)) {
             Response::success(['message' => 'Status updated', 'status' => $newStatus]);
         } else {
             Response::serverError('Failed to update status');
         }
+    }
+
+    /**
+     * Mark student as completed/graduated
+     * PUT /students/{uuid}/complete
+     */
+    public function complete(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+        if (!$roleMiddleware->requireRole('admin')) {
+            return;
+        }
+
+        $student = $this->studentRepo->findByUuid($sanitizedUuid);
+        if (!$student) {
+            Response::notFound('Student not found');
+            return;
+        }
+
+        if ($user['role'] !== 'super_admin' && (int) $student['institution_id'] !== (int) $user['institution_id']) {
+            Response::forbidden('Access denied');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+        $completionDate = !empty($data['completion_date']) ? (string) $data['completion_date'] : date('Y-m-d H:i:s');
+
+        $this->userRepo->update($student['user_id'], ['is_active' => 0]);
+
+        if ($this->studentRepo->update($student['student_id'], [
+            'status' => 'completed',
+            'completion_date' => $completionDate,
+        ])) {
+            Response::success([
+                'message' => 'Student marked as completed',
+                'status' => 'completed',
+                'completion_date' => $completionDate,
+            ]);
+            return;
+        }
+
+        Response::serverError('Failed to mark student as completed');
     }
 
     public function show(array $user, string $uuid): void
@@ -261,6 +314,10 @@ class StudentController
                 Response::forbidden('Access denied');
                 return;
             }
+        }
+
+        if (($updateStudentData['status'] ?? null) === 'completed' && empty($updateStudentData['completion_date'])) {
+            $updateStudentData['completion_date'] = date('Y-m-d H:i:s');
         }
 
         if (empty($updateStudentData) || $this->studentRepo->update($studentId, $updateStudentData)) {

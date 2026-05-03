@@ -237,6 +237,9 @@ class StudentRepository
             if ($status !== null && $status !== '') {
                 $sql .= " AND s.status = :status";
                 $params['status'] = $status;
+            } else {
+                // By default exclude students with status 'completed' from active rosters
+                $sql .= " AND LOWER(COALESCE(s.status, '')) <> 'completed'";
             }
             if ($search !== null && $search !== '') {
                 $sql .= " AND (u.first_name LIKE :search1 OR u.last_name LIKE :search2
@@ -298,6 +301,9 @@ class StudentRepository
             if ($status !== null && $status !== '') {
                 $sql .= " AND s.status = :status";
                 $params['status'] = $status;
+            } else {
+                // Default: exclude completed students from counts when no explicit status provided
+                $sql .= " AND LOWER(COALESCE(s.status, '')) <> 'completed'";
             }
             if ($search !== null && $search !== '') {
                 $sql .= " AND (u.first_name LIKE :search1 OR u.last_name LIKE :search2
@@ -348,6 +354,24 @@ class StudentRepository
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
             error_log("Count Active Students By Institution Error: " . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    public function countCompletedByInstitution(int $institutionId): int
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.institution_id = :institution_id
+                  AND LOWER(COALESCE(s.status, '')) = 'completed'
+                  AND u.deleted_at IS NULL
+            ");
+            $stmt->execute(['institution_id' => $institutionId]);
+            return (int) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log("Count Completed Students By Institution Error: " . $e->getMessage());
             return 0;
         }
     }

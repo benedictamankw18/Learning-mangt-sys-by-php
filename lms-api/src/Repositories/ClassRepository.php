@@ -50,16 +50,12 @@ class ClassRepository
                 gl.grade_level_name,
                 gl.grade_level_code,
                 gl.level_order,
-                ay.academic_year_id,
-                ay.year_name,
-                ay.is_current,
                 CONCAT(tu.first_name, ' ', tu.last_name) as class_teacher_name,
                 t.teacher_id as class_teacher_id,
                 COUNT(DISTINCT s.student_id) as student_count
             FROM classes c
             LEFT JOIN programs p ON c.program_id = p.program_id
             LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
-            LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
             LEFT JOIN teachers t ON c.class_teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id
             LEFT JOIN students s ON c.class_id = s.class_id
@@ -143,6 +139,76 @@ class ClassRepository
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return (int) $result['total'];
+    }
+
+    /**
+     * Find a conflicting class by code or by program/grade/section composition.
+     */
+    public function findConflict(
+        int $institutionId,
+        string $classCode,
+        int $programId,
+        int $gradeLevelId,
+        string $section,
+        ?int $excludeClassId = null
+    ): ?array {
+        $codeQuery = "
+            SELECT class_id, class_code, class_name, section, program_id, grade_level_id
+            FROM classes
+            WHERE institution_id = :institution_id
+              AND class_code = :class_code
+        ";
+        if ($excludeClassId !== null) {
+            $codeQuery .= " AND class_id <> :exclude_class_id";
+        }
+        $codeQuery .= " LIMIT 1";
+
+        $codeStmt = $this->db->prepare($codeQuery);
+        $codeParams = [
+            'institution_id' => $institutionId,
+            'class_code' => $classCode,
+        ];
+        if ($excludeClassId !== null) {
+            $codeParams['exclude_class_id'] = $excludeClassId;
+        }
+        $codeStmt->execute($codeParams);
+        $codeConflict = $codeStmt->fetch(PDO::FETCH_ASSOC);
+        if ($codeConflict) {
+            $codeConflict['conflict_type'] = 'class_code';
+            return $codeConflict;
+        }
+
+        $compositionQuery = "
+            SELECT class_id, class_code, class_name, section, program_id, grade_level_id
+            FROM classes
+            WHERE institution_id = :institution_id
+              AND program_id = :program_id
+              AND grade_level_id = :grade_level_id
+              AND section = :section
+        ";
+        if ($excludeClassId !== null) {
+            $compositionQuery .= " AND class_id <> :exclude_class_id";
+        }
+        $compositionQuery .= " LIMIT 1";
+
+        $compositionStmt = $this->db->prepare($compositionQuery);
+        $compositionParams = [
+            'institution_id' => $institutionId,
+            'program_id' => $programId,
+            'grade_level_id' => $gradeLevelId,
+            'section' => $section,
+        ];
+        if ($excludeClassId !== null) {
+            $compositionParams['exclude_class_id'] = $excludeClassId;
+        }
+        $compositionStmt->execute($compositionParams);
+        $compositionConflict = $compositionStmt->fetch(PDO::FETCH_ASSOC);
+        if ($compositionConflict) {
+            $compositionConflict['conflict_type'] = 'class_composition';
+            return $compositionConflict;
+        }
+
+        return null;
     }
 
     /**
@@ -257,11 +323,6 @@ class ClassRepository
                 gl.grade_level_name,
                 gl.grade_level_code,
                 gl.level_order,
-                ay.academic_year_id,
-                ay.year_name,
-                ay.start_date,
-                ay.end_date,
-                ay.is_current,
                 t.teacher_id as class_teacher_id,
                 CONCAT(tu.first_name, ' ', tu.last_name) as class_teacher_name,
                 tu.email as class_teacher_email,
@@ -270,7 +331,6 @@ class ClassRepository
             FROM classes c
             LEFT JOIN programs p ON c.program_id = p.program_id
             LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
-            LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
             LEFT JOIN teachers t ON c.class_teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id
             LEFT JOIN students s ON c.class_id = s.class_id
@@ -318,11 +378,6 @@ class ClassRepository
                 gl.grade_level_name,
                 gl.grade_level_code,
                 gl.level_order,
-                ay.academic_year_id,
-                ay.year_name,
-                ay.start_date,
-                ay.end_date,
-                ay.is_current,
                 t.teacher_id as class_teacher_id,
                 CONCAT(tu.first_name, ' ', tu.last_name) as class_teacher_name,
                 tu.email as class_teacher_email,
@@ -331,7 +386,6 @@ class ClassRepository
             FROM classes c
             LEFT JOIN programs p ON c.program_id = p.program_id
             LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
-            LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
             LEFT JOIN teachers t ON c.class_teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id
             LEFT JOIN students s ON c.class_id = s.class_id
@@ -366,7 +420,6 @@ class ClassRepository
                 institution_id,
                 program_id,
                 grade_level_id,
-                academic_year_id,
                 class_code,
                 class_name,
                 section,
@@ -381,7 +434,6 @@ class ClassRepository
                 :institution_id,
                 :program_id,
                 :grade_level_id,
-                :academic_year_id,
                 :class_code,
                 :class_name,
                 :section,
@@ -399,7 +451,6 @@ class ClassRepository
             'institution_id' => $data['institution_id'],
             'program_id' => $data['program_id'],
             'grade_level_id' => $data['grade_level_id'],
-            'academic_year_id' => $data['academic_year_id'],
             'class_code' => $data['class_code'],
             'class_name' => $data['class_name'],
             'section' => $data['section'],
@@ -427,7 +478,6 @@ class ClassRepository
             'section',
             'program_id',
             'grade_level_id',
-            'academic_year_id',
             'class_teacher_id',
             'max_students',
             'room_number',
@@ -550,7 +600,7 @@ class ClassRepository
      */
     public function getClassPerformance(int $classId): array
     {
-        // ── Overall summary ───────────────────────────────────────────────────
+        // ÔöÇÔöÇ Overall summary ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         $summaryStmt = $this->db->prepare("
             SELECT
                 ROUND(AVG(r.total_score), 1)                                                        AS avg_score,
@@ -567,7 +617,7 @@ class ClassRepository
         $summaryStmt->execute(['class_id' => $classId]);
         $summary = $summaryStmt->fetch(PDO::FETCH_ASSOC);
 
-        // ── Per-subject breakdown ─────────────────────────────────────────────
+        // ÔöÇÔöÇ Per-subject breakdown ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
         $bySubjectStmt = $this->db->prepare("
             SELECT
                 s.subject_id,

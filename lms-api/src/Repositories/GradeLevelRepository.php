@@ -263,15 +263,13 @@ class GradeLevelRepository
                 p.program_id,
                 p.program_name,
                 p.program_code,
-                ay.academic_year_id,
-                ay.year_name,
-                ay.is_current,
+                /* academic_year fields removed */
                 CONCAT(tu.first_name, ' ', tu.last_name) as homeroom_teacher,
                 t.teacher_id as homeroom_teacher_id,
                 COUNT(DISTINCT s.student_id) as student_count
             FROM classes c
             LEFT JOIN programs p ON c.program_id = p.program_id
-            LEFT JOIN academic_years ay ON c.academic_year_id = ay.academic_year_id
+            /* academic_year join removed */
             LEFT JOIN teachers t ON c.class_teacher_id = t.teacher_id
             LEFT JOIN users tu ON t.user_id = tu.user_id
             LEFT JOIN students s ON c.class_id = s.class_id

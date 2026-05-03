@@ -277,13 +277,13 @@ class TeacherAssessmentController
 
             $categoryId = isset($_GET['category_id']) ? (int) $_GET['category_id'] : 0;
 
-            $currentAcademicYearId = $this->getCurrentAcademicYearId();
+            $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
             if ($currentAcademicYearId <= 0) {
                 Response::error('No current academic year found', 400);
                 return;
             }
 
-            $currentSemesterId = $this->getCurrentSemesterId();
+            $currentSemesterId = $this->getCurrentSemesterId($institutionId);
             if ($currentSemesterId <= 0) {
                 Response::error('No current semester found', 400);
                 return;
@@ -512,8 +512,8 @@ class TeacherAssessmentController
             ];
 
             try {
-                $currentAcademicYearId = $this->getCurrentAcademicYearId();
-                $currentSemesterId = $this->getCurrentSemesterId();
+                $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
+                $currentSemesterId = $this->getCurrentSemesterId($institutionId);
                 if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
                     $stats['errors'][] = 'Missing current academic year or semester';
                     return $stats;
@@ -539,6 +539,11 @@ class TeacherAssessmentController
                     ]);
                     $reportId = (int) $stmt->fetchColumn();
 
+                    // Resolve student's current class
+                    $stmtClass = $this->db->prepare("SELECT class_id FROM students WHERE student_id = :student_id LIMIT 1");
+                    $stmtClass->execute([':student_id' => $studentId]);
+                    $studentClassId = $stmtClass->fetchColumn();
+
                     // If no existing report, create one
                     if ($reportId <= 0) {
                         $stmtInsert = $this->db->prepare(
@@ -549,6 +554,7 @@ class TeacherAssessmentController
                                 student_id,
                                 semester_id,
                                 academic_year_id,
+                                class_id,
                                 report_type,
                                 Approved,
                                 is_published,
@@ -564,6 +570,7 @@ class TeacherAssessmentController
                                 :student_id,
                                 :semester_id,
                                 :academic_year_id,
+                                :class_id,
                                 'semester',
                                 0,
                                 0,
@@ -578,6 +585,7 @@ class TeacherAssessmentController
                             ':student_id' => $studentId,
                             ':semester_id' => $currentSemesterId,
                             ':academic_year_id' => $currentAcademicYearId,
+                            ':class_id' => $studentClassId ?: null,
                             ':generated_by' => $generatedByUserId > 0 ? $generatedByUserId : null,
                         ]);
                         $reportId = (int) $this->db->lastInsertId();
@@ -587,6 +595,7 @@ class TeacherAssessmentController
                             "UPDATE grade_reports
                              SET generated_at = NOW(),
                                  generated_by = :generated_by,
+                                 class_id = :class_id,
                                  Approved = 0,
                                  is_published = 0,
                                  principal_comment = NULL,
@@ -595,6 +604,7 @@ class TeacherAssessmentController
                         );
                         $stmtUpdateReport->execute([
                             ':generated_by' => $generatedByUserId > 0 ? $generatedByUserId : null,
+                            ':class_id' => $studentClassId ?: null,
                             ':report_id' => $reportId,
                         ]);
                         $stats['reports_reused']++;
@@ -725,8 +735,8 @@ class TeacherAssessmentController
                 Response::error('class_subject_id is required', 400);
             }
 
-            $currentAcademicYearId = $this->getCurrentAcademicYearId();
-            $currentSemesterId = $this->getCurrentSemesterId();
+            $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
+            $currentSemesterId = $this->getCurrentSemesterId($institutionId);
             if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
                 Response::error('No current academic year/semester found', 400);
             }
@@ -969,7 +979,7 @@ class TeacherAssessmentController
                 }
 
                 $importStatus = $publish ? 'pending_approval' : 'draft';
-                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $importStatus)) {
+                if (!$this->saveScore($institutionId, $courseId, $studentId, $categoryId, $score, $maxScore, $importStatus)) {
                     $errorMessage = 'failed to persist score';
                     $errors[] = ['line' => $line, 'error' => $errorMessage];
                     $notInsertedRows[] = $baseRow + ['error' => $errorMessage];
@@ -1039,8 +1049,8 @@ class TeacherAssessmentController
                 Response::error('Only csv format is supported by API export endpoint', 400);
             }
 
-            $currentAcademicYearId = $this->getCurrentAcademicYearId();
-            $currentSemesterId = $this->getCurrentSemesterId();
+            $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
+            $currentSemesterId = $this->getCurrentSemesterId($institutionId);
             if ($currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
                 Response::error('Current academic year and semester are required', 400);
             }
@@ -1146,6 +1156,7 @@ class TeacherAssessmentController
         * @param string $status
      */
     private function saveScore(
+        int $institutionId,
         int $courseId,
         int $studentId,
         int $categoryId,
@@ -1154,7 +1165,7 @@ class TeacherAssessmentController
         string $status
     ): bool {
         $isPublished = $status === 'published' || $status === 'graded';
-        $assessmentId = $this->ensureCategoryAssessment($courseId, $categoryId, $maxScore, $isPublished);
+        $assessmentId = $this->ensureCategoryAssessment($institutionId, $courseId, $categoryId, $maxScore, $isPublished);
         if ($assessmentId <= 0) {
             return false;
         }
@@ -1280,7 +1291,7 @@ class TeacherAssessmentController
                     $submittedCategoriesByStudentCourse[$key][$categoryId] = true;
 
                     if (!isset($requiredCategoriesByCourse[$courseId])) {
-                        $requiredCategoriesByCourse[$courseId] = $this->getRequiredTeacherModeCategoryIdsForCourse($courseId);
+                        $requiredCategoriesByCourse[$courseId] = $this->getRequiredTeacherModeCategoryIdsForCourse($institutionId, $courseId);
                     }
                 }
 
@@ -1355,7 +1366,7 @@ class TeacherAssessmentController
                     $targetStatus = 'pending_approval';
                 }
 
-                if (!$this->saveScore($courseId, $studentId, $categoryId, $score, $maxScore, $targetStatus)) {
+                if (!$this->saveScore($institutionId, $courseId, $studentId, $categoryId, $score, $maxScore, $targetStatus)) {
                     $errors[] = "Assessment {$idx}: failed to persist score";
                     continue;
                 }
@@ -1441,10 +1452,10 @@ class TeacherAssessmentController
      *
      * @return int[]
      */
-    private function getRequiredTeacherModeCategoryIdsForCourse(int $courseId): array
+    private function getRequiredTeacherModeCategoryIdsForCourse(int $institutionId, int $courseId): array
     {
-        $currentAcademicYearId = $this->getCurrentAcademicYearId();
-        $currentSemesterId = $this->getCurrentSemesterId();
+        $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
+        $currentSemesterId = $this->getCurrentSemesterId($institutionId);
         if ($courseId <= 0 || $currentAcademicYearId <= 0 || $currentSemesterId <= 0) {
             return [];
         }
@@ -1466,14 +1477,14 @@ class TeacherAssessmentController
         return array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
     }
 
-    private function ensureCategoryAssessment(int $courseId, int $categoryId, float $maxScore, bool $published): int
+    private function ensureCategoryAssessment(int $institutionId, int $courseId, int $categoryId, float $maxScore, bool $published): int
     {
-        $currentAcademicYearId = $this->getCurrentAcademicYearId();
+        $currentAcademicYearId = $this->getCurrentAcademicYearId($institutionId);
         if ($currentAcademicYearId <= 0) {
             return 0;
         }
 
-        $currentSemesterId = $this->getCurrentSemesterId();
+        $currentSemesterId = $this->getCurrentSemesterId($institutionId);
         if ($currentSemesterId <= 0) {
             return 0;
         }
@@ -1664,17 +1675,17 @@ class TeacherAssessmentController
         ];
     }
 
-    private function getCurrentAcademicYearId(): int
+    private function getCurrentAcademicYearId(int $institutionId): int
     {
-        $stmt = $this->db->prepare('SELECT academic_year_id FROM academic_years WHERE is_current = 1 LIMIT 1');
-        $stmt->execute();
+        $stmt = $this->db->prepare('SELECT academic_year_id FROM academic_years WHERE is_current = 1 AND institution_id = :institution_id ORDER BY academic_year_id DESC LIMIT 1');
+        $stmt->execute(['institution_id' => $institutionId]);
         return (int) $stmt->fetchColumn();
     }
 
-    private function getCurrentSemesterId(): int
+    private function getCurrentSemesterId(int $institutionId): int
     {
-        $stmt = $this->db->prepare('SELECT semester_id FROM semesters WHERE is_current = 1 LIMIT 1');
-        $stmt->execute();
+        $stmt = $this->db->prepare('SELECT semester_id FROM semesters WHERE is_current = 1 AND institution_id = :institution_id ORDER BY semester_id DESC LIMIT 1');
+        $stmt->execute(['institution_id' => $institutionId]);
         return (int) $stmt->fetchColumn();
     }
 }

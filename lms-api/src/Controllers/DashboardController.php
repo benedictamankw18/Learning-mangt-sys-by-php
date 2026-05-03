@@ -249,7 +249,10 @@ class DashboardController
             $classesLastMonth = $this->classRepo->countByInstitutionLastMonth($institutionId);
 
             $stats = [
-                'total_students' => $this->studentRepo->countByInstitution($institutionId),
+                // Default total shown on admin dashboard excludes 'completed' students
+                'total_students' => $this->studentRepo->count($institutionId),
+                // Provide completed students as a separate metric
+                'completed_students' => $this->studentRepo->countCompletedByInstitution($institutionId),
                 'total_teachers' => $this->teacherRepo->countByInstitution($institutionId),
                 'total_classes' => $this->classRepo->count($institutionId),
                 'total_courses' => $this->classSubjectRepo->count($institutionId),

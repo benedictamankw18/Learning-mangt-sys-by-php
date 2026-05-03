@@ -57,7 +57,11 @@ class AcademicYearController
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::error('Invalid JSON payload', 400);
+            return;
+        }
 
         $validator = new Validator($data);
         $validator->required(['year_name', 'start_date', 'end_date'])
@@ -70,14 +74,35 @@ class AcademicYearController
             return;
         }
 
+        $startDate = (string) $data['start_date'];
+        $endDate = (string) $data['end_date'];
+        if ($startDate >= $endDate) {
+            Response::error('end_date must be after start_date', 422);
+            return;
+        }
+
         // Add institution_id for multi-tenant support
         if ($user['role'] !== 'super_admin') {
-            $data['institution_id'] = $user['institution_id'];
+            $data['institution_id'] = (int) ($user['institution_id'] ?? 0);
+            if ($data['institution_id'] <= 0) {
+                Response::error('Missing institution context', 400);
+                return;
+            }
+        } elseif (empty($data['institution_id'])) {
+            Response::error('institution_id is required for super admin', 400);
+            return;
+        }
+
+        $institutionId = (int) $data['institution_id'];
+        $yearName = trim((string) $data['year_name']);
+        if ($this->repo->existsByYearName($yearName, $institutionId)) {
+            Response::error('Academic year already exists for this institution', 409);
+            return;
         }
 
         $yearId = $this->repo->create($data);
 
-        if ($yearId) {
+        if ($yearId !== null) {
             Response::success([
                 'message' => 'Academic year created successfully',
                 'academic_year_id' => $yearId
@@ -103,7 +128,21 @@ class AcademicYearController
             return;
         }
 
-        $data = json_decode(file_get_contents('php://input'), true);
+        $data = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::error('Invalid JSON payload', 400);
+            return;
+        }
+
+        if (array_key_exists('is_current', $data)) {
+            $requestedIsCurrent = !empty($data['is_current']) ? 1 : 0;
+            $existingIsCurrent = ((int) ($year['is_current'] ?? 0)) === 1;
+
+            if ($existingIsCurrent && $requestedIsCurrent === 0) {
+                Response::error('Cannot unset current academic year directly. Set another year as current instead.', 422);
+                return;
+            }
+        }
 
         $validator = new Validator($data);
         if (isset($data['year_name'])) {
@@ -119,6 +158,30 @@ class AcademicYearController
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
             return;
+        }
+
+        $startDate = isset($data['start_date'])
+            ? (string) $data['start_date']
+            : (string) ($year['start_date'] ?? '');
+        $endDate = isset($data['end_date'])
+            ? (string) $data['end_date']
+            : (string) ($year['end_date'] ?? '');
+
+        if ($startDate !== '' && $endDate !== '' && $startDate >= $endDate) {
+            Response::error('end_date must be after start_date', 422);
+            return;
+        }
+
+        $targetInstitutionId = ($user['role'] ?? '') !== 'super_admin'
+            ? (int) ($year['institution_id'] ?? 0)
+            : (int) ($data['institution_id'] ?? ($year['institution_id'] ?? 0));
+
+        if (isset($data['year_name']) && $targetInstitutionId > 0) {
+            $yearName = trim((string) $data['year_name']);
+            if ($this->repo->existsByYearName($yearName, $targetInstitutionId, $id)) {
+                Response::error('Academic year already exists for this institution', 409);
+                return;
+            }
         }
 
         if ($this->repo->update($id, $data)) {
@@ -141,6 +204,11 @@ class AcademicYearController
 
         if (!$year) {
             Response::notFound('Academic year not found');
+            return;
+        }
+
+        if ($year['is_current'] == 1 || $year['is_current'] === '1') {
+            Response::error('Cannot delete current academic year. Please set another year as current first.', 409);
             return;
         }
 

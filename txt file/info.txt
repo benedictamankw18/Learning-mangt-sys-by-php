@@ -233,3 +233,9 @@ Rank
 2025-2027 1
 N/A
 1s
+
+
+
+At the database table called classes remove academic_year_id 
+
+

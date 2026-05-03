@@ -9,17 +9,13 @@
         students: [],
         classes: [],
         programs: [],
-        academicYears: [],
         semesters: [],
-        currentAcademicYear: null,
         currentSemester: null,
         search: '',
         status: 'active',
-        academicYearId: '',
         programId: '',
         sourceClassId: '',
         targetClassId: '',
-        targetAcademicYearId: '',
         targetProgramId: '',
         action: 'promote',
         selectedUuids: new Set(),
@@ -36,6 +32,7 @@
     function initPromoteStudentsPage() {
         resetPageState();
         bindEvents();
+        updateActionUI();
         loadReferenceData().then(loadStudents);
     }
 
@@ -43,17 +40,13 @@
         S.students = [];
         S.classes = [];
         S.programs = [];
-        S.academicYears = [];
         S.semesters = [];
-        S.currentAcademicYear = null;
         S.currentSemester = null;
         S.search = '';
         S.status = 'active';
-        S.academicYearId = '';
         S.programId = '';
         S.sourceClassId = '';
         S.targetClassId = '';
-        S.targetAcademicYearId = '';
         S.targetProgramId = '';
         S.action = 'promote';
         S.selectedUuids = new Set();
@@ -70,6 +63,7 @@
         on('promoteSelectAll', 'change', function (event) { toggleSelectAll(event.target.checked); });
         on('promoteActionSelect', 'change', function (event) {
             S.action = event.target.value || 'promote';
+            updateActionUI();
             syncTargetFromAction();
         });
         on('promoteSearchInput', 'input', debounce(function (event) {
@@ -79,11 +73,6 @@
         on('promoteStatusFilter', 'change', function (event) {
             S.status = event.target.value || '';
             loadStudents();
-        });
-        on('promoteAcademicYearSelect', 'change', function (event) {
-            S.academicYearId = event.target.value || '';
-            populateClassOptions();
-            autoSelectTargetClass();
         });
         on('promoteProgramSelect', 'change', function (event) {
             S.programId = event.target.value || '';
@@ -99,10 +88,6 @@
         on('promoteTargetClassSelect', 'change', function (event) {
             S.targetClassId = event.target.value || '';
             updateTargetHint();
-        });
-        on('promoteTargetAcademicYearSelect', 'change', function (event) {
-            S.targetAcademicYearId = event.target.value || '';
-            populateTargetProgramSelect();
         });
         on('promoteTargetProgramSelect', 'change', function (event) {
             S.targetProgramId = event.target.value || '';
@@ -125,28 +110,18 @@
         setStatus('Loading reference data…', 10);
 
         try {
-            const [classRes, programRes, yearRes, semesterRes] = await Promise.all([
+            const [classRes, programRes, semesterRes] = await Promise.all([
                 API.get(API_ENDPOINTS.CLASSES, { limit: 500, status: 'active' }),
                 API.get(API_ENDPOINTS.PROGRAMS_ACTIVE),
-                API.get(API_ENDPOINTS.ACADEMIC_YEARS, { limit: 500 }),
                 API.get(API_ENDPOINTS.SEMESTER_CURRENT),
             ]);
 
             S.classes = extractList(classRes);
             S.programs = extractList(programRes);
-            S.academicYears = extractList(yearRes);
-            S.currentAcademicYear = getCurrentAcademicYear(S.academicYears) || extractSingle(yearRes);
             S.currentSemester = extractSingle(semesterRes);
-
-            if (!S.academicYears.length && S.currentAcademicYear) {
-                S.academicYears = [S.currentAcademicYear];
-            }
             S.semesters = S.currentSemester ? [S.currentSemester] : [];
 
-            populateAcademicYearSelect();
-            populateAcademicYearList();
             populateProgramSelect();
-            populateTargetAcademicYearSelect();
             populateTargetProgramSelect();
             populateClassOptions();
             populateYearSemesterCards();
@@ -216,7 +191,13 @@
         tbody.innerHTML = S.students.map(function (student) {
             const initials = initialsFor(student.first_name, student.last_name);
             const fullName = [student.first_name, student.last_name].filter(Boolean).join(' ').trim();
-            const badgeClass = student.status === 'active' ? 'badge-active' : student.status === 'withdrawn' ? 'badge-withdrawn' : 'badge-inactive';
+            const badgeClass = student.status === 'active'
+                ? 'badge-active'
+                : student.status === 'withdrawn'
+                    ? 'badge-withdrawn'
+                    : student.status === 'completed'
+                        ? 'badge-completed'
+                        : 'badge-inactive';
             const checked = S.selectedUuids.has(student.uuid) ? 'checked' : '';
 
             return '<tr>' +
@@ -254,49 +235,83 @@
             return;
         }
 
-        if (!S.currentAcademicYear || !S.currentSemester) {
-            toast('Set the current academic year and semester before promoting students.', 'error');
+        if (S.action !== 'complete' && !S.currentSemester) {
+            toast('Set the current semester before promoting students.', 'error');
             return;
         }
 
         const sourceClass = getClassById(S.sourceClassId);
         const targetClass = getClassById(S.targetClassId);
 
-        if (!sourceClass || !targetClass) {
+        if (!sourceClass) {
+            toast('Choose a source class first.', 'warning');
+            return;
+        }
+
+        if (S.action !== 'complete' && !targetClass) {
             toast('Choose both a source class and a target class.', 'warning');
             return;
         }
 
-        const validationMessage = validateMove(sourceClass, targetClass, S.action);
-        if (validationMessage) {
-            toast(validationMessage, 'error');
-            return;
+        if (S.action !== 'complete') {
+            const validationMessage = validateMove(sourceClass, targetClass, S.action);
+            if (validationMessage) {
+                toast(validationMessage, 'error');
+                return;
+            }
         }
 
-        const actionLabel = S.action === 'repeat' ? 'repeat' : S.action === 'move' ? 'move' : 'promote';
+        const actionLabel = S.action === 'repeat'
+            ? 'repeat'
+            : S.action === 'move'
+                ? 'move'
+                : S.action === 'complete'
+                    ? 'complete'
+                    : 'promote';
         const count = S.selectedUuids.size;
 
+        // Extra safety check for completion because this changes lifecycle state
+        if (S.action === 'complete') {
+            const warned = await showPromotionConfirmPopup({
+                title: 'Warning: Mark Students Completed',
+                message: 'This will mark ' + count + ' student' + (count === 1 ? '' : 's') + ' as completed and disable their active access.',
+                details: [
+                    'Completed students are hidden from active rosters by default.',
+                    'Use this only for students who have finished school and can not be reactivated.'
+                ]
+            });
+
+            if (!warned) return;
+        }
+
         const confirmed = await showPromotionConfirmPopup({
-            title: 'Confirm Promotion',
+            title: S.action === 'complete' ? 'Confirm Completion' : 'Confirm Promotion',
             message: 'Apply this ' + actionLabel + ' action to ' + count + ' student' + (count === 1 ? '' : 's') + '?',
-            details: [
-                'Source: ' + (sourceClass.class_name || 'selected class'),
-                'Target: ' + (targetClass.class_name || 'selected class')
-            ]
+            details: S.action === 'complete'
+                ? [
+                    'Source: ' + (sourceClass.class_name || 'selected class'),
+                    'Students will be marked completed and removed from active rosters.'
+                ]
+                : [
+                    'Source: ' + (sourceClass.class_name || 'selected class'),
+                    'Target: ' + (targetClass.class_name || 'selected class')
+                ]
         });
 
         if (!confirmed) return;
 
         setBusy(true);
-        setStatus('Updating student placements…', 20);
+        setStatus(S.action === 'complete' ? 'Marking students as completed…' : 'Updating student placements…', 20);
 
         let success = 0;
         let failed = 0;
-        const targetClassId = Number(targetClass.class_id);
+        const targetClassId = targetClass ? Number(targetClass.class_id) : null;
 
         for (const uuid of S.selectedUuids) {
             try {
-                const response = await API.put(API_ENDPOINTS.STUDENT_BY_UUID(uuid), { class_id: targetClassId });
+                const response = S.action === 'complete'
+                    ? await API.put(API_ENDPOINTS.STUDENT_COMPLETE(uuid), {})
+                    : await API.put(API_ENDPOINTS.STUDENT_BY_UUID(uuid), { class_id: targetClassId });
                 if (response && response.success) {
                     success += 1;
                 } else {
@@ -310,7 +325,8 @@
             }
         }
 
-        toast(success + ' student' + (success === 1 ? '' : 's') + ' updated successfully' + (failed ? ' · ' + failed + ' failed' : ''), failed ? 'warning' : 'success');
+        const resultVerb = S.action === 'complete' ? 'marked as completed' : 'updated';
+        toast(success + ' student' + (success === 1 ? '' : 's') + ' ' + resultVerb + ' successfully' + (failed ? ' · ' + failed + ' failed' : ''), failed ? 'warning' : 'success');
         setBusy(false);
         clearSelection();
         loadStudents();
@@ -351,6 +367,13 @@
             return;
         }
 
+        if (S.action === 'complete') {
+            S.targetClassId = '';
+            setSelectValue('promoteTargetClassSelect', '');
+            updateTargetHint();
+            return;
+        }
+
         if (S.action === 'repeat') {
             S.targetClassId = String(sourceClass.class_id || '');
             setSelectValue('promoteTargetClassSelect', S.targetClassId);
@@ -368,6 +391,12 @@
     function autoSelectTargetClass() {
         const sourceClass = getClassById(S.sourceClassId);
         if (!sourceClass) return;
+        if (S.action === 'complete') {
+            S.targetClassId = '';
+            setSelectValue('promoteTargetClassSelect', '');
+            updateTargetHint();
+            return;
+        }
         if (S.action === 'repeat') {
             S.targetClassId = String(sourceClass.class_id || '');
         } else if (S.action === 'promote') {
@@ -413,6 +442,8 @@
             hint.textContent = next
                 ? 'Suggested next class: ' + (next.class_name || next.class_code || 'next class') + '.'
                 : 'No higher class was found for this program. Choose a different target or create the next level first.';
+        } else if (S.action === 'complete') {
+            hint.textContent = 'Complete marks selected students as completed and hides them from active rosters. No target class is required.';
         } else {
             hint.textContent = targetClass
                 ? 'Move selected students into ' + (targetClass.class_name || targetClass.class_code || 'the chosen class') + '.'
@@ -420,106 +451,32 @@
         }
     }
 
-    function populateAcademicYearSelect() {
-        const select = document.getElementById('promoteAcademicYearSelect');
-        if (!select) return;
+    function updateActionUI() {
+        const targetClassSelect = document.getElementById('promoteTargetClassSelect');
+        const targetHint = document.getElementById('promoteTargetHint');
+        const sameLevelBtn = document.getElementById('promoteSelectSameLevelBtn');
+        const nextBtn = document.getElementById('promoteSelectNextBtn');
+        const applyBtn = document.getElementById('promoteApplyBtn');
 
-        const items = getVisibleAcademicYears();
-        const options = ['<option value="">All academic years</option>'].concat(items.map(function (year) {
-            return '<option value="' + esc(String(year.academic_year_id || '')) + '">' + esc(year.year_name || 'Academic Year') + '</option>';
-        }));
+        const isComplete = S.action === 'complete';
 
-        select.innerHTML = options.join('');
-        if (S.academicYearId && items.some(function (year) {
-            return String(year.academic_year_id || '') === String(S.academicYearId);
-        })) {
-            select.value = S.academicYearId;
-            return;
+        if (targetClassSelect) {
+            targetClassSelect.disabled = isComplete;
         }
-
-        if (S.currentAcademicYear && S.currentAcademicYear.academic_year_id && items.some(function (year) {
-            return String(year.academic_year_id || '') === String(S.currentAcademicYear.academic_year_id);
-        })) {
-            S.academicYearId = String(S.currentAcademicYear.academic_year_id);
-            select.value = S.academicYearId;
-        } else {
-            S.academicYearId = '';
-            select.value = '';
+        if (sameLevelBtn) {
+            sameLevelBtn.disabled = isComplete;
         }
-    }
-
-    function populateAcademicYearList() {
-        const container = document.getElementById('promoteAcademicYearsList');
-        const title = document.getElementById('promoteAcademicYearsTitle');
-        const note = document.getElementById('promoteAcademicYearsNote');
-        if (!container) return;
-
-        const items = getVisibleAcademicYears();
-        const singular = items.length === 1;
-        const userInstitutionId = getCurrentUserInstitutionId();
-
-        if (title) {
-            title.textContent = singular ? 'Academic Year' : 'Academic Years';
+        if (nextBtn) {
+            nextBtn.disabled = isComplete;
         }
-
-        if (note) {
-            if (!items.length) {
-                note.textContent = userInstitutionId
-                    ? 'Academic years for this institution are hidden from this view.'
-                    : 'No academic years found.';
-            } else {
-                note.textContent = singular
-                    ? 'One academic year is visible in this view.'
-                    : 'Visible academic years are listed below.';
-            }
+        if (applyBtn) {
+            applyBtn.innerHTML = isComplete
+                ? '<i class="fas fa-check-circle"></i> Mark Completed'
+                : '<i class="fas fa-paper-plane"></i> Apply Promotion';
         }
-
-        if (!items.length) {
-            container.innerHTML = '<div class="promote-empty" style="padding:1rem"><p style="margin:0">No academic years to display.</p></div>';
-            return;
+        if (targetHint && isComplete) {
+            targetHint.textContent = 'Complete marks selected students as completed and hides them from active rosters. No target class is required.';
         }
-
-        if (singular) {
-            container.innerHTML = '<div class="promote-year-item current">' +
-                '<div class="promote-year-main">' +
-                    '<div class="promote-year-name">' + esc(items[0].year_name || 'Academic Year') + '</div>' +
-                    '<div class="promote-year-dates">' + esc(formatYearRange(items[0].start_date, items[0].end_date)) + '</div>' +
-                '</div>' +
-                '<span class="students-badge badge-active">Only year</span>' +
-            '</div>';
-            return;
-        }
-
-        container.innerHTML = items.map(function (year) {
-            const isCurrent = String(year.academic_year_id || '') === String(S.currentAcademicYear?.academic_year_id || '');
-            const badgeClass = isCurrent ? 'badge-active' : 'badge-inactive';
-            return '<div class="promote-year-item' + (isCurrent ? ' current' : '') + '">' +
-                '<div class="promote-year-main">' +
-                    '<div class="promote-year-name">' + esc(year.year_name || 'Academic Year') + '</div>' +
-                    '<div class="promote-year-dates">' + esc(formatYearRange(year.start_date, year.end_date)) + '</div>' +
-                '</div>' +
-                '<span class="students-badge ' + badgeClass + '">' + (isCurrent ? 'Current' : 'Archived') + '</span>' +
-            '</div>';
-        }).join('');
-    }
-
-    function getVisibleAcademicYears() {
-        const userInstitutionId = getCurrentUserInstitutionId();
-        const items = Array.isArray(S.academicYears) ? S.academicYears.slice() : [];
-
-        return items.filter(function (year) {
-            if (!userInstitutionId) return true;
-            return String(year.institution_id || '') === String(userInstitutionId);
-        }).sort(function (a, b) {
-            return String(b.start_date || '').localeCompare(String(a.start_date || '')) ||
-                String(b.year_name || '').localeCompare(String(a.year_name || ''));
-        });
-    }
-
-    function getCurrentUserInstitutionId() {
-        if (typeof Auth === 'undefined' || typeof Auth.getUser !== 'function') return '';
-        const user = Auth.getUser();
-        return user && user.institution_id ? String(user.institution_id) : '';
     }
 
     function populateProgramSelect() {
@@ -533,35 +490,11 @@
         select.innerHTML = options.join('');
     }
 
-    function populateTargetAcademicYearSelect() {
-        const select = document.getElementById('promoteTargetAcademicYearSelect');
-        if (!select) return;
-
-        const items = getVisibleAcademicYears();
-        const options = ['<option value="">Any academic year</option>'].concat(items.map(function (year) {
-            return '<option value="' + esc(String(year.academic_year_id || '')) + '">' + esc(year.year_name || 'Academic Year') + '</option>';
-        }));
-
-        select.innerHTML = options.join('');
-    }
-
     function populateTargetProgramSelect() {
         const select = document.getElementById('promoteTargetProgramSelect');
         if (!select) return;
 
-        let programs = S.programs;
-
-        if (S.targetAcademicYearId) {
-            const targetYear = (Array.isArray(S.academicYears) ? S.academicYears : []).find(function (year) {
-                return String(year.academic_year_id || '') === String(S.targetAcademicYearId);
-            });
-
-            if (targetYear) {
-                programs = programs.filter(function (program) {
-                    return String(program.academic_year_id || '') === String(S.targetAcademicYearId);
-                });
-            }
-        }
+        const programs = S.programs;
 
         const options = ['<option value="">Any program</option>'].concat(programs.map(function (program) {
             return '<option value="' + esc(String(program.program_id || '')) + '">' + esc(program.program_name || 'Program') + '</option>';
@@ -581,7 +514,7 @@
         const currentTarget = String(S.targetClassId || targetSelect.value || '');
 
         const options = classes.map(function (item) {
-            const label = (item.class_name || item.class_code || 'Class') + ' · ' + (item.program_name || 'Program') + ' · ' + (item.year_name || 'Year');
+            const label = (item.class_name || item.class_code || 'Class') + ' · ' + (item.program_name || 'Program');
             return '<option value="' + esc(String(item.class_id || '')) + '">' + esc(label) + '</option>';
         });
 
@@ -598,18 +531,14 @@
     }
 
     function populateYearSemesterCards() {
-        const year = S.currentAcademicYear;
         const semester = S.currentSemester;
 
-        setText('promoteAcademicYear', year ? (year.year_name || 'Current year') : 'Not set');
-        setText('promoteAcademicYearMeta', year ? 'Academic year is active' : 'No current academic year found');
         setText('promoteSemester', semester ? (semester.semester_name || 'Current semester') : 'Not set');
         setText('promoteSemesterMeta', semester ? 'Semester is active' : 'No current semester found');
     }
 
     function getFilteredClasses() {
         return (Array.isArray(S.classes) ? S.classes : []).filter(function (item) {
-            if (S.academicYearId && String(item.academic_year_id || '') !== String(S.academicYearId)) return false;
             if (S.programId && String(item.program_id || '') !== String(S.programId)) return false;
             return true;
         }).sort(function (a, b) {
@@ -622,19 +551,6 @@
         return (Array.isArray(S.classes) ? S.classes : []).find(function (item) {
             return String(item.class_id || '') === String(classId);
         }) || null;
-    }
-
-    function getCurrentAcademicYear(years) {
-        return (Array.isArray(years) ? years : []).find(function (year) {
-            return Number(year.is_current) === 1;
-        }) || null;
-    }
-
-    function formatYearRange(startDate, endDate) {
-        if (!startDate && !endDate) return 'No dates set';
-        const start = startDate ? String(startDate).slice(0, 10) : '—';
-        const end = endDate ? String(endDate).slice(0, 10) : '—';
-        return start + ' to ' + end;
     }
 
     function toggleSelectAll(checked) {

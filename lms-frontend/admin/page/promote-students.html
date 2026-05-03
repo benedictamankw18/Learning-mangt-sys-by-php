@@ -218,6 +218,8 @@
 .badge-active { background: #dcfce7; color: #15803d; }
 .badge-inactive { background: #fef9c3; color: #854d0e; }
 .badge-withdrawn { background: #fee2e2; color: #b91c1c; }
+/* Completed students */
+.badge-completed { background: #ede9fe; color: #5b21b6; }
 .promote-footer {
     display: flex;
     justify-content: space-between;
@@ -270,7 +272,7 @@
     <div class="promote-page-header">
         <div>
             <h2><i class="fas fa-arrow-up" style="margin-right:.5rem;color:var(--primary,#3b82f6)"></i>Promote Students</h2>
-            <p>Move students to the next class, repeat them in the same level, or bulk reassign by class, program, or year.</p>
+            <p>Move students to the next class, repeat them in the same level, or bulk reassign by class or program.</p>
         </div>
         <div class="promote-header-actions">
             <button class="btn btn-outline btn-sm" id="promoteBackBtn"><i class="fas fa-users"></i> Back to Students</button>
@@ -279,11 +281,6 @@
     </div>
 
     <div class="promote-status-grid">
-        <div class="promote-card">
-            <div class="label">Current Academic Year</div>
-            <div class="value" id="promoteAcademicYear">Loading…</div>
-            <div class="meta" id="promoteAcademicYearMeta">Checking active year</div>
-        </div>
         <div class="promote-card">
             <div class="label">Current Semester</div>
             <div class="value" id="promoteSemester">Loading…</div>
@@ -317,12 +314,6 @@
             <div class="promote-panel-body">
                 <div class="promote-form-grid">
                     <div class="promote-form-group">
-                        <label for="promoteAcademicYearSelect">Academic Year</label>
-                        <select id="promoteAcademicYearSelect">
-                            <option value="">All academic years</option>
-                        </select>
-                    </div>
-                    <div class="promote-form-group">
                         <label for="promoteProgramSelect">Program</label>
                         <select id="promoteProgramSelect">
                             <option value="">All programs</option>
@@ -340,6 +331,7 @@
                             <option value="promote">Promote to next level</option>
                             <option value="repeat">Repeat in current level</option>
                             <option value="move">Move to a different class</option>
+                            <option value="complete">Mark as completed</option>
                         </select>
                     </div>
 
@@ -353,17 +345,6 @@
                         Select a source class to auto-suggest a target class.
                     </div>
 
-                    <div class="promote-year-panel">
-                        <div class="promote-year-panel-header">
-                            <h4 id="promoteAcademicYearsTitle">Academic Years</h4>
-                            <p id="promoteAcademicYearsNote">All years loaded from the database, with the current year highlighted.</p>
-                        </div>
-                        <div class="promote-year-list" id="promoteAcademicYearsList">
-                            <div class="promote-empty" style="padding:1rem">
-                                <p style="margin:0">Loading academic years…</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem">
@@ -386,6 +367,7 @@
                         <option value="">All statuses</option>
                         <option value="inactive">Inactive</option>
                         <option value="withdrawn">Withdrawn</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
                 <div class="promote-toolbar-right">

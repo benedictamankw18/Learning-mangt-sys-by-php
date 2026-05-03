@@ -1289,13 +1289,13 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Repeat/retain selected students in current level
   - Bulk move by class, program, or year
   - Validation for academic year and semester status
-- [ ] **Create** `admin/academic-years.html`
+- [x] **Create** `admin/academic-years.html`
   - List academic years
   - Create academic year
   - Update academic year
   - Delete academic year
   - Activate/deactivate current academic year
-- [ ] **Create** `admin/semesters.html`
+- [x] **Create** `admin/semesters.html`
   - List semesters
   - Create semester
   - Update semester

@@ -57,8 +57,8 @@ class FinalScoreController
                 return;
             }
 
-            $academicYearId = isset($_GET['academic_year_id']) ? (int) $_GET['academic_year_id'] : $this->getCurrentAcademicYearId();
-            $semesterId = isset($_GET['semester_id']) ? (int) $_GET['semester_id'] : $this->getCurrentSemesterId();
+            $academicYearId = isset($_GET['academic_year_id']) ? (int) $_GET['academic_year_id'] : $this->getCurrentAcademicYearId($institutionId);
+            $semesterId = isset($_GET['semester_id']) ? (int) $_GET['semester_id'] : $this->getCurrentSemesterId($institutionId);
 
             if ($academicYearId <= 0 || $semesterId <= 0) {
                 Response::error('Current academic year and semester are required', 400);
@@ -158,17 +158,17 @@ class FinalScoreController
         return (bool) $stmt->fetchColumn();
     }
 
-    private function getCurrentAcademicYearId(): int
+    private function getCurrentAcademicYearId(int $institutionId): int
     {
-        $stmt = $this->db->prepare('SELECT academic_year_id FROM academic_years WHERE is_current = 1 LIMIT 1');
-        $stmt->execute();
+        $stmt = $this->db->prepare('SELECT academic_year_id FROM academic_years WHERE is_current = 1 AND institution_id = :institution_id ORDER BY academic_year_id DESC LIMIT 1');
+        $stmt->execute(['institution_id' => $institutionId]);
         return (int) $stmt->fetchColumn();
     }
 
-    private function getCurrentSemesterId(): int
+    private function getCurrentSemesterId(int $institutionId): int
     {
-        $stmt = $this->db->prepare('SELECT semester_id FROM semesters WHERE is_current = 1 LIMIT 1');
-        $stmt->execute();
+        $stmt = $this->db->prepare('SELECT semester_id FROM semesters WHERE is_current = 1 AND institution_id = :institution_id ORDER BY semester_id DESC LIMIT 1');
+        $stmt->execute(['institution_id' => $institutionId]);
         return (int) $stmt->fetchColumn();
     }
 }

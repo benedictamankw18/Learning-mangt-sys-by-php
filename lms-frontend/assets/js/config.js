@@ -22,6 +22,7 @@ const API_ENDPOINTS = {
     STUDENTS: '/api/students',
     STUDENT_BY_UUID: (uuid) => `/api/students/${uuid}`,
     STUDENT_STATUS: (uuid) => `/api/students/${uuid}/status`,
+    STUDENT_COMPLETE: (uuid) => `/api/students/${uuid}/complete`,
     STUDENT_COURSES: (uuid) => `/api/students/${uuid}/courses`,
     STUDENT_ATTENDANCE_STATS: (studentId) => `/api/students/${studentId}/attendance/stats`,
     STUDENT_RESULTS: (studentId) => `/api/students/${studentId}/results`,

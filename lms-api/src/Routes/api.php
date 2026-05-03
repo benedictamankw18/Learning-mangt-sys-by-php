@@ -27,6 +27,7 @@ return [
     'POST /students' => ['controller' => 'StudentController', 'method' => 'create', 'auth' => true],
     'PUT /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'update', 'auth' => true],
     'PUT /students/{uuid}/status' => ['controller' => 'StudentController', 'method' => 'toggleStatus', 'auth' => true],
+    'PUT /students/{uuid}/complete' => ['controller' => 'StudentController', 'method' => 'complete', 'auth' => true],
     'DELETE /students/{uuid}' => ['controller' => 'StudentController', 'method' => 'delete', 'auth' => true],
     'GET /students/{uuid}/courses' => ['controller' => 'StudentController', 'method' => 'getEnrolledCourses', 'auth' => true],
     'POST /students/enroll' => ['controller' => 'StudentController', 'method' => 'enrollInCourse', 'auth' => true],

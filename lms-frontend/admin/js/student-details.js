@@ -180,11 +180,16 @@
         const toggleBtn = document.querySelector('#sdToggleStatusBtn');
         if (toggleBtn) {
             if (s.status === 'active') {
-                toggleBtn.innerHTML = '<i class="fas fa-user-slash"></i> Deactivate';
-                toggleBtn.className = 'btn btn-danger btn-sm';
+                toggleBtn.innerHTML = '<i class="fas fa-graduation-cap"></i> Mark Completed';
+                toggleBtn.className = 'btn btn-success btn-sm';
+            } else if (s.status === 'completed') {
+                toggleBtn.innerHTML = '<i class="fas fa-circle-check"></i> Completed';
+                toggleBtn.className = 'btn btn-secondary btn-sm';
+                toggleBtn.disabled = true;
             } else {
                 toggleBtn.innerHTML = '<i class="fas fa-user-check"></i> Activate';
                 toggleBtn.className = 'btn btn-success btn-sm';
+                toggleBtn.disabled = false;
             }
         }
     }
@@ -226,7 +231,15 @@
 
         const toggleBtn = document.querySelector('#sdToggleStatusBtn');
         if (toggleBtn) {
-            toggleBtn.addEventListener('click', () => toggleStatus(s));
+            toggleBtn.addEventListener('click', () => {
+                if (s.status === 'active') {
+                    completeStudent(s);
+                } else if (s.status === 'completed') {
+                    return;
+                } else {
+                    toggleStatus(s);
+                }
+            });
         }
     }
 
@@ -259,6 +272,31 @@
             }
         );
     }
+
+        async function completeStudent(s) {
+            showModal(
+                'Mark Student as Completed',
+                `<div style="display:flex;align-items:center;gap:.75rem">
+                    <i class="fas fa-graduation-cap" style="font-size:1.5rem;color:#0f766e"></i>
+                    <span>Mark <strong>${escapeHtml(s.first_name)} ${escapeHtml(s.last_name)}</strong> as completed?</span>
+                </div>`,
+                async () => {
+                    try {
+                        const res = await API.put(API_ENDPOINTS.STUDENT_COMPLETE(s.uuid), {});
+                        if (res && res.success) {
+                            showToast('Student marked as completed', 'success');
+                            s.status = 'completed';
+                            renderHeader(s);
+                        } else {
+                            showToast(res?.message || 'Failed to mark student as completed', 'error');
+                        }
+                    } catch (err) {
+                        console.error('Complete student error:', err);
+                        showToast('An error occurred', 'error');
+                    }
+                }
+            );
+        }
 
     // ─── Error Display ────────────────────────────────────────────────────────
     function showError(msg) {

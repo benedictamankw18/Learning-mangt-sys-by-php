@@ -461,7 +461,6 @@
         // Re-populate dynamic dropdowns each time modal opens (dropdowns might not be loaded yet on first open)
         populateProgramSelects();
         populateGradeLevelSelects();
-        populateAcademicYearSelect();
         populateTeacherSelect();
 
         if (!uuid) {
@@ -488,7 +487,7 @@
             document.getElementById('fieldMaxStudents').value  = c.max_students || '';
             setSelectVal('fieldProgramId',    c.program_id);
             setSelectVal('fieldGradeLevelId', c.grade_level_id);
-            setSelectVal('fieldAcademicYearId', c.academic_year_id);
+            // academic_year removed from class payload
             setSelectVal('fieldClassTeacherId', c.class_teacher_id);
             setSelectVal('fieldStatus', c.status || 'active');
         }).catch(err => {
@@ -523,7 +522,7 @@
             section:          (document.getElementById('fieldSection').value || '').trim(),
             program_id:       document.getElementById('fieldProgramId').value,
             grade_level_id:   document.getElementById('fieldGradeLevelId').value,
-            academic_year_id: document.getElementById('fieldAcademicYearId').value,
+            // academic_year removed
             status:           document.getElementById('fieldStatus').value || 'active',
         };
 
@@ -541,7 +540,7 @@
         if (!payload.section)          missing.push('Section');
         if (!payload.program_id)       missing.push('Program');
         if (!payload.grade_level_id)   missing.push('Grade Level');
-        if (!payload.academic_year_id) missing.push('Academic Year');
+        // academic_year removed from required fields
 
         if (missing.length) {
             if (errEl) { errEl.textContent = 'Required: ' + missing.join(', '); errEl.style.display = 'block'; }

@@ -100,13 +100,12 @@ class ClassController
         }
 
         $validator = new Validator($data);
-        $validator->required(['institution_id', 'program_id', 'grade_level_id', 'class_code', 'class_name', 'section', 'academic_year_id'])
+        $validator->required(['institution_id', 'program_id', 'grade_level_id', 'class_code', 'class_name', 'section'])
             ->maxLength('class_code', 50)
             ->maxLength('class_name', 200)
             ->maxLength('section', 50)
             ->numeric('program_id')
-            ->numeric('grade_level_id')
-            ->numeric('academic_year_id');
+            ->numeric('grade_level_id');
 
         if (isset($data['max_students'])) {
             $validator->numeric('max_students');
@@ -114,6 +113,29 @@ class ClassController
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $conflict = $this->repo->findConflict(
+            (int) $data['institution_id'],
+            (string) $data['class_code'],
+            (int) $data['program_id'],
+            (int) $data['grade_level_id'],
+            (string) $data['section']
+        );
+
+        if ($conflict) {
+            if (($conflict['conflict_type'] ?? '') === 'class_code') {
+                Response::error(
+                    'A class with code "' . ($data['class_code'] ?? '') . '" already exists in this institution.',
+                    409
+                );
+            } else {
+                Response::error(
+                    'A class with section "' . ($data['section'] ?? '') . '" already exists for the selected program and grade level.',
+                    409
+                );
+            }
             return;
         }
 
@@ -132,7 +154,7 @@ class ClassController
             if (strpos($e->getMessage(), '1062') !== false) {
                 if (strpos($e->getMessage(), 'unique_class_composition') !== false) {
                     Response::error(
-                        'A class with section "' . ($data['section'] ?? '') . '" already exists for the selected program, grade level, and academic year.',
+                        'A class with section "' . ($data['section'] ?? '') . '" already exists for the selected program and grade level.',
                         409
                     );
                 } else {
@@ -199,6 +221,30 @@ class ClassController
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $conflict = $this->repo->findConflict(
+            (int) $class['institution_id'],
+            (string) ($data['class_code'] ?? $class['class_code']),
+            (int) ($data['program_id'] ?? $class['program_id']),
+            (int) ($data['grade_level_id'] ?? $class['grade_level_id']),
+            (string) ($data['section'] ?? $class['section']),
+            (int) $classId
+        );
+
+        if ($conflict) {
+            if (($conflict['conflict_type'] ?? '') === 'class_code') {
+                Response::error(
+                    'A class with code "' . ($data['class_code'] ?? $class['class_code']) . '" already exists in this institution.',
+                    409
+                );
+            } else {
+                Response::error(
+                    'A class with section "' . ($data['section'] ?? $class['section']) . '" already exists for the selected program and grade level.',
+                    409
+                );
+            }
             return;
         }
 

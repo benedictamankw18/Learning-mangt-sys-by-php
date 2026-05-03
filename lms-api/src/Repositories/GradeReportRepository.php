@@ -45,7 +45,7 @@ class GradeReportRepository extends BaseRepository
                 FROM {$this->table} gr
                 LEFT JOIN students s ON gr.student_id = s.student_id
                 LEFT JOIN users u ON s.user_id = u.user_id
-                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN classes c ON gr.class_id = c.class_id
                 LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
                 LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
                 WHERE 1=1";
@@ -57,7 +57,7 @@ class GradeReportRepository extends BaseRepository
         }
 
         if (!empty($filters['class_id'])) {
-            $sql .= " AND s.class_id = :class_id";
+            $sql .= " AND gr.class_id = :class_id";
             $params[':class_id'] = $filters['class_id'];
         }
 
@@ -121,7 +121,7 @@ class GradeReportRepository extends BaseRepository
         }
 
         if (!empty($filters['class_id'])) {
-            $sql .= " AND s.class_id = :class_id";
+            $sql .= " AND gr.class_id = :class_id";
             $params[':class_id'] = $filters['class_id'];
         }
 
@@ -221,6 +221,10 @@ class GradeReportRepository extends BaseRepository
 
             if ($updatePositions) {
                 $classId = $classId ?? $this->resolveStudentClassId($studentId);
+                // Ensure the report row has the latest class_id
+                if ($classId) {
+                    $this->update($reportId, ['class_id' => $classId]);
+                }
                 if ($classId) {
                     $this->calculatePositions((int) $classId, (int) $semesterId, (int) $academicYearId);
                 }
@@ -230,7 +234,8 @@ class GradeReportRepository extends BaseRepository
         }
 
         // Create new report
-        $reportId = $this->create([
+        $classId = $classId ?? $this->resolveStudentClassId($studentId);
+        $createData = [
             'institution_id' => $institutionId,
             'student_id' => $studentId,
             'semester_id' => $semesterId,
@@ -238,7 +243,13 @@ class GradeReportRepository extends BaseRepository
             'teacher_comment' => $remarks,
             'generated_by' => $generatedBy,
             'is_published' => 0
-        ]);
+        ];
+
+        if ($classId) {
+            $createData['class_id'] = $classId;
+        }
+
+        $reportId = $this->create($createData);
 
         // Generate report details from results
         $this->generateReportDetails($reportId, $studentId, $semesterId);
@@ -431,21 +442,24 @@ class GradeReportRepository extends BaseRepository
                 iset.logo_url as institution_logo,
                 iset.motto as institution_motto,
                 (
-                    SELECT COUNT(*)
-                    FROM students s2
-                    WHERE s2.class_id = s.class_id
+                    SELECT COUNT(DISTINCT gr2.student_id)
+                    FROM grade_reports gr2
+                    WHERE gr2.class_id = gr.class_id
+                    AND gr2.academic_year_id = gr.academic_year_id
+                    AND gr2.semester_id = gr.semester_id
                 ) as class_roll_count
                 FROM {$this->table} gr
                 LEFT JOIN students s ON gr.student_id = s.student_id
                 LEFT JOIN users u ON s.user_id = u.user_id
-                LEFT JOIN classes c ON s.class_id = c.class_id
+                LEFT JOIN classes c ON gr.class_id = c.class_id
                 LEFT JOIN programs p ON c.program_id = p.program_id
                 LEFT JOIN grade_levels gl ON c.grade_level_id = gl.grade_level_id
                 LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
                 LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
                 LEFT JOIN institutions i ON s.institution_id = i.institution_id
                 LEFT JOIN institution_settings iset ON s.institution_id = iset.institution_id
-                WHERE gr.student_id = :student_id";
+                WHERE gr.student_id = :student_id
+                AND gr.is_published = 1";
         $params = [':student_id' => $studentId];
 
         if ($semesterId) {
@@ -494,7 +508,8 @@ class GradeReportRepository extends BaseRepository
                 FROM {$this->table} gr
                 LEFT JOIN semesters sem ON gr.semester_id = sem.semester_id
                 LEFT JOIN academic_years ay ON gr.academic_year_id = ay.academic_year_id
-                WHERE gr.student_id = :student_id";
+                WHERE gr.student_id = :student_id
+                AND gr.is_published = 1";
         $params = [':student_id' => $studentId];
 
         if ($academicYearId) {
@@ -564,7 +579,7 @@ class GradeReportRepository extends BaseRepository
                 FROM {$this->table} gr
                 JOIN students s ON gr.student_id = s.student_id
                 JOIN users u ON s.user_id = u.user_id
-                WHERE s.class_id = :class_id";
+                WHERE gr.class_id = :class_id";
         $params = [':class_id' => $classId];
 
         if ($semesterId) {
@@ -642,7 +657,7 @@ class GradeReportRepository extends BaseRepository
                 FROM {$this->table} gr
                 JOIN students s ON gr.student_id = s.student_id
                 LEFT JOIN grade_report_details grd ON grd.report_id = gr.report_id
-                WHERE s.class_id = :class_id
+                WHERE gr.class_id = :class_id
                 AND gr.semester_id = :semester_id
                 AND gr.academic_year_id = :academic_year_id
                 GROUP BY {$groupBy}
@@ -671,7 +686,17 @@ class GradeReportRepository extends BaseRepository
 
     private function computeRankForReport(int $studentId, int $reportId, int $semesterId, int $academicYearId): ?int
     {
-        $classId = $this->resolveStudentClassId($studentId);
+        // Prefer the `class_id` stored on the report row (snapshot) so promotions
+        // or later changes to `students.class_id` don't affect historical rankings.
+        $stmt = $this->db->prepare("SELECT class_id FROM {$this->table} WHERE report_id = :report_id LIMIT 1");
+        $stmt->execute([':report_id' => $reportId]);
+        $classIdFromReport = $stmt->fetchColumn();
+        if ($classIdFromReport !== false && $classIdFromReport !== null && $classIdFromReport !== '') {
+            $classId = (int) $classIdFromReport;
+        } else {
+            $classId = $this->resolveStudentClassId($studentId);
+        }
+
         if (!$classId) {
             return null;
         }
@@ -701,7 +726,7 @@ class GradeReportRepository extends BaseRepository
                 FROM {$this->table} gr
                 JOIN students s ON gr.student_id = s.student_id
                 LEFT JOIN grade_report_details grd ON grd.report_id = gr.report_id
-                WHERE s.class_id = :class_id
+                WHERE gr.class_id = :class_id
                 AND gr.semester_id = :semester_id
                 AND gr.academic_year_id = :academic_year_id
                 GROUP BY {$groupBy}
