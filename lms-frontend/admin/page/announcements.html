@@ -1,0 +1,326 @@
+<style>
+  .ann-page { display: grid; gap: 1rem; }
+  .ann-top { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+  .ann-top h2 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+  .ann-top p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
+  .ann-top-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .ann-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+  @media (max-width: 1000px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .ann-stats { grid-template-columns: 1fr; } }
+
+  .ann-stat, .ann-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .ann-stat { display: flex; align-items: center; gap: 0.8rem; padding: 0.95rem 1rem; }
+  .ann-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .ann-stat h3 { margin: 0; font-size: 1.35rem; color: #0f172a; }
+  .ann-stat p { margin: 0.15rem 0 0; font-size: 0.78rem; color: #64748b; }
+
+  .ann-filters {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 180px 180px;
+    gap: 0.65rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #f8fafc, #fff);
+  }
+  @media (max-width: 900px) { .ann-filters { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .ann-filters { grid-template-columns: 1fr; } }
+
+  .ann-input, .ann-select, .ann-textarea {
+    width: 100%;
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .ann-input, .ann-select { padding: 0.58rem 0.72rem; font-size: 0.88rem; }
+  .ann-textarea { min-height: 130px; padding: 0.72rem; resize: vertical; font-size: 0.9rem; }
+  .ann-input:focus, .ann-select:focus, .ann-textarea:focus {
+    border-color: #006a3f;
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+  }
+
+  .ann-table-wrap { overflow: auto; }
+  .ann-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  .ann-table th, .ann-table td {
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.8rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .ann-table th {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .ann-title { margin: 0; font-size: 0.92rem; font-weight: 700; color: #0f172a; }
+  .ann-snippet { margin: 0.2rem 0 0; font-size: 0.82rem; color: #475569; line-height: 1.45; }
+
+  .ann-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .ann-chip.role { background: #e2e8f0; color: #334155; }
+  .ann-chip.normal { background: #e0f2fe; color: #0369a1; }
+  .ann-chip.urgent { background: #fee2e2; color: #991b1b; }
+  .ann-chip.published { background: #dcfce7; color: #166534; }
+  .ann-chip.draft { background: #f1f5f9; color: #334155; }
+
+  .ann-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .ann-btn {
+    border: 1px solid #dbe3ea;
+    background: #fff;
+    color: #334155;
+    border-radius: 9px;
+    padding: 0.38rem 0.55rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .ann-btn:hover { background: #f8fafc; }
+  .ann-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .ann-btn.primary { background: #006a3f; border-color: #006a3f; color: #fff; }
+  .ann-btn.primary:hover { background: #065f46; }
+
+  .ann-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .ann-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
+
+  .ann-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 1rem;
+  }
+  .ann-modal.open { display: flex; }
+
+  .ann-modal-card {
+    width: min(760px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+  }
+  .ann-modal-head {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .ann-modal-head h3 { margin: 0; color: #0f172a; font-size: 1.05rem; }
+  .ann-modal-head p { margin: 0.15rem 0 0; color: #64748b; font-size: 0.78rem; }
+  .ann-modal-body { padding: 1rem; display: grid; gap: 0.85rem; }
+  .ann-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 700px) { .ann-grid { grid-template-columns: 1fr; } }
+
+  .ann-label { display: block; margin-bottom: 0.28rem; font-size: 0.76rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .ann-hint { margin: 0.15rem 0 0; font-size: 0.75rem; color: #64748b; }
+  .ann-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 0.6rem 0.7rem; font-size: 0.78rem; }
+
+  .ann-file-list { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.4rem; }
+  .ann-file-chip {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #dbe3ea;
+    border-radius: 999px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .ann-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+    flex-wrap: wrap;
+  }
+</style>
+
+<div id="admAnnouncementsRoot">
+  <div class="ann-page">
+    <div class="ann-top">
+      <div>
+        <h2>Announcements</h2>
+        <p>Create and manage school announcements, publishing windows, and audience targeting.</p>
+      </div>
+      <div class="ann-top-actions">
+        <button class="btn-secondary" id="annRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        <button class="btn-primary" id="annCreateBtn" type="button"><i class="fas fa-plus"></i> New Announcement</button>
+      </div>
+    </div>
+
+    <div class="ann-stats">
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-bullhorn"></i></div>
+        <div><h3 id="annStatTotal">0</h3><p>Total announcements</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#0f766e,#166534)"><i class="fas fa-paper-plane"></i></div>
+        <div><h3 id="annStatPublished">0</h3><p>Published</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#dc2626,#991b1b)"><i class="fas fa-triangle-exclamation"></i></div>
+        <div><h3 id="annStatUrgent">0</h3><p>Urgent</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="fas fa-eye"></i></div>
+        <div><h3 id="annStatReads">0</h3><p>Total reads</p></div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-filters">
+        <input id="annSearchInput" class="ann-input" type="search" placeholder="Search by title or content..." />
+        <select id="annTargetFilter" class="ann-select">
+          <option value="all">All audiences</option>
+          <option value="student">Students</option>
+          <option value="teacher">Teachers</option>
+          <option value="parent">Parents</option>
+          <option value="class">Class</option>
+        </select>
+        <select id="annStatusFilter" class="ann-select">
+          <option value="all">All status</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+
+      <div class="ann-table-wrap">
+        <table class="ann-table">
+          <thead>
+            <tr>
+              <th>Announcement</th>
+              <th>Audience</th>
+              <th>Priority</th>
+              <th>Schedule</th>
+              <th>Status</th>
+              <th>Reads</th>
+              <th style="width: 240px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="annTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="ann-empty"><i class="fas fa-spinner fa-spin"></i>Loading announcements...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="ann-modal" id="annModalOverlay">
+    <div class="ann-modal-card">
+      <div class="ann-modal-head">
+        <div>
+          <h3 id="annModalTitle">New Announcement</h3>
+          <p>Create and publish announcements for your school community.</p>
+        </div>
+        <button class="ann-btn" id="annModalClose" type="button"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="ann-modal-body">
+        <div>
+          <label class="ann-label" for="annFieldTitle">Title</label>
+          <input id="annFieldTitle" class="ann-input" type="text" maxlength="200" placeholder="Announcement title" />
+        </div>
+
+        <div>
+          <label class="ann-label" for="annFieldContent">Content</label>
+          <textarea id="annFieldContent" class="ann-textarea" placeholder="Write the message body..."></textarea>
+        </div>
+
+        <div class="ann-grid">
+          <div>
+            <label class="ann-label" for="annFieldTarget">Target Audience</label>
+            <select id="annFieldTarget" class="ann-select">
+              <option value="all">All</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="parent">Parents</option>
+              <option value="class">Class</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="ann-label" for="annFieldPriority">Priority</label>
+            <select id="annFieldPriority" class="ann-select">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="ann-grid">
+          
+          <div>
+            <label class="ann-label" for="annFieldPublished">Published</label>
+            <select id="annFieldPublished" class="ann-select">
+              <option value="0">Draft</option>
+              <option value="1">Published</option>
+            </select>
+          </div>
+
+          <div>
+          <label class="ann-label" for="annFieldExpiryDate">Expiry Date</label>
+          <input id="annFieldExpiryDate" class="ann-input" type="datetime-local" />
+        </div>
+        </div>
+
+        
+
+        <div>
+          <label class="ann-label" for="annFieldFiles">Attach Files</label>
+          <input id="annFieldFiles" class="ann-input" type="file" multiple />
+          <div id="annFileList" class="ann-file-list"></div>
+          <!-- <p class="ann-hint">File upload API is not available yet; file names are saved as metadata only.</p> -->
+        </div>
+
+        <div class="ann-warning" id="annFormError" style="display:none"></div>
+      </div>
+
+      <div class="ann-modal-foot">
+        <button class="btn-secondary" id="annModalCancel" type="button">Cancel</button>
+        <button class="btn-primary" id="annModalSave" type="button"><i class="fas fa-save"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</div>

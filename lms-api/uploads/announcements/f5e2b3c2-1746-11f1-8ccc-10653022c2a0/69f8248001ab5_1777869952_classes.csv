@@ -1,0 +1,20 @@
+Class Name,Code,Section,Program,Grade Level,Teacher,Students,Capacity,Room,Status
+Class,Code,1,Business,SHS 1,,0,40,,active
+SHS 1 General Arts A,2026 SHS1-ARTS-A,A,General Arts,SHS 1,Jane Smith,4,40,qxqx,active
+SHS 1 General Arts B,2026 SHS1-ARTS-B,B,General Arts,SHS 1,,3,40,,active
+SHS 1 Science 1,2026 1SCI-1,1,General Science,SHS 1,,0,50,Block A Room 7,active
+SHS 1 Science W,2026 2SCI-11,11,General Science,SHS 1,,0,50,Block A Room 5,active
+SHS 1 Science E,2026 2SCI-12,12,General Science,SHS 1,,0,50,Block A Room 6,active
+SHS 1 Science F,2026 2SCI-13,13,General Science,SHS 1,,0,50,Block A Room 7,active
+SHS 1 Science G,2026 2SCI-14,14,General Science,SHS 1,,0,50,Block A Room 8,active
+SHS 1 Science H,2026 2SCI-15,15,General Science,SHS 1,,1,50,Block A Room 9,active
+SHS 1 Science 2,2026 1SCI-2,2,General Science,SHS 1,,0,50,Block A Room 6,active
+SHS 1 Science 5,2026 1SCI-5,5,General Science,SHS 1,,0,50,Block A Room 8,active
+SHS 1 Science 8,2026 1SCI-8,8,General Science,SHS 1,,0,50,Block A Room 9,active
+SHS 1 General Science A,2026 SHS1-SCI-A,A,General Science,SHS 1,Ama Asante,0,35,,active
+SHS 1 General Science B,2026 SHS1-SCI-B,B,General Science,SHS 1,Kwabena Owusu,3,35,,active
+SHS 1 Science D,2026 1SCI-D,D,General Science,SHS 1,,0,50,Block A Room 5,active
+SHS 1 Science E,2026 1SCI-E,E,General Science,SHS 1,BENEDICT OSEI AMANKWA,0,50,Block A Room 6,active
+SHS 1 Science F,2026 1SCI-F,F,General Science,SHS 1,,0,50,Block A Room 7,active
+SHS 1 Science G,2026 1SCI-G,G,General Science,SHS 1,BENEDICT OSEI AMANKWA,0,50,Block A Room 8,active
+SHS 1 Science H,2026 1SCI-H,H,General Science,SHS 1,,0,50,Block A Room 9,active

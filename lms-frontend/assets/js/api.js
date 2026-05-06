@@ -734,6 +734,43 @@ const NotificationAPI = {
 };
 
 /**
+ * Announcement APIs
+ */
+const AnnouncementAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ANNOUNCEMENTS, params),
+    getById: (uuid) => API.get(`${API_ENDPOINTS.ANNOUNCEMENTS}/${uuid}`),
+    create: (data) => API.post(API_ENDPOINTS.ANNOUNCEMENTS, data),
+    markAsRead: (uuid) => API.post(`${API_ENDPOINTS.ANNOUNCEMENTS}/${uuid}/read`),
+    update: (uuid, data) => API.put(`${API_ENDPOINTS.ANNOUNCEMENTS}/${uuid}`, data),
+    delete: (uuid) => API.delete(`${API_ENDPOINTS.ANNOUNCEMENTS}/${uuid}`),
+    uploadAttachment: (uuid, formData) => API.upload(`${API_ENDPOINTS.ANNOUNCEMENTS}/${uuid}/attachments`, formData),
+};
+
+/**
+ * Academic Year APIs
+ */
+const AcademicYearAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.ACADEMIC_YEARS, params),
+    getCurrent: () => API.get(API_ENDPOINTS.ACADEMIC_YEAR_CURRENT),
+    getById: (id) => API.get(`${API_ENDPOINTS.ACADEMIC_YEARS}/${id}`),
+    create: (data) => API.post(API_ENDPOINTS.ACADEMIC_YEARS, data),
+    update: (id, data) => API.put(`${API_ENDPOINTS.ACADEMIC_YEARS}/${id}`, data),
+    delete: (id) => API.delete(`${API_ENDPOINTS.ACADEMIC_YEARS}/${id}`),
+};
+
+/**
+ * Semester APIs
+ */
+const SemesterAPI = {
+    getAll: (params) => API.get(API_ENDPOINTS.SEMESTERS, params),
+    getCurrent: () => API.get(API_ENDPOINTS.SEMESTER_CURRENT),
+    getById: (id) => API.get(`${API_ENDPOINTS.SEMESTERS}/${id}`),
+    create: (data) => API.post(API_ENDPOINTS.SEMESTERS, data),
+    update: (id, data) => API.put(`${API_ENDPOINTS.SEMESTERS}/${id}`, data),
+    delete: (id) => API.delete(`${API_ENDPOINTS.SEMESTERS}/${id}`),
+};
+
+/**
  * File APIs
  */
 const FileAPI = {
@@ -813,16 +850,6 @@ const ParentActivityAPI = {
     getByPerformer: (userId, params) => API.get(API_ENDPOINTS.PARENT_ACTIVITY_BY_PERFORMER(userId), params),
     log: (data) => API.post(API_ENDPOINTS.PARENT_ACTIVITY, data),
     cleanup: (params) => API.delete(API_ENDPOINTS.PARENT_ACTIVITY_CLEANUP + (params ? '?' + new URLSearchParams(params).toString() : '')),
-};
-
-/**
- * Announcement APIs
- */
-const AnnouncementAPI = {
-    getAll: (params) => API.get(API_ENDPOINTS.ANNOUNCEMENTS, params),
-    create: (data) => API.post(API_ENDPOINTS.ANNOUNCEMENTS, data),
-    update: (id, data) => API.put(`${API_ENDPOINTS.ANNOUNCEMENTS}/${id}`, data),
-    delete: (id) => API.delete(`${API_ENDPOINTS.ANNOUNCEMENTS}/${id}`),
 };
 
 /**

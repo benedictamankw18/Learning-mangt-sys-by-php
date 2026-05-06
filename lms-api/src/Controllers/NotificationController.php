@@ -40,13 +40,14 @@ class NotificationController
     public function index(array $user): void
     {
         $userId = $user['user_id'];
+        $institutionId = (int) ($user['institution_id'] ?? 0);
         $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
         $limit = isset($_GET['limit']) ? min(100, max(1, (int) $_GET['limit'])) : 20;
         $offset = ($page - 1) * $limit;
 
-        $notifications = $this->notificationRepo->getUserNotifications($userId, $limit, $offset);
-        $total = $this->notificationRepo->countUserNotifications($userId);
-        $unreadCount = $this->notificationRepo->getUnreadCount($userId);
+        $notifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, $limit, $offset);
+        $total = $this->notificationRepo->countInstitutionNotifications($institutionId);
+        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
 
         Response::success([
             'notifications' => $notifications,
@@ -73,16 +74,10 @@ class NotificationController
         }
 
         $userId = $user['user_id'];
-        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
-            return;
-        }
-
-        // Check if notification belongs to the user
-        if ($notification['user_id'] !== $userId) {
-            Response::error('Unauthorized', 403);
             return;
         }
 
@@ -115,7 +110,7 @@ class NotificationController
         }
 
         $validator = new Validator($data);
-        $validator->required(['user_id', 'title', 'message']);
+        $validator->required(['title', 'message']);
 
         if ($validator->fails()) {
             Response::validationError($validator->getErrors());
@@ -143,7 +138,7 @@ class NotificationController
         }
 
         $userId = $user['user_id'];
-        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
@@ -152,13 +147,7 @@ class NotificationController
 
         $notificationId = $notification['notification_id'];
 
-        // Check if notification belongs to the user
-        if ($notification['user_id'] !== $userId) {
-            Response::error('Unauthorized', 403);
-            return;
-        }
-
-        $this->notificationRepo->markAsRead($notificationId);
+        $this->notificationRepo->markAsRead($notificationId, $userId);
 
         Response::success(['message' => 'Notification marked as read']);
     }
@@ -169,8 +158,9 @@ class NotificationController
      */
     public function markAllAsRead(array $user): void
     {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
         $userId = $user['user_id'];
-        $this->notificationRepo->markAllAsRead($userId);
+        $this->notificationRepo->markAllAsRead($institutionId, $userId);
 
         Response::success(['message' => 'All notifications marked as read']);
     }
@@ -181,8 +171,9 @@ class NotificationController
      */
     public function getUnreadCount(array $user): void
     {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
         $userId = $user['user_id'];
-        $unreadCount = $this->notificationRepo->getUnreadCount($userId);
+        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
 
         Response::success(['unread_count' => $unreadCount]);
     }
@@ -193,15 +184,16 @@ class NotificationController
      */
     public function getSummary(array $user): void
     {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
         $userId = $user['user_id'];
 
         // Get unread counts
-        $notificationsCount = $this->notificationRepo->getUnreadCount($userId);
+        $notificationsCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
         $messagesCount = $this->messageRepo->getUnreadCount($userId);
         $totalCount = $notificationsCount + $messagesCount;
 
         // Get recent notifications (limit 5)
-        $recentNotifications = $this->notificationRepo->getUserNotifications($userId, 5, 0);
+        $recentNotifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, 5, 0);
 
         // Get recent messages (limit 5)
         $recentMessages = $this->messageRepo->getInbox($userId, 1, 5);
@@ -216,8 +208,6 @@ class NotificationController
     }
 
     /**
-     * 
-    /**
      * Delete a notification
      * DELETE /api/notifications/{uuid}
      */
@@ -230,24 +220,14 @@ class NotificationController
         }
 
         $userId = $user['user_id'];
-        $notification = $this->notificationRepo->findByUuid($sanitizedUuid);
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
 
         if (!$notification) {
             Response::error('Notification not found', 404);
             return;
         }
 
-        $notificationId = $notification['notification_id'];
-
-        // Check if notification belongs to the user
-        if ($notification['user_id'] !== $userId) {
-            Response::error('Unauthorized', 403);
-            return;
-        }
-
-        $this->notificationRepo->delete($notificationId);
-
-        Response::success(['message' => 'Notification deleted successfully']);
+        Response::error('Deleting institution notifications is not supported', 405);
     }
 
     /**
@@ -256,9 +236,6 @@ class NotificationController
      */
     public function deleteAllRead(array $user): void
     {
-        $userId = $user['user_id'];
-        $this->notificationRepo->deleteAllRead($userId);
-
-        Response::success(['message' => 'All read notifications deleted successfully']);
+        Response::error('Deleting read notifications is not supported for institution-scoped notifications', 405);
     }
 }

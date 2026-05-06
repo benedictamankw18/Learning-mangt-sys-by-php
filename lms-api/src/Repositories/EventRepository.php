@@ -20,6 +20,11 @@ class EventRepository extends BaseRepository
         $sql .= " AND COALESCE(e.target_role, 'all') <> 'personal'";
     }
 
+    private function appendPublishedVisibilityFilter(string &$sql): void
+    {
+        $sql .= " AND COALESCE(e.is_published, 0) = 1";
+    }
+
     public function getAll(array $filters = [], int $limit = 50, int $offset = 0): array
     {
         $sql = "SELECT e.*, i.institution_name as institution_name 
@@ -62,6 +67,10 @@ class EventRepository extends BaseRepository
         if (!empty($filters['academic_year_id'])) {
             $sql .= " AND e.academic_year_id = :academic_year_id";
             $params[':academic_year_id'] = $filters['academic_year_id'];
+        }
+
+        if (!empty($filters['published_only'])) {
+            $this->appendPublishedVisibilityFilter($sql);
         }
 
         $viewerUserId = isset($filters['viewer_user_id']) ? (int) $filters['viewer_user_id'] : null;
@@ -125,6 +134,10 @@ class EventRepository extends BaseRepository
             $params[':academic_year_id'] = $filters['academic_year_id'];
         }
 
+        if (!empty($filters['published_only'])) {
+            $sql .= " AND COALESCE(is_published, 0) = 1";
+        }
+
         $viewerUserId = isset($filters['viewer_user_id']) ? (int) $filters['viewer_user_id'] : null;
         $viewerIsAdmin = !empty($filters['viewer_is_admin']);
         if ($viewerUserId) {
@@ -141,7 +154,7 @@ class EventRepository extends BaseRepository
         return $result['total'];
     }
 
-    public function getUpcoming($institutionId = null, $days = 30, $limit = 20, ?int $viewerUserId = null, bool $viewerIsAdmin = false)
+    public function getUpcoming($institutionId = null, $days = 30, $limit = 20, ?int $viewerUserId = null, bool $viewerIsAdmin = false, bool $publishedOnly = false)
     {
         $sql = "SELECT e.*, i.institution_name as institution_name 
                 FROM {$this->table} e
@@ -153,6 +166,10 @@ class EventRepository extends BaseRepository
         if ($institutionId) {
             $sql .= " AND e.institution_id = :institution_id";
             $params[':institution_id'] = $institutionId;
+        }
+
+        if ($publishedOnly) {
+            $this->appendPublishedVisibilityFilter($sql);
         }
 
         $this->appendPersonalVisibilityFilter($sql, $params, $viewerUserId, $viewerIsAdmin);
@@ -173,7 +190,7 @@ class EventRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getCalendar($institutionId = null, $month = null, ?int $viewerUserId = null, bool $viewerIsAdmin = false)
+    public function getCalendar($institutionId = null, $month = null, ?int $viewerUserId = null, bool $viewerIsAdmin = false, bool $publishedOnly = false)
     {
         if (!$month) {
             $month = date('Y-m');
@@ -197,6 +214,10 @@ class EventRepository extends BaseRepository
             $params[] = $institutionId;
         }
 
+        if ($publishedOnly) {
+            $sql .= " AND COALESCE(e.is_published, 0) = 1";
+        }
+
         if ($viewerUserId) {
             $sql .= " AND (COALESCE(e.target_role, 'all') <> 'personal' OR e.created_by = ?)";
             $params[] = $viewerUserId;
@@ -212,7 +233,7 @@ class EventRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getByType($type, $institutionId = null, $limit = 50, ?int $viewerUserId = null, bool $viewerIsAdmin = false)
+    public function getByType($type, $institutionId = null, $limit = 50, ?int $viewerUserId = null, bool $viewerIsAdmin = false, bool $publishedOnly = false)
     {
         $sql = "SELECT e.*, i.institution_name as institution_name 
                 FROM {$this->table} e
@@ -230,6 +251,10 @@ class EventRepository extends BaseRepository
         if ($institutionId) {
             $sql .= " AND e.institution_id = :institution_id";
             $params[':institution_id'] = $institutionId;
+        }
+
+        if ($publishedOnly) {
+            $this->appendPublishedVisibilityFilter($sql);
         }
 
         $this->appendPersonalVisibilityFilter($sql, $params, $viewerUserId, $viewerIsAdmin);
@@ -250,7 +275,7 @@ class EventRepository extends BaseRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getAcademicCalendar($institutionId = null, $academicYearId = null, ?int $viewerUserId = null, bool $viewerIsAdmin = false)
+    public function getAcademicCalendar($institutionId = null, $academicYearId = null, ?int $viewerUserId = null, bool $viewerIsAdmin = false, bool $publishedOnly = false)
     {
         $sql = "SELECT e.*, i.institution_name as institution_name 
                 FROM {$this->table} e
@@ -266,6 +291,10 @@ class EventRepository extends BaseRepository
         if ($academicYearId) {
             $sql .= " AND e.academic_year_id = :academic_year_id";
             $params[':academic_year_id'] = $academicYearId;
+        }
+
+        if ($publishedOnly) {
+            $this->appendPublishedVisibilityFilter($sql);
         }
 
         $this->appendPersonalVisibilityFilter($sql, $params, $viewerUserId, $viewerIsAdmin);

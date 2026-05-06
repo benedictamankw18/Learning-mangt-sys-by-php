@@ -1,0 +1,329 @@
+<style>
+  .evt-page { display: grid; gap: 1rem; }
+  .evt-top { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
+  .evt-top h2 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+  .evt-top p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
+  .evt-top-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .evt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+  @media (max-width: 1000px) { .evt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .evt-stats { grid-template-columns: 1fr; } }
+
+  .evt-stat, .evt-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .evt-stat { display: flex; align-items: center; gap: 0.8rem; padding: 0.95rem 1rem; }
+  .evt-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .evt-stat h3 { margin: 0; font-size: 1.35rem; color: #0f172a; }
+  .evt-stat p { margin: 0.15rem 0 0; font-size: 0.78rem; color: #64748b; }
+
+  .evt-filters {
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) 180px 180px;
+    gap: 0.65rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #f8fafc, #fff);
+  }
+  
+  .ann-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .ann-btn {
+    border: 1px solid #dbe3ea;
+    background: #fff;
+    color: #334155;
+    border-radius: 9px;
+    padding: 0.38rem 0.55rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .ann-btn:hover { background: #f8fafc; }
+  .ann-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .ann-btn.primary { background: #006a3f; border-color: #006a3f; color: #fff; }
+  .ann-btn.primary:hover { background: #065f46; }
+
+  .ann-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .ann-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
+
+  @media (max-width: 900px) { .evt-filters { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .evt-filters { grid-template-columns: 1fr; } }
+
+  .evt-input, .evt-select, .evt-textarea {
+    width: 100%;
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .evt-input, .evt-select { padding: 0.58rem 0.72rem; font-size: 0.88rem; }
+  .evt-textarea { min-height: 130px; padding: 0.72rem; resize: vertical; font-size: 0.9rem; }
+  .evt-input:focus, .evt-select:focus, .evt-textarea:focus {
+    border-color: #006a3f;
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+  }
+
+  .evt-table-wrap { overflow: auto; }
+  .evt-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  .evt-table th, .evt-table td {
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.8rem 0.9rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  .evt-table th {
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: #f8fafc;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .evt-title { margin: 0; font-size: 0.92rem; font-weight: 700; color: #0f172a; }
+  .evt-snippet { margin: 0.2rem 0 0; font-size: 0.82rem; color: #475569; line-height: 1.45; }
+
+  .evt-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .evt-chip.role { background: #e2e8f0; color: #334155; }
+  .evt-chip.type { background: #e0f2fe; color: #0369a1; }
+  .evt-chip.soft { background: #f1f5f9; color: #334155; }
+
+  .evt-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .evt-btn {
+    border: 1px solid #dbe3ea;
+    background: #fff;
+    color: #334155;
+    border-radius: 9px;
+    padding: 0.38rem 0.55rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .evt-btn:hover { background: #f8fafc; }
+  .evt-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .evt-btn.primary { background: #006a3f; border-color: #006a3f; color: #fff; }
+  .evt-btn.primary:hover { background: #065f46; }
+
+  .evt-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748b;
+  }
+  .evt-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
+
+  .evt-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 1rem;
+  }
+  .evt-modal.open { display: flex; }
+
+  .evt-modal-card {
+    width: min(760px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28);
+  }
+  .evt-modal-head {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #eef2f7;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .evt-modal-head h3 { margin: 0; color: #0f172a; font-size: 1.05rem; }
+  .evt-modal-head p { margin: 0.15rem 0 0; color: #64748b; font-size: 0.78rem; }
+  .evt-modal-body { padding: 1rem; display: grid; gap: 0.85rem; }
+  .evt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 700px) { .evt-grid { grid-template-columns: 1fr; } }
+
+  .evt-label { display: block; margin-bottom: 0.28rem; font-size: 0.76rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .evt-hint { margin: 0.15rem 0 0; font-size: 0.75rem; color: #64748b; }
+
+  .evt-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 0 1rem 1rem;
+    flex-wrap: wrap;
+  }
+</style>
+
+<div id="admEventsRoot">
+  <div class="evt-page">
+    <div class="evt-top">
+      <div>
+        <h2>Events</h2>
+        <p>Create and manage school events, publishing windows, and audience targeting.</p>
+      </div>
+      <div class="evt-top-actions">
+        <button class="evt-btn" id="evtRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        <button class="evt-btn primary" id="evtCreateBtn" type="button"><i class="fas fa-plus"></i> New Event</button>
+      </div>
+    </div>
+
+    <div class="evt-stats">
+      <div class="evt-stat">
+        <div class="evt-stat-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-calendar-days"></i></div>
+        <div><h3 id="evtStatTotal">0</h3><p>Total events</p></div>
+      </div>
+      <div class="evt-stat">
+        <div class="evt-stat-icon" style="background:linear-gradient(135deg,#0f766e,#166534)"><i class="fas fa-clock"></i></div>
+        <div><h3 id="evtStatUpcoming">0</h3><p>Upcoming</p></div>
+      </div>
+      <div class="evt-stat">
+        <div class="evt-stat-icon" style="background:linear-gradient(135deg,#dc2626,#991b1b)"><i class="fas fa-fire"></i></div>
+        <div><h3 id="evtStatToday">0</h3><p>Happening today</p></div>
+      </div>
+      <div class="evt-stat">
+        <div class="evt-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="fas fa-list-check"></i></div>
+        <div><h3 id="evtStatTypes">0</h3><p>Event types</p></div>
+      </div>
+    </div>
+
+    <div class="evt-card">
+      <div class="evt-filters">
+        <input id="evtSearchInput" class="evt-input" placeholder="Search by name, venue or description" />
+        <select id="evtTypeFilter" class="evt-select">
+          <option value="all">All types</option>
+          <option value="exam">Exam</option>
+          <option value="sports">Sports</option>
+          <option value="holiday">Holiday</option>
+          <option value="other">Other</option>
+        </select>
+        <select id="evtAudienceFilter" class="evt-select">
+          <option value="all">All audiences</option>
+          <option value="students">Students</option>
+          <option value="teachers">Teachers</option>
+          <option value="parents">Parents</option>
+        </select>
+      </div>
+
+      <div class="evt-table-wrap">
+        <table class="evt-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Type</th>
+              <th>When</th>
+              <th>Venue</th>
+              <th>Audience</th>
+              <th>Published</th>
+              <th style="width: 240px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="evtTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="evt-empty"><i class="fas fa-spinner fa-spin"></i>Loading events...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="evt-modal" id="evtModalOverlay">
+    <div class="evt-modal-card">
+      <div class="evt-modal-head">
+        <div>
+          <h3 id="evtModalTitle">New Event</h3>
+          <p>Create and schedule school events.</p>
+        </div>
+        <button class="evt-btn" id="evtModalClose" type="button"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="evt-modal-body">
+        <div>
+          <label class="evt-label">Event name</label>
+          <input id="evtFieldName" class="evt-input" type="text" />
+        </div>
+
+        <div>
+          <label class="evt-label">Description</label>
+          <textarea id="evtFieldDescription" class="evt-textarea" style="min-height: 130px"></textarea>
+        </div>
+
+        <div class="evt-grid">
+          <div>
+            <label class="evt-label">Type</label>
+            <select id="evtFieldType" class="evt-select"><option value="other">Other</option><option value="exam">Exam</option><option value="sports">Sports</option><option value="holiday">Holiday</option></select>
+          </div>
+          <div>
+            <label class="evt-label">Venue</label>
+            <input id="evtFieldVenue" class="evt-input" />
+          </div>
+        </div>
+
+        <div class="evt-grid">
+          <div>
+            <label class="evt-label">Start</label>
+            <input id="evtFieldStart" class="evt-input" type="datetime-local" />
+          </div>
+          <div>
+            <label class="evt-label">End</label>
+            <input id="evtFieldEnd" class="evt-input" type="datetime-local" />
+          </div>
+        </div>
+        
+        <div class="evt-grid">
+        <div>
+          <label class="evt-label">Target audience</label>
+          <select id="evtFieldAudience" class="evt-select"><option value="all">All</option><option value="students">Students</option><option value="teachers">Teachers</option><option value="parents">Parents</option></select>
+        </div>
+
+        <div>
+          <label class="evt-label">Published</label>
+          <select id="evtFieldPublished" class="evt-select">
+            <option value="0">Draft</option>
+            <option value="1">Published</option>
+          </select>
+        </div>
+        </div>
+
+        <div class="evt-modal-foot">
+          <button class="evt-btn" id="evtModalCancel" type="button">Cancel</button>
+          <button class="evt-btn primary" id="evtModalSave" type="button">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="/admin/js/events.js"></script>

@@ -1252,6 +1252,52 @@ class UserRepository
     }
 
     /**
+     * Get recipient user IDs for an announcement target role within an institution.
+     *
+     * @return int[]
+     */
+    public function getAnnouncementRecipientIds(string $targetRole, int $institutionId): array
+    {
+        try {
+            $normalizedTargetRole = strtolower(trim($targetRole));
+
+            if ($normalizedTargetRole === 'all' || $normalizedTargetRole === '') {
+                $stmt = $this->db->prepare(
+                    "SELECT u.user_id
+                     FROM users u
+                     WHERE u.deleted_at IS NULL
+                       AND u.is_active = 1
+                       AND u.institution_id = :institution_id"
+                );
+                $stmt->execute(['institution_id' => $institutionId]);
+            } else {
+                $stmt = $this->db->prepare(
+                    "SELECT DISTINCT u.user_id
+                     FROM users u
+                     INNER JOIN user_roles ur ON ur.user_id = u.user_id
+                     INNER JOIN roles r ON r.role_id = ur.role_id
+                     WHERE u.deleted_at IS NULL
+                       AND u.is_active = 1
+                       AND u.institution_id = :institution_id
+                       AND LOWER(r.role_name) = :target_role"
+                );
+                $stmt->execute([
+                    'institution_id' => $institutionId,
+                    'target_role' => $normalizedTargetRole,
+                ]);
+            }
+
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array_values(array_unique(array_map(static function ($row) {
+                return (int) ($row['user_id'] ?? 0);
+            }, $rows)));
+        } catch (\PDOException $e) {
+            error_log("Get Announcement Recipient IDs Error: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
      * Count users by role with optional filters.
      * Supported filters: search, institution_id, is_active
      */

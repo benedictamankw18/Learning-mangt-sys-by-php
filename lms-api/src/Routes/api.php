@@ -122,6 +122,8 @@ return [
     'GET /announcements' => ['controller' => 'AnnouncementController', 'method' => 'index', 'auth' => true],
     'GET /announcements/{uuid}' => ['controller' => 'AnnouncementController', 'method' => 'show', 'auth' => true],
     'POST /announcements' => ['controller' => 'AnnouncementController', 'method' => 'create', 'auth' => true],
+    'POST /announcements/{uuid}/read' => ['controller' => 'AnnouncementController', 'method' => 'markAsRead', 'auth' => true],
+    'POST /announcements/{uuid}/attachments' => ['controller' => 'AnnouncementController', 'method' => 'uploadAttachment', 'auth' => true],
     'PUT /announcements/{uuid}' => ['controller' => 'AnnouncementController', 'method' => 'update', 'auth' => true],
     'DELETE /announcements/{uuid}' => ['controller' => 'AnnouncementController', 'method' => 'delete', 'auth' => true],
 

@@ -348,7 +348,15 @@ class DashboardController
                 'todays_schedule'      => $this->attendanceRepo->getTodayScheduleByStudent($studentId),
                 'recent_grades'        => $this->assignmentRepo->getRecentGradesByStudent($studentId, 5),
                 'grade_trend'          => $this->assignmentRepo->getGradeTrendByStudent($studentId),
-                'recent_announcements' => $this->announcementRepo->getRecentForStudent(5),
+                'recent_announcements' => $this->announcementRepo->getRecentForStudent(
+                    5,
+                    $user['institution_id'] ?? null,
+                    $user['role'] ?? null,
+                    $user['user_id'] ?? null,
+                    $user['class_name'] ?? null,
+                    $user['class_code'] ?? null,
+                    isset($user['class_id']) ? (int) $user['class_id'] : null
+                ),
             ];
 
             Response::success($stats);
@@ -467,7 +475,15 @@ class DashboardController
                 'recent_grades'   => array_slice($allGrades, 0, 5),
                 'recent_material_access' => array_slice($allMaterialAccess, 0, 12),
                 'recent_quiz_attempts' => array_slice($allRecentQuizAttempts, 0, 12),
-                'upcoming_events' => $this->announcementRepo->getRecentForStudent(5),
+                'upcoming_events' => $this->announcementRepo->getRecentForStudent(
+                    5,
+                    $user['institution_id'] ?? null,
+                    $user['role'] ?? null,
+                    $user['user_id'] ?? null,
+                    $user['class_name'] ?? null,
+                    $user['class_code'] ?? null,
+                    isset($user['class_id']) ? (int) $user['class_id'] : null
+                ),
                 'pending_fee_status' => $this->buildPendingFeeStatus($childrenData),
             ];
 

@@ -1162,7 +1162,7 @@ Complete messaging, announcements, analytics, and final polish for production re
 
 **Day 3-4: Announcements & Events**
 
-- [ ] **Create** `admin/announcements.html`
+- [x] **Create** `admin/announcements.html` _(implemented as `admin/page/announcements.html` + `admin/js/announcements.js`, routed from `admin/dashboard.html#announcements`)_
   - Announcement list
   - Create announcement:
     - Title and content
@@ -1175,7 +1175,7 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Delete announcement
   - Publish/unpublish
   - View analytics (read count)
-- [ ] **Create** `admin/events.html`
+- [x] **Create** `admin/events.html`
   - Event list
   - Create event:
     - Event name
@@ -1188,14 +1188,14 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Edit/delete events
   - Calendar view
   - Export events
-- [ ] **Create** `teacher/announcements.html`
+  
+- [x] **Create** `teacher/announcements.html`
   - Post class announcements
   - View school announcements
   - Target specific classes
-- [ ] **Create** Role-specific announcement views:
+- [x] **Create** Role-specific announcement views:
   - `student/announcements.html`
   - `parent/announcements.html`
-  - `parent/events.html`
 
 **Day 5: Notifications Enhancement**
 

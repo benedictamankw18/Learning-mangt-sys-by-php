@@ -73,6 +73,10 @@ class AuthMiddleware
                     u.first_name,
                     u.last_name,
                     t.teacher_id,
+                    s.student_id,
+                    s.class_id,
+                    c.class_name,
+                    c.class_code,
                     u.is_active,
                     u.is_super_admin,
                     u.created_at,
@@ -80,6 +84,8 @@ class AuthMiddleware
                     GROUP_CONCAT(DISTINCT p.permission_name) as permissions
                 FROM users u
                 LEFT JOIN teachers t ON u.user_id = t.user_id
+                LEFT JOIN students s ON u.user_id = s.user_id
+                LEFT JOIN classes c ON s.class_id = c.class_id
                 LEFT JOIN user_roles ur ON u.user_id = ur.user_id
                 LEFT JOIN roles r ON ur.role_id = r.role_id
                 LEFT JOIN role_permissions rp ON r.role_id = rp.role_id

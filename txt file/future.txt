@@ -83,4 +83,30 @@ help
 
 Support
 
+Add institution_id to the announcement table
 
+1, User must get access the his/her Institutions Announcement 
+eg: admin A in Institution make general(all) Announcement only user 
+in Institution a must get access to the Announcement
+
+2, Admin must not get access to teacher Announcement, must not 
+be able to change(Update/edit) the Announcement and must not
+see teachers Announcement because he/she is not an audience
+
+
+3. how will announcement mark as read,
+Create a new table, link it to the announcement and count.
+If user mark/views announcement insert user to the new table 
+those not in the new table means not read
+
+4. Add institution_id to the notification table
+
+Stop send notification to each user, create new table 
+link it to the notification and count.
+If user mark/views notification insert user to the new table 
+those not in the new table means not read
+
+
+if `announcements`.`author_id` = `users`.`user_id` and 
+`user_roles`.`user_id` = `users`.`user_id and `user_roles`.`role_id` = `roles`.`role_id`
+ and `roles`.`role_name` = 'teacher' 

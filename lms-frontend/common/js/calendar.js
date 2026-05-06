@@ -294,8 +294,8 @@
         const m = selected.getMonth() + 1;
 
         const [calendarRes, academicRes] = await Promise.all([
-          EventAPI.getCalendar({ institution_id: state.institutionId, year: y, month: m }),
-          EventAPI.getAcademicCalendar({ institution_id: state.institutionId }),
+          EventAPI.getCalendar({ institution_id: state.institutionId, year: y, month: m, published_only: 1 }),
+          EventAPI.getAcademicCalendar({ institution_id: state.institutionId, published_only: 1 }),
         ]);
 
         const monthStart = new Date(y, m - 1, 1);
@@ -314,6 +314,7 @@
           institution_id: state.institutionId,
           start_date: `${toDateOnly(weekStart)} 00:00:00`,
           end_date: `${toDateOnly(weekEnd)} 23:59:59`,
+          published_only: 1,
           limit: 200,
         });
 
@@ -533,6 +534,7 @@
           start_date: start,
           end_date: end,
           event_type: "other",
+          is_published: 1,
         });
         showToastSafe("Personal event updated.", "success");
       } else {
@@ -544,6 +546,7 @@
           event_type: "other",
           institution_id: state.institutionId,
           target_role: "personal",
+          is_published: 1,
         });
         showToastSafe("Personal event added.", "success");
       }
@@ -918,6 +921,7 @@
       description: String(row.description || "").trim() || "Uploaded school calendar event",
       institution_id: state.institutionId,
       target_role: String(row.target_role || "all").trim().toLowerCase() || "all",
+      is_published: 1,
     };
 
     const academicYearName = String(row.academic_year || row.academic_year_name || row.year_name || "").trim();
