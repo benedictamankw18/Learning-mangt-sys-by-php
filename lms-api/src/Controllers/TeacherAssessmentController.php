@@ -40,48 +40,173 @@ class TeacherAssessmentController
         }
 
         try {
-            $stmtAdmins = $this->db->prepare(
-                "SELECT DISTINCT a.user_id
-                 FROM admins a
-                 WHERE a.institution_id = :institution_id
-                   AND a.user_id IS NOT NULL
-                   AND LOWER(COALESCE(a.status, 'active')) = 'active'"
-            );
-            $stmtAdmins->execute(['institution_id' => $institutionId]);
-            $adminUserIds = array_values(array_unique(array_map('intval', $stmtAdmins->fetchAll(PDO::FETCH_COLUMN))));
-
-            if (!$adminUserIds) {
-                return;
-            }
-
             $title = 'Teacher submitted assessments for approval';
             $message = "A teacher submitted {$processedCount} assessment score(s) for approval";
             if ($studentsCount > 0) {
                 $message .= " across {$studentsCount} student(s)";
             }
             if ($courseId > 0) {
-                $message .= " for class subject ID {$courseId}";
+                try {
+                    $classSubjectRepo = new \App\Repositories\ClassSubjectRepository();
+                    $courseName = $classSubjectRepo->getNameById($courseId);
+                    if ($courseName) {
+                        $message .= " for {$courseName} (ID: {$courseId})";
+                    } else {
+                        $message .= " for class subject ID {$courseId}";
+                    }
+                } catch (\Throwable $e) {
+                    error_log('Failed to resolve class subject name: ' . $e->getMessage());
+                    $message .= " for class subject ID {$courseId}";
+                }
             }
             $message .= '.';
 
-            foreach ($adminUserIds as $adminUserId) {
-                if ($adminUserId <= 0) {
-                    continue;
-                }
-
-                $this->notificationRepo->create([
-                    'sender_id' => $submittedByUserId,
-                    'user_id' => $adminUserId,
-                    'target_role' => 'admin',
-                    'course_id' => $courseId > 0 ? $courseId : null,
-                    'title' => $title,
-                    'message' => $message,
-                    'notification_type' => 'assessment_approval_submission',
-                    'link' => '/admin/dashboard.html#grades',
-                ]);
-            }
+            // Broadcast once to all admins instead of inserting one row per admin user.
+            $this->notificationRepo->create([
+                'sender_id' => $submittedByUserId,
+                'institution_id' => $institutionId,
+                'user_id' => null,
+                'target_role' => 'admin',
+                'course_id' => $courseId > 0 ? $courseId : null,
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'assessment_approval_submission',
+                'link' => '/admin/dashboard.html#grading',
+            ]);
         } catch (\Throwable $e) {
             error_log('TeacherAssessmentController::notifyAdminsForApprovalSubmission ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify the course teacher when assessment submissions are pending approval or published.
+     */
+    private function notifyTeacherForSubmissionStatus(
+        int $institutionId,
+        int $courseId,
+        int $processedCount,
+        string $status,
+        int $submittedByUserId = 0
+    ): void {
+        if ($institutionId <= 0 || $courseId <= 0 || $processedCount <= 0) {
+            return;
+        }
+
+        if (!in_array($status, ['pending_approval', 'published'], true)) {
+            return;
+        }
+
+        try {
+            $classSubjectRepo = new \App\Repositories\ClassSubjectRepository();
+            $course = $classSubjectRepo->findById($courseId);
+            if (!$course) {
+                return;
+            }
+
+            $teacherId = (int) ($course['teacher_id'] ?? 0);
+            if ($teacherId <= 0) {
+                return;
+            }
+
+            $teacher = $this->teacherRepo->findById($teacherId);
+            $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+            if ($teacherUserId <= 0) {
+                return;
+            }
+
+            $courseName = $classSubjectRepo->getNameById($courseId) ?: 'the class subject';
+            $title = $status === 'published'
+                ? 'Assessment Submissions Published'
+                : 'Assessment Submissions Pending Approval';
+            $statusLabel = $status === 'published' ? 'published' : 'submitted for approval';
+            $message = "A teacher {$statusLabel} {$processedCount} assessment score(s) for {$courseName} (ID: {$courseId}).";
+
+            $this->notificationRepo->create([
+                'sender_id' => $submittedByUserId > 0 ? $submittedByUserId : null,
+                'user_id' => $teacherUserId,
+                'target_role' => 'teacher',
+                'course_id' => $courseId,
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'assessment_submission_status',
+                'link' => '/teacher/dashboard.html#assessments',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('TeacherAssessmentController::notifyTeacherForSubmissionStatus ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notify student and teacher when an assessment submission is created or edited
+     */
+    private function notifyAssessmentSubmissionEvent(
+        int $institutionId,
+        int $courseId,
+        int $studentId,
+        int $submittedByUserId,
+        bool $isNew = false
+    ): void {
+        if ($institutionId <= 0 || $courseId <= 0 || $studentId <= 0) {
+            return;
+        }
+
+        try {
+            $classSubjectRepo = new \App\Repositories\ClassSubjectRepository();
+            $course = $classSubjectRepo->findById($courseId);
+            if (!$course) {
+                return;
+            }
+
+            $studentRepo = new \App\Repositories\StudentRepository();
+            $student = $studentRepo->findById($studentId);
+            if (!$student) {
+                return;
+            }
+
+            $studentUserId = (int) ($student['user_id'] ?? 0);
+            if ($studentUserId <= 0) {
+                return;
+            }
+
+            $courseName = $classSubjectRepo->getNameById($courseId) ?: 'the class subject';
+            $studentName = trim((string) (($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')));
+            $eventType = $isNew ? 'created' : 'updated';
+            $title = "Assessment Score " . ucfirst($eventType);
+            $studentMessage = "Your assessment score for {$courseName} has been {$eventType}.";
+
+            // Notify student
+            $this->notificationRepo->create([
+                'sender_id' => $submittedByUserId > 0 ? $submittedByUserId : null,
+                'user_id' => $studentUserId,
+                'target_role' => 'student',
+                'course_id' => $courseId,
+                'title' => $title,
+                'message' => $studentMessage,
+                'notification_type' => 'assessment_submission_' . $eventType,
+                'link' => '/student/dashboard.html#assessments',
+            ]);
+
+            // Notify teacher
+            $teacherId = (int) ($course['teacher_id'] ?? 0);
+            if ($teacherId > 0) {
+                $teacher = $this->teacherRepo->findById($teacherId);
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                if ($teacherUserId > 0) {
+                    $teacherMessage = "Assessment score for {$studentName} in {$courseName} has been {$eventType}.";
+                    $this->notificationRepo->create([
+                        'sender_id' => $submittedByUserId > 0 ? $submittedByUserId : null,
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'course_id' => $courseId,
+                        'title' => $title,
+                        'message' => $teacherMessage,
+                        'notification_type' => 'assessment_submission_' . $eventType . '_teacher',
+                        'link' => '/teacher/dashboard.html#assessments',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('TeacherAssessmentController::notifyAssessmentSubmissionEvent ' . $e->getMessage());
         }
     }
 
@@ -703,9 +828,17 @@ class TeacherAssessmentController
             return null;
         }
 
+        $percentage = round($weightedSum, 2);
+        if ($percentage > 100.0) {
+            $percentage = 100.0;
+        }
+        if ($percentage < 0.0) {
+            $percentage = 0.0;
+        }
+
         return [
             'total_score' => round($rawTotalScore, 2),
-            'percentage' => round($weightedSum, 2),
+            'percentage' => $percentage,
         ];
     }
 
@@ -1394,6 +1527,22 @@ class TeacherAssessmentController
             }
 
             $this->db->commit();
+
+            if (in_array($mode, ['pending_approval', 'published'], true) && $processed > 0) {
+                $courseIdForTeacherNotification = $courseIdFromBody > 0 ? $courseIdFromBody : (
+                    is_array($assessments) && count($assessments) > 0
+                        ? (int) ($assessments[0]['class_subject_id'] ?? 0)
+                        : 0
+                );
+                $this->notifyTeacherForSubmissionStatus(
+                    $institutionId,
+                    $courseIdForTeacherNotification,
+                    $processed,
+                    $mode,
+                    $generatedByUserId
+                );
+            }
+
             $message = 'Assessments saved successfully';
             if ($mode === 'pending_approval' || $mode === 'pending_approval') {
                 $message = 'Assessments submitted for admin approval';
@@ -1410,6 +1559,23 @@ class TeacherAssessmentController
             ];
 
             if ($mode === 'pending_approval' || $mode === 'pending_approval') {
+            $publish = !empty($input['publish']);
+
+            if ($publish && $processed > 0) {
+                $courseIdForPublishNotification = $courseIdFromBody > 0 ? $courseIdFromBody : (
+                    is_array($assessments) && count($assessments) > 0
+                        ? (int) ($assessments[0]['class_subject_id'] ?? 0)
+                        : 0
+                );
+                $this->notifyTeacherForSubmissionStatus(
+                    $institutionId,
+                    $courseIdForPublishNotification,
+                    $processed,
+                    'pending_approval',
+                    $generatedByUserId
+                );
+            }
+
                 $responseData['grade_report_stats'] = $gradeReportStats ?: [
                     'students_considered' => 0,
                     'reports_created' => 0,

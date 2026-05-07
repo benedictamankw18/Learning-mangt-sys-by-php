@@ -4,6 +4,8 @@ namespace App\Controllers;
 
 use App\Repositories\QuizRepository;
 use App\Repositories\ClassSubjectRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\TeacherRepository;
 use App\Repositories\StudentRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
@@ -13,13 +15,98 @@ class QuizController
 {
     private QuizRepository $repo;
     private ClassSubjectRepository $courseRepo;
+    private NotificationRepository $notificationRepo;
+    private TeacherRepository $teacherRepo;
     private StudentRepository $studentRepo;
 
     public function __construct()
     {
         $this->repo = new QuizRepository();
         $this->courseRepo = new ClassSubjectRepository();
+        $this->notificationRepo = new NotificationRepository();
+        $this->teacherRepo = new TeacherRepository();
         $this->studentRepo = new StudentRepository();
+    }
+
+    /**
+     * Determine whether a quiz is active by either flag.
+     */
+    private function isQuizActive(array $quiz): bool
+    {
+        return strtolower((string) ($quiz['status'] ?? '')) === 'active'
+            || !empty($quiz['is_activated']);
+    }
+
+    /**
+     * Send a one-time activation notification when a quiz becomes active.
+     */
+    private function notifyQuizActivated(array $quiz, array $actor): void
+    {
+        try {
+            $quizId = (int) ($quiz['quiz_id'] ?? 0);
+            $courseId = (int) ($quiz['course_id'] ?? 0);
+            if ($quizId <= 0 || $courseId <= 0) {
+                return;
+            }
+
+            $course = $this->courseRepo->findById($courseId);
+            if (!$course) {
+                return;
+            }
+
+            $courseName = $this->courseRepo->getNameById($courseId) ?: 'the assigned class subject';
+            $quizTitle = trim((string) ($quiz['title'] ?? 'Untitled Quiz'));
+            $title = 'Quiz Activated';
+            $message = "Quiz '{$quizTitle}' is now active for {$courseName} (ID: {$courseId}).";
+
+            $actorUserId = (int) ($actor['user_id'] ?? 0);
+            $institutionId = (int) ($course['institution_id'] ?? 0);
+
+            $students = $this->courseRepo->getEnrolledStudents($courseId);
+            foreach ($students as $student) {
+                $studentUserId = (int) ($student['user_id'] ?? 0);
+                if ($studentUserId <= 0) {
+                    continue;
+                }
+
+                if ($this->notificationRepo->quizActivationExists($studentUserId, $courseId, $title, $message)) {
+                    continue;
+                }
+
+                $this->notificationRepo->create([
+                    'sender_id' => $actorUserId,
+                    'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                    'user_id' => $studentUserId,
+                    'target_role' => 'student',
+                    'course_id' => $courseId,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'quiz_activated',
+                    'link' => '/student/dashboard.html#quizzes',
+                ]);
+            }
+
+            $teacherId = (int) ($course['teacher_id'] ?? 0);
+            if ($teacherId > 0) {
+                $teacher = $this->teacherRepo->findById($teacherId);
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                if ($teacherUserId > 0 && !$this->notificationRepo->quizActivationExists($teacherUserId, $courseId, $title, $message)) {
+                    $this->notificationRepo->create([
+                        'sender_id' => $actorUserId,
+                        'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'course_id' => $courseId,
+                        'title' => $title,
+                        'message' => $message,
+                        'notification_type' => 'quiz_activated',
+                        'link' => '/teacher/dashboard.html#quizzes',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('QuizController::notifyQuizActivated error: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -42,9 +129,263 @@ class QuizController
         }
 
         $studentId = (int) $student['student_id'];
+
+            /**
+             * Notify students when quiz becomes inactive
+             */
+            
         return $studentId > 0 ? $studentId : null;
     }
 
+
+    private function notifyQuizDeactivated(array $quiz, array $actor): void
+            {
+                try {
+                    $quizId = (int) ($quiz['quiz_id'] ?? 0);
+                    $courseId = (int) ($quiz['course_id'] ?? 0);
+                    if ($quizId <= 0 || $courseId <= 0) {
+                        return;
+                    }
+
+                    $course = $this->courseRepo->findById($courseId);
+                    if (!$course) {
+                        return;
+                    }
+
+                    $courseName = $this->courseRepo->getNameById($courseId) ?: 'the assigned class subject';
+                    $quizTitle = trim((string) ($quiz['title'] ?? 'Untitled Quiz'));
+                    $title = 'Quiz Deactivated';
+                    $message = "Quiz '{$quizTitle}' has been deactivated for {$courseName}.";
+
+                    $actorUserId = (int) ($actor['user_id'] ?? 0);
+                    $institutionId = (int) ($course['institution_id'] ?? 0);
+
+                    $students = $this->courseRepo->getEnrolledStudents($courseId);
+                    foreach ($students as $student) {
+                        $studentUserId = (int) ($student['user_id'] ?? 0);
+                        if ($studentUserId <= 0) {
+                            continue;
+                        }
+
+                        $this->notificationRepo->create([
+                            'sender_id' => $actorUserId,
+                            'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                            'user_id' => $studentUserId,
+                            'target_role' => 'student',
+                            'course_id' => $courseId,
+                            'title' => $title,
+                            'message' => $message,
+                            'notification_type' => 'quiz_deactivated',
+                            'link' => '/student/dashboard.html#quizzes',
+                        ]);
+                    }
+                } catch (\Throwable $e) {
+                    error_log('QuizController::notifyQuizDeactivated error: ' . $e->getMessage());
+                }
+            }
+
+            /**
+             * Notify students about upcoming or overdue quiz deadlines
+             */
+            private function notifyQuizDueDates(array $oldQuiz, array $newData, array $actor): void
+            {
+                try {
+                    $quizId = (int) ($oldQuiz['quiz_id'] ?? 0);
+                    $courseId = (int) ($oldQuiz['course_id'] ?? 0);
+                    if ($quizId <= 0 || $courseId <= 0) {
+                        return;
+                    }
+
+                    $course = $this->courseRepo->findById($courseId);
+                    if (!$course) {
+                        return;
+                    }
+
+                    $quizTitle = trim((string) ($oldQuiz['title'] ?? 'Untitled Quiz'));
+                    $courseName = $this->courseRepo->getNameById($courseId) ?: 'the assigned class subject';
+                    $actorUserId = (int) ($actor['user_id'] ?? 0);
+                    $institutionId = (int) ($course['institution_id'] ?? 0);
+
+                    // Check if start_date was set or changed
+                    $oldStartDate = $oldQuiz['start_date'] ?? null;
+                    $newStartDate = $newData['start_date'] ?? $oldStartDate;
+            
+                    if ($newStartDate && $newStartDate !== $oldStartDate) {
+                        $title = 'Quiz Start Date Set';
+                        $message = "Quiz '{$quizTitle}' will start on " . date('M d, Y H:i', strtotime($newStartDate)) . " for {$courseName}.";
+
+                        $students = $this->courseRepo->getEnrolledStudents($courseId);
+                        foreach ($students as $student) {
+                            $studentUserId = (int) ($student['user_id'] ?? 0);
+                            if ($studentUserId <= 0) {
+                                continue;
+                            }
+
+                            $this->notificationRepo->create([
+                                'sender_id' => $actorUserId,
+                                'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                                'user_id' => $studentUserId,
+                                'target_role' => 'student',
+                                'course_id' => $courseId,
+                                'title' => $title,
+                                'message' => $message,
+                                'notification_type' => 'quiz_start_date_set',
+                                'link' => '/student/dashboard.html#quizzes',
+                            ]);
+                        }
+                    }
+
+                    // Check if end_date was set or changed
+                    $oldEndDate = $oldQuiz['end_date'] ?? null;
+                    $newEndDate = $newData['end_date'] ?? $oldEndDate;
+            
+                    if ($newEndDate && $newEndDate !== $oldEndDate) {
+                        $title = 'Quiz Deadline Set';
+                        $message = "Quiz '{$quizTitle}' must be completed by " . date('M d, Y H:i', strtotime($newEndDate)) . " for {$courseName}.";
+
+                        $students = $this->courseRepo->getEnrolledStudents($courseId);
+                        foreach ($students as $student) {
+                            $studentUserId = (int) ($student['user_id'] ?? 0);
+                            if ($studentUserId <= 0) {
+                                continue;
+                            }
+
+                            $this->notificationRepo->create([
+                                'sender_id' => $actorUserId,
+                                'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                                'user_id' => $studentUserId,
+                                'target_role' => 'student',
+                                'course_id' => $courseId,
+                                'title' => $title,
+                                'message' => $message,
+                                'notification_type' => 'quiz_deadline_set',
+                                'link' => '/student/dashboard.html#quizzes',
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    error_log('QuizController::notifyQuizDueDates error: ' . $e->getMessage());
+                }
+            }
+
+            /**
+             * Notify student and teacher when quiz submission status becomes 'submitted'
+             */
+            private function notifyQuizSubmitted(int $quizId, int $studentId): void
+            {
+                try {
+                    $quiz = $this->repo->findById($quizId);
+                    if (!$quiz) {
+                        return;
+                    }
+
+                    $courseId = (int) ($quiz['course_id'] ?? 0);
+                    $course = $this->courseRepo->findById($courseId);
+                    if (!$course) {
+                        return;
+                    }
+
+                    $student = $this->studentRepo->findById($studentId);
+                    if (!$student) {
+                        return;
+                    }
+
+                    $studentUser = $this->studentRepo->findByUserId((int) ($student['user_id'] ?? 0)) ? $student['user_id'] : null;
+                    if (!$studentUser) {
+                        return;
+                    }
+
+                    $quizTitle = trim((string) ($quiz['title'] ?? 'Untitled Quiz'));
+                    $courseName = $this->courseRepo->getNameById($courseId) ?: 'the assigned class subject';
+                    $studentName = trim((string) (($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')));
+                    $institutionId = (int) ($course['institution_id'] ?? 0);
+
+                    // Notify student
+                    $this->notificationRepo->create([
+                        'sender_id' => null,
+                        'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                        'user_id' => (int) $studentUser,
+                        'target_role' => 'student',
+                        'course_id' => $courseId,
+                        'title' => 'Quiz Submitted',
+                        'message' => "You have successfully submitted quiz '{$quizTitle}' for {$courseName}.",
+                        'notification_type' => 'quiz_submitted',
+                        'link' => '/student/dashboard.html#quizzes',
+                    ]);
+
+                    // Notify teacher
+                    $teacherId = (int) ($course['teacher_id'] ?? 0);
+                    if ($teacherId > 0) {
+                        $teacher = $this->teacherRepo->findById($teacherId);
+                        $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                        if ($teacherUserId > 0) {
+                            $this->notificationRepo->create([
+                                'sender_id' => (int) $studentUser,
+                                'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                                'user_id' => $teacherUserId,
+                                'target_role' => 'teacher',
+                                'course_id' => $courseId,
+                                'title' => 'Quiz Submitted',
+                                'message' => "{$studentName} has submitted quiz '{$quizTitle}' for {$courseName}.",
+                                'notification_type' => 'quiz_submitted_teacher',
+                                'link' => '/teacher/dashboard.html#quizzes',
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    error_log('QuizController::notifyQuizSubmitted error: ' . $e->getMessage());
+                }
+            }
+
+            /**
+             * Notify student when quiz submission starts (in_progress status)
+             */
+            private function notifyQuizInProgress(int $quizId, int $studentId): void
+            {
+                try {
+                    $quiz = $this->repo->findById($quizId);
+                    if (!$quiz) {
+                        return;
+                    }
+
+                    $courseId = (int) ($quiz['course_id'] ?? 0);
+                    $course = $this->courseRepo->findById($courseId);
+                    if (!$course) {
+                        return;
+                    }
+
+                    $student = $this->studentRepo->findById($studentId);
+                    if (!$student) {
+                        return;
+                    }
+
+                    $studentUserId = (int) ($student['user_id'] ?? 0);
+                    if ($studentUserId <= 0) {
+                        return;
+                    }
+
+                    $quizTitle = trim((string) ($quiz['title'] ?? 'Untitled Quiz'));
+                    $courseName = $this->courseRepo->getNameById($courseId) ?: 'the assigned class subject';
+                    $institutionId = (int) ($course['institution_id'] ?? 0);
+                    $durationMinutes = (int) ($quiz['duration_minutes'] ?? 0);
+                    $durationText = $durationMinutes > 0 ? "You have {$durationMinutes} minutes to complete it." : '';
+
+                    $this->notificationRepo->create([
+                        'sender_id' => null,
+                        'institution_id' => $institutionId > 0 ? $institutionId : 1,
+                        'user_id' => $studentUserId,
+                        'target_role' => 'student',
+                        'course_id' => $courseId,
+                        'title' => 'Quiz In Progress',
+                        'message' => "You have started quiz '{$quizTitle}' for {$courseName}. {$durationText}",
+                        'notification_type' => 'quiz_in_progress',
+                        'link' => '/student/dashboard.html#quizzes',
+                    ]);
+                } catch (\Throwable $e) {
+                    error_log('QuizController::notifyQuizInProgress error: ' . $e->getMessage());
+                }
+            }
+            
     /**
      * Get all quizzes for a course
      * GET /courses/{courseId}/quizzes
@@ -154,6 +495,11 @@ class QuizController
 
         $quizId = $this->repo->create($data);
 
+        $createdQuiz = $this->repo->findById($quizId);
+        if ($createdQuiz && $this->isQuizActive(array_merge($data, $createdQuiz))) {
+            $this->notifyQuizActivated($createdQuiz, $user);
+        }
+
         Response::success([
             'message' => 'Quiz created successfully',
             'quiz_id' => $quizId
@@ -208,7 +554,28 @@ class QuizController
             return;
         }
 
+        $wasActive = $this->isQuizActive($quiz);
+        $willBeActive = $this->isQuizActive(array_merge($quiz, $data));
+
         $this->repo->update($id, $data);
+
+        if (!$wasActive && $willBeActive) {
+            $updatedQuiz = $this->repo->findById($id);
+            if ($updatedQuiz) {
+                $this->notifyQuizActivated($updatedQuiz, $user);
+
+                    // Notify when quiz becomes inactive
+                    if ($wasActive && !$willBeActive) {
+                        $updatedQuiz = $this->repo->findById($id);
+                        if ($updatedQuiz) {
+                            $this->notifyQuizDeactivated($updatedQuiz, $user);
+                        }
+                    }
+
+                    // Notify for due date changes (start_date and end_date)
+                    $this->notifyQuizDueDates($quiz, $data, $user);
+            }
+        }
 
         Response::success(['message' => 'Quiz updated successfully']);
     }
@@ -556,6 +923,8 @@ class QuizController
         }
 
         $submissionId = $this->repo->startQuiz($id, $studentId);
+        // Notify student that quiz is in progress
+        $this->notifyQuizInProgress($id, $studentId);
 
         Response::success([
             'message' => 'Quiz started successfully',
@@ -620,6 +989,9 @@ class QuizController
         $this->repo->submitQuiz($id, $data['answers'], $studentId);
 
         Response::success(['message' => 'Quiz submitted successfully']);
+
+        // Notify student and teacher about quiz submission
+        $this->notifyQuizSubmitted($submission['quiz_id'], $studentId);
     }
 
     /**

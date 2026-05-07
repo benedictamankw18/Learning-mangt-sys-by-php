@@ -278,9 +278,11 @@ const API_ENDPOINTS = {
     // Notifications
     NOTIFICATIONS: '/api/notifications',
     NOTIFICATION_SUMMARY: '/api/notifications/summary',
+    NOTIFICATION_UNREAD_COUNT: '/api/notifications/unread-count',
     NOTIFICATION_BY_ID: (id) => `/api/notifications/${id}`,
     NOTIFICATION_MARK_READ: (id) => `/api/notifications/${id}/read`,
     NOTIFICATION_MARK_ALL_READ: '/api/notifications/read-all',
+    NOTIFICATION_DELETE_READ: '/api/notifications/read',
     
     // Dashboard Stats
     SUPER_ADMIN_STATS: '/api/dashboard/superadmin',

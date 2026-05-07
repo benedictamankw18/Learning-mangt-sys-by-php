@@ -41,6 +41,73 @@
     console.log((type || 'info').toUpperCase() + ': ' + message);
   }
 
+  function showPopup(message, options) {
+    const opts = options && typeof options === 'object' ? options : {};
+    const title = String(opts.title || 'Confirm');
+    const confirmLabel = String(opts.confirmText || 'OK');
+    const cancelLabel = String(opts.cancelText || 'Cancel');
+    const showCancel = opts.showCancel !== false;
+
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'sq-popup-overlay';
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+
+      overlay.innerHTML = [
+        '<div class="sq-popup" role="document">',
+        '<h4 class="sq-popup-title">' + esc(title) + '</h4>',
+        '<p class="sq-popup-message">' + esc(String(message || '')) + '</p>',
+        '<div class="sq-popup-actions">',
+        showCancel
+          ? '<button type="button" class="sq-btn" data-popup-action="cancel">' + esc(cancelLabel) + '</button>'
+          : '',
+        '<button type="button" class="sq-btn" style="background:#2563eb;border-color:#2563eb;color:#fff;" data-popup-action="confirm">' + esc(confirmLabel) + '</button>',
+        '</div>',
+        '</div>'
+      ].join('');
+
+      const style = document.createElement('style');
+      style.textContent = [
+        '.sq-popup-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:12000;padding:16px;}',
+        '.sq-popup{width:min(420px,100%);background:#fff;border-radius:12px;box-shadow:0 24px 60px rgba(15,23,42,.25);padding:18px;}',
+        '.sq-popup-title{margin:0 0 8px;font-size:1.05rem;color:#0f172a;}',
+        '.sq-popup-message{margin:0 0 14px;color:#334155;line-height:1.45;}',
+        '.sq-popup-actions{display:flex;gap:10px;justify-content:flex-end;}'
+      ].join('');
+
+      const cleanup = (result) => {
+        document.removeEventListener('keydown', onKeyDown);
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        if (style.parentNode) style.parentNode.removeChild(style);
+        resolve(result);
+      };
+
+      const onKeyDown = (event) => {
+        if (event.key === 'Escape') {
+          cleanup(false);
+        }
+      };
+
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) {
+          cleanup(false);
+          return;
+        }
+
+        const btn = event.target.closest('button[data-popup-action]');
+        if (!btn) return;
+
+        const action = String(btn.dataset.popupAction || 'cancel');
+        cleanup(action === 'confirm');
+      });
+
+      document.addEventListener('keydown', onKeyDown);
+      document.head.appendChild(style);
+      document.body.appendChild(overlay);
+    });
+  }
+
   function getUser() {
     return typeof Auth !== 'undefined' && typeof Auth.getUser === 'function' ? Auth.getUser() : null;
   }
@@ -898,7 +965,11 @@
       .filter((row) => row.question_id > 0 && row.answer !== '');
 
     if (!answers.length && !isAutoSubmit) {
-      const shouldContinue = window.confirm('You have not answered any question yet. Submit anyway?');
+      const shouldContinue = await showPopup('You have not answered any question yet. Submit anyway?', {
+        title: 'Submit Empty Attempt?',
+        confirmText: 'Submit',
+        cancelText: 'Keep Editing',
+      });
       if (!shouldContinue) return;
     }
 
@@ -1122,9 +1193,13 @@
       }
     });
 
-    E.takeModal?.addEventListener('click', (event) => {
+    E.takeModal?.addEventListener('click', async (event) => {
       if (event.target === E.takeModal) {
-        const shouldClose = window.confirm('Closing now will keep your draft locally. Close quiz attempt window?');
+        const shouldClose = await showPopup('Closing now will keep your draft locally. Close quiz attempt window?', {
+          title: 'Close Quiz Attempt?',
+          confirmText: 'Close',
+          cancelText: 'Stay',
+        });
         if (!shouldClose) return;
         saveDraft();
         stopTimer();

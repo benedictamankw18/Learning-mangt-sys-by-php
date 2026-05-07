@@ -17,8 +17,9 @@ class NotificationRepository
 
     /**
      * Get all notifications for an institution with read tracking for a user
+     * Filters by target_role (if set) or user_id (if set)
      */
-    public function getInstitutionNotifications(int $institutionId, int $userId, int $limit = 20, int $offset = 0): array
+    public function getInstitutionNotifications(int $institutionId, int $userId, int $limit = 20, int $offset = 0, ?string $userRole = null): array
     {
         $stmt = $this->db->prepare("
             SELECT 
@@ -27,7 +28,9 @@ class NotificationRepository
                 n.title,
                 n.message,
                 n.target_role,
+                n.user_id,
                 n.notification_type,
+                n.link,
                 n.created_at,
                 COALESCE(nr.read_count, 0) AS read_count,
                 CASE WHEN my_read.notification_id IS NULL THEN 0 ELSE 1 END AS is_read,
@@ -40,34 +43,38 @@ class NotificationRepository
             ) nr ON nr.notification_id = n.notification_id
             LEFT JOIN notification_reads my_read
                 ON my_read.notification_id = n.notification_id
-               AND my_read.user_id = :user_id
-            WHERE n.institution_id = :institution_id
+               AND my_read.user_id = ?
+            WHERE n.institution_id = ?
+            AND (
+                (n.target_role IS NOT NULL AND n.target_role != '' AND n.target_role = ?)
+                OR (n.user_id IS NOT NULL AND n.user_id = ?)
+            )
             ORDER BY n.created_at DESC
-            LIMIT :limit OFFSET :offset
+            LIMIT ? OFFSET ?
         ");
 
-        $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$userId, $institutionId, $userRole ?: '', $userId, $limit, $offset]);
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Count total notifications for an institution
+     * Filters by target_role or user_id
      */
-    public function countInstitutionNotifications(int $institutionId): int
+    public function countInstitutionNotifications(int $institutionId, ?string $userRole = null, ?int $userId = null): int
     {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as total
             FROM notifications
-            WHERE institution_id = :institution_id
+            WHERE institution_id = ?
+            AND (
+                (target_role IS NOT NULL AND target_role != '' AND target_role = ?)
+                OR (user_id IS NOT NULL AND user_id = ?)
+            )
         ");
 
-        $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$institutionId, $userRole ?: '', $userId ?? 0]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['total'];
@@ -75,20 +82,23 @@ class NotificationRepository
 
     /**
      * Get unread notification count for a user in an institution
+     * Filters by target_role or user_id
      */
-    public function getUnreadCount(int $institutionId, int $userId): int
+    public function getUnreadCount(int $institutionId, int $userId, ?string $userRole = null): int
     {
         $stmt = $this->db->prepare("
             SELECT COUNT(*) as unread_count
             FROM notifications n
-            LEFT JOIN notification_reads nr ON n.notification_id = nr.notification_id AND nr.user_id = :user_id
-            WHERE n.institution_id = :institution_id
+            LEFT JOIN notification_reads nr ON n.notification_id = nr.notification_id AND nr.user_id = ?
+            WHERE n.institution_id = ?
                 AND nr.notification_read_id IS NULL
+                AND (
+                    (n.target_role IS NOT NULL AND n.target_role != '' AND n.target_role = ?)
+                    OR (n.user_id IS NOT NULL AND n.user_id = ?)
+                )
         ");
 
-        $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$userId, $institutionId, $userRole ?: '', $userId]);
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['unread_count'];
@@ -107,6 +117,7 @@ class NotificationRepository
                 title,
                 message,
                 notification_type,
+                link,
                 created_at
             FROM notifications
             WHERE notification_id = :id
@@ -136,6 +147,7 @@ class NotificationRepository
                 n.message,
                 n.target_role,
                 n.notification_type,
+                n.link,
                 n.created_at,
                 COALESCE(nr.read_count, 0) AS read_count,
                 CASE WHEN my_read.notification_id IS NULL THEN 0 ELSE 1 END AS is_read,
@@ -161,6 +173,44 @@ class NotificationRepository
     }
 
     /**
+     * Check whether a notification with the same quiz activation payload already exists for a user.
+     */
+    public function quizActivationExists(int $userId, int $courseId, string $title, string $message): bool
+    {
+        $stmt = $this->db->prepare("\n            SELECT notification_id\n            FROM notifications\n            WHERE user_id = ?\n              AND course_id = ?\n              AND notification_type = 'quiz_activated'\n              AND title = ?\n              AND message = ?\n            LIMIT 1\n        ");
+
+        $stmt->execute([$userId, $courseId, $title, $message]);
+        return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Find a recently created admin broadcast notification for assessment approval submissions.
+     */
+    private function findRecentAssessmentApprovalBroadcast(
+        int $institutionId,
+        ?int $courseId,
+        string $title,
+        string $message,
+        int $windowSeconds = 120
+    ): ?int {
+        $stmt = $this->db->prepare("\n            SELECT notification_id\n            FROM notifications\n            WHERE institution_id = :institution_id\n              AND target_role = 'admin'\n              AND user_id IS NULL\n              AND notification_type = 'assessment_approval_submission'\n              AND ((course_id IS NULL AND :course_id IS NULL) OR course_id = :course_id)\n              AND title = :title\n              AND message = :message\n              AND created_at >= DATE_SUB(NOW(), INTERVAL :window SECOND)\n            ORDER BY notification_id DESC\n            LIMIT 1\n        ");
+
+        if ($courseId === null) {
+            $stmt->bindValue(':course_id', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':course_id', $courseId, PDO::PARAM_INT);
+        }
+        $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+        $stmt->bindValue(':title', $title);
+        $stmt->bindValue(':message', $message);
+        $stmt->bindValue(':window', $windowSeconds, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $existing = $stmt->fetchColumn();
+        return $existing !== false ? (int) $existing : null;
+    }
+
+    /**
      * Create a new institution-scoped notification (not per-user)
      */
     public function create(array $data): int
@@ -169,39 +219,93 @@ class NotificationRepository
             $data['uuid'] = UuidHelper::generate();
         }
 
-        $senderId = isset($data['sender_id']) ? (int) $data['sender_id'] : 0;
+        $senderId = array_key_exists('sender_id', $data) && $data['sender_id'] !== null
+            ? (int) $data['sender_id']
+            : null;
         $institutionId = isset($data['institution_id']) ? (int) $data['institution_id'] : 1;
         $targetRole = $data['target_role'] ?? null;
+        $userId = isset($data['user_id']) && $data['user_id'] !== null ? (int) $data['user_id'] : null;
+        $courseId = isset($data['course_id']) && $data['course_id'] !== null ? (int) $data['course_id'] : null;
+        $link = $data['link'] ?? null;
+        $title = (string) $data['title'];
+        $message = (string) $data['message'];
+        $notificationType = isset($data['notification_type']) && $data['notification_type'] !== ''
+            ? (string) $data['notification_type']
+            : null;
+
+        if ($notificationType === 'assessment_approval_submission' && $targetRole === 'admin' && $userId === null) {
+            $existingId = $this->findRecentAssessmentApprovalBroadcast(
+                $institutionId,
+                $courseId,
+                $title,
+                $message
+            );
+            if ($existingId !== null) {
+                return $existingId;
+            }
+        }
 
         $stmt = $this->db->prepare("
             INSERT INTO notifications (
                 uuid,
                 institution_id,
                 sender_id,
+                user_id,
                 target_role,
+                course_id,
                 title,
                 message,
-                notification_type
+                notification_type,
+                link
             ) VALUES (
                 :uuid,
                 :institution_id,
                 :sender_id,
+                :user_id,
                 :target_role,
+                :course_id,
                 :title,
                 :message,
-                :notification_type
+                :notification_type,
+                :link
             )
         ");
 
-        $stmt->execute([
-            ':uuid' => $data['uuid'],
-            ':institution_id' => $institutionId,
-            ':sender_id' => $senderId,
-            ':target_role' => $targetRole,
-            ':title' => $data['title'],
-            ':message' => $data['message'],
-            ':notification_type' => $data['notification_type'] ?? null
-        ]);
+        $stmt->bindValue(':uuid', $data['uuid']);
+        $stmt->bindValue(':institution_id', $institutionId, PDO::PARAM_INT);
+        if ($senderId === null) {
+            $stmt->bindValue(':sender_id', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':sender_id', $senderId, PDO::PARAM_INT);
+        }
+        if ($userId === null) {
+            $stmt->bindValue(':user_id', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        }
+        if ($targetRole === null || $targetRole === '') {
+            $stmt->bindValue(':target_role', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':target_role', (string) $targetRole);
+        }
+        if ($courseId === null) {
+            $stmt->bindValue(':course_id', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':course_id', $courseId, PDO::PARAM_INT);
+        }
+        $stmt->bindValue(':title', $title);
+        $stmt->bindValue(':message', $message);
+        if ($notificationType !== null) {
+            $stmt->bindValue(':notification_type', $notificationType);
+        } else {
+            $stmt->bindValue(':notification_type', null, PDO::PARAM_NULL);
+        }
+        if ($link === null || $link === '') {
+            $stmt->bindValue(':link', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':link', (string) $link);
+        }
+        $stmt->execute();
 
         return (int) $this->db->lastInsertId();
     }
@@ -247,31 +351,37 @@ class NotificationRepository
     /**
      * Mark all notifications as read for a user in an institution
      */
-    public function markAllAsRead(int $institutionId, int $userId): bool
+    public function markAllAsRead(int $institutionId, int $userId, ?string $userRole = null): bool
     {
         try {
             $this->db->beginTransaction();
 
             // Get all unread notification IDs for this user in this institution
+            // Filtered by target_role or user_id
             $stmt = $this->db->prepare("
                 SELECT n.notification_id
                 FROM notifications n
-                LEFT JOIN notification_reads nr ON n.notification_id = nr.notification_id AND nr.user_id = :user_id
-                WHERE n.institution_id = :institution_id AND nr.notification_read_id IS NULL
+                LEFT JOIN notification_reads nr ON n.notification_id = nr.notification_id AND nr.user_id = ?
+                WHERE n.institution_id = ? 
+                    AND nr.notification_read_id IS NULL
+                    AND (
+                        (n.target_role IS NOT NULL AND n.target_role != '' AND n.target_role = ?)
+                        OR (n.user_id IS NOT NULL AND n.user_id = ?)
+                    )
             ");
-            $stmt->execute([':institution_id' => $institutionId, ':user_id' => $userId]);
+            $stmt->execute([$userId, $institutionId, $userRole ?: '', $userId]);
             $unreadIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
             // Insert reads for all unread notifications
             foreach ($unreadIds as $notificationId) {
                 $insertStmt = $this->db->prepare("
                     INSERT IGNORE INTO notification_reads (uuid, notification_id, user_id, read_at)
-                    VALUES (:uuid, :notification_id, :user_id, NOW())
+                    VALUES (?, ?, ?, NOW())
                 ");
                 $insertStmt->execute([
-                    'uuid' => UuidHelper::generate(),
-                    'notification_id' => $notificationId,
-                    'user_id' => $userId
+                    UuidHelper::generate(),
+                    $notificationId,
+                    $userId
                 ]);
             }
 

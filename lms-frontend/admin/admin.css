@@ -5478,10 +5478,11 @@ textarea.form-input {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem;
+    padding: 0.9rem;
     background: var(--gray-50);
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    gap: 20px;
 }
 
 .notification-info h4 {
@@ -5495,6 +5496,66 @@ textarea.form-input {
     margin: 0;
     font-size: 0.875rem;
     color: var(--gray-600);
+}
+
+.notification-info small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    text-align: left;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.625rem;
+    flex-direction: column;
+}
+
+button.btn-action.mark-read{
+    background: #d1fae5;
+    color: #065f46;
+    border: none;
+    border-radius: 6px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button.btn-action.mark-read:hover {
+    background: #a7f3d0;
+    color: #065f46;
+}
+
+button.btn-action.delete-notif {
+    background: #fee2e2;
+    color: #991b1b;
+    border: none;
+    border-radius: 6px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+button.btn-action.delete-notif:hover {
+    background: #fecaca;
+    color: #991b1b;
+}
+
+.notification-link {
+    color: var(--primary);
+    font-size: small;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.notification-link:hover {
+    text-decoration: underline;
 }
 
 /* Toggle Switch */

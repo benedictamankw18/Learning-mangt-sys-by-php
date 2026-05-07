@@ -7,6 +7,7 @@ use App\Utils\Validator;
 use App\Repositories\TeacherSubjectRepository;
 use App\Repositories\TeacherRepository;
 use App\Repositories\SubjectRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class TeacherSubjectController
@@ -14,12 +15,14 @@ class TeacherSubjectController
     private TeacherSubjectRepository $teacherSubjectRepo;
     private TeacherRepository $teacherRepo;
     private SubjectRepository $subjectRepo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->teacherSubjectRepo = new TeacherSubjectRepository();
         $this->teacherRepo = new TeacherRepository();
         $this->subjectRepo = new SubjectRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
     public function getTeacherSubjects(array $user, string $teacherId): void
@@ -119,6 +122,24 @@ class TeacherSubjectController
         $assignmentId = $this->teacherSubjectRepo->create($data);
 
         if ($assignmentId) {
+            // Notify the teacher that they were assigned
+            try {
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                if ($teacherUserId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                        'institution_id' => (int) ($teacher['institution_id'] ?? ($user['institution_id'] ?? 0)),
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'title' => 'Subject Assigned',
+                        'message' => 'You have been assigned to teach ' . ($subject['subject_name'] ?? 'a subject') . '.',
+                        'notification_type' => 'teacher_subject_assigned',
+                        'link' => '/teacher/dashboard.html#my-subjects',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                error_log('TeacherSubjectController::notify assign ' . $e->getMessage());
+            }
             Response::success([
                 'message' => 'Teacher-Subject assignment created successfully',
                 'teacher_subject_id' => $assignmentId
@@ -178,6 +199,28 @@ class TeacherSubjectController
         }
 
         if ($this->teacherSubjectRepo->delete($id)) {
+            try {
+                $teacherUserId = (int) ($teacherSubject['user_id'] ?? 0);
+                $subjectName = '';
+                if (!empty($teacherSubject['subject_id'])) {
+                    $s = $this->subjectRepo->findById((int) $teacherSubject['subject_id']);
+                    $subjectName = $s['subject_name'] ?? '';
+                }
+                if ($teacherUserId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                        'institution_id' => (int) ($teacherSubject['institution_id'] ?? ($user['institution_id'] ?? 0)),
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'title' => 'Subject Unassigned',
+                        'message' => 'You have been unassigned from ' . ($subjectName ?: 'a subject') . '.',
+                        'notification_type' => 'teacher_subject_unassigned',
+                        'link' => '/teacher/dashboard.html#my-subjects',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                error_log('TeacherSubjectController::notify unassign ' . $e->getMessage());
+            }
             Response::success(['message' => 'Teacher-Subject assignment deleted successfully']);
         } else {
             Response::serverError('Failed to delete assignment');

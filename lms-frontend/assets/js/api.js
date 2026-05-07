@@ -720,6 +720,7 @@ const ChatAPI = {
     forwardMessage: (uuid, data) => API.post(API_ENDPOINTS.CHAT_MESSAGE_FORWARD(uuid), data),
     markAsRead: (uuid) => API.put(API_ENDPOINTS.CHAT_MESSAGE_MARK_READ(uuid)),
     deleteMessage: (uuid) => API.delete(API_ENDPOINTS.CHAT_MESSAGE_DELETE(uuid)),
+    getUnreadMessages: (params) => API.get('/api/chat/unread-messages', params),
 };
 
 /**
@@ -731,6 +732,8 @@ const NotificationAPI = {
     getById: (id) => API.get(API_ENDPOINTS.NOTIFICATION_BY_ID(id)),
     markAsRead: (id) => API.put(API_ENDPOINTS.NOTIFICATION_MARK_READ(id)),
     markAllAsRead: () => API.put(API_ENDPOINTS.NOTIFICATION_MARK_ALL_READ),
+    deleteById: (id) => API.delete(`/api/notifications/${id}`),
+    deleteAllRead: () => API.delete(API_ENDPOINTS.NOTIFICATION_DELETE_READ),
 };
 
 /**

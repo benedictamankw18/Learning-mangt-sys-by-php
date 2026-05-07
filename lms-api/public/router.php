@@ -4,11 +4,49 @@
  * This ensures all API requests go through index.php, even those with file extensions
  */
 
+function sendCorsHeaders(): void
+{
+    $allowedOrigins = $_ENV['ALLOWED_ORIGINS'] ?? '*';
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+    if ($allowedOrigins === '*') {
+        if ($origin) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        } else {
+            header('Access-Control-Allow-Origin: *');
+        }
+    } else {
+        $originsArray = array_values(array_filter(array_map(function ($item) {
+            return trim((string) $item, " \t\n\r\0\x0B\"'");
+        }, explode(',', $allowedOrigins))));
+
+        if ($origin && in_array($origin, $originsArray, true)) {
+            header('Access-Control-Allow-Origin: ' . $origin);
+            header('Vary: Origin');
+        }
+    }
+
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Max-Age: 3600');
+}
+
 // Get the requested URI
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // If the URI starts with /api or matches an API pattern, route through index.php
 if (preg_match('#^/api/#', $uri)) {
+    sendCorsHeaders();
+
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
+        http_response_code(200);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode(['success' => true, 'message' => 'OK']);
+        return true;
+    }
+
     require __DIR__ . '/index.php';
     return true;
 }

@@ -24,6 +24,7 @@
     }
   });
 
+
   function init() {
     const root = el('admAnnouncementsRoot');
     if (!root || root.dataset.bound === '1') return;

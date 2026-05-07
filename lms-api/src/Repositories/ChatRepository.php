@@ -654,6 +654,114 @@ class ChatRepository
         }
     }
 
+    /**
+     * Get unread messages for a user (for admin notification dropdown)
+     * @param int $userId The current user ID
+     * @param int|null $institutionId Scope to institution
+     * @param int $limit Max messages to fetch
+     * @return array Array with 'messages' and 'unread_count'
+     */
+    public function getUnreadMessagesForUser(int $userId, ?int $institutionId = null, int $limit = 50): array
+    {
+        try {
+            $sql = "
+                SELECT
+                    cm.chat_message_id,
+                    cm.uuid AS message_uuid,
+                    r.room_id,
+                    r.uuid AS room_uuid,
+                    r.room_name,
+                    r.room_type,
+                    CONCAT(u.first_name, ' ', u.last_name) AS sender_name,
+                    u.user_id AS sender_id,
+                    cm.message_text,
+                    cm.created_at
+                FROM chat_messages cm
+                INNER JOIN chat_room_members rm ON rm.room_id = cm.room_id
+                INNER JOIN chat_rooms r ON r.room_id = cm.room_id
+                INNER JOIN users u ON u.user_id = cm.sender_id
+                WHERE rm.user_id = :member_user_id
+                  AND rm.left_at IS NULL
+                  AND r.is_active = 1
+                  AND cm.sender_id <> :sender_user_id
+                  AND cm.deleted_at IS NULL
+                  AND (rm.last_read_message_id IS NULL OR cm.chat_message_id > rm.last_read_message_id)
+            ";
+
+            $params = [
+                'member_user_id' => $userId,
+                'sender_user_id' => $userId,
+            ];
+
+            if ($institutionId !== null) {
+                $sql .= " AND (r.institution_id IS NULL OR r.institution_id = :institution_id)";
+                $params['institution_id'] = $institutionId;
+            }
+
+            $sql .= " ORDER BY cm.created_at DESC, cm.chat_message_id DESC LIMIT :limit";
+
+            $stmt = $this->db->prepare($sql);
+            foreach ($params as $key => $value) {
+                $stmt->bindValue(
+                    ':' . $key,
+                    $value,
+                    is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR
+                );
+            }
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Get total unread count
+            $countSql = "
+                SELECT COUNT(*) AS unread_count
+                                FROM chat_messages m
+                                INNER JOIN chat_room_members rm ON rm.room_id = m.room_id
+                                INNER JOIN chat_rooms r ON r.room_id = m.room_id
+                                WHERE rm.user_id = :count_user_id
+                                    AND rm.left_at IS NULL
+                                    AND r.is_active = 1
+                                    AND m.sender_id <> :count_sender_user_id
+                                    AND m.deleted_at IS NULL
+                                    AND (rm.last_read_message_id IS NULL OR m.chat_message_id > rm.last_read_message_id)
+            ";
+
+            $countParams = [
+                                'count_user_id' => $userId,
+                                'count_sender_user_id' => $userId,
+            ];
+
+            if ($institutionId !== null) {
+                                $countSql .= " AND (r.institution_id IS NULL OR r.institution_id = :institution_id)";
+                                $countParams['institution_id'] = $institutionId;
+            }
+
+            $countStmt = $this->db->prepare($countSql);
+            foreach ($countParams as $key => $value) {
+                $countStmt->bindValue(
+                    ':' . $key,
+                    $value,
+                    is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR
+                );
+            }
+            $countStmt->execute();
+            $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
+            $unreadCount = (int) ($countResult['unread_count'] ?? 0);
+
+            return [
+                'messages' => $messages,
+                'unread_count' => $unreadCount,
+            ];
+        } catch (\PDOException $e) {
+            error_log('ChatRepository::getUnreadMessagesForUser error: ' . $e->getMessage());
+            return [
+                'messages' => [],
+                'unread_count' => 0,
+            ];
+        }
+    }
+
     private function sortPair(int $a, int $b): array
     {
         return $a < $b ? [$a, $b] : [$b, $a];

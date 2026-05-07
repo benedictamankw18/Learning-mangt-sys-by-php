@@ -4,16 +4,19 @@ namespace App\Controllers;
 
 use App\Middleware\RoleMiddleware;
 use App\Repositories\ReportScheduleRepository;
+use App\Repositories\NotificationRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
 
 class ReportScheduleController
 {
     private ReportScheduleRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new ReportScheduleRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
     public function index(array $user): void
@@ -122,6 +125,20 @@ class ReportScheduleController
             return;
         }
 
+        try {
+            $this->notificationRepo->create([
+                'sender_id' => $createdBy,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Report Schedule Created',
+                'message' => 'A report schedule was created: ' . ($schedule['schedule_name'] ?? ''),
+                'notification_type' => 'report_schedule_created',
+                'link' => '/admin/page/report-schedules.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('ReportScheduleController::notify create ' . $e->getMessage());
+        }
+
         Response::success(['schedule' => $schedule], 'Report schedule created');
     }
 
@@ -162,6 +179,19 @@ class ReportScheduleController
         }
 
         $updated = $this->repo->findByIdForInstitution($id, $institutionId);
+        try {
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Report Schedule Updated',
+                'message' => 'A report schedule was updated: ' . ($updated['schedule_name'] ?? ''),
+                'notification_type' => 'report_schedule_updated',
+                'link' => '/admin/page/report-schedules.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('ReportScheduleController::notify update ' . $e->getMessage());
+        }
         Response::success(['schedule' => $updated], 'Schedule status updated');
     }
 

@@ -6,17 +6,70 @@ use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\LessonPlanRepository;
 use App\Repositories\CourseMaterialRepository;
+use App\Repositories\CourseRepository;
+use App\Repositories\TeacherRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class LessonPlanController
 {
     private LessonPlanRepository $lessonPlanRepo;
     private CourseMaterialRepository $materialRepo;
+    private CourseRepository $courseRepo;
+    private TeacherRepository $teacherRepo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->lessonPlanRepo = new LessonPlanRepository();
         $this->materialRepo = new CourseMaterialRepository();
+        $this->courseRepo = new CourseRepository();
+        $this->teacherRepo = new TeacherRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyTeacherLessonPlanChanged(int $courseId, string $action, array $actor): void
+    {
+        try {
+            if ($courseId <= 0) {
+                return;
+            }
+
+            $course = $this->courseRepo->findById($courseId);
+            if (!$course) {
+                return;
+            }
+
+            $teacherId = (int) ($course['teacher_id'] ?? 0);
+            $teacherUserId = 0;
+            if ($teacherId > 0) {
+                $teacher = $this->teacherRepo->findById($teacherId);
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+            }
+            if ($teacherUserId <= 0) {
+                $teacherUserId = (int) ($actor['user_id'] ?? 0);
+            }
+            if ($teacherUserId <= 0) {
+                return;
+            }
+
+            $title = 'Lesson Plan ' . ($action === 'created' ? 'Created' : 'Updated');
+            $message = 'A lesson plan was ' . $action . ' for class subject (ID: ' . $courseId . ').';
+
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($actor['user_id'] ?? 0) ?: null,
+                'institution_id' => (int) ($course['institution_id'] ?? 1),
+                'user_id' => $teacherUserId,
+                'target_role' => 'teacher',
+                'course_id' => $courseId,
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'lesson_plan_' . $action,
+                'link' => '/teacher/dashboard.html#lesson-plans',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('LessonPlanController::notifyTeacherLessonPlanChanged ' . $e->getMessage());
+        }
     }
 
     /**
@@ -108,6 +161,8 @@ class LessonPlanController
             }
         }
 
+        $this->notifyTeacherLessonPlanChanged((int) $data['course_id'], 'created', $user);
+
         Response::success(['id' => $id], 201);
     }
 
@@ -163,6 +218,8 @@ class LessonPlanController
                 }
             }
         }
+
+        $this->notifyTeacherLessonPlanChanged((int) ($lessonPlan['course_id'] ?? 0), 'updated', $user);
 
         Response::success(['message' => 'Updated successfully']);
     }

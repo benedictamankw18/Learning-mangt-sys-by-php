@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\AttendanceRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\StudentRepository;
 use App\Repositories\CourseRepository;
 use App\Repositories\TeacherRepository;
@@ -13,6 +14,7 @@ use App\Middleware\RoleMiddleware;
 class AttendanceController
 {
     private AttendanceRepository $attendanceRepo;
+    private NotificationRepository $notificationRepo;
     private StudentRepository $studentRepo;
     private CourseRepository $courseRepo;
     private TeacherRepository $teacherRepo;
@@ -20,9 +22,47 @@ class AttendanceController
     public function __construct()
     {
         $this->attendanceRepo = new AttendanceRepository();
+        $this->notificationRepo = new NotificationRepository();
         $this->studentRepo = new StudentRepository();
         $this->courseRepo = new CourseRepository();
         $this->teacherRepo = new TeacherRepository();
+    }
+
+    private function notifyAttendanceMarked(array $student, array $course, string $date, string $status, int $actorUserId = 0): void
+    {
+        try {
+            $studentUserId = (int) ($student['user_id'] ?? 0);
+            if ($studentUserId <= 0) {
+                return;
+            }
+
+            $courseId = (int) ($course['course_id'] ?? 0);
+            if ($courseId <= 0) {
+                return;
+            }
+
+            $courseName = trim((string) (($course['class_name'] ?? '') . ' ' . ($course['subject_name'] ?? '')));
+            if ($courseName === '') {
+                $courseName = 'the class subject';
+            }
+
+            $studentName = trim((string) (($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')));
+            $title = 'Attendance Marked';
+            $message = 'Your attendance was marked as ' . $status . ' on ' . $date . ' for ' . $courseName . ' (ID: ' . $courseId . ').';
+
+            $this->notificationRepo->create([
+                'sender_id' => $actorUserId > 0 ? $actorUserId : null,
+                'user_id' => $studentUserId,
+                'target_role' => 'student',
+                'course_id' => $courseId,
+                'title' => $title,
+                'message' => $message,
+                'notification_type' => 'attendance_marked',
+                'link' => '/student/dashboard.html#attendance',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('AttendanceController::notifyAttendanceMarked ' . $e->getMessage());
+        }
     }
 
     public function getStudentAttendance(array $user, int $studentId): void
@@ -168,6 +208,9 @@ class AttendanceController
             }
         }
 
+        $student = $this->studentRepo->findById((int) $data['student_id']);
+        $attendanceExisted = $this->attendanceRepo->exists((int) $data['student_id'], (int) $data['course_id'], (string) $data['attendance_date']);
+
         if (
             $this->attendanceRepo->markAttendance(
                 (int) $data['student_id'],
@@ -177,6 +220,9 @@ class AttendanceController
                 $data['remarks'] ?? null
             )
         ) {
+            if (!$attendanceExisted && $student) {
+                $this->notifyAttendanceMarked($student, $course, (string) $data['attendance_date'], (string) $data['status'], (int) ($user['user_id'] ?? 0));
+            }
             Response::success(['message' => 'Attendance marked successfully']);
         } else {
             Response::serverError('Failed to mark attendance');
@@ -219,7 +265,31 @@ class AttendanceController
             }
         }
 
-        if ($this->attendanceRepo->bulkMarkAttendance((int) $data['course_id'], $data['attendance_date'], $data['students'])) {
+        $courseId = (int) $data['course_id'];
+        $date = (string) $data['attendance_date'];
+        $existingKeys = [];
+        foreach ((array) $data['students'] as $studentRow) {
+            $studentId = (int) ($studentRow['student_id'] ?? 0);
+            if ($studentId > 0 && $this->attendanceRepo->exists($studentId, $courseId, $date)) {
+                $existingKeys[$studentId] = true;
+            }
+        }
+
+        if ($this->attendanceRepo->bulkMarkAttendance($courseId, $date, $data['students'])) {
+            $course = $this->courseRepo->findById($courseId);
+            if ($course) {
+                foreach ((array) $data['students'] as $studentRow) {
+                    $studentId = (int) ($studentRow['student_id'] ?? 0);
+                    if ($studentId <= 0 || isset($existingKeys[$studentId])) {
+                        continue;
+                    }
+
+                    $student = $this->studentRepo->findById($studentId);
+                    if ($student) {
+                        $this->notifyAttendanceMarked($student, $course, $date, (string) ($studentRow['status'] ?? ''), (int) ($user['user_id'] ?? 0));
+                    }
+                }
+            }
             Response::success(['message' => 'Bulk attendance marked successfully']);
         } else {
             Response::serverError('Failed to mark bulk attendance');

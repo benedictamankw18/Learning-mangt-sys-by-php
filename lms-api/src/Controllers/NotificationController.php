@@ -40,14 +40,15 @@ class NotificationController
     public function index(array $user): void
     {
         $userId = $user['user_id'];
+        $userRole = (string) ($user['role'] ?? '');
         $institutionId = (int) ($user['institution_id'] ?? 0);
         $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
         $limit = isset($_GET['limit']) ? min(100, max(1, (int) $_GET['limit'])) : 20;
         $offset = ($page - 1) * $limit;
 
-        $notifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, $limit, $offset);
-        $total = $this->notificationRepo->countInstitutionNotifications($institutionId);
-        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
+        $notifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, $limit, $offset, $userRole);
+        $total = $this->notificationRepo->countInstitutionNotifications($institutionId, $userRole, $userId);
+        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId, $userRole);
 
         Response::success([
             'notifications' => $notifications,
@@ -67,9 +68,9 @@ class NotificationController
      */
     public function show(array $user, string $uuid): void
     {
-        $sanitizedUuid = UuidHelper::sanitize($uuid);
-        if (!$sanitizedUuid) {
-            Response::badRequest('Invalid UUID format');
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
             return;
         }
 
@@ -131,9 +132,9 @@ class NotificationController
      */
     public function markAsRead(array $user, string $uuid): void
     {
-        $sanitizedUuid = UuidHelper::sanitize($uuid);
-        if (!$sanitizedUuid) {
-            Response::badRequest('Invalid UUID format');
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
             return;
         }
 
@@ -160,7 +161,8 @@ class NotificationController
     {
         $institutionId = (int) ($user['institution_id'] ?? 0);
         $userId = $user['user_id'];
-        $this->notificationRepo->markAllAsRead($institutionId, $userId);
+        $userRole = (string) ($user['role'] ?? '');
+        $this->notificationRepo->markAllAsRead($institutionId, $userId, $userRole);
 
         Response::success(['message' => 'All notifications marked as read']);
     }
@@ -186,14 +188,15 @@ class NotificationController
     {
         $institutionId = (int) ($user['institution_id'] ?? 0);
         $userId = $user['user_id'];
+        $userRole = (string) ($user['role'] ?? '');
 
         // Get unread counts
-        $notificationsCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
+        $notificationsCount = $this->notificationRepo->getUnreadCount($institutionId, $userId, $userRole);
         $messagesCount = $this->messageRepo->getUnreadCount($userId);
         $totalCount = $notificationsCount + $messagesCount;
 
         // Get recent notifications (limit 5)
-        $recentNotifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, 5, 0);
+        $recentNotifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, 5, 0, $userRole);
 
         // Get recent messages (limit 5)
         $recentMessages = $this->messageRepo->getInbox($userId, 1, 5);
@@ -213,9 +216,9 @@ class NotificationController
      */
     public function delete(array $user, string $uuid): void
     {
-        $sanitizedUuid = UuidHelper::sanitize($uuid);
-        if (!$sanitizedUuid) {
-            Response::badRequest('Invalid UUID format');
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
             return;
         }
 

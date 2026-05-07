@@ -391,7 +391,7 @@
             <div class="messages-room-list" id="admMessagesRoomList">
               <div class="messages-empty">Loading chats...</div>
             </div>
-            <button class="btn-primary" type="button" id="admMessagesComposefloatBtn" style="position: relative; float: right; bottom: 4.5rem; right: 1.5rem; border-radius: 50%; width: 48px; height: 48px; display: grid; place-items: center; padding: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(15,23,42,.15);"><i class="fa-solid fa-plus"></i></button>
+            <button class="btn-primary" type="button" id="admMessagesComposefloatBtn" style="position: relative; float: right; bottom: 4.5rem; right: 1.5rem; border-radius: 50%; width: 48px; height: 48px; display: grid; place-items: center; padding: 0; z-index: 99; box-shadow: 0 4px 12px rgba(15,23,42,.15);"><i class="fa-solid fa-plus"></i></button>
 
           </div>
 

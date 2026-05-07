@@ -3,16 +3,19 @@
 namespace App\Controllers;
 
 use App\Repositories\ChatRepository;
+use App\Repositories\NotificationRepository;
 use App\Utils\Response;
 use App\Utils\UuidHelper;
 
 class ChatController
 {
     private ChatRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new ChatRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
     private function institutionId(array $user): ?int
@@ -237,6 +240,20 @@ class ChatController
         foreach ($memberIds as $memberId) {
             if ($this->repo->addMember((int) $room['room_id'], (int) $memberId, $role)) {
                 $added++;
+                try {
+                    $this->notificationRepo->create([
+                        'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                        'institution_id' => (int) ($room['institution_id'] ?? ($user['institution_id'] ?? 0)),
+                        'user_id' => (int) $memberId,
+                        'target_role' => 'user',
+                        'title' => 'Added to Chat Room',
+                        'message' => 'You were added to ' . (($room['room_name'] ?? '') ?: 'a chat room') . '.',
+                        'notification_type' => 'chat_room_member_added',
+                        'link' => '/chat/rooms/' . ($room['uuid'] ?? ''),
+                    ]);
+                } catch (\Throwable $e) {
+                    error_log('ChatController::notify addMembers ' . $e->getMessage());
+                }
             }
         }
 
@@ -580,6 +597,23 @@ class ChatController
         }
 
         Response::success(['message' => 'Message deleted successfully']);
+    }
+
+    /**
+     * GET /chat/unread-messages
+     * Get unread messages for admin notification dropdown
+     */
+    public function getUnreadMessages(array $user): void
+    {
+        $userId = (int) $user['user_id'];
+        $institutionId = $this->institutionId($user);
+
+        $result = $this->repo->getUnreadMessagesForUser($userId, $institutionId, 50);
+
+        Response::success([
+            'messages' => $result['messages'],
+            'unread_count' => $result['unread_count'],
+        ]);
     }
 
 }

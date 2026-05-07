@@ -5,15 +5,39 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\GradeLevelRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class GradeLevelController
 {
     private GradeLevelRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new GradeLevelRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForGradeLevelChange(int $institutionId, int $gradeLevelId, string $action): void
+    {
+        try {
+            if ($institutionId <= 0 || $gradeLevelId <= 0) {
+                return;
+            }
+
+            $this->notificationRepo->create([
+                'sender_id' => null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Grade Level ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Grade level was ' . $action . ' (ID: ' . $gradeLevelId . ').',
+                'notification_type' => 'grade_level_' . $action,
+                'link' => '/admin/page/grade-level-list.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('GradeLevelController::notifyAdminsForGradeLevelChange ' . $e->getMessage());
+        }
     }
 
     /**
@@ -111,6 +135,7 @@ class GradeLevelController
         $gradeLevelId = $this->repo->create($data);
 
         if ($gradeLevelId) {
+            $this->notifyAdminsForGradeLevelChange((int) $data['institution_id'], (int) $gradeLevelId, 'created');
             Response::success([
                 'message' => 'Grade level created successfully',
                 'grade_level_id' => $gradeLevelId
@@ -165,6 +190,7 @@ class GradeLevelController
         $success = $this->repo->update($id, $data);
 
         if ($success) {
+            $this->notifyAdminsForGradeLevelChange((int) $gradeLevel['institution_id'], (int) $id, 'updated');
             Response::success(['message' => 'Grade level updated successfully']);
         } else {
             Response::serverError('Failed to update grade level');

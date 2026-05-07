@@ -68,7 +68,6 @@ class AnnouncementRepository
                 $params['student_class_code'] = trim($studentClassCode);
             }
             if ($studentClassId !== null && $studentClassId > 0) {
-                $params['student_class_id'] = $studentClassId;
                 $params['student_class_id_text'] = (string) $studentClassId;
             }
         } else {
@@ -143,7 +142,6 @@ class AnnouncementRepository
                 $params['student_class_code'] = trim($studentClassCode);
             }
             if ($studentClassId !== null && $studentClassId > 0) {
-                $params['student_class_id'] = $studentClassId;
                 $params['student_class_id_text'] = (string) $studentClassId;
             }
         } else {
@@ -263,7 +261,6 @@ class AnnouncementRepository
                 $params['student_class_code'] = trim($studentClassCode);
             }
             if ($studentClassId !== null && $studentClassId > 0) {
-                $params['student_class_id'] = $studentClassId;
                 $params['student_class_id_text'] = (string) $studentClassId;
             }
         } else {
@@ -492,7 +489,6 @@ class AnnouncementRepository
                     $params['student_class_code'] = trim($studentClassCode);
                 }
                 if ($studentClassId !== null && $studentClassId > 0) {
-                    $params['student_class_id'] = $studentClassId;
                     $params['student_class_id_text'] = (string) $studentClassId;
                 }
             } else {
@@ -533,7 +529,6 @@ class AnnouncementRepository
         }
 
         if ($studentClassId !== null && $studentClassId > 0) {
-            $checks[] = "JSON_CONTAINS(JSON_EXTRACT(SUBSTRING_INDEX(SUBSTRING({$alias}.content, LENGTH('__ANN_META__') + 1), '\\n', 1), '$.class_audience'), CAST(:student_class_id AS JSON))";
             $checks[] = "JSON_CONTAINS(JSON_EXTRACT(SUBSTRING_INDEX(SUBSTRING({$alias}.content, LENGTH('__ANN_META__') + 1), '\\n', 1), '$.class_audience'), JSON_QUOTE(:student_class_id_text))";
         }
 

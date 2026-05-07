@@ -72,6 +72,10 @@
           <i class="fas fa-dollar-sign"></i>
           <span>Fees</span>
         </a>
+        <a href="#" class="nav-item" data-page="notifications">
+          <i class="fas fa-bell"></i>
+          <span>Notifications</span>
+        </a>
         <a href="#" class="nav-item" data-page="myprofile">
           <i class="fas fa-user-circle"></i>
           <span>My Profile</span>
@@ -409,6 +413,7 @@
     <script src="./js/announcements.js?v=20260505"></script>
     <script src="./js/messages.js?v=20260418"></script>
     <script src="./js/assignments.js"></script>
+    <script src="../common/js/notifications.js?v=20260506"></script>
     <script src="../common/js/calendar.js"></script>
     <!-- jsPDF and autoTable for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -454,7 +459,9 @@
             const pagePath =
               page === "calendar"
                 ? `../common/calendar.html`
-                : `./page/${page}.html`;
+                : page === "notifications"
+                  ? `../common/notifications.html`
+                  : `./page/${page}.html`;
             const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
@@ -468,8 +475,10 @@
               title.textContent =
                 page === "calendar"
                   ? "School Calendar"
-                  : page.charAt(0).toUpperCase() +
-                    page.slice(1).replace(/-/g, " ");
+                  : page === "notifications"
+                    ? "Notifications"
+                    : page.charAt(0).toUpperCase() +
+                      page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             document.dispatchEvent(
               new CustomEvent("page:loaded", { detail: { page } }),

@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    const S = { years: [], editingId: null, page:1, limit:20, searchTerm: '' };
+    const S = { years: [], editingId: null, page:1, limit:20, searchTerm: '', total: 0, pages: 1 };
 
     document.addEventListener('page:loaded', function (e) {
         if (e.detail && e.detail.page === 'academic-years') initPage();
@@ -36,13 +36,18 @@
         const url = API_ENDPOINTS.ACADEMIC_YEARS + '?page=' + S.page + '&limit=' + S.limit;
         apiReq('GET', url).then(res=>{
             if(!res.success) throw new Error(res.message||'Failed');
-            S.years = res.data?.data || res.data || [];
+            const payload = res.data || {};
+            S.years = payload.data || payload.items || payload || [];
+            const pagination = payload.pagination || res.pagination || {};
+            S.total = Number(pagination.total ?? S.years.length) || 0;
+            S.pages = Number(pagination.pages ?? pagination.total_pages ?? Math.max(1, Math.ceil(S.total / S.limit))) || 1;
             S.searchTerm = '';
             const searchInput = el('aySearchInput');
             if(searchInput) searchInput.value = '';
             filterAndRender();
             toast('✓ Response received','success');
             updateStats();
+            renderPagination(pagination);
         }).catch(err=>{ 
             console.error(err); 
             if(tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#ef4444;padding:2rem"><i class="fas fa-exclamation-circle"></i> '+(err.message||'Error loading data')+'</td></tr>'; 
@@ -81,6 +86,51 @@
         }).join('');
         window._ayEdit = openModal; window._ayDelete = deleteYear;
     }
+
+    function renderPagination(pagination){
+        const wrap = el('ayPagination');
+        const info = el('ayPaginationInfo');
+        const controls = el('ayPaginationControls');
+        if(!wrap) return;
+
+        const totalPages = Number(pagination?.pages ?? pagination?.total_pages ?? S.pages ?? 1) || 1;
+        const currentPage = Number(pagination?.page ?? pagination?.current_page ?? S.page) || 1;
+        const total = Number(pagination?.total ?? S.total ?? S.years.length) || 0;
+        const perPage = Number(pagination?.limit ?? pagination?.per_page ?? S.limit) || S.limit;
+
+        S.page = currentPage;
+        S.limit = perPage;
+        S.total = total;
+        S.pages = totalPages;
+
+        if(totalPages <= 1){
+            wrap.style.display = 'none';
+            return;
+        }
+
+        wrap.style.display = 'flex';
+        const from = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1;
+        const to = total === 0 ? 0 : Math.min(currentPage * perPage, total);
+        if(info) info.textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' academic years';
+
+        if(!controls) return;
+        let html = '';
+        html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="ayGoPage(' + (currentPage - 1) + ')"><i class="fas fa-chevron-left"></i></button>';
+        for(let p = 1; p <= totalPages; p++){
+            if(p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)){
+                html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="ayGoPage(' + p + ')">' + p + '</button>';
+            } else if(p === currentPage - 3 || p === currentPage + 3){
+                html += '<button disabled>…</button>';
+            }
+        }
+        html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="ayGoPage(' + (currentPage + 1) + ')"><i class="fas fa-chevron-right"></i></button>';
+        controls.innerHTML = html;
+    }
+
+    window.ayGoPage = function (p) {
+        S.page = p;
+        loadYears();
+    };
 
     function openModal(id){
         S.editingId = id || null;
@@ -129,7 +179,7 @@
     }
 
     function updateStats(){
-        const total = S.years.length;
+        const total = S.total || S.years.length;
         const current = S.years.filter(y => y.is_current == 1 || y.is_current === '1').length;
         const totalEl = el('ayStatTotal');
         const currentEl = el('ayStatCurrent');

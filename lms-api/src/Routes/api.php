@@ -105,6 +105,7 @@ return [
 
     // Chat routes (Room-based messaging)
     'GET /chat/rooms' => ['controller' => 'ChatController', 'method' => 'index', 'auth' => true],
+    'GET /chat/unread-messages' => ['controller' => 'ChatController', 'method' => 'getUnreadMessages', 'auth' => true],
     'POST /chat/rooms' => ['controller' => 'ChatController', 'method' => 'store', 'auth' => true],
     'GET /chat/rooms/{roomUuid}' => ['controller' => 'ChatController', 'method' => 'show', 'auth' => true],
     'PUT /chat/rooms/{roomUuid}' => ['controller' => 'ChatController', 'method' => 'updateRoom', 'auth' => true],

@@ -686,4 +686,26 @@ class AssignmentRepository
             return [];
         }
     }
+
+    /**
+     * Get formatted name for an assignment by ID
+     * Returns: assignment title (e.g., "Essay Assignment")
+     */
+    public function getNameById(int $assignmentId): ?string
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT title
+                FROM assignments
+                WHERE assignment_id = :assignment_id
+            ");
+            $stmt->execute(['assignment_id' => $assignmentId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $result ? $result['title'] : null;
+        } catch (\PDOException $e) {
+            error_log('AssignmentRepository::getNameById error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

@@ -5,10 +5,12 @@ namespace App\Controllers;
 use App\Repositories\EventRepository;
 use App\Utils\Response;
 use App\Utils\UuidHelper;
+use App\Repositories\NotificationRepository;
 
 class EventController
 {
     private $eventRepository;
+    private $notificationRepo;
 
     private function isAdminRole(array $user): bool
     {
@@ -75,6 +77,56 @@ class EventController
     public function __construct()
     {
         $this->eventRepository = new EventRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyEventPublished(array $event, array $actor = []): void
+    {
+        try {
+            $institutionId = (int) ($event['institution_id'] ?? 0);
+            $targetRole = strtolower((string) ($event['target_role'] ?? 'all'));
+            $title = 'Event Published';
+            $message = trim((string) ($event['title'] ?? 'An event has been published'));
+            $senderId = (int) ($actor['user_id'] ?? 0) ?: null;
+
+            if ($targetRole === 'personal') {
+                $userId = (int) ($event['created_by'] ?? 0);
+                if ($userId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => $senderId,
+                        'institution_id' => $institutionId,
+                        'user_id' => $userId,
+                        'target_role' => 'user',
+                        'title' => $title,
+                        'message' => $message,
+                        'notification_type' => 'event_published',
+                        'link' => '/events',
+                    ]);
+                }
+                return;
+            }
+
+            $roles = [];
+            if ($targetRole === 'all' || $targetRole === '') {
+                $roles = ['admin', 'teacher', 'student', 'parent'];
+            } else {
+                $roles = [$targetRole];
+            }
+
+            foreach ($roles as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => $senderId,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'event_published',
+                    'link' => '/' . $role . '/dashboard.html#calendar',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('EventController::notifyEventPublished ' . $e->getMessage());
+        }
     }
 
     /**
@@ -302,6 +354,14 @@ class EventController
 
             $eventId = $this->eventRepository->create($data);
 
+            // If published immediately, notify the target audience
+            if (!empty($data['is_published'])) {
+                $createdEvent = $this->eventRepository->findById((int) $eventId);
+                if ($createdEvent) {
+                    $this->notifyEventPublished($createdEvent, $user);
+                }
+            }
+
             Response::success(['id' => $eventId], 'Event created successfully');
         } catch (\Exception $e) {
             Response::serverError('Failed to create event: ' . $e->getMessage());
@@ -380,7 +440,17 @@ class EventController
 
             unset($data['type']);
 
+            $wasPublished = (int) ($event['is_published'] ?? 0);
             $this->eventRepository->update($eventId, $data);
+
+            // If publishing now (transition from unpublished to published)
+            $nowPublished = isset($data['is_published']) ? ((int) $data['is_published']) : $wasPublished;
+            if ($wasPublished !== 1 && $nowPublished === 1) {
+                $updatedEvent = $this->eventRepository->findById((int) $eventId);
+                if ($updatedEvent) {
+                    $this->notifyEventPublished($updatedEvent, $user);
+                }
+            }
 
             Response::success(null, 'Event updated successfully');
         } catch (\Exception $e) {

@@ -81,6 +81,30 @@ class AttendanceRepository
         }
     }
 
+    public function exists(int $studentId, int $courseId, string $date): bool
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 1
+                FROM attendance
+                WHERE student_id = :student_id
+                  AND course_id = :course_id
+                  AND attendance_date = :date
+                LIMIT 1
+            ");
+            $stmt->execute([
+                'student_id' => $studentId,
+                'course_id' => $courseId,
+                'date' => $date,
+            ]);
+
+            return (bool) $stmt->fetchColumn();
+        } catch (\PDOException $e) {
+            error_log('Attendance Exists Error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
     public function getAttendanceByCourse(int $courseId, string $date): array
     {
         try {

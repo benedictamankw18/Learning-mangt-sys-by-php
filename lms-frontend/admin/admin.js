@@ -5,6 +5,9 @@
 // Global charts
 let enrollmentChart = null;
 let courseDistributionChart = null;
+let notificationPollTimer = null;
+
+const NOTIFICATION_POLL_MS = 30000;
 
 /**
  * Initialize dashboard
@@ -18,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     setupEventListeners();
     loadDashboardData();
+    startNotificationPolling();
 });
 
 /**
@@ -92,15 +96,23 @@ function setupEventListeners() {
     }
 
     // Dropdowns
-    const notifications = document.getElementById('notificationBtn');
+    const notificationBell = document.getElementById('notificationBell');
     const userProfile = document.getElementById('userProfileBtn');
     const courseDistribution = document.getElementById('courseDistributionMenuBtn');
     const enrollmentChart = document.getElementById('enrollmentChartMenuBtn');
 
-    if (notifications) {
-        notifications.addEventListener('click', (e) => {
+    if (notificationBell) {
+        notificationBell.addEventListener('click', async (e) => {
             e.stopPropagation();
-            toggleDropdown(notifications.closest('.dropdown'));
+            const dropdown = notificationBell.closest('.dropdown');
+            const notificationDropdown = document.getElementById('notificationDropdown');
+            if (dropdown && notificationDropdown) {
+                const isVisible = notificationDropdown.style.display !== 'none';
+                if (!isVisible) {
+                    await refreshNotificationState(true);
+                }
+            }
+            toggleDropdown(dropdown);
         });
     }
 
@@ -137,6 +149,16 @@ function setupEventListeners() {
             e.stopPropagation();
         });
     });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopNotificationPolling();
+        } else {
+            startNotificationPolling();
+        }
+    });
+
+    window.addEventListener('beforeunload', stopNotificationPolling);
 }
 
 
@@ -155,6 +177,74 @@ function toggleDropdown(dropdown) {
     // Toggle current dropdown
     if (!isActive) {
         dropdown.classList.add('active');
+    }
+}
+
+function startNotificationPolling() {
+    stopNotificationPolling();
+    notificationPollTimer = setInterval(() => {
+        if (document.hidden) return;
+        refreshNotificationState(false);
+    }, NOTIFICATION_POLL_MS);
+    refreshNotificationState(false);
+}
+
+function stopNotificationPolling() {
+    if (notificationPollTimer) {
+        clearInterval(notificationPollTimer);
+        notificationPollTimer = null;
+    }
+}
+
+async function refreshNotificationState(forceDropdownLoad = false) {
+    const dropdown = document.getElementById('notificationDropdown');
+    const dropdownIsVisible = !!dropdown && dropdown.style.display !== 'none';
+
+    if (forceDropdownLoad || dropdownIsVisible) {
+        await loadNotificationsDropdown();
+        return;
+    }
+
+    await refreshNotificationSummary();
+}
+
+async function refreshNotificationSummary() {
+    try {
+        const response = await NotificationAPI.getSummary();
+        const data = response?.data || response || {};
+        updateNotificationCounts(data);
+        updateNotificationBadge(Number(data.total_unread ?? data.notifications_unread ?? 0));
+    } catch (error) {
+        console.error('Failed to refresh notification summary', error);
+    }
+}
+
+function updateNotificationCounts(data) {
+    const notifCount = document.getElementById('notifCount');
+    const msgCount = document.getElementById('msgCount');
+    const notificationUnread = Number(data?.notifications_unread ?? 0);
+    const messageUnread = Number(data?.messages_unread ?? 0);
+
+    if (notifCount) notifCount.textContent = String(notificationUnread);
+    if (msgCount) msgCount.textContent = String(messageUnread);
+}
+
+function updateNotificationBadge(unread) {
+    const badge = document.getElementById('notificationBadge');
+    const count = Number(unread) || 0;
+
+    if (!badge) return;
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+
+    const countNode = document.getElementById('notifCount');
+    if (countNode && !countNode.textContent) {
+        countNode.textContent = String(count);
     }
 }
 
@@ -516,3 +606,301 @@ setInterval(refreshDashboard, 5 * 60 * 1000);
     }
     setupChartDropdown('enrollmentChartMenuBtn', 'enrollmentChartMenu');
     setupChartDropdown('courseDistributionMenuBtn', 'courseDistributionMenu');
+
+    // Notification tabs
+    const tabBtns = document.querySelectorAll('.notification-tabs .tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.getAttribute('data-tab');
+            switchNotificationTab(tabName);
+            switchNotificationFooterNav(tabName);
+        });
+    });
+
+    // Mark all as read
+    const markAllReadBtn = document.getElementById('markAllRead');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async () => {
+            try {
+                await NotificationAPI.markAllAsRead();
+                showToast('All notifications marked as read', 'success');
+                await loadNotificationsDropdown();
+            } catch (error) {
+                console.error('Failed to mark all as read', error);
+                showToast(error?.message || 'Failed to mark all as read', 'error');
+            }
+        });
+    }
+
+
+/**
+ * Load notifications into dropdown
+ */
+async function loadNotificationsDropdown() {
+    try {
+        // Fetch notifications
+        const notifResponse = await NotificationAPI.getAll({ page: 1, limit: 10 });
+        const notifData = notifResponse?.data || notifResponse || {};
+        const notifications = Array.isArray(notifData.notifications) ? notifData.notifications : (Array.isArray(notifData.data) ? notifData.data : []);
+        const messages = notifications.filter(n => (n.notification_type || '').toLowerCase().includes('message'));
+        const otherNotifs = notifications.filter(n => !(n.notification_type || '').toLowerCase().includes('message'));
+
+        // Fetch unread chat messages
+        let chatMessages = [];
+        let chatUnreadCount = 0;
+        try {
+            const chatResponse = await ChatAPI.getUnreadMessages();
+            const chatData = chatResponse?.data || chatResponse || {};
+            chatMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
+            chatUnreadCount = Number(chatData.unread_count ?? 0);
+        } catch (chatError) {
+            console.warn('Failed to fetch unread chat messages', chatError);
+        }
+
+        // Format chat messages to match notification structure
+        const formattedChatMessages = chatMessages.map(msg => ({
+            uuid: msg.message_uuid,
+            id: msg.message_uuid,
+            title: msg.sender_name,
+            message: msg.message_text || 'Shared a message',
+            message_text: msg.message_text,
+            room_name: msg.room_name,
+            sender_name: msg.sender_name,
+            created_at: msg.created_at,
+            is_read: false, // Chat messages are always unread by definition
+            notification_type: 'chat_message',
+            room_uuid: msg.room_uuid,
+        }));
+
+        // Only show unread items in the dropdown
+        const unreadMessages = messages.filter(m => !(m.is_read == 1 || m.is_read === '1' || m.is_read === true));
+        const unreadOther = otherNotifs.filter(n => !(n.is_read == 1 || n.is_read === '1' || n.is_read === true));
+
+        // Combine unread notifications and chat messages
+        const allUnreadMessages = [...unreadMessages, ...formattedChatMessages];
+
+        // If server reports unread but current page has none, try fetching more items
+        const unreadCount = Number(notifData.unread_count ?? 0);
+        if ((unreadCount + chatUnreadCount) > 0 && unreadMessages.length === 0 && unreadOther.length === 0 && formattedChatMessages.length === 0) {
+            try {
+                const fetchLimit = Math.min(100, Math.max(50, unreadCount));
+                const retryResp = await NotificationAPI.getAll({ page: 1, limit: fetchLimit });
+                const retryData = retryResp?.data || retryResp || {};
+                const retryNotifications = Array.isArray(retryData.notifications) ? retryData.notifications : (Array.isArray(retryData.data) ? retryData.data : []);
+                const retryMessages = retryNotifications.filter(n => (n.notification_type || '').toLowerCase().includes('message'));
+                const retryOther = retryNotifications.filter(n => !(n.notification_type || '').toLowerCase().includes('message'));
+                const retryUnreadMessages = retryMessages.filter(m => !(m.is_read == 1 || m.is_read === '1' || m.is_read === true));
+                const retryUnreadOther = retryOther.filter(n => !(n.is_read == 1 || n.is_read === '1' || n.is_read === true));
+
+                if (retryUnreadMessages.length > 0 || retryUnreadOther.length > 0 || formattedChatMessages.length > 0) {
+                    renderNotificationsList(retryUnreadOther);
+                    renderMessagesList([...retryUnreadMessages, ...formattedChatMessages]);
+                    updateNotificationTabs(retryUnreadOther, [...retryUnreadMessages, ...formattedChatMessages]);
+                    updateNotificationBadge(Number(retryData.unread_count ?? unreadCount) + chatUnreadCount);
+                    return;
+                }
+            } catch (e) {
+                console.warn('Retry fetch for unread notifications failed', e);
+            }
+
+            // Fall back: show a hint linking to the full notifications page
+            const notifList = document.getElementById('notificationsList');
+            const msgList = document.getElementById('messagesList');
+            if (notifList) notifList.innerHTML = '<p class="no-notifications">No unread notifications on this page — <a href="#notifications">View all</a></p>';
+            if (msgList) msgList.innerHTML = '<p class="no-notifications">No unread messages on this page — <a href="#messages">View all messages</a></p>';
+            updateNotificationTabs(unreadOther, allUnreadMessages);
+            updateNotificationBadge(unreadCount + chatUnreadCount);
+            return;
+        }
+
+        renderNotificationsList(unreadOther);
+        renderMessagesList(allUnreadMessages);
+        updateNotificationTabs(unreadOther, allUnreadMessages);
+        updateNotificationBadge(Number(notifData.unread_count ?? 0) + chatUnreadCount);
+    } catch (error) {
+        console.error('Failed to load notifications dropdown', error);
+        showToast('Failed to load notifications', 'error');
+    }
+}
+
+/**
+ * Update notification and message counts in tabs
+ */
+function updateNotificationTabs(notifications, messages) {
+    const notifCount = document.getElementById('notifCount');
+    const msgCount = document.getElementById('msgCount');
+    if (notifCount) notifCount.textContent = String(notifications.length);
+    if (msgCount) msgCount.textContent = String(messages.length);
+}
+
+/**
+ * Render notifications in dropdown
+ */
+function renderNotificationsList(notifications) {
+    const list = document.getElementById('notificationsList');
+    if (!list) return;
+
+    if (!notifications || notifications.length === 0) {
+        list.innerHTML = '<p class="no-notifications">No unread notifications</p>';
+        return;
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
+    list.innerHTML = notifications.map(n => {
+        const isRead = n.is_read == 1 || n.is_read === '1' || n.is_read === true;
+        return `
+        <div class="notification-item ${isRead ? 'read' : 'unread'}" data-uuid="${esc(n.uuid || n.id || '')}">
+            <div class="notification-info">
+                <h4>${esc(n.title || 'Notification')}</h4>
+                <p>${esc(n.message || '')}</p>
+                ${n.link ? `<a href="${esc(n.link || '#')}" class="notification-link" rel="noopener noreferrer">View Details</a>` : ''}
+                <small>${esc(n.created_at || '')}</small>
+            </div>
+            <div class="notification-actions">
+                ${!isRead ? `<button class="btn-action mark-read" title="Mark as read"><i class="fas fa-check"></i></button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    // Attach event handlers
+    list.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const item = btn.closest('.notification-item');
+            const uuid = item?.getAttribute('data-uuid');
+            if (uuid) {
+                try {
+                    await NotificationAPI.markAsRead(uuid);
+                    showToast('Notification marked as read', 'success');
+                    // Reload dropdown to reflect unread-only view
+                    await loadNotificationsDropdown();
+                } catch (error) {
+                    console.error(error);
+                    showToast('Failed to mark as read', 'error');
+                }
+            }
+        });
+    });
+
+}
+
+/**
+ * Render messages in dropdown
+ */
+function renderMessagesList(messages) {
+    const list = document.getElementById('messagesList');
+    if (!list) return;
+
+    if (!messages || messages.length === 0) {
+        list.innerHTML = '<p class="no-notifications">No unread messages</p>';
+        return;
+    }
+
+    function esc(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = String(str);
+        return d.innerHTML;
+    }
+
+    list.innerHTML = messages.map(m => {
+        const isRead = m.is_read == 1 || m.is_read === '1' || m.is_read === true;
+        const isChatMessage = m.notification_type === 'chat_message';
+        
+        // Format title differently for chat messages
+        const titleText = isChatMessage 
+            ? `Chat: ${esc(m.room_name || 'Unknown Room')} - ${esc(m.sender_name || 'Unknown')}`
+            : esc(m.title || 'Message');
+        
+        const messagePreview = isChatMessage 
+            ? esc((m.message_text || '').substring(0, 100))
+            : esc(m.message || '');
+
+        return `
+        <div class="notification-item ${isRead ? 'read' : 'unread'} ${isChatMessage ? 'chat-message' : ''}" data-uuid="${esc(m.uuid || m.id || '')}" ${isChatMessage ? `data-room-uuid="${esc(m.room_uuid || '')}"` : ''}>
+            <div class="notification-icon">
+                <i class="fas ${isChatMessage ? 'fa-comments' : 'fa-envelope'}"></i>
+            </div>
+            <div class="notification-info">
+                <h4>${titleText}</h4>
+                <p>${messagePreview}</p>
+                <small>${esc(m.created_at || '')}</small>
+            </div>
+            <div class="notification-actions">
+                ${!isRead ? `<button class="btn-action mark-read" title="Mark as read"><i class="fas fa-check"></i></button>` : ''}
+            </div>
+        </div>`;
+    }).join('');
+
+    // Attach event handlers
+    list.querySelectorAll('.mark-read').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const item = btn.closest('.notification-item');
+            const uuid = item?.getAttribute('data-uuid');
+            if (uuid) {
+                try {
+                    // Only mark notification messages as read, not chat messages
+                    if (!item.classList.contains('chat-message')) {
+                        await NotificationAPI.markAsRead(uuid);
+                        showToast('Message marked as read', 'success');
+                    } else {
+                        showToast('Chat messages are marked as read when viewed in chat room', 'info');
+                    }
+                    // Reload dropdown to reflect unread-only view
+                    await loadNotificationsDropdown();
+                } catch (error) {
+                    console.error(error);
+                    showToast('Failed to mark as read', 'error');
+                }
+            }
+        });
+    });
+}
+
+/**
+ * Switch notification tabs
+ */
+function switchNotificationTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.notification-content .tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Deactivate all tab buttons
+    document.querySelectorAll('.notification-tabs .tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+
+    // Show selected tab content
+    const tabId = tabName === 'messages' ? 'messagesTab' : 'notificationsTab';
+    const tabElement = document.getElementById(tabId);
+    if (tabElement) {
+        tabElement.classList.add('active');
+    }
+
+    // Activate selected tab button
+    document.querySelector(`.notification-tabs .tab-btn[data-tab="${tabName}"]`)?.classList.add('active');
+}
+
+function switchNotificationFooterNav(tabName) {
+    
+    document.querySelectorAll('.notification-footer .openNav').forEach(nav => {
+        nav.classList.remove('active');
+    });
+
+    const viewTab = tabName === 'messages' ? 'viewMessages' : 'viewNotifications';
+    const viewElement = document.getElementById(viewTab);
+    
+    if (viewElement) {
+        viewElement.classList.add('active');
+    }
+    document.querySelector(`.notification-footer .openNav[data-tab="${tabName}"]`)?.classList.add('active');
+}

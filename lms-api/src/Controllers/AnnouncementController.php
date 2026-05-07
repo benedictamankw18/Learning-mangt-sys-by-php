@@ -386,10 +386,24 @@ class AnnouncementController
                 'title' => 'Announcement Published',
                 'message' => $message,
                 'notification_type' => 'announcement',
+                'link' => $this->resolveAnnouncementLink((string) ($announcement['target_role'] ?? '')),
             ]);
         } catch (\Throwable $e) {
             error_log('Announcement notification error: ' . $e->getMessage());
         }
+    }
+
+    private function resolveAnnouncementLink(string $targetRole): string
+    {
+        $role = strtolower(trim($targetRole));
+
+        return match ($role) {
+            'teacher' => '/teacher/dashboard.html#announcements',
+            'student' => '/student/dashboard.html#announcements',
+            'parent' => '/parent/dashboard.html#announcements',
+            'admin' => '/admin/dashboard.html#announcements',
+            default => '/dashboard.html#announcements',
+        };
     }
 
     /**

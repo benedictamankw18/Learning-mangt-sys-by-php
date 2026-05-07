@@ -482,4 +482,26 @@ class AssessmentRepository
             ];
         }
     }
+
+    /**
+     * Get formatted name for an assessment by ID
+     * Returns: assessment title (e.g., "Midterm Quiz")
+     */
+    public function getNameById(int $assessmentId): ?string
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT title
+                FROM assessments
+                WHERE assessment_id = :assessment_id
+            ");
+            $stmt->execute(['assessment_id' => $assessmentId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $result ? $result['title'] : null;
+        } catch (\PDOException $e) {
+            error_log('AssessmentRepository::getNameById error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

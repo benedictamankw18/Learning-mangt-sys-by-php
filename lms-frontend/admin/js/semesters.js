@@ -1,7 +1,7 @@
 /* Semesters Management */
 (function(){
     'use strict';
-    const S = { semesters: [], years: [], editingId: null, page:1, limit:20, academicYearFilter: '', searchTerm: '' };
+    const S = { semesters: [], years: [], editingId: null, page:1, limit:20, academicYearFilter: '', searchTerm: '', total: 0, pages: 1 };
 
     document.addEventListener('page:loaded', function(e){ if(e.detail&&e.detail.page==='semesters') init(); });
 
@@ -40,13 +40,18 @@
         if(S.academicYearFilter) url += '&academic_year_id=' + encodeURIComponent(S.academicYearFilter);
         apiReq('GET', url).then(res=>{ 
             if(!res.success) throw new Error(res.message||''); 
-            S.semesters = res.data?.data||res.data||[]; 
+            const payload = res.data || {};
+            S.semesters = payload.data || payload.items || payload || [];
+            const pagination = payload.pagination || res.pagination || {};
+            S.total = Number(pagination.total ?? S.semesters.length) || 0;
+            S.pages = Number(pagination.pages ?? pagination.total_pages ?? Math.max(1, Math.ceil(S.total / S.limit))) || 1;
             S.searchTerm = '';
             const searchInput = el('semSearchInput');
             if(searchInput) searchInput.value = '';
             filterAndRender();
             toast('✓ Response received','success');
             updateStats();
+            renderPagination(pagination);
         }).catch(err=>{ 
             console.error(err); 
             if(tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#ef4444;padding:2rem"><i class="fas fa-exclamation-circle"></i> '+(err.message||'Error loading data')+'</td></tr>';
@@ -84,6 +89,51 @@
             '</tr>';
         }).join(''); window._semEdit = openModal; window._semDelete = deleteSemester;
     }
+
+    function renderPagination(pagination){
+        const wrap = el('semPagination');
+        const info = el('semPaginationInfo');
+        const controls = el('semPaginationControls');
+        if(!wrap) return;
+
+        const totalPages = Number(pagination?.pages ?? pagination?.total_pages ?? S.pages ?? 1) || 1;
+        const currentPage = Number(pagination?.page ?? pagination?.current_page ?? S.page) || 1;
+        const total = Number(pagination?.total ?? S.total ?? S.semesters.length) || 0;
+        const perPage = Number(pagination?.limit ?? pagination?.per_page ?? S.limit) || S.limit;
+
+        S.page = currentPage;
+        S.limit = perPage;
+        S.total = total;
+        S.pages = totalPages;
+
+        if(totalPages <= 1){
+            wrap.style.display = 'none';
+            return;
+        }
+
+        wrap.style.display = 'flex';
+        const from = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1;
+        const to = total === 0 ? 0 : Math.min(currentPage * perPage, total);
+        if(info) info.textContent = 'Showing ' + from + '–' + to + ' of ' + total + ' semesters';
+
+        if(!controls) return;
+        let html = '';
+        html += '<button ' + (currentPage === 1 ? 'disabled' : '') + ' onclick="semGoPage(' + (currentPage - 1) + ')"><i class="fas fa-chevron-left"></i></button>';
+        for(let p = 1; p <= totalPages; p++){
+            if(p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)){
+                html += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="semGoPage(' + p + ')">' + p + '</button>';
+            } else if(p === currentPage - 3 || p === currentPage + 3){
+                html += '<button disabled>…</button>';
+            }
+        }
+        html += '<button ' + (currentPage === totalPages ? 'disabled' : '') + ' onclick="semGoPage(' + (currentPage + 1) + ')"><i class="fas fa-chevron-right"></i></button>';
+        controls.innerHTML = html;
+    }
+
+    window.semGoPage = function (p) {
+        S.page = p;
+        loadSemesters();
+    };
 
     function openModal(id){ S.editingId = id||null; const overlay = el('semesterModalOverlay'); el('semesterFormError').style.display='none'; if(id){ const s = S.semesters.find(x=>x.semester_id==id); if(s){ setVal('fieldAcademicYearId', s.academic_year_id); setVal('fieldSemesterName', s.semester_name); setVal('fieldSemesterStart', s.start_date); setVal('fieldSemesterEnd', s.end_date); setVal('fieldSemesterIsCurrent', s.is_current?1:0); document.getElementById('semesterModalTitle').textContent='Edit Semester'; }} else { setVal('fieldAcademicYearId',''); setVal('fieldSemesterName',''); setVal('fieldSemesterStart',''); setVal('fieldSemesterEnd',''); setVal('fieldSemesterIsCurrent','0'); document.getElementById('semesterModalTitle').textContent='Add Semester'; }
         overlay.classList.add('open'); document.getElementById('fieldSemesterName')?.focus(); }
@@ -136,7 +186,7 @@
     }); }
 
     function updateStats(){
-        const total = S.semesters.length;
+        const total = S.total || S.semesters.length;
         const current = S.semesters.filter(s => s.is_current == 1 || s.is_current === '1').length;
         const totalEl = el('semStatTotal');
         const currentEl = el('semStatCurrent');

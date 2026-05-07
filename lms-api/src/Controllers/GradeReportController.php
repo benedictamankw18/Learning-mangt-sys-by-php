@@ -24,6 +24,85 @@ class GradeReportController
         $this->resultRepository = new ResultRepository();
     }
 
+    private function notifyReportPublished(array $report, array $actor = []): void
+    {
+        try {
+            $senderId = isset($actor['user_id']) ? (int) $actor['user_id'] : null;
+            $institutionId = (int) ($report['institution_id'] ?? 0);
+
+            // Notify teacher (report generator)
+            $teacherUserId = isset($report['generated_by']) ? (int) $report['generated_by'] : 0;
+            if ($teacherUserId > 0) {
+                $this->notificationRepository->create([
+                    'sender_id' => $senderId,
+                    'institution_id' => $institutionId,
+                    'user_id' => $teacherUserId,
+                    'target_role' => 'teacher',
+                    'title' => 'Grade Report Published',
+                    'message' => 'A grade report you generated has been published.',
+                    'notification_type' => 'grade_report_published',
+                    'link' => '/teacher/dashboard.html#grading',
+                ]);
+            }
+
+            // Notify student
+            $studentId = isset($report['student_id']) ? (int) $report['student_id'] : 0;
+            if ($studentId > 0) {
+                $student = $this->studentRepository->findById($studentId);
+                $studentUserId = isset($student['user_id']) ? (int) $student['user_id'] : 0;
+                if ($studentUserId > 0) {
+                    $this->notificationRepository->create([
+                        'sender_id' => $senderId,
+                        'institution_id' => $institutionId,
+                        'user_id' => $studentUserId,
+                        'target_role' => 'student',
+                        'title' => 'Your Grade Report Is Published',
+                        'message' => 'Your grade report has been published. View your report.',
+                        'notification_type' => 'grade_report_published_student',
+                        'link' => '/student/dashboard.html#grades',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('GradeReportController::notifyReportPublished ' . $e->getMessage());
+        }
+    }
+
+    private function notifyTeacherOnApproved(array $report, array $actor = []): void
+    {
+        try {
+            $senderId = isset($actor['user_id']) ? (int) $actor['user_id'] : null;
+            $institutionId = (int) ($report['institution_id'] ?? 0);
+            $teacherUserId = isset($report['generated_by']) ? (int) $report['generated_by'] : 0;
+            if ($teacherUserId <= 0) return;
+
+            $studentId = isset($report['student_id']) ? (int) $report['student_id'] : 0;
+            $studentLabel = '';
+            if ($studentId > 0) {
+                $student = $this->studentRepository->findById($studentId);
+                $studentLabel = trim(((string) ($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')));
+            }
+
+            $message = 'A grade report you generated has been approved.';
+            if ($studentLabel !== '') {
+                $message .= ' Student: ' . $studentLabel . '.';
+            }
+
+            $this->notificationRepository->create([
+                'sender_id' => $senderId,
+                'institution_id' => $institutionId,
+                'user_id' => $teacherUserId,
+                'target_role' => 'teacher',
+                'title' => 'Grade Report Approved',
+                'message' => $message,
+                'notification_type' => 'grade_report_approved',
+                'link' => '/teacher/dashboard.html#grading',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('GradeReportController::notifyTeacherOnApproved ' . $e->getMessage());
+        }
+    }
+
     private function isSendBackForCorrectionPayload(array $data): bool
     {
         if (!array_key_exists('Approved', $data)) {
@@ -50,9 +129,27 @@ class GradeReportController
 
         $title = 'Grade report sent back for correction';
         $message = 'A grade report was returned for correction by admin.';
-        if ($studentLabel !== '') {
+        
+        // Resolve student name if studentId is provided
+        if (!empty($studentId) && $studentId > 0) {
+            try {
+                $studentRepo = new \App\Repositories\StudentRepository();
+                $studentName = $studentRepo->getNameById($studentId);
+                if ($studentName) {
+                    $message .= ' Student: ' . $studentName . ' (ID: ' . $studentId . ')';
+                } elseif ($studentLabel !== '') {
+                    $message .= ' Student: ' . $studentLabel . '.';
+                }
+            } catch (\Throwable $e) {
+                error_log('Failed to resolve student name: ' . $e->getMessage());
+                if ($studentLabel !== '') {
+                    $message .= ' Student: ' . $studentLabel . '.';
+                }
+            }
+        } elseif ($studentLabel !== '') {
             $message .= ' Student: ' . $studentLabel . '.';
         }
+        
         if ($reportUuid !== '') {
             $message .= ' Report: ' . $reportUuid . '.';
         }
@@ -286,9 +383,16 @@ class GradeReportController
 
             $this->gradeReportRepository->update($reportId, $data);
 
+            // If report was sent back for correction
             if ($this->isSendBackForCorrectionPayload($data)) {
                 $comment = trim((string) ($data['principal_comment'] ?? ''));
                 $this->notifyTeacherForCorrection($report, $user, $comment);
+            }
+
+            // If Approved transitioned to 1, notify teacher
+            $wasApproved = (int) ($report['Approved'] ?? 0);
+            if (array_key_exists('Approved', $data) && (int) $data['Approved'] === 1 && $wasApproved !== 1) {
+                $this->notifyTeacherOnApproved($report, $user);
             }
 
             Response::success(null, 'Grade report updated successfully');
@@ -350,7 +454,16 @@ class GradeReportController
 
             $reportId = $report['report_id'];
 
+            $wasPublished = (int) ($report['is_published'] ?? 0);
             $this->gradeReportRepository->update($reportId, ['is_published' => $published ? 1 : 0]);
+
+            $nowPublished = $published ? 1 : 0;
+            if ($wasPublished !== 1 && $nowPublished === 1) {
+                $updatedReport = $this->gradeReportRepository->findById($reportId);
+                if ($updatedReport) {
+                    $this->notifyReportPublished($updatedReport, $user);
+                }
+            }
 
             Response::success(null, $published ? 'Grade report published successfully' : 'Grade report unpublished successfully');
         } catch (\Exception $e) {

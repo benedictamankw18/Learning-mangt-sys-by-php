@@ -5,15 +5,56 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\AcademicYearRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class AcademicYearController
 {
     private AcademicYearRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new AcademicYearRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForAcademicYearChange(int $institutionId, int $yearId, string $action, array $performedBy = []): void
+    {
+        try {
+            if ($institutionId <= 0 || $yearId <= 0) return;
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Academic Year ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Academic year was ' . $action . ' (ID: ' . $yearId . ').',
+                'notification_type' => 'academic_year_' . $action,
+                'link' => '/admin/page/academic-years.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('AcademicYearController::notifyAdminsForAcademicYearChange ' . $e->getMessage());
+        }
+    }
+
+    private function notifyAllUsersForCurrentAcademicYear(int $institutionId, int $yearId): void
+    {
+        try {
+            if ($institutionId <= 0 || $yearId <= 0) return;
+            foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => null,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'title' => 'Current Academic Year Updated',
+                    'message' => 'The current academic year has been set.',
+                    'notification_type' => 'academic_year_current',
+                    'link' => '/' . $role . '/dashboard.html',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('AcademicYearController::notifyAllUsersForCurrentAcademicYear ' . $e->getMessage());
+        }
     }
 
     public function index(array $user): void
@@ -103,6 +144,7 @@ class AcademicYearController
         $yearId = $this->repo->create($data);
 
         if ($yearId !== null) {
+            $this->notifyAdminsForAcademicYearChange($institutionId, (int) $yearId, 'created', $user);
             Response::success([
                 'message' => 'Academic year created successfully',
                 'academic_year_id' => $yearId
@@ -185,6 +227,11 @@ class AcademicYearController
         }
 
         if ($this->repo->update($id, $data)) {
+            // If is_current was set to 1, notify all institution users
+            if (array_key_exists('is_current', $data) && !empty($data['is_current'])) {
+                $this->notifyAllUsersForCurrentAcademicYear($targetInstitutionId, $id);
+            }
+            $this->notifyAdminsForAcademicYearChange($targetInstitutionId, $id, 'updated', $user);
             Response::success(['message' => 'Academic year updated successfully']);
         } else {
             Response::serverError('Failed to update academic year');

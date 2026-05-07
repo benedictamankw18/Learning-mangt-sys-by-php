@@ -5,15 +5,18 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\GradeScaleRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class GradeScaleController
 {
     private GradeScaleRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new GradeScaleRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
     public function index(array $user): void
@@ -86,6 +89,20 @@ class GradeScaleController
         $scaleId = $this->repo->create($data);
 
         if ($scaleId) {
+            try {
+                $institutionId = (int) ($data['institution_id'] ?? ($user['institution_id'] ?? 0));
+                $this->notificationRepo->create([
+                    'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                    'institution_id' => $institutionId,
+                    'target_role' => 'admin',
+                    'title' => 'Grade Scale Created',
+                    'message' => 'A grade scale was created.',
+                    'notification_type' => 'grade_scale_created',
+                    'link' => '/admin/page/grade-scales.html',
+                ]);
+            } catch (\Throwable $e) {
+                error_log('GradeScaleController::notify create ' . $e->getMessage());
+            }
             Response::success([
                 'message' => 'Grade scale created successfully',
                 'grade_scale_id' => $scaleId
@@ -149,6 +166,20 @@ class GradeScaleController
         }
 
         if ($this->repo->update($id, $data)) {
+            try {
+                $institutionId = (int) ($scale['institution_id'] ?? ($user['institution_id'] ?? 0));
+                $this->notificationRepo->create([
+                    'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                    'institution_id' => $institutionId,
+                    'target_role' => 'admin',
+                    'title' => 'Grade Scale Updated',
+                    'message' => 'A grade scale was updated.',
+                    'notification_type' => 'grade_scale_updated',
+                    'link' => '/admin/page/grade-scales.html',
+                ]);
+            } catch (\Throwable $e) {
+                error_log('GradeScaleController::notify update ' . $e->getMessage());
+            }
             Response::success(['message' => 'Grade scale updated successfully']);
         } else {
             Response::serverError('Failed to update grade scale');

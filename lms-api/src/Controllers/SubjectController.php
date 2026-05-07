@@ -6,15 +6,37 @@ use App\Utils\Response;
 use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\SubjectRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class SubjectController
 {
     private SubjectRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new SubjectRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForSubjectChange(int $institutionId, int $subjectId, string $action, array $performedBy = []): void
+    {
+        try {
+            if ($institutionId <= 0 || $subjectId <= 0) return;
+
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Subject ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Subject was ' . $action . ' (ID: ' . $subjectId . ').',
+                'notification_type' => 'subject_' . $action,
+                'link' => '/admin/page/subject-list.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('SubjectController::notifyAdminsForSubjectChange ' . $e->getMessage());
+        }
     }
 
     public function index(array $user): void
@@ -104,6 +126,7 @@ class SubjectController
         }
 
         if ($subjectId) {
+            $this->notifyAdminsForSubjectChange((int) ($data['institution_id'] ?? 0), (int) $subjectId, 'created', $user);
             Response::success([
                 'message' => 'Subject created successfully',
                 'subject_id' => $subjectId
@@ -155,6 +178,7 @@ class SubjectController
         }
 
         if ($this->repo->update($subjectId, $data)) {
+            $this->notifyAdminsForSubjectChange((int) ($subject['institution_id'] ?? 0), (int) $subjectId, 'updated', $user);
             Response::success(['message' => 'Subject updated successfully']);
         } else {
             Response::serverError('Failed to update subject');

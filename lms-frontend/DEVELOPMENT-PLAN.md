@@ -1214,7 +1214,8 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Delete notification
   - Filter by type
   - Real-time updates (polling or WebSocket)
-
+ - [ ] **Create** `admin\grade-level`
+  - Create, Edit, Delete, list 
 ---
 
 ### Week 13: Analytics & Advanced Features
@@ -1311,14 +1312,14 @@ Complete messaging, announcements, analytics, and final polish for production re
 - [ ] **Create** `admin/institution-settings.html`
   - Institution profile settings
   - Logo, contact, address, and branding
-- [ ] **Create** `admin/notifications.html`
+- [x] **Create** `admin/notifications.html`
   - Notification center
   - Unread badge and filters
   - Mark read/unread and delete
 - [ ] **Create** `admin/analytics.html`
   - School-wide analytics dashboard
   - Enrollment, attendance, grades, and performance trends
-- [ ] **Create** `admin/reports.html`
+- [x] **Create** `admin/reports.html`
   - School reports dashboard
   - Exportable academic and operational reports
 - [ ] **Create** `admin/activity-logs.html`

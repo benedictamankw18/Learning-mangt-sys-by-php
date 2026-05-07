@@ -7,6 +7,7 @@ use App\Repositories\ClassSubjectRepository;
 use App\Repositories\ParentRepository;
 use App\Repositories\ParentStudentRepository;
 use App\Repositories\StudentRepository;
+use App\Repositories\NotificationRepository;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Utils\UuidHelper;
@@ -20,6 +21,8 @@ class AssignmentController
     private ParentStudentRepository $parentStudentRepo;
     private StudentRepository $studentRepo;
 
+    private NotificationRepository $notificationRepo;
+
     public function __construct()
     {
         $this->repo = new AssignmentRepository();
@@ -27,7 +30,8 @@ class AssignmentController
         $this->parentRepo = new ParentRepository();
         $this->parentStudentRepo = new ParentStudentRepository();
         $this->studentRepo = new StudentRepository();
-    }
+                $this->notificationRepo = new NotificationRepository();
+        }
 
     /**
      * Resolve parent_id from auth payload, with fallback lookup by user_id.
@@ -330,6 +334,11 @@ class AssignmentController
 
         $assignmentId = $this->repo->create($data);
 
+        // Send notification if assignment is active and almost due
+        if (!empty($data['course_id']) && !empty($data['due_date']) && $data['status'] === 'active') {
+            $this->notifyAlmostDueAssignment($data['course_id'], $assignmentId, $data);
+        }
+
         Response::success([
             'message' => 'Assignment created successfully',
             'assignment_id' => $assignmentId
@@ -392,6 +401,14 @@ class AssignmentController
         }
 
         $this->repo->update($assignmentId, $data);
+
+        // Send notification if assignment is active and almost due
+        if (!empty($data['status']) && $data['status'] === 'active') {
+            $updatedAssignment = $this->repo->findById($assignmentId);
+            if ($updatedAssignment && !empty($updatedAssignment['due_date'])) {
+                $this->notifyAlmostDueAssignment($updatedAssignment['course_id'], $assignmentId, $updatedAssignment);
+            }
+        }
 
         Response::success(['message' => 'Assignment updated successfully']);
     }
@@ -716,5 +733,92 @@ class AssignmentController
             'message' => 'Submission graded successfully',
             'status' => $submission['status'] ?? null,
         ]);
+    }
+
+    /**
+     * Send "almost due" notifications for an assignment.
+     * Sends only when the assignment due date is within 3 days and the status is active.
+     */
+    private function notifyAlmostDueAssignment(int $courseId, int $assignmentId, array $assignmentData): void
+    {
+        try {
+            $status = strtolower((string) ($assignmentData['status'] ?? ''));
+            $dueDate = (string) ($assignmentData['due_date'] ?? '');
+            if ($status !== 'active' || $dueDate === '') {
+                return;
+            }
+
+            $dueDateObject = \DateTime::createFromFormat('Y-m-d H:i:s', $dueDate) ?: \DateTime::createFromFormat('Y-m-d', $dueDate);
+            if (!$dueDateObject) {
+                return;
+            }
+
+            $today = new \DateTime('today');
+            $daysUntilDue = (int) $today->diff($dueDateObject)->format('%r%a');
+            if ($daysUntilDue < 0 || $daysUntilDue > 3) {
+                return;
+            }
+
+            $course = $this->courseRepo->findById($courseId);
+            if (!$course) {
+                return;
+            }
+
+            $enrolledStudents = $this->courseRepo->getEnrolledStudents($courseId);
+            if (!$enrolledStudents) {
+                return;
+            }
+
+            $title = 'Assignment Almost Due';
+            $assignmentTitle = trim((string) ($assignmentData['title'] ?? 'Untitled Assignment'));
+            $courseName = trim((string) (($course['class_name'] ?? '') . ' ' . ($course['subject_name'] ?? '')));
+            if ($courseName === '') {
+                $courseName = 'the class subject';
+            }
+
+            foreach ($enrolledStudents as $student) {
+                $studentUserId = (int) ($student['user_id'] ?? 0);
+                if ($studentUserId <= 0) {
+                    continue;
+                }
+
+                $studentName = trim((string) (($student['first_name'] ?? '') . ' ' . ($student['last_name'] ?? '')));
+                $message = ($studentName !== '' ? $studentName . ', ' : '') . "assignment '{$assignmentTitle}' is due on {$dueDateObject->format('Y-m-d')} for {$courseName} (ID: {$courseId}).";
+
+                if ($this->notificationRepo->quizActivationExists($studentUserId, $courseId, $title, $message)) {
+                    continue;
+                }
+
+                $this->notificationRepo->create([
+                    'sender_id' => isset($assignmentData['teacher_id']) ? (int) $assignmentData['teacher_id'] : null,
+                    'user_id' => $studentUserId,
+                    'target_role' => 'student',
+                    'course_id' => $courseId,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'assignment_almost_due',
+                    'link' => '/student/dashboard.html#assignments',
+                ]);
+            }
+
+            $teacherUserId = (int) ($course['teacher_user_id'] ?? 0);
+            if ($teacherUserId > 0) {
+                $teacherMessage = "Your assignment '{$assignmentTitle}' is due on {$dueDateObject->format('Y-m-d')} for {$courseName} (ID: {$courseId}).";
+                if (!$this->notificationRepo->quizActivationExists($teacherUserId, $courseId, $title, $teacherMessage)) {
+                    $this->notificationRepo->create([
+                        'sender_id' => isset($assignmentData['teacher_id']) ? (int) $assignmentData['teacher_id'] : null,
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'course_id' => $courseId,
+                        'title' => $title,
+                        'message' => $teacherMessage,
+                        'notification_type' => 'assignment_almost_due',
+                        'link' => '/teacher/dashboard.html#assignments',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('AssignmentController::notifyAlmostDueAssignment error: ' . $e->getMessage());
+        }
     }
 }

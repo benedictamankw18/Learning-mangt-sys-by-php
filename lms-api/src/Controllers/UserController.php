@@ -6,12 +6,14 @@ use App\Utils\Response;
 use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\UserRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 use App\Services\EmailService;
 
 class UserController
 {
     private UserRepository $userRepo;
+    private NotificationRepository $notificationRepo;
 
     private function getDisplayName(array $user): string
     {
@@ -96,6 +98,33 @@ class UserController
         }
     }
 
+    private function sendUserInAppNotification(array $recipient, array $performedBy, string $action): void
+    {
+        try {
+            $recipientId = (int) ($recipient['user_id'] ?? 0);
+            if ($recipientId <= 0) {
+                return;
+            }
+
+            $recipientName = $this->getDisplayName($recipient);
+            $actorName = $this->getDisplayName($performedBy);
+            $institutionId = (int) ($recipient['institution_id'] ?? $performedBy['institution_id'] ?? 1);
+
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'user_id' => $recipientId,
+                'target_role' => (string) ($recipient['role'] ?? 'user'),
+                'title' => 'Account ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Your account (' . $recipientName . ') was ' . $action . ' by ' . $actorName . '.',
+                'notification_type' => 'user_' . $action,
+                'link' => '/auth/login.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('User in-app notification failed: ' . $e->getMessage());
+        }
+    }
+
     private function normalizeRoleName(string $roleName): string
     {
         return str_replace(['_', '-', ' '], '', strtolower(trim($roleName)));
@@ -125,6 +154,7 @@ class UserController
     public function __construct()
     {
         $this->userRepo = new UserRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
     public function index(array $user): void
@@ -311,6 +341,7 @@ class UserController
             $newUser = $this->userRepo->findById($userId);
             if (is_array($newUser)) {
                 $this->sendUserCreatedNotification($newUser, $user);
+                $this->sendUserInAppNotification($newUser, $user, 'created');
             }
             Response::success($newUser, 201);
         } else {
@@ -385,6 +416,7 @@ class UserController
             $updatedUser = $this->userRepo->findByUuid($sanitizedUuid);
             if (is_array($updatedUser)) {
                 $this->sendUserUpdatedNotification($updatedUser, $user, array_keys($data));
+                $this->sendUserInAppNotification($updatedUser, $user, 'updated');
             }
             Response::success($updatedUser);
         } else {
@@ -784,6 +816,7 @@ class UserController
             $createdUser = $this->userRepo->findById((int) $userId);
             if (is_array($createdUser)) {
                 $this->sendUserCreatedNotification($createdUser, $user);
+                $this->sendUserInAppNotification($createdUser, $user, 'created');
             }
         }
 

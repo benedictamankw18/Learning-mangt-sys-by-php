@@ -5,15 +5,39 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\ProgramRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class ProgramController
 {
     private ProgramRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new ProgramRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForProgramChange(int $institutionId, int $programId, string $action): void
+    {
+        try {
+            if ($institutionId <= 0 || $programId <= 0) {
+                return;
+            }
+
+            $this->notificationRepo->create([
+                'sender_id' => null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Program ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Program was ' . $action . ' (ID: ' . $programId . ').',
+                'notification_type' => 'program_' . $action,
+                'link' => '/admin/page/program-list.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('ProgramController::notifyAdminsForProgramChange ' . $e->getMessage());
+        }
     }
 
     /**
@@ -129,6 +153,7 @@ class ProgramController
         }
 
         if ($programId) {
+            $this->notifyAdminsForProgramChange((int) $data['institution_id'], (int) $programId, 'created');
             Response::success([
                 'message' => 'Program created successfully',
                 'program_id' => $programId
@@ -183,6 +208,7 @@ class ProgramController
         $success = $this->repo->update($id, $data);
 
         if ($success) {
+            $this->notifyAdminsForProgramChange((int) $program['institution_id'], (int) $id, 'updated');
             Response::success(['message' => 'Program updated successfully']);
         } else {
             Response::serverError('Failed to update program');

@@ -5,20 +5,60 @@ namespace App\Controllers;
 use App\Utils\Response;
 use App\Utils\Validator;
 use App\Repositories\SemesterRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\AcademicYearRepository;
 use App\Middleware\RoleMiddleware;
 
 class SemesterController
 {
     private SemesterRepository $repo;
+        private NotificationRepository $notificationRepo;
     private AcademicYearRepository $academicYearRepo;
 
     public function __construct()
     {
         $this->repo = new SemesterRepository();
         $this->academicYearRepo = new AcademicYearRepository();
+        $this->notificationRepo = new NotificationRepository();
     }
 
+    private function notifyAdminsForSemesterChange(int $institutionId, int $semesterId, string $action, array $performedBy = []): void
+    {
+        try {
+            if ($institutionId <= 0 || $semesterId <= 0) return;
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Semester ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Semester was ' . $action . ' (ID: ' . $semesterId . ').',
+                'notification_type' => 'semester_' . $action,
+                'link' => '/admin/page/semesters.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('SemesterController::notifyAdminsForSemesterChange ' . $e->getMessage());
+        }
+    }
+
+    private function notifyAllUsersForCurrentSemester(int $institutionId, int $semesterId): void
+    {
+        try {
+            if ($institutionId <= 0 || $semesterId <= 0) return;
+            foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => null,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'title' => 'Current Semester Updated',
+                    'message' => 'The current semester has been set.',
+                    'notification_type' => 'semester_current',
+                    'link' => '/' . $role . '/dashboard.html',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('SemesterController::notifyAllUsersForCurrentSemester ' . $e->getMessage());
+        }
+    }
     public function index(array $user): void
     {
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
@@ -127,6 +167,7 @@ class SemesterController
         $semesterId = $this->repo->create($data);
 
         if ($semesterId !== null) {
+            $this->notifyAdminsForSemesterChange($institutionId, (int) $semesterId, 'created', $user);
             Response::success([
                 'message' => 'Semester created successfully',
                 'semester_id' => $semesterId
@@ -244,6 +285,11 @@ class SemesterController
         }
 
         if ($this->repo->update($id, $data)) {
+            // If is_current was set to 1, notify all institution users
+            if (array_key_exists('is_current', $data) && !empty($data['is_current'])) {
+                $this->notifyAllUsersForCurrentSemester($targetInstitutionId, $id);
+            }
+            $this->notifyAdminsForSemesterChange($targetInstitutionId, $id, 'updated', $user);
             Response::success(['message' => 'Semester updated successfully']);
         } else {
             Response::serverError('Failed to update semester');

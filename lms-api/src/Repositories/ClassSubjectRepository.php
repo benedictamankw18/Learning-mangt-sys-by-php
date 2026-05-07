@@ -1432,4 +1432,41 @@ class ClassSubjectRepository
             ];
         }
     }
+
+    /**
+     * Get formatted name for a class subject by ID
+     * Returns: "ClassName SubjectName Section" (e.g., "SHS 3 VISUALART 2")
+     */
+    public function getNameById(int $courseId): ?string
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    c.class_name,
+                    c.section,
+                    s.subject_name
+                FROM class_subjects cs
+                INNER JOIN classes c ON cs.class_id = c.class_id
+                INNER JOIN subjects s ON cs.subject_id = s.subject_id
+                WHERE cs.course_id = :course_id
+            ");
+            $stmt->execute(['course_id' => $courseId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$result) {
+                return null;
+            }
+
+            // Format: "ClassName SubjectName Section" (e.g., "SHS 3 VISUALART 2")
+            $name = $result['class_name'] . ' ' . $result['subject_name'];
+            if (!empty($result['section'])) {
+                $name .= ' ' . $result['section'];
+            }
+
+            return $name;
+        } catch (\PDOException $e) {
+            error_log('ClassSubjectRepository::getNameById error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

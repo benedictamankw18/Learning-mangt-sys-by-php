@@ -6,16 +6,40 @@ use App\Utils\Response;
 use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\ClassRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 use App\Middleware\AuthorizationMiddleware;
 
 class ClassController
 {
     private ClassRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new ClassRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForClassChange(int $institutionId, int $classId, string $action): void
+    {
+        try {
+            if ($institutionId <= 0 || $classId <= 0) {
+                return;
+            }
+
+            $this->notificationRepo->create([
+                'sender_id' => null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Class ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Class was ' . $action . ' (ID: ' . $classId . ').',
+                'notification_type' => 'class_' . $action,
+                'link' => '/admin/page/class-list.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('ClassController::notifyAdminsForClassChange ' . $e->getMessage());
+        }
     }
 
     /**
@@ -143,6 +167,7 @@ class ClassController
             $classId = $this->repo->create($data);
 
             if ($classId) {
+                $this->notifyAdminsForClassChange((int) $data['institution_id'], (int) $classId, 'created');
                 Response::success([
                     'message' => 'Class created successfully',
                     'class_id' => $classId
@@ -251,6 +276,7 @@ class ClassController
         $success = $this->repo->update($classId, $data);
 
         if ($success) {
+            $this->notifyAdminsForClassChange((int) $class['institution_id'], (int) $classId, 'updated');
             Response::success(['message' => 'Class updated successfully']);
         } else {
             Response::serverError('Failed to update class');

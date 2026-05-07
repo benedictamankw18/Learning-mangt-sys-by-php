@@ -10,6 +10,8 @@ use App\Repositories\CourseScheduleRepository;
 use App\Repositories\CourseMaterialRepository;
 use App\Repositories\TeacherRepository;
 use App\Repositories\StudentRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\InstitutionRepository;
 use App\Middleware\RoleMiddleware;
 
 class CourseController
@@ -20,6 +22,8 @@ class CourseController
     private CourseMaterialRepository $materialRepo;
     private TeacherRepository $teacherRepo;
     private StudentRepository $studentRepo;
+    private NotificationRepository $notificationRepo;
+    private InstitutionRepository $institutionRepo;
 
     public function __construct()
     {
@@ -29,6 +33,101 @@ class CourseController
         $this->materialRepo = new CourseMaterialRepository();
         $this->teacherRepo = new TeacherRepository();
         $this->studentRepo = new StudentRepository();
+        $this->notificationRepo = new NotificationRepository();
+        $this->institutionRepo = new InstitutionRepository();
+    }
+
+    private function notifyCourseMaterialChanged(array $course, string $action, array $actor): void
+    {
+        try {
+            $courseId = (int) ($course['course_id'] ?? 0);
+            $institutionId = (int) ($course['institution_id'] ?? 0);
+            if ($courseId <= 0 || $institutionId <= 0) {
+                return;
+            }
+
+            $courseName = trim((string) (($course['class_name'] ?? '') . ' ' . ($course['subject_name'] ?? '')));
+            if ($courseName === '') {
+                $courseName = 'class subject';
+            }
+
+            $title = 'Course Material ' . ($action === 'created' ? 'Created' : 'Updated');
+            $message = 'Course material was ' . $action . ' for ' . $courseName . ' (ID: ' . $courseId . ').';
+            $senderId = (int) ($actor['user_id'] ?? 0);
+
+            $students = $this->courseRepo->getEnrolledStudents($courseId, 1, 5000);
+            foreach ($students as $student) {
+                $studentUserId = (int) ($student['user_id'] ?? 0);
+                if ($studentUserId <= 0) {
+                    continue;
+                }
+
+                $this->notificationRepo->create([
+                    'sender_id' => $senderId > 0 ? $senderId : null,
+                    'institution_id' => $institutionId,
+                    'user_id' => $studentUserId,
+                    'target_role' => 'student',
+                    'course_id' => $courseId,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'course_material_' . $action,
+                    'link' => '/student/dashboard.html#course-materials',
+                ]);
+            }
+
+            $teacherId = (int) ($course['teacher_id'] ?? 0);
+            if ($teacherId > 0) {
+                $teacher = $this->teacherRepo->findById($teacherId);
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                if ($teacherUserId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => $senderId > 0 ? $senderId : null,
+                        'institution_id' => $institutionId,
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'course_id' => $courseId,
+                        'title' => $title,
+                        'message' => $message,
+                        'notification_type' => 'course_material_' . $action,
+                        'link' => '/teacher/dashboard.html#course-materials',
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            error_log('CourseController::notifyCourseMaterialChanged ' . $e->getMessage());
+        }
+    }
+
+    private function notifyTimetableAudience(int $institutionId, int $courseId, string $action): void
+    {
+        try {
+            if ($institutionId <= 0 || $courseId <= 0) {
+                return;
+            }
+
+            // Only send schedule notifications when timetable is published.
+            if (!$this->institutionRepo->getTimetablePublished($institutionId)) {
+                return;
+            }
+
+            $title = 'Course Schedule ' . ($action === 'created' ? 'Created' : 'Updated');
+            $message = 'A course schedule was ' . $action . ' for class subject (ID: ' . $courseId . ').';
+
+            foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => null,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'course_id' => $courseId,
+                    'title' => $title,
+                    'message' => $message,
+                    'notification_type' => 'course_schedule_' . $action,
+                    'link' => '/' . $role . '/dashboard.html#timetable',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('CourseController::notifyTimetableAudience ' . $e->getMessage());
+        }
     }
 
     public function index(array $user): void
@@ -303,6 +402,10 @@ class CourseController
 
         $materialId = $this->materialRepo->create($data);
 
+        if ($materialId) {
+            $this->notifyCourseMaterialChanged($course, 'created', $user);
+        }
+
         Response::success([
             'message' => 'Course material created successfully',
             'material_id' => $materialId
@@ -360,6 +463,8 @@ class CourseController
         }
 
         $this->materialRepo->update($materialId, $data);
+
+        $this->notifyCourseMaterialChanged($course, 'updated', $user);
 
         Response::success(['message' => 'Course material updated successfully']);
     }
@@ -714,6 +819,10 @@ class CourseController
 
         $scheduleId = $this->scheduleRepo->create($data);
 
+        if ($scheduleId) {
+            $this->notifyTimetableAudience((int) ($data['institution_id'] ?? 0), $id, 'created');
+        }
+
         Response::success([
             'message' => 'Schedule created successfully',
             'schedule_id' => $scheduleId
@@ -787,6 +896,8 @@ class CourseController
         }
 
         $this->scheduleRepo->update($scheduleId, $data);
+
+        $this->notifyTimetableAudience((int) ($course['institution_id'] ?? 0), $courseId, 'updated');
 
         Response::success(['message' => 'Schedule updated successfully']);
     }

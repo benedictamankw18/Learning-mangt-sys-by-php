@@ -629,4 +629,33 @@ class StudentRepository
             return array_fill(0, 12, 0);
         }
     }
+
+    /**
+     * Get formatted name for a student by ID
+     * Returns: "FirstName LastName" (e.g., "John Doe")
+     */
+    public function getNameById(int $studentId): ?string
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT
+                    u.first_name,
+                    u.last_name
+                FROM students s
+                INNER JOIN users u ON s.user_id = u.user_id
+                WHERE s.student_id = :student_id
+            ");
+            $stmt->execute(['student_id' => $studentId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$result) {
+                return null;
+            }
+
+            return $result['first_name'] . ' ' . $result['last_name'];
+        } catch (\PDOException $e) {
+            error_log('StudentRepository::getNameById error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

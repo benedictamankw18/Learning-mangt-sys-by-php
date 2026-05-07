@@ -6,15 +6,60 @@ use App\Utils\Response;
 use App\Utils\Validator;
 use App\Utils\UuidHelper;
 use App\Repositories\InstitutionRepository;
+use App\Repositories\NotificationRepository;
 use App\Middleware\RoleMiddleware;
 
 class InstitutionController
 {
     private InstitutionRepository $repo;
+    private NotificationRepository $notificationRepo;
 
     public function __construct()
     {
         $this->repo = new InstitutionRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForInstitutionChange(int $institutionId, string $action, array $performedBy = []): void
+    {
+        try {
+            if ($institutionId <= 0) return;
+
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Institution ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Institution information was ' . $action . '.',
+                'notification_type' => 'institution_' . $action,
+                'link' => '/admin/page/institution-settings.html',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('InstitutionController::notifyAdminsForInstitutionChange ' . $e->getMessage());
+        }
+    }
+
+    private function notifyTimetablePublished(int $institutionId): void
+    {
+        try {
+            if ($institutionId <= 0) {
+                return;
+            }
+
+            foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => null,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'title' => 'Timetable Published',
+                    'message' => 'The timetable has been published and is now available.',
+                    'notification_type' => 'timetable_published',
+                    'link' => '/' . $role . '/dashboard.html#timetable',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('InstitutionController::notifyTimetablePublished ' . $e->getMessage());
+        }
     }
 
     /**
@@ -164,6 +209,7 @@ class InstitutionController
         $institutionId = $this->repo->create($data);
 
         if ($institutionId) {
+            $this->notifyAdminsForInstitutionChange((int) $institutionId, 'created', $user);
             Response::success([
                 'message' => 'Institution created successfully',
                 'institution_id' => $institutionId
@@ -245,6 +291,7 @@ class InstitutionController
         $success = $this->repo->update($institution['institution_id'], $data);
 
         if ($success) {
+            $this->notifyAdminsForInstitutionChange((int) $institution['institution_id'], 'updated', $user);
             Response::success(['message' => 'Institution updated successfully']);
         } else {
             Response::serverError('Failed to update institution');
@@ -589,6 +636,7 @@ class InstitutionController
         $success = $this->repo->updateSettings($institution['institution_id'], $data);
 
         if ($success) {
+            $this->notifyAdminsForInstitutionChange((int) $institution['institution_id'], 'updated', $user);
             Response::success(['message' => 'Institution settings updated successfully']);
         } else {
             Response::serverError('Failed to update institution settings');
@@ -684,9 +732,14 @@ class InstitutionController
             return;
         }
 
-        $success = $this->repo->updateTimetablePublished((int) $institution['institution_id'], $isPublished);
+        $institutionId = (int) $institution['institution_id'];
+        $wasPublished = $this->repo->getTimetablePublished($institutionId);
+        $success = $this->repo->updateTimetablePublished($institutionId, $isPublished);
 
         if ($success) {
+            if (!$wasPublished && $isPublished) {
+                $this->notifyTimetablePublished($institutionId);
+            }
             Response::success([
                 'message' => 'Timetable publish state updated successfully',
                 'data' => [
