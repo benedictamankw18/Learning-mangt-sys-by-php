@@ -1214,8 +1214,8 @@ Complete messaging, announcements, analytics, and final polish for production re
   - Delete notification
   - Filter by type
   - Real-time updates (polling or WebSocket)
- - [ ] **Create** `admin\grade-level`
-  - Create, Edit, Delete, list 
+ - [x] **Create** `admin\grade-level` _(implemented as `admin/page/grade-level.html` + `admin/js/grade-level.js`)_
+  - Create, Edit, Delete, list
 ---
 
 ### Week 13: Analytics & Advanced Features

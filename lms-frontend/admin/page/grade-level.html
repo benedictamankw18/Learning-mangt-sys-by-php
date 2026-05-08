@@ -1,0 +1,211 @@
+<!-- Grade Levels Management Page -->
+<style>
+.gl-page { padding: 0; }
+.gl-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, rgba(6, 182, 212, 0.10), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.10), transparent 28%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+.gl-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+.gl-content { position: relative; z-index: 1; padding: 1.25rem; }
+.gl-page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.gl-page-header h2 { margin: 0 0 0.25rem; font-size: 1.4rem; color: var(--text-primary, #1e293b); }
+.gl-page-header p { margin: 0; color: var(--text-secondary, #64748b); font-size: 0.875rem; max-width: 62ch; }
+.gl-header-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.gl-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem; }
+@media (max-width: 1100px) { .gl-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .gl-stats { grid-template-columns: 1fr; } }
+.gl-stat-card { background: #fff; border-radius: 12px; padding: 1.15rem 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); border: 1px solid #e2e8f0; }
+.gl-stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; background: linear-gradient(135deg, #006a3f, #008c54); }
+.gl-stat-info h3 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.2rem; color: var(--text-primary, #1e293b); }
+.gl-stat-info p { margin: 0; font-size: 0.8rem; color: var(--text-secondary, #64748b); }
+.gl-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.gl-toolbar-copy { display: flex; flex-direction: column; gap: 0.2rem; }
+.gl-toolbar-copy strong { color: var(--text-primary, #1e293b); font-size: 0.95rem; }
+.gl-toolbar-copy span { color: var(--text-secondary, #64748b); font-size: 0.85rem; }
+.gl-toolbar-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.gl-search-box { position: relative; display: flex; align-items: center; gap: 0.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.5rem 0.75rem; }
+.gl-search-box:focus-within { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+.gl-search-box i { color: var(--text-secondary, #64748b); font-size: 0.9rem; }
+.gl-search-input { border: none; outline: none; background: transparent; font-size: 0.9rem; color: var(--text-primary, #0f172a); min-width: 220px; padding: 0; }
+.gl-table-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+.gl-table-wrap { overflow-x: auto; }
+.gl-table { width: 100%; border-collapse: collapse; min-width: 860px; font-size: 0.875rem; }
+.gl-table thead tr { background: #f8fafc; }
+.gl-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: var(--text-secondary, #64748b); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+.gl-table td { padding: 0.85rem 1rem; color: var(--text-primary, #1e293b); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+.gl-table tbody tr:hover { background: #f8fafc; }
+.gl-level-cell { display: flex; align-items: center; gap: 0.75rem; }
+.gl-level-icon { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, #006a3f, #008c54); display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+.gl-level-name { font-weight: 600; color: var(--text-primary, #1e293b); }
+.gl-level-sub { font-size: 0.75rem; color: var(--text-secondary, #64748b); }
+.gl-badge-active { display: inline-flex; align-items: center; gap: 0.35rem; background: #dcfce7; color: #15803d; padding: 0.35rem 0.65rem; border-radius: 999px; font-weight: 700; font-size: 0.76rem; }
+.gl-badge-inactive { display: inline-flex; align-items: center; gap: 0.35rem; background: #f1f5f9; color: #475569; padding: 0.35rem 0.65rem; border-radius: 999px; font-weight: 700; font-size: 0.76rem; }
+.gl-actions { display: flex; align-items: center; gap: 0.3rem; }
+.gl-actions button { width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; color: var(--text-secondary, #64748b); }
+.gl-actions button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.gl-actions .btn-edit:hover { color: #059669; border-color: #6ee7b7; background: #ecfdf5; }
+.gl-actions .btn-delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+.gl-empty { padding: 3rem 1.5rem; text-align: center; color: var(--text-secondary, #64748b); }
+.gl-empty i { font-size: 2.5rem; margin-bottom: 0.9rem; color: #94a3b8; }
+.gl-empty h4 { margin: 0 0 0.35rem; color: var(--text-primary, #0f172a); }
+.gl-empty p { margin: 0; font-size: 0.9rem; }
+.gl-table-footer { display: flex; align-items: center; justify-content: space-between; padding: 0.875rem 1rem; border-top: 1px solid #e2e8f0; background: #f8fafc; font-size: 0.8rem; color: var(--text-secondary, #64748b); flex-wrap: wrap; gap: 0.5rem; }
+.gl-pagination { display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap; }
+.gl-pagination button { min-width: 32px; height: 32px; padding: 0 0.5rem; border: 1px solid #e2e8f0; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-secondary, #64748b); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.gl-pagination button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.gl-pagination button.active { background: var(--primary, #006a3f); border-color: var(--primary, #006a3f); color: #fff; font-weight: 600; }
+.gl-pagination button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.gl-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 1rem; }
+.gl-modal-overlay.open { display: flex; }
+.gl-modal { background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%); border-radius: 20px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 30px 60px rgba(15,23,42,0.25); border: 1px solid rgba(148, 163, 184, 0.18); }
+.gl-modal-header, .gl-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.gl-modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(148, 163, 184, 0.12); background: linear-gradient(180deg, #f8fafc, #fff); }
+.gl-modal-header h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-primary, #0f172a); }
+.gl-modal-close { width: 36px; height: 36px; border-radius: 10px; border: none; background: #f1f5f9; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary, #64748b); font-size: 1.2rem; }
+.gl-modal-close:hover { background: #e2e8f0; color: var(--text-primary, #0f172a); transform: rotate(90deg); }
+.gl-modal-body { padding: 1.5rem; }
+.gl-modal-footer { padding: 1rem 1.5rem; border-top: 1px solid rgba(148, 163, 184, 0.12); background: #f8fafc; justify-content: flex-end; flex-wrap: wrap; }
+.gl-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.gl-form-grid .span-2 { grid-column: span 2; }
+.gl-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.gl-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary, #64748b); text-transform: uppercase; letter-spacing: 0.06em; }
+.gl-group label .req { color: #ef4444; margin-left: 2px; }
+.gl-input { padding: 0.65rem 0.85rem; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.92rem; color: var(--text-primary, #0f172a); background: #fff; outline: none; box-sizing: border-box; width: 100%; }
+.gl-input:focus { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+.gl-error-banner { display: none; grid-column: span 2; padding: 0.85rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; color: #dc2626; font-size: 0.85rem; font-weight: 600; }
+.gl-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 0.5rem; }
+.gl-summary-item { border: 1px solid #e2e8f0; background: #fff; border-radius: 12px; padding: 0.85rem 1rem; }
+.gl-summary-item strong { display: block; font-size: 1rem; color: var(--text-primary, #0f172a); }
+.gl-summary-item span { display: block; margin-top: 0.2rem; font-size: 0.78rem; color: var(--text-secondary, #64748b); }
+@media (max-width: 768px) { .gl-search-input { min-width: 160px; } .gl-table { min-width: 760px; } }
+@media (max-width: 640px) { .gl-page-header, .gl-toolbar { flex-direction: column; align-items: flex-start; } .gl-search-box { width: 100%; } .gl-search-input { min-width: 100%; flex: 1; } .gl-form-grid, .gl-form-grid .span-2 { grid-column: span 1; } .gl-form-grid { grid-template-columns: 1fr; } .gl-summary { grid-template-columns: 1fr; } }
+</style>
+
+<div class="gl-page">
+  <div class="gl-shell">
+    <div class="gl-content">
+      <div class="gl-page-header">
+        <div>
+          <h2><i class="fas fa-layer-group" style="margin-right:.5rem;color:var(--primary,#006a3f)"></i>Grade Levels</h2>
+          <p>Create and maintain grade levels, assign ordering, and keep each level aligned with the classes that belong to it.</p>
+        </div>
+        <div class="gl-header-actions">
+          <button class="btn btn-primary btn-sm" id="addGradeLevelBtn"><i class="fas fa-plus"></i> Add Grade Level</button>
+        </div>
+      </div>
+
+      <div class="gl-stats">
+        <div class="gl-stat-card"><div class="gl-stat-icon"><i class="fas fa-layer-group"></i></div><div class="gl-stat-info"><h3 id="glStatTotal">—</h3><p>Total Levels</p></div></div>
+        <div class="gl-stat-card"><div class="gl-stat-icon" style="background:linear-gradient(135deg,#1d4ed8,#38bdf8)"><i class="fas fa-check-circle"></i></div><div class="gl-stat-info"><h3 id="glStatActive">—</h3><p>Active Levels</p></div></div>
+        <div class="gl-stat-card"><div class="gl-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#fb7185)"><i class="fas fa-school"></i></div><div class="gl-stat-info"><h3 id="glStatClasses">—</h3><p>Linked Classes</p></div></div>
+        <div class="gl-stat-card"><div class="gl-stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#06b6d4)"><i class="fas fa-sort-numeric-up"></i></div><div class="gl-stat-info"><h3 id="glStatRange">—</h3><p>Order Range</p></div></div>
+      </div>
+
+      <div class="gl-toolbar">
+        <div class="gl-toolbar-copy">
+          <strong>Grade level registry</strong>
+          <span>Search, create, edit, and deactivate levels. The table also shows how many classes are linked to each level.</span>
+        </div>
+        <div class="gl-toolbar-actions">
+          <div class="gl-search-box"><i class="fas fa-search"></i><input type="text" id="glSearchInput" class="gl-search-input" placeholder="Search by code, name, description..."></div>
+          <select id="glFilterStatus" class="gl-input" style="min-width:160px; padding:.55rem .75rem;">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="gl-table-card">
+        <div class="gl-table-wrap">
+          <table class="gl-table" id="gradeLevelsTable">
+            <thead>
+              <tr>
+                <th>Grade Level</th>
+                <th>Order</th>
+                <th>Classes</th>
+                <th>Status</th>
+                <th style="width:110px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="gradeLevelsTableBody">
+              <tr>
+                <td colspan="6">
+                  <div class="gl-empty">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h4>Fetching grade levels</h4>
+                    <p>Connecting to server...</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="gl-table-footer" id="glPagination" style="display:none">
+          <span id="glPaginationInfo">—</span>
+          <div class="gl-pagination" id="glPaginationControls"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="gradeLevelModalOverlay" class="gl-modal-overlay">
+    <div class="gl-modal">
+      <div class="gl-modal-header">
+        <h3 id="gradeLevelModalTitle">Add Grade Level</h3>
+        <button id="gradeLevelModalClose" class="gl-modal-close">×</button>
+      </div>
+      <div class="gl-modal-body">
+        <div class="gl-form-grid">
+          <div class="gl-group">
+            <label>Grade level code <span class="req">*</span></label>
+            <input id="fieldGradeLevelCode" class="gl-input" placeholder="e.g. SHS1">
+          </div>
+          <div class="gl-group">
+            <label>Order <span class="req">*</span></label>
+            <input id="fieldLevelOrder" type="number" min="1" step="1" class="gl-input" placeholder="e.g. 1">
+          </div>
+          <div class="gl-group span-2">
+            <label>Grade level name <span class="req">*</span></label>
+            <input id="fieldGradeLevelName" class="gl-input" placeholder="e.g. Senior High School 1">
+          </div>
+          <div class="gl-group span-2">
+            <label>Description</label>
+            <textarea id="fieldDescription" class="gl-input" rows="4" placeholder="Optional description..."></textarea>
+          </div>
+          <div class="gl-group">
+            <label>Status</label>
+            <select id="fieldStatus" class="gl-input">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="gl-group">
+            <label>Classes linked</label>
+            <input id="fieldClassCount" class="gl-input" disabled value="0">
+          </div>
+          <div id="gradeLevelFormError" class="gl-error-banner"></div>
+        </div>
+      </div>
+      <div class="gl-modal-footer">
+        <button id="gradeLevelModalCancel" class="btn btn-outline">Cancel</button>
+        <button id="gradeLevelModalSave" class="btn btn-primary"><span id="gradeLevelModalSaveText">Save</span> <span id="gradeLevelModalSaveSpinner" style="display:none;margin-left:.5rem"><i class="fas fa-spinner fa-spin"></i></span></button>
+      </div>
+    </div>
+  </div>
+</div>

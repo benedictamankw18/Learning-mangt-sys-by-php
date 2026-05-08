@@ -88,7 +88,7 @@
         try {
             const [progRes, glRes, ayRes, tchrRes] = await Promise.all([
                 API.get(API_ENDPOINTS.PROGRAMS_ACTIVE),
-                GradeLevelAPI.getAll(),
+                GradeLevelAPI.getActiveGradeLevels(),
                 API.get(API_ENDPOINTS.ACADEMIC_YEAR_CURRENT),
                 API.get(API_ENDPOINTS.TEACHERS, { limit: 500, status: 'active' }),
             ]);

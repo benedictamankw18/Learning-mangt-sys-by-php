@@ -64,6 +64,9 @@ class GradeLevelController
                 'per_page' => $limit,
                 'total' => $total,
                 'total_pages' => ceil($total / $limit)
+            ],
+            'meta' => [
+                'next_level_order' => $this->repo->getNextLevelOrder((int) $institutionId)
             ]
         ]);
     }
@@ -132,16 +135,44 @@ class GradeLevelController
             return;
         }
 
-        $gradeLevelId = $this->repo->create($data);
+        $gradeLevelCode = (string) $data['grade_level_code'];
+        $levelOrder = (int) $data['level_order'];
 
-        if ($gradeLevelId) {
-            $this->notifyAdminsForGradeLevelChange((int) $data['institution_id'], (int) $gradeLevelId, 'created');
-            Response::success([
-                'message' => 'Grade level created successfully',
-                'grade_level_id' => $gradeLevelId
-            ], 201);
-        } else {
-            Response::serverError('Failed to create grade level');
+        if ($this->repo->existsByCode($gradeLevelCode, (int) $data['institution_id'])) {
+            Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+            return;
+        }
+
+        if ($this->repo->existsByOrder($levelOrder, (int) $data['institution_id'])) {
+            Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+            return;
+        }
+
+        try {
+            $gradeLevelId = $this->repo->create($data);
+
+            if ($gradeLevelId) {
+                $this->notifyAdminsForGradeLevelChange((int) $data['institution_id'], (int) $gradeLevelId, 'created');
+                Response::success([
+                    'message' => 'Grade level created successfully',
+                    'grade_level_id' => $gradeLevelId
+                ], 201);
+            } else {
+                Response::serverError('Failed to create grade level');
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), '1062') !== false) {
+                if (strpos($e->getMessage(), 'unique_grade_code_institution') !== false) {
+                    Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+                } elseif (strpos($e->getMessage(), 'unique_grade_order_institution') !== false) {
+                    Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+                } else {
+                    Response::error('A duplicate grade level already exists in this institution.', 409);
+                }
+            } else {
+                error_log('GradeLevelController::create ' . $e->getMessage());
+                Response::serverError('Failed to create grade level');
+            }
         }
     }
 
@@ -187,13 +218,41 @@ class GradeLevelController
             return;
         }
 
-        $success = $this->repo->update($id, $data);
+        $gradeLevelCode = array_key_exists('grade_level_code', $data) ? (string) $data['grade_level_code'] : (string) $gradeLevel['grade_level_code'];
+        $levelOrder = array_key_exists('level_order', $data) ? (int) $data['level_order'] : (int) $gradeLevel['level_order'];
 
-        if ($success) {
-            $this->notifyAdminsForGradeLevelChange((int) $gradeLevel['institution_id'], (int) $id, 'updated');
-            Response::success(['message' => 'Grade level updated successfully']);
-        } else {
-            Response::serverError('Failed to update grade level');
+        if (array_key_exists('grade_level_code', $data) && $this->repo->existsByCode($gradeLevelCode, (int) $gradeLevel['institution_id'], $id)) {
+            Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+            return;
+        }
+
+        if (array_key_exists('level_order', $data) && $this->repo->existsByOrder($levelOrder, (int) $gradeLevel['institution_id'], $id)) {
+            Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+            return;
+        }
+
+        try {
+            $success = $this->repo->update($id, $data);
+
+            if ($success) {
+                $this->notifyAdminsForGradeLevelChange((int) $gradeLevel['institution_id'], (int) $id, 'updated');
+                Response::success(['message' => 'Grade level updated successfully']);
+            } else {
+                Response::serverError('Failed to update grade level');
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), '1062') !== false) {
+                if (strpos($e->getMessage(), 'unique_grade_code_institution') !== false) {
+                    Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+                } elseif (strpos($e->getMessage(), 'unique_grade_order_institution') !== false) {
+                    Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+                } else {
+                    Response::error('A duplicate grade level already exists in this institution.', 409);
+                }
+            } else {
+                error_log('GradeLevelController::update ' . $e->getMessage());
+                Response::serverError('Failed to update grade level');
+            }
         }
     }
 

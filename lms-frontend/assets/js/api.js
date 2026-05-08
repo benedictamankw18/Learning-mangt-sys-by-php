@@ -675,6 +675,7 @@ const StudentRelationAPI = {
 
 const GradeLevelAPI = {
     getAll: (params) => API.get('/api/grade-levels', params),
+    getActiveGradeLevels: (params) => API.get('/api/grade-levels/active', params),
 };
 
 /**

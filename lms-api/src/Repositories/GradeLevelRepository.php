@@ -159,6 +159,74 @@ class GradeLevelRepository
     }
 
     /**
+     * Check whether a grade level code already exists in an institution
+     */
+    public function existsByCode(string $gradeLevelCode, int $institutionId, ?int $excludeId = null): bool
+    {
+        $sql = "SELECT 1 FROM grade_levels WHERE grade_level_code = :grade_level_code AND institution_id = :institution_id";
+        $params = [
+            'grade_level_code' => $gradeLevelCode,
+            'institution_id' => $institutionId,
+        ];
+
+        if ($excludeId !== null) {
+            $sql .= " AND grade_level_id <> :exclude_id";
+            $params['exclude_id'] = $excludeId;
+        }
+
+        $sql .= " LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $type = in_array($key, ['institution_id', 'exclude_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(':' . $key, $value, $type);
+        }
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
+     * Check whether a grade level order already exists in an institution
+     */
+    public function existsByOrder(int $levelOrder, int $institutionId, ?int $excludeId = null): bool
+    {
+        $sql = "SELECT 1 FROM grade_levels WHERE level_order = :level_order AND institution_id = :institution_id";
+        $params = [
+            'level_order' => $levelOrder,
+            'institution_id' => $institutionId,
+        ];
+
+        if ($excludeId !== null) {
+            $sql .= " AND grade_level_id <> :exclude_id";
+            $params['exclude_id'] = $excludeId;
+        }
+
+        $sql .= " LIMIT 1";
+
+        $stmt = $this->db->prepare($sql);
+        foreach ($params as $key => $value) {
+            $type = in_array($key, ['institution_id', 'level_order', 'exclude_id'], true) ? PDO::PARAM_INT : PDO::PARAM_STR;
+            $stmt->bindValue(':' . $key, $value, $type);
+        }
+        $stmt->execute();
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
+     * Get the next available grade level order for an institution
+     */
+    public function getNextLevelOrder(int $institutionId): int
+    {
+        $stmt = $this->db->prepare("SELECT COALESCE(MAX(level_order), 0) + 1 AS next_order FROM grade_levels WHERE institution_id = :institution_id");
+        $stmt->execute(['institution_id' => $institutionId]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return max(1, (int) ($result['next_order'] ?? 1));
+    }
+
+    /**
      * Create a new grade level
      */
     public function create(array $data): ?int
