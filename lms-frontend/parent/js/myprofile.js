@@ -179,10 +179,24 @@
           const res = await API.upload(API_ENDPOINTS.FILE_UPLOAD, fd);
           const url = (res.data || res).url || (res.data || res).path;
           if (url) {
-            await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), { profile_photo: url });
-            const img = document.getElementById('profileImage');
-            if (img) img.src = resolveMediaUrl(url);
-            showToast('Profile photo updated.');
+                await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), { profile_photo: url });
+                const img = document.getElementById('profileImage');
+                if (img) img.src = resolveMediaUrl(url);
+                // Update global Auth user and header avatar
+                try {
+                  _user.profile_photo = url;
+                  if (window.Auth && typeof Auth.saveUser === 'function') Auth.saveUser(_user);
+                } catch (_) {}
+                try {
+                  const headerImg = document.getElementById('userAvatarImg');
+                  const headerInitials = document.getElementById('userInitials');
+                  const headerAvatar = document.getElementById('userAvatar');
+                  const photoUrl = resolveMediaUrl(url);
+                  if (headerImg) { headerImg.src = photoUrl; headerImg.style.display = 'block'; }
+                  if (headerInitials) headerInitials.style.display = 'none';
+                  if (headerAvatar && headerAvatar.style) headerAvatar.style.background = 'transparent';
+                } catch (_) {}
+                showToast('Profile photo updated.');
           }
         } catch (err) {
           showToast(err.message || 'Failed to upload photo.', 'error');

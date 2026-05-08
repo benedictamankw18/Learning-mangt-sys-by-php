@@ -35,14 +35,39 @@ function initDashboard() {
         const userName = document.getElementById('userName');
         const userAvatar = document.getElementById('userAvatar');
 
+        const avatarImg = document.getElementById('userAvatarImg');
         if (userInitials) {
             userInitials.textContent = Auth.getUserInitials();
+            userInitials.style.display = user.profile_photo ? 'none' : 'block';
         }
         if (userName) {
             userName.textContent = Auth.getUserDisplayName();
         }
+        if (avatarImg) {
+            avatarImg.onerror = function () {
+                avatarImg.style.display = 'none';
+                if (userInitials) userInitials.style.display = 'block';
+                if (userAvatar) userAvatar.style.background = Auth.getUserAvatar();
+            };
+            avatarImg.onload = function () {
+                avatarImg.style.display = 'block';
+                if (userInitials) userInitials.style.display = 'none';
+            };
+            if (user.profile_photo) {
+                const base = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL.replace(/\/+$/,'') : '';
+                const photoUrl = /^https?:\/\//i.test(user.profile_photo) ? user.profile_photo : (base + (user.profile_photo.startsWith('/') ? '' : '/') + user.profile_photo);
+                avatarImg.src = photoUrl;
+            } else {
+                avatarImg.src = '';
+                avatarImg.style.display = 'none';
+            }
+        }
         if (userAvatar) {
-            userAvatar.style.background = Auth.getUserAvatar();
+            if (!user.profile_photo) {
+                userAvatar.style.background = Auth.getUserAvatar();
+            } else {
+                userAvatar.style.background = 'transparent';
+            }
         }
     }
 

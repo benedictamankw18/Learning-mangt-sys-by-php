@@ -418,8 +418,10 @@ class AuthService {
     getUserAvatar() {
         const user = this.getUser();
         
-        if (user && user.profile_picture) {
-            return user.profile_picture;
+        if (user && user.profile_photo) {
+            const base = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL.replace(/\/+$/,'') : '';
+            const photo = /^https?:\/\//i.test(user.profile_photo) ? user.profile_photo : (base + (user.profile_photo.startsWith('/') ? '' : '/') + user.profile_photo);
+            return `url('${photo}') center/cover no-repeat`;
         }
 
         // Generate color based on user ID or email

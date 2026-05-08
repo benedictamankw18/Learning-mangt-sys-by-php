@@ -38,10 +38,36 @@ function initDashboard() {
         const displayName = Auth.getUserDisplayName();
         const initials = Auth.getUserInitials();
 
+        const avatarImg = document.getElementById('userAvatarImg');
         if (userInitials) userInitials.textContent = initials;
         if (userName) userName.textContent = displayName;
         if (teacherName) teacherName.textContent = displayName;
-        if (userAvatar) userAvatar.style.background = Auth.getUserAvatar();
+        if (avatarImg) {
+            avatarImg.onerror = function () {
+                avatarImg.style.display = 'none';
+                if (userInitials) userInitials.style.display = 'block';
+                if (userAvatar) userAvatar.style.background = Auth.getUserAvatar();
+            };
+            avatarImg.onload = function () {
+                avatarImg.style.display = 'block';
+                if (userInitials) userInitials.style.display = 'none';
+            };
+            if (user.profile_photo) {
+                const base = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL.replace(/\/+$/,'') : '';
+                const photoUrl = /^https?:\/\//i.test(user.profile_photo) ? user.profile_photo : (base + (user.profile_photo.startsWith('/') ? '' : '/') + user.profile_photo);
+                avatarImg.src = photoUrl;
+            } else {
+                avatarImg.src = '';
+                avatarImg.style.display = 'none';
+            }
+        }
+        if (userAvatar) {
+            if (!user.profile_photo) {
+                userAvatar.style.background = Auth.getUserAvatar();
+            } else {
+                userAvatar.style.background = 'transparent';
+            }
+        }
     }
 
     initCharts();

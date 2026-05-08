@@ -316,6 +316,20 @@
       if (_user) {
         try { await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), { profile_photo: url }); } catch (_) {}
         try { localStorage.setItem(`lms_photo_${_user.uuid}`, (API_BASE_URL || '') + url); } catch (_) {}
+        try {
+          _user.profile_photo = url;
+          if (window.Auth && typeof Auth.saveUser === 'function') Auth.saveUser(_user);
+        } catch (_) {}
+        try {
+          const headerImg = document.getElementById('userAvatarImg');
+          const headerInitials = document.getElementById('userInitials');
+          const headerAvatar = document.getElementById('userAvatar');
+          const base = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL.replace(/\/+$/,'') : '';
+          const photoUrl = /^https?:\/\//i.test(url) ? url : (base + (url.startsWith('/') ? '' : '/') + url);
+          if (headerImg) { headerImg.src = photoUrl; headerImg.style.display = 'block'; }
+          if (headerInitials) headerInitials.style.display = 'none';
+          if (headerAvatar && headerAvatar.style) headerAvatar.style.background = 'transparent';
+        } catch (_) {}
       }
       showToast('Profile photo updated.');
     } catch (err) {
