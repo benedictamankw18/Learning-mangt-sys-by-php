@@ -2,6 +2,9 @@
    Student Dashboard Logic
 ============================================ */
 
+let studentNotificationPollTimer = null;
+const STUDENT_NOTIFICATION_POLL_MS = 30000;
+
 /**
  * Initialize dashboard
  */
@@ -14,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     setupEventListeners();
     loadDashboardData();
+    startStudentNotificationPolling();
 });
 
 let gradeTrendChart = null;
@@ -94,9 +98,13 @@ function setupEventListeners() {
     const userProfileBtn = document.getElementById('userProfileBtn');
 
     if (notificationBtn) {
-        notificationBtn.addEventListener('click', (e) => {
+        notificationBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             toggleDropdown(notificationBtn.closest('.dropdown'));
+            const parent = notificationBtn.closest('.dropdown');
+            if (parent && parent.classList.contains('active')) {
+                await refreshStudentNotificationState(true);
+            }
         });
     }
 
@@ -118,6 +126,292 @@ function setupEventListeners() {
     document.querySelectorAll('.dropdown-menu').forEach(menu => {
         menu.addEventListener('click', (e) => e.stopPropagation());
     });
+
+    const markAllReadBtn = document.getElementById('studentMarkAllRead');
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', async () => {
+            try {
+                await NotificationAPI.markAllAsRead();
+                showToast('All notifications marked as read', 'success');
+                await loadStudentNotificationsDropdown();
+            } catch (error) {
+                console.error('Failed to mark notifications as read', error);
+                showToast('Failed to mark all as read', 'error');
+            }
+        });
+    }
+
+    document.querySelectorAll('.notification-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchStudentNotificationTab(btn.getAttribute('data-tab') || 'notifications');
+        });
+    });
+
+    document.querySelectorAll('.student-open-tab-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const tab = link.getAttribute('data-tab') || 'notifications';
+            setStudentFooterActive(tab);
+        });
+    });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopStudentNotificationPolling();
+        } else {
+            startStudentNotificationPolling();
+        }
+    });
+
+    window.addEventListener('beforeunload', stopStudentNotificationPolling);
+}
+
+function startStudentNotificationPolling() {
+    stopStudentNotificationPolling();
+    studentNotificationPollTimer = setInterval(() => {
+        if (!document.hidden) {
+            refreshStudentNotificationState(false);
+        }
+    }, STUDENT_NOTIFICATION_POLL_MS);
+
+    refreshStudentNotificationState(false);
+}
+
+function stopStudentNotificationPolling() {
+    if (studentNotificationPollTimer) {
+        clearInterval(studentNotificationPollTimer);
+        studentNotificationPollTimer = null;
+    }
+}
+
+async function refreshStudentNotificationState(forceDropdownLoad = false) {
+    const bell = document.getElementById('notificationBtn');
+    const dropdown = bell ? bell.closest('.dropdown') : null;
+    const isOpen = !!dropdown && dropdown.classList.contains('active');
+
+    if (forceDropdownLoad || isOpen) {
+        await loadStudentNotificationsDropdown();
+        return;
+    }
+
+    await refreshStudentNotificationSummary();
+}
+
+async function refreshStudentNotificationSummary() {
+    try {
+        const [summaryResponse, chatResponse] = await Promise.all([
+            NotificationAPI.getSummary().catch(() => null),
+            ChatAPI.getUnreadMessages().catch(() => null),
+        ]);
+
+        const summaryData = summaryResponse?.data || summaryResponse || {};
+        const chatData = chatResponse?.data || chatResponse || {};
+
+        const notificationUnread = Number(summaryData.total_unread ?? summaryData.notifications_unread ?? 0);
+        const messageUnread = Number(summaryData.messages_unread ?? 0) + Number(chatData.unread_count ?? 0);
+
+        updateStudentNotificationCounts(notificationUnread, messageUnread);
+        updateStudentNotificationBadge(notificationUnread + messageUnread);
+    } catch (error) {
+        console.error('Failed to refresh student notification summary', error);
+    }
+}
+
+async function loadStudentNotificationsDropdown() {
+    try {
+        const [notifResponse, chatResponse] = await Promise.all([
+            NotificationAPI.getAll({ page: 1, limit: 30 }).catch(() => null),
+            ChatAPI.getUnreadMessages().catch(() => null),
+        ]);
+
+        const notifData = notifResponse?.data || notifResponse || {};
+        const chatData = chatResponse?.data || chatResponse || {};
+
+        const notifications = Array.isArray(notifData.notifications)
+            ? notifData.notifications
+            : (Array.isArray(notifData.data) ? notifData.data : []);
+        const chatMessages = Array.isArray(chatData.messages) ? chatData.messages : [];
+
+        const messageNotifs = notifications.filter(n => (n.notification_type || '').toLowerCase().includes('message'));
+        const otherNotifs = notifications.filter(n => !(n.notification_type || '').toLowerCase().includes('message'));
+
+        const unreadMessageNotifs = messageNotifs.filter(m => !(m.is_read == 1 || m.is_read === '1' || m.is_read === true));
+        const unreadOtherNotifs = otherNotifs.filter(n => !(n.is_read == 1 || n.is_read === '1' || n.is_read === true));
+
+        const formattedChatMessages = chatMessages.map(msg => ({
+            uuid: msg.message_uuid,
+            message_uuid: msg.message_uuid,
+            room_uuid: msg.room_uuid,
+            room_name: msg.room_name,
+            sender_name: msg.sender_name,
+            message_text: msg.message_text,
+            created_at: msg.created_at,
+            is_read: false,
+            notification_type: 'chat_message',
+            is_chat: true,
+        }));
+
+        const allMessages = [...unreadMessageNotifs, ...formattedChatMessages];
+
+        renderStudentNotifications(unreadOtherNotifs);
+        renderStudentMessages(allMessages);
+
+        updateStudentNotificationCounts(unreadOtherNotifs.length, allMessages.length);
+        updateStudentNotificationBadge(unreadOtherNotifs.length + allMessages.length);
+    } catch (error) {
+        console.error('Failed to load student notifications dropdown', error);
+        showToast('Failed to load notifications', 'error');
+    }
+}
+
+function updateStudentNotificationCounts(notificationCount, messageCount) {
+    const notifCountNode = document.getElementById('studentNotifCount');
+    const msgCountNode = document.getElementById('studentMsgCount');
+
+    if (notifCountNode) notifCountNode.textContent = String(Number(notificationCount) || 0);
+    if (msgCountNode) msgCountNode.textContent = String(Number(messageCount) || 0);
+}
+
+function updateStudentNotificationBadge(totalUnread) {
+    const badge = document.getElementById('notificationCount');
+    const count = Number(totalUnread) || 0;
+    if (!badge) return;
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function studentEsc(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = String(str);
+    return d.innerHTML;
+}
+
+function renderStudentNotifications(notifications) {
+    const list = document.getElementById('notificationList');
+    if (!list) return;
+
+    if (!notifications || notifications.length === 0) {
+        list.innerHTML = '<p class="no-notifications" style="padding: 0.75rem; color: #6b7280;">No unread notifications</p>';
+        return;
+    }
+
+    list.innerHTML = notifications.map(item => `
+        <div class="dropdown-item student-notif-item" data-uuid="${studentEsc(item.uuid || item.id || '')}" style="display: block; border-bottom: 1px solid #f3f4f6;">
+            <div style="font-weight: 600; margin-bottom: 0.25rem;">${studentEsc(item.title || 'Notification')}</div>
+            <div style="font-size: 0.85rem; color: #4b5563; margin-bottom: 0.35rem;">${studentEsc(item.message || '')}</div>
+            ${item.link ? `<a href="${studentEsc(item.link)}" class="student-open-link" style="font-size: 0.8rem;">View details</a>` : ''}
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                <small style="color: #9ca3af;">${studentEsc(item.created_at || '')}</small>
+                <button class="btn-action student-mark-read" title="Mark as read" style="border: 0; background: transparent; cursor: pointer; color: #059669;">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+
+    list.querySelectorAll('.student-mark-read').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const item = btn.closest('.student-notif-item');
+            const uuid = item?.getAttribute('data-uuid');
+            if (!uuid) return;
+
+            try {
+                await NotificationAPI.markAsRead(uuid);
+                await loadStudentNotificationsDropdown();
+            } catch (error) {
+                console.error('Failed to mark notification as read', error);
+                showToast('Failed to mark as read', 'error');
+            }
+        });
+    });
+}
+
+function renderStudentMessages(messages) {
+    const list = document.getElementById('messagesList');
+    if (!list) return;
+
+    if (!messages || messages.length === 0) {
+        list.innerHTML = '<p class="no-notifications" style="padding: 0.75rem; color: #6b7280;">No unread messages</p>';
+        return;
+    }
+
+    list.innerHTML = messages.map(item => {
+        const isChat = item.notification_type === 'chat_message' || item.is_chat === true;
+        const title = isChat
+            ? `Chat: ${studentEsc(item.room_name || 'Room')} - ${studentEsc(item.sender_name || 'User')}`
+            : studentEsc(item.title || 'Message');
+        const body = isChat
+            ? studentEsc((item.message_text || '').slice(0, 100))
+            : studentEsc(item.message || '');
+        const action = isChat
+            ? '<a href="#messages" class="student-open-chat" style="font-size: 0.8rem;">Open chat</a>'
+            : '<button class="btn-action student-mark-read-msg" title="Mark as read" style="border: 0; background: transparent; cursor: pointer; color: #059669;"><i class="fas fa-check"></i></button>';
+
+        return `
+            <div class="dropdown-item student-message-item ${isChat ? 'student-chat-item' : ''}" data-uuid="${studentEsc(item.uuid || item.id || '')}" style="display: block; border-bottom: 1px solid #f3f4f6;">
+                <div style="font-weight: 600; margin-bottom: 0.25rem;">${title}</div>
+                <div style="font-size: 0.85rem; color: #4b5563; margin-bottom: 0.35rem;">${body}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+                    <small style="color: #9ca3af;">${studentEsc(item.created_at || '')}</small>
+                    ${action}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    list.querySelectorAll('.student-mark-read-msg').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const item = btn.closest('.student-message-item');
+            const uuid = item?.getAttribute('data-uuid');
+            if (!uuid) return;
+
+            try {
+                await NotificationAPI.markAsRead(uuid);
+                await loadStudentNotificationsDropdown();
+            } catch (error) {
+                console.error('Failed to mark message as read', error);
+                showToast('Failed to mark as read', 'error');
+            }
+        });
+    });
+
+    list.querySelectorAll('.student-open-chat').forEach(link => {
+        link.addEventListener('click', () => {
+            setStudentFooterActive('messages');
+        });
+    });
+}
+
+function switchStudentNotificationTab(tabName) {
+    const notifTab = document.getElementById('studentNotificationsTab');
+    const msgTab = document.getElementById('studentMessagesTab');
+    const notifBtn = document.getElementById('studentNotifTabBtn');
+    const msgBtn = document.getElementById('studentMsgTabBtn');
+
+    const showMessages = tabName === 'messages';
+
+    if (notifTab) notifTab.style.display = showMessages ? 'none' : 'block';
+    if (msgTab) msgTab.style.display = showMessages ? 'block' : 'none';
+    if (notifBtn) notifBtn.classList.toggle('active', !showMessages);
+    if (msgBtn) msgBtn.classList.toggle('active', showMessages);
+
+    setStudentFooterActive(tabName);
+}
+
+function setStudentFooterActive(tabName) {
+    const notifLink = document.getElementById('studentViewAllNotifications');
+    const msgLink = document.getElementById('studentViewAllMessages');
+    const showMessages = tabName === 'messages';
+
+    if (notifLink) notifLink.classList.toggle('active', !showMessages);
+    if (msgLink) msgLink.classList.toggle('active', showMessages);
 }
 
 /**

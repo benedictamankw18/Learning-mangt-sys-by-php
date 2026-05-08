@@ -142,20 +142,31 @@
                 >0</span
               >
             </button>
-            <div class="dropdown-menu dropdown-menu-right">
-              <div class="dropdown-header">Notifications</div>
-              <div id="notificationList">
-                <div
-                  class="dropdown-item"
-                  style="
-                    color: #6b7280;
-                    font-size: 0.85rem;
-                    pointer-events: none;
-                  "
-                >
-                  <i class="fas fa-check-circle text-success"></i>
-                  <div><span>No new notifications</span></div>
+            <div class="dropdown-menu dropdown-menu-right" id="teacherNotificationDropdown" style="min-width: 360px; max-width: 420px;">
+              <div class="dropdown-header" style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                <span>Notifications & Messages</span>
+                <button class="btn-text" id="teacherMarkAllRead" style="font-size: 0.8rem;">Mark all as read</button>
+              </div>
+              <div class="notification-tabs" style="display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid #eef2f7;">
+                <button class="tab-btn active" data-tab="notifications" id="teacherNotifTabBtn" style="cursor: pointer;">Notifications (<span id="teacherNotifCount">0</span>)</button>
+                <button class="tab-btn" data-tab="messages" id="teacherMsgTabBtn" style="cursor: pointer;">Messages (<span id="teacherMsgCount">0</span>)</button>
+              </div>
+              <div class="notification-content" style="max-height: 380px; overflow: auto;">
+                <div class="tab-content active" id="teacherNotificationsTab">
+                  <div id="notificationList" class="notifications-list">
+                    <p class="no-notifications" style="padding: 0.75rem; color: #6b7280;">No unread notifications</p>
+                  </div>
                 </div>
+                <div class="tab-content" id="teacherMessagesTab" style="display: none;">
+                  <div id="messagesList" class="notifications-list">
+                    <p class="no-notifications" style="padding: 0.75rem; color: #6b7280;">No unread messages</p>
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <div style="display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; font-size: 0.85rem;">
+                <a href="#notifications" data-tab="notifications" class="teacher-open-tab-link active" id="teacherViewAllNotifications">View all notifications</a>
+                <a href="#messages" data-tab="messages" class="teacher-open-tab-link" id="teacherViewAllMessages">View all messages</a>
               </div>
             </div>
           </div>

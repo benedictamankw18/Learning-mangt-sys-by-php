@@ -288,6 +288,17 @@
     display: block;
 }
 
+.tab-btn:hover {
+    color: var(--primary);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
 /* ============================================
    Badge in Nav
 ============================================ */
