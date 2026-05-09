@@ -133,7 +133,7 @@ class ReportScheduleController
                 'title' => 'Report Schedule Created',
                 'message' => 'A report schedule was created: ' . ($schedule['schedule_name'] ?? ''),
                 'notification_type' => 'report_schedule_created',
-                'link' => '/admin/page/report-schedules.html',
+                'link' => '/admin/dashboard.html#reports',
             ]);
         } catch (\Throwable $e) {
             error_log('ReportScheduleController::notify create ' . $e->getMessage());
@@ -187,7 +187,7 @@ class ReportScheduleController
                 'title' => 'Report Schedule Updated',
                 'message' => 'A report schedule was updated: ' . ($updated['schedule_name'] ?? ''),
                 'notification_type' => 'report_schedule_updated',
-                'link' => '/admin/page/report-schedules.html',
+                'link' => '/admin/dashboard.html#reports',
             ]);
         } catch (\Throwable $e) {
             error_log('ReportScheduleController::notify update ' . $e->getMessage());

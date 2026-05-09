@@ -32,7 +32,7 @@ class InstitutionController
                 'title' => 'Institution ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Institution information was ' . $action . '.',
                 'notification_type' => 'institution_' . $action,
-                'link' => '/admin/page/institution-settings.html',
+                'link' => '/admin/dashboard.html#institution-settings',
             ]);
         } catch (\Throwable $e) {
             error_log('InstitutionController::notifyAdminsForInstitutionChange ' . $e->getMessage());
@@ -618,7 +618,7 @@ class InstitutionController
             ->max('timezone', 50)
             ->numeric('academic_year_start_month')
             ->numeric('academic_year_end_month')
-            ->in('grading_system', ['percentage', 'gpa', 'letter'])
+            ->max('grading_system', 20)
             ->max('locale', 10)
             ->max('currency', 10)
             ->max('date_format', 20)

@@ -30,7 +30,7 @@ class AcademicYearController
                 'title' => 'Academic Year ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Academic year was ' . $action . ' (ID: ' . $yearId . ').',
                 'notification_type' => 'academic_year_' . $action,
-                'link' => '/admin/page/academic-years.html',
+                'link' => '/admin/dashboard.html#academic-years',
             ]);
         } catch (\Throwable $e) {
             error_log('AcademicYearController::notifyAdminsForAcademicYearChange ' . $e->getMessage());

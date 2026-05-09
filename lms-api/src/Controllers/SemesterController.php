@@ -33,7 +33,7 @@ class SemesterController
                 'title' => 'Semester ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Semester was ' . $action . ' (ID: ' . $semesterId . ').',
                 'notification_type' => 'semester_' . $action,
-                'link' => '/admin/page/semesters.html',
+                'link' => '/admin/dashboard.html#semesters',
             ]);
         } catch (\Throwable $e) {
             error_log('SemesterController::notifyAdminsForSemesterChange ' . $e->getMessage());

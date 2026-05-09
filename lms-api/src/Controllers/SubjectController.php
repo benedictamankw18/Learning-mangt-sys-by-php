@@ -32,7 +32,7 @@ class SubjectController
                 'title' => 'Subject ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Subject was ' . $action . ' (ID: ' . $subjectId . ').',
                 'notification_type' => 'subject_' . $action,
-                'link' => '/admin/page/subject-list.html',
+                'link' => '/admin/dashboard.html#subjects',
             ]);
         } catch (\Throwable $e) {
             error_log('SubjectController::notifyAdminsForSubjectChange ' . $e->getMessage());

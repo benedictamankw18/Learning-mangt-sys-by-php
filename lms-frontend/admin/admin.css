@@ -137,8 +137,8 @@
 }
 
 .btn-logout:hover {
-    background: var(--danger);
-    color: rgb(120, 120, 120);
+    background: var(--error);
+    color: rgb(253, 253, 253);
 }
 
 /* ============================================
@@ -1899,12 +1899,6 @@
     width: 52px;
     height: 28px;
     flex-shrink: 0;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
 }
 
 .toggle-slider {

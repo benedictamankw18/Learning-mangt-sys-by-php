@@ -972,3 +972,89 @@ results 2 unread(correct)
 }
 
 WHy is yours wrong
+
+
+{
+    "success": true,
+    "message": "Success",
+    "data": {
+        "data": {
+            "setting_id": 17,
+            "institution_id": 1,
+            "school_name": "Accra Senior High School",
+            "motto": "Excellence Through Knowledge with fuck you",
+            "description": "A leading Senior High School in Accra, Ghana, committed to academic excellence and holistic development.",
+            "vision": "To be the premier institution for secondary education in Ghana, producing well-rounded graduates.",
+            "mission": "To provide quality education that empowers students to excel academically and contribute positively to society.",
+            "logo_url": "\/uploads\/institutions\/accra-shs\/logo.png",
+            "banner_url": null,
+            "theme_primary_color": "#ff4d00",
+            "theme_secondary_color": "#e100ff",
+            "timezone": "Africa\/Accra",
+            "academic_year_start_month": 1,
+            "academic_year_end_month": 9,
+            "grading_system": "percentage",
+            "locale": "en_GH",
+            "currency": "GHS",
+            "date_format": "DD\/MM\/YYYY",
+            "time_format": "12",
+            "allow_parent_registration": 1,
+            "allow_student_self_enrollment": 0,
+            "require_email_verification": 1,
+            "meta": {
+                "is_timetable_published": "1"
+            },
+            "custom_css": "",
+            "custom_footer": "",
+            "social_facebook": "",
+            "social_twitter": "",
+            "social_instagram": "",
+            "social_linkedin": "",
+            "updated_at": "2026-05-08 09:16:16"
+        }
+    },
+    "timestamp": "2026-05-08 11:58:36"
+}
+
+
+
+async function uploadPhoto(file) {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', 'profiles');
+
+      const json = await FileAPI.upload(formData);
+
+      const url = (json.data || json).url;
+      if (!url) throw new Error('No URL in upload response');
+
+      // Save to users table; also cache locally as fallback
+      if (_user) {
+        try {
+          await API.put(API_ENDPOINTS.USER_BY_ID(_user.uuid), { profile_photo: url });
+        } catch (_) { /* column may not be available yet â€” cached locally */ }
+        try { localStorage.setItem(`lms_photo_${_user.uuid}`, (API_BASE_URL || '') + url); } catch (_) {}
+        // Update in-memory auth user and header avatar immediately
+        try {
+          _user.profile_photo = url;
+          if (window.Auth && typeof Auth.saveUser === 'function') {
+            Auth.saveUser(_user);
+          }
+        } catch (_) {}
+        try {
+          const headerImg = document.getElementById('userAvatarImg');
+          const headerAvatar = document.getElementById('userAvatar');
+          const headerInitials = document.getElementById('userInitials');
+          const base = (typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL.replace(/\/+$/,'') : '';
+          const photoUrl = /^https?:\/\//i.test(url) ? url : (base + (url.startsWith('/') ? '' : '/') + url);
+          if (headerImg) { headerImg.src = photoUrl; headerImg.style.display = 'block'; }
+          if (headerInitials) headerInitials.style.display = 'none';
+          if (headerAvatar && headerAvatar.style) headerAvatar.style.background = 'transparent';
+        } catch (_) {}
+      }
+      showToast('Profile photo updated.');
+    } catch (err) {
+      showToast(err.message || 'Photo upload failed.', 'error');
+    }
+  }

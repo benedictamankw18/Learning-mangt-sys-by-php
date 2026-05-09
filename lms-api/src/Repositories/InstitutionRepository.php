@@ -890,8 +890,34 @@ class InstitutionRepository
     {
         try {
             $stmt = $this->db->prepare("
-                SELECT * FROM institution_settings 
-                WHERE institution_id = :institution_id
+                SELECT 
+                    s.*, 
+                    i.email, 
+                    i.phone, 
+                    i.address, 
+                    a.year_name, 
+                    sem.semester_name, 
+                    sem.start_date, 
+                    sem.end_date,
+                    gc.grade_categories_name AS grading_system,
+                    gc.Pass_Threshold AS pass_mark,
+                    gs.grade AS pass_grade
+                FROM institutions i
+                LEFT JOIN institution_settings s 
+                    ON i.institution_id = s.institution_id
+                LEFT JOIN academic_years a 
+                    ON a.institution_id = i.institution_id
+                    AND a.is_current = 1
+                LEFT JOIN semesters sem 
+                    ON sem.institution_id = i.institution_id
+                    AND sem.is_current = 1
+                LEFT JOIN grade_categories gc 
+                    ON gc.institution_id = i.institution_id
+                    AND gc.set_as_primary = 1
+                LEFT JOIN grade_scales gs 
+                    ON gs.grade_categories_id = gc.grade_categories_id
+                    AND gc.Pass_Threshold BETWEEN gs.min_score AND gs.max_score
+                WHERE i.institution_id =  :institution_id
             ");
             $stmt->execute(['institution_id' => $institutionId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);

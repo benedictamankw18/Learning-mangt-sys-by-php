@@ -98,7 +98,7 @@ class GradeScaleController
                     'title' => 'Grade Scale Created',
                     'message' => 'A grade scale was created.',
                     'notification_type' => 'grade_scale_created',
-                    'link' => '/admin/page/grade-scales.html',
+                    'link' => '/admin/dashboard.html#management-grades',
                 ]);
             } catch (\Throwable $e) {
                 error_log('GradeScaleController::notify create ' . $e->getMessage());
@@ -175,7 +175,7 @@ class GradeScaleController
                     'title' => 'Grade Scale Updated',
                     'message' => 'A grade scale was updated.',
                     'notification_type' => 'grade_scale_updated',
-                    'link' => '/admin/page/grade-scales.html',
+                    'link' => '/admin/dashboard.html#management-grades',
                 ]);
             } catch (\Throwable $e) {
                 error_log('GradeScaleController::notify update ' . $e->getMessage());

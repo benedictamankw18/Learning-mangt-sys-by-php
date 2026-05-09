@@ -33,7 +33,7 @@ class ProgramController
                 'title' => 'Program ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Program was ' . $action . ' (ID: ' . $programId . ').',
                 'notification_type' => 'program_' . $action,
-                'link' => '/admin/page/program-list.html',
+                'link' => '/admin/dashboard.html#programs',
             ]);
         } catch (\Throwable $e) {
             error_log('ProgramController::notifyAdminsForProgramChange ' . $e->getMessage());

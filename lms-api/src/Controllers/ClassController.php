@@ -35,7 +35,7 @@ class ClassController
                 'title' => 'Class ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Class was ' . $action . ' (ID: ' . $classId . ').',
                 'notification_type' => 'class_' . $action,
-                'link' => '/admin/page/class-list.html',
+                'link' => '/admin/dashboard.html#classes',
             ]);
         } catch (\Throwable $e) {
             error_log('ClassController::notifyAdminsForClassChange ' . $e->getMessage());

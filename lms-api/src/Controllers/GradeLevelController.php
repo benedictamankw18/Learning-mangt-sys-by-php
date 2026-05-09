@@ -33,7 +33,7 @@ class GradeLevelController
                 'title' => 'Grade Level ' . ($action === 'created' ? 'Created' : 'Updated'),
                 'message' => 'Grade level was ' . $action . ' (ID: ' . $gradeLevelId . ').',
                 'notification_type' => 'grade_level_' . $action,
-                'link' => '/admin/page/grade-level-list.html',
+                'link' => '/admin/dashboard.html#grade-level',
             ]);
         } catch (\Throwable $e) {
             error_log('GradeLevelController::notifyAdminsForGradeLevelChange ' . $e->getMessage());

@@ -1,303 +1,386 @@
-// Settings Page JavaScript - Tab Navigation and Functionality
+const SettingsPage = (() => {
+  const state = {
+    initial: {},
+    institutionUUID: null,
+    dirty: false,
+    isLoading: false,
+    isSaving: false,
+    pageName: null,
+  };
 
-function initializeSettings() {
-  console.log("Settings page initialized");
+  const elements = {
+    root: null,
+    form: null,
+    tabButtons: [],
+    tabContents: [],
+    dirtyBadge: null,
+    successBox: null,
+    errorBox: null,
+    errorMessage: null,
+    saveButtons: [],
+    resetButtons: [],
+  };
 
-  function showPopupMessage(message, title) {
-    if (typeof window.showModal === 'function') {
-      window.showModal(title || 'Notice', message, function () {});
+  function getApi() {
+    return window.API || null;
+  }
+
+  function notify(message, type = 'info') {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, type);
       return;
     }
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, 'info');
+    if (type === 'error') {
+      console.error(message);
       return;
     }
     console.log(message);
   }
-  
-  // Tab Navigation
-  const tabButtons = document.querySelectorAll('.settings-tab');
-  const tabContents = document.querySelectorAll('.settings-tab-content');
-  
-  tabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const targetTab = this.getAttribute('data-tab');
 
-      // Remove active class from all tabs and contents
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
-      
-      // Add active class to clicked tab
-      this.classList.add('active');
-      
-      // Show corresponding tab content
-      const targetContent = document.getElementById(`${targetTab}-tab`);
-      if (targetContent) {
-        targetContent.classList.add('active');
-      }
+  function setDirty(dirty) {
+    state.dirty = dirty;
+    if (elements.dirtyBadge) {
+      elements.dirtyBadge.style.display = dirty ? 'inline-flex' : 'none';
+    }
+  }
+
+  function setLoading(isLoading) {
+    state.isLoading = isLoading;
+    elements.saveButtons.forEach((button) => {
+      button.disabled = isLoading || state.isSaving || !state.dirty;
     });
-  });
-  
-  // Save Settings Button Handler
-  const saveButtons = document.querySelectorAll('.btn-save-settings');
-  saveButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Get the current active tab
-      const activeTab = document.querySelector('.settings-tab.active');
-      const tabName = activeTab ? activeTab.textContent.trim() : 'Settings';
-      
-      // Show success message (you can replace this with actual save logic)
-      showPopupMessage(`${tabName} settings saved successfully!`, 'Settings Saved');
-      
-      // TODO: Add actual API call to save settings
-      // Example:
-      // saveSettingsToServer(tabName);
-    });
-  });
-  
-  // Reset Settings Button Handler
-  const resetButtons = document.querySelectorAll('.btn-reset-settings');
-  resetButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const activeTab = document.querySelector('.settings-tab.active');
-      const tabName = activeTab ? activeTab.textContent.trim() : 'Settings';
-      
-      confirm_('Reset Settings', `Are you sure you want to reset ${tabName} settings to default values?`, () => {
-        showPopupMessage('Settings reset to default values', 'Settings Reset');
-        
-        // TODO: Add actual reset logic
-        // resetSettingsToDefault(tabName);
-      });
-    });
-  });
-  
-  // Toggle Switch Handler (for notifications and other toggles)
-  const toggleSwitches = document.querySelectorAll('.toggle-switch input[type="checkbox"]');
-  toggleSwitches.forEach(toggle => {
-    toggle.addEventListener('change', function() {
-      const label = this.closest('.notification-item, .form-group')?.querySelector('.notification-label span, span');
-      const setting = label ? label.textContent.trim() : 'Setting';
-      const status = this.checked ? 'enabled' : 'disabled';
-      
-      console.log(`${setting} ${status}`);
-      
-      // TODO: Add logic to save toggle state
-      // saveToggleSetting(setting, this.checked);
-    });
-  });
-  
-  // Theme Selector Handler
-  const themeCards = document.querySelectorAll('.theme-card');
-  themeCards.forEach(card => {
-    card.addEventListener('click', function() {
-      // Remove active class from all theme cards
-      themeCards.forEach(c => c.classList.remove('active'));
-      
-      // Add active class to clicked theme
-      this.classList.add('active');
-      
-      const themeName = this.querySelector('span').textContent;
-      console.log(`Theme changed to: ${themeName}`);
-      
-      // TODO: Apply theme to the application
-      // applyTheme(themeName);
-    });
-  });
-  
-  // Display Mode Selector Handler
-  const modeButtons = document.querySelectorAll('.mode-btn');
-  modeButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      // Remove active class from all mode buttons
-      modeButtons.forEach(btn => btn.classList.remove('active'));
-      
-      // Add active class to clicked mode
-      this.classList.add('active');
-      
-      const modeName = this.querySelector('span').textContent;
-      console.log(`Display mode changed to: ${modeName}`);
-      
-      // TODO: Apply display mode
-      // applyDisplayMode(modeName);
-    });
-  });
-  
-  // File Upload Handler (for school logo)
-  const uploadButton = document.querySelector('.btn-upload');
-  if (uploadButton) {
-    uploadButton.addEventListener('click', function() {
-      // Create a hidden file input
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/png, image/jpeg, image/jpg';
-      
-      fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-          // Validate file size (max 5MB)
-          if (file.size > 5 * 1024 * 1024) {
-            showPopupMessage('File size must be less than 5MB', 'Upload Error');
-            return;
-          }
-          
-          // Preview the image
-          const reader = new FileReader();
-          reader.onload = function(event) {
-            const currentLogo = document.querySelector('.current-logo img');
-            if (currentLogo) {
-              currentLogo.src = event.target.result;
-            }
-          };
-          reader.readAsDataURL(file);
-          
-          // TODO: Upload to server
-          // uploadLogo(file);
-        }
-      });
-      
-      fileInput.click();
+    elements.resetButtons.forEach((button) => {
+      button.disabled = isLoading || state.isSaving;
     });
   }
-  
-  // Maintenance Button Handlers
-  const maintenanceButtons = document.querySelectorAll('.maintenance-btn');
-  maintenanceButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const actionName = this.querySelector('h4').textContent;
-      
-      if (confirm(`Are you sure you want to run: ${actionName}?`)) {
-        showPopupMessage(`Running ${actionName}... This may take a few moments.`, 'Maintenance');
-        
-        // TODO: Execute maintenance task
-        // runMaintenanceTask(actionName);
-      }
+
+  function setSaving(isSaving) {
+    state.isSaving = isSaving;
+    elements.saveButtons.forEach((button) => {
+      button.disabled = isSaving || state.isLoading || !state.dirty;
+      button.classList.toggle('loading', isSaving);
     });
-  });
-  
-  // Backup Buttons
-  const backupButton = document.querySelector('.btn-backup');
-  if (backupButton) {
-    backupButton.addEventListener('click', function() {
-      if (confirm('Create a backup now? This will back up all system data.')) {
-        showPopupMessage('Backup started... You will be notified when complete.', 'Backup');
-        
-        // TODO: Trigger backup
-        // createBackup();
-      }
+    elements.resetButtons.forEach((button) => {
+      button.disabled = isSaving || state.isLoading;
     });
   }
-  
-  const restoreButton = document.querySelector('.btn-restore');
-  if (restoreButton) {
-    restoreButton.addEventListener('click', function() {
-      if (confirm('⚠️ WARNING: Restoring from backup will overwrite current data. Continue?')) {
-        // Create file input for backup file
-        const fileInput = document.createElement('input');
-        fileInput.type = 'file';
-        fileInput.accept = '.sql, .backup, .bak';
-        
-        fileInput.addEventListener('change', function(e) {
-          const file = e.target.files[0];
-          if (file) {
-            showPopupMessage(`Restoring from ${file.name}... System will restart after completion.`, 'Restore Backup');
-            
-            // TODO: Upload and restore backup
-            // restoreBackup(file);
-          }
-        });
-        
-        fileInput.click();
-      }
+
+  function showSuccess(message) {
+    if (elements.successBox) {
+      elements.successBox.textContent = message;
+      elements.successBox.style.display = 'block';
+    }
+    if (elements.errorBox) {
+      elements.errorBox.style.display = 'none';
+    }
+  }
+
+  function showError(message) {
+    if (elements.errorBox) {
+      elements.errorMessage.textContent = message;
+      elements.errorBox.style.display = 'block';
+    }
+    if (elements.successBox) {
+      elements.successBox.style.display = 'none';
+    }
+  }
+
+  function clearMessages() {
+    if (elements.successBox) {
+      elements.successBox.style.display = 'none';
+    }
+    if (elements.errorBox) {
+      elements.errorBox.style.display = 'none';
+    }
+  }
+
+  function clearFieldErrors() {
+    elements.form?.querySelectorAll('.form-group').forEach((group) => {
+      group.classList.remove('has-error');
+      const error = group.querySelector('.error-message');
+      if (error) error.textContent = '';
     });
   }
-  
-  // Integration Connect/Disconnect Buttons
-  const connectButtons = document.querySelectorAll('.btn-connect');
-  connectButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const integrationName = this.closest('.integration-item').querySelector('h4').textContent;
-      
-      showPopupMessage(`Connecting to ${integrationName}... You will be redirected to authorize.`, 'Integration');
-      
-      // TODO: Handle OAuth connection
-      // connectIntegration(integrationName);
-    });
-  });
-  
-  const disconnectButtons = document.querySelectorAll('.btn-disconnect');
-  disconnectButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const integrationName = this.closest('.integration-item').querySelector('h4').textContent;
-      
-      if (confirm(`Disconnect from ${integrationName}? This will disable all integration features.`)) {
-        showPopupMessage(`Disconnected from ${integrationName}`, 'Integration');
-        
-        // Change button state
-        const integrationItem = this.closest('.integration-item');
-        integrationItem.classList.remove('active');
-        this.classList.remove('btn-disconnect');
-        this.classList.add('btn-connect');
-        this.textContent = 'Connect';
-        
-        const status = integrationItem.querySelector('span');
-        if (status) {
-          status.textContent = 'Not connected';
-        }
-        
-        // TODO: Disconnect integration on server
-        // disconnectIntegration(integrationName);
-      }
-    });
-  });
-  
-  // Role Edit Buttons
-  const editRoleButtons = document.querySelectorAll('.btn-edit-role');
-  editRoleButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const roleName = this.closest('.role-card').querySelector('h4').textContent;
-      
-      showPopupMessage(`Edit permissions for ${roleName} role (feature coming soon)`, 'Coming Soon');
-      
-      // TODO: Open role permissions modal
-      // openRolePermissionsModal(roleName);
-    });
-  });
-  
-  // Add Program Button
-  const addProgramButton = document.querySelector('.btn-add-program');
-  if (addProgramButton) {
-    addProgramButton.addEventListener('click', function() {
-      showPopupMessage('Add new program (feature coming soon)', 'Coming Soon');
-      
-      // TODO: Open add program modal
-      // openAddProgramModal();
-    });
+
+  function showFieldError(name, message) {
+    if (!elements.form) return;
+    const field = elements.form.querySelector(`[name="${name}"]`);
+    if (!field) return;
+    const group = field.closest('.form-group');
+    if (!group) return;
+    group.classList.add('has-error');
+    let error = group.querySelector('.error-message');
+    if (!error) {
+      error = document.createElement('div');
+      error.className = 'error-message';
+      group.appendChild(error);
+    }
+    error.textContent = message;
   }
-  
-  // Program Edit Buttons
-  const programEditButtons = document.querySelectorAll('.program-item .btn-icon-action');
-  programEditButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const programName = this.closest('.program-item').querySelector('span').textContent;
-      
-      showPopupMessage(`Edit ${programName} program (feature coming soon)`, 'Coming Soon');
-      
-      // TODO: Open edit program modal
-      // openEditProgramModal(programName);
-    });
+
+  function setActiveTab(tabName) {
+    elements.tabButtons.forEach((button) => button.classList.remove('active'));
+    elements.tabContents.forEach((content) => content.classList.remove('active'));
+
+    const button = elements.root?.querySelector(`.settings-tab[data-tab="${tabName}"]`);
+    const content = elements.root?.querySelector(`#${tabName}-tab`);
+    if (button) button.classList.add('active');
+    if (content) content.classList.add('active');
+  }
+
+  function normalizeBoolean(value) {
+    return value === true || value === 'true' || value === 1 || value === '1' || value === 'on';
+  }
+
+  function parseResponseData(response) {
+    if (!response) return {};
+    if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
+      return response.data;
+    }
+    return response;
+  }
+
+ // Coming soon Feature now it <Default>
+function manualCheckedDisabled() {
+  const mcds = elements.form?.getElementsByClassName('CheckDisabled');
+
+  if (!mcds) return;
+
+  Array.from(mcds).forEach((mcd) => {
+    mcd.disabled = true;
+    mcd.checked = true;
+
   });
+
 }
 
-// Initialize on page load (for standalone page)
-document.addEventListener('DOMContentLoaded', function() {
+
+  function populateForm(data) {
+    const settings = parseResponseData(data);
+    state.initial = JSON.parse(JSON.stringify(settings || {}));
+    if (!elements.form) return;
+
+    elements.form.querySelectorAll('[name]').forEach((field) => {
+      const key = field.name;
+      const value = settings[key];
+      if (field.type === 'checkbox') {
+        field.checked = normalizeBoolean(value);
+      } else if (field.type === 'color') {
+        field.value = value || field.value || '#000000';
+      } else if (value !== undefined && value !== null) {
+        field.value = value;
+      } else if (field.value === undefined) {
+        field.value = '';
+      }
+    });
+    manualCheckedDisabled(); 
+
+    setDirty(false);
+    clearFieldErrors();
+    clearMessages();
+  }
+
+  function collectFormData() {
+    const data = {};
+    if (!elements.form) return data;
+
+    elements.form.querySelectorAll('[name]').forEach((field) => {
+      if (field.type === 'checkbox') {
+        data[field.name] = field.checked;
+      } else {
+        const value = field.value;
+        if (value !== '') {
+          data[field.name] = value;
+        } else {
+          data[field.name] = '';
+        }
+      }
+    });
+
+    return data;
+  }
+
+  function validateSettings(data) {
+    const errors = {};
+
+    if (data.site_name && data.site_name.length > 200) {
+      errors.site_name = 'School name must be 200 characters or fewer.';
+    }
+    if (data.support_email && !/^\S+@\S+\.\S+$/.test(data.support_email)) {
+      errors.support_email = 'Enter a valid support email address.';
+    }
+    if (data.from_address && !/^\S+@\S+\.\S+$/.test(data.from_address)) {
+      errors.from_address = 'Enter a valid from address email.';
+    }
+    if (data.smtp_port && !/^\d+$/.test(String(data.smtp_port))) {
+      errors.smtp_port = 'SMTP port must be numeric.';
+    }
+    if (data.theme_primary_color && !/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(data.theme_primary_color)) {
+      errors.theme_primary_color = 'Enter a valid hex color.';
+    }
+    if (data.theme_secondary_color && !/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(data.theme_secondary_color)) {
+      errors.theme_secondary_color = 'Enter a valid hex color.';
+    }
+    if (data.pass_mark !== '' && data.pass_mark !== undefined && (Number.isNaN(Number(data.pass_mark)) || Number(data.pass_mark) < 0 || Number(data.pass_mark) > 100)) {
+      errors.pass_mark = 'Pass mark must be between 0 and 100.';
+    }
+
+    clearFieldErrors();
+    Object.entries(errors).forEach(([name, message]) => showFieldError(name, message));
+    return errors;
+  }
+
+  async function loadSettings() {
+    // const api = getApi();
+    // if (!api) {
+    //   showError('API client is not available.');
+    //   return;
+    // }
+
+    try {
+          setLoading(true);
+          const response = await API.get(`${API_ENDPOINTS.INSTITUTIONS}/${state.institutionUUID}/settings`);
+          
+          if (!response.success) {
+              throw new Error(response.message || 'Failed to load settings');
+          }
+
+          const settings = response.data || {};
+
+          // Populate form fields            
+          populateForm(settings);
+    } catch (error) {
+      console.error('Failed to load system settings', error);
+      showError(error.message || 'Unable to load system settings');
+      notify(error.message || 'Unable to load system settings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function saveSettings() {
+    // const api = getApi();
+    // if (!api) {
+    //   showError('API client is not available.');
+    //   return;
+    // }
+
+    clearMessages();
+    const data = collectFormData();
+    const errors = validateSettings(data);
+    if (Object.keys(errors).length > 0) {
+      showError('Please fix the highlighted fields and try again.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const response = await API.put(`${API_ENDPOINTS.INSTITUTIONS}/${state.institutionUUID}/settings`, data);
+      if (!response || response.success === false) {
+        throw new Error(response?.message || 'Unable to save settings');
+      }
+
+      state.initial = JSON.parse(JSON.stringify(data));
+      setDirty(false);
+      showSuccess(response.message || 'Settings saved successfully.');
+      notify(response.message || 'Settings saved successfully.', 'success');
+    } catch (error) {
+      console.error('Failed to save system settings', error);
+      const backendErrors = error?.response?.data?.errors || error?.errors || null;
+      if (backendErrors && typeof backendErrors === 'object') {
+        clearFieldErrors();
+        Object.entries(backendErrors).forEach(([name, message]) => showFieldError(name, message));
+      }
+      showError(error.message || 'Unable to save settings');
+      notify(error.message || 'Unable to save settings', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function resetSettings() {
+    populateForm(state.initial);
+    showSuccess('Changes discarded.');
+    notify('Changes discarded.', 'info');
+  }
+
+  function markDirty() {
+    setDirty(true);
+    clearMessages();
+  }
+
+  function cacheElements() {
+    elements.root = document.querySelector('.settings-page[data-settings-page="system-settings"], .settings-page');
+    elements.form = elements.root?.querySelector('form, .settings-card-body') ? elements.root.querySelector('form') || elements.root : null;
+    elements.tabButtons = Array.from(elements.root?.querySelectorAll('.settings-tab') || []);
+    elements.tabContents = Array.from(elements.root?.querySelectorAll('.settings-tab-content') || []);
+    elements.dirtyBadge = elements.root?.querySelector('#systemSettingsDirty') || null;
+    elements.successBox = elements.root?.querySelector('#systemSettingsSuccess') || null;
+    elements.errorBox = elements.root?.querySelector('#systemSettingsError') || null;
+    elements.errorMessage = elements.root?.querySelector('#systemSettingsErrorMessage') || null;
+    elements.saveButtons = Array.from(elements.root?.querySelectorAll('.btn-save-settings') || []);
+    elements.resetButtons = Array.from(elements.root?.querySelectorAll('.btn-reset-settings') || []);
+  }
+
+  function setupEvents() {
+    elements.tabButtons.forEach((button) => {
+      button.addEventListener('click', () => setActiveTab(button.dataset.tab));
+    });
+
+    elements.form?.querySelectorAll('[name]').forEach((field) => {
+      field.addEventListener('input', markDirty);
+      field.addEventListener('change', markDirty);
+    });
+
+    elements.saveButtons.forEach((button) => {
+      button.addEventListener('click', saveSettings);
+    });
+
+    elements.resetButtons.forEach((button) => {
+      button.addEventListener('click', resetSettings);
+    });
+  }
+
+  async function init() {
+    cacheElements();
+
+    let session = window.S || {};
+        try {
+            const user = (typeof Auth !== 'undefined' && Auth.getUser) ? Auth.getUser() : null;
+            if (user) {
+                // support both `institution_uuid` and `institution_id` shapes
+                state.institutionUUID = user.institution_uuid || user.institution_id || session.institutionUUID || localStorage.getItem('institutionUUID');
+            } else {
+                state.institutionUUID = session.institutionUUID || localStorage.getItem('institutionUUID');
+            }
+        } catch (e) {
+            state.institutionUUID = session.institutionUUID || localStorage.getItem('institutionUUID');
+        }
+        
+        if (!state.institutionUUID) {
+            showError('Unable to load institution. Please refresh the page.');
+            return;
+        }
+    if (!elements.root || !elements.form) return;
+    setupEvents();
+
+    await loadSettings();
+  }
+
+  return {
+    init,
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
   if (document.querySelector('.settings-page')) {
-    initializeSettings();
+    SettingsPage.init();
   }
 });
 
-// Initialize when dynamically loaded (for dashboard)
-document.addEventListener('page:loaded', function(e) {
-  if (e.detail && e.detail.page === 'settings') {
-    initializeSettings();
+document.addEventListener('page:loaded', (event) => {
+  if (!event?.detail?.page) return;
+  if (event.detail.page === 'settings' || event.detail.page === 'system-settings') {
+    SettingsPage.init();
   }
 });
