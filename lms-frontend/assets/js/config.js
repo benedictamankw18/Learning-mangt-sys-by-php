@@ -243,6 +243,7 @@ const API_ENDPOINTS = {
 
     // Announcements
     ANNOUNCEMENTS: '/api/announcements',
+    PLATFORM_ANNOUNCEMENTS: '/api/superadmin/announcements',
 
     // Events / Calendar
     EVENTS: '/api/events',

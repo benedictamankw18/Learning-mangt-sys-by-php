@@ -227,16 +227,41 @@ class AnnouncementController
 
         $data['uuid'] = UuidHelper::generate();
         $data['author_id'] = $user['user_id'];
-        $data['institution_id'] = $user['institution_id'] ?? 1;
+        $data['institution_id'] = !empty($user['is_super_admin'])
+            ? null
+            : ($user['institution_id'] ?? 1);
         if (!empty($data['is_published'])) {
             $data['published_at'] = $data['published_at'] ?? date('Y-m-d H:i:s');
         } else {
             $data['published_at'] = null;
         }
 
+        // If super admin provided a list of target institutions, create one announcement per institution
+        if (!empty($user['is_super_admin']) && !empty($data['target_institutions']) && is_array($data['target_institutions'])) {
+            $createdUuids = [];
+            foreach ($data['target_institutions'] as $inst) {
+                $instId = (int) $inst;
+                $dataCopy = $data;
+                $dataCopy['institution_id'] = $instId;
+                $dataCopy['uuid'] = UuidHelper::generate();
+                $createdId = $this->announcementRepo->create($dataCopy);
+                $createdUuids[] = $dataCopy['uuid'];
+
+                if ($this->shouldSendAnnouncementNotification($dataCopy)) {
+                    $this->sendPublishedAnnouncementNotifications($dataCopy);
+                }
+            }
+
+            Response::success([
+                'message' => 'Announcements created successfully',
+                'created_uuids' => $createdUuids
+            ], 'Announcements created successfully', 201);
+            return;
+        }
+
         $announcementId = $this->announcementRepo->create($data);
 
-        if (!empty($data['is_published'])) {
+        if ($this->shouldSendAnnouncementNotification($data)) {
             $this->sendPublishedAnnouncementNotifications($data);
         }
 
@@ -314,7 +339,9 @@ class AnnouncementController
         if (!$wasPublished && $willBePublished) {
             $notificationAnnouncement = array_merge($announcement, $data);
             $notificationAnnouncement['announcement_id'] = $announcementId;
-            $this->sendPublishedAnnouncementNotifications($notificationAnnouncement);
+            if ($this->shouldSendAnnouncementNotification($notificationAnnouncement)) {
+                $this->sendPublishedAnnouncementNotifications($notificationAnnouncement);
+            }
         }
 
         Response::success(['message' => 'Announcement updated successfully']);
@@ -391,6 +418,20 @@ class AnnouncementController
         } catch (\Throwable $e) {
             error_log('Announcement notification error: ' . $e->getMessage());
         }
+    }
+
+    private function shouldSendAnnouncementNotification(array $announcement): bool
+    {
+        if (empty($announcement['is_published'])) {
+            return false;
+        }
+
+        if (array_key_exists('send_notification', $announcement) && !$announcement['send_notification']) {
+            return false;
+        }
+
+        $targetRole = strtolower(trim((string) ($announcement['target_role'] ?? '')));
+        return $targetRole !== '' && $targetRole !== 'all';
     }
 
     private function resolveAnnouncementLink(string $targetRole): string

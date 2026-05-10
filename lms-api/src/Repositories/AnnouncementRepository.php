@@ -95,7 +95,7 @@ class AnnouncementRepository
         }
 
         if ($institutionId !== null) {
-            $sql .= " AND a.institution_id = :institution_id";
+            $sql .= " AND (a.institution_id IS NULL OR a.institution_id = :institution_id)";
             $params['institution_id'] = $institutionId;
         }
 
@@ -166,7 +166,7 @@ class AnnouncementRepository
         }
 
         if ($institutionId !== null) {
-            $sql .= " AND a.institution_id = :institution_id";
+            $sql .= " AND (a.institution_id IS NULL OR a.institution_id = :institution_id)";
             $params['institution_id'] = $institutionId;
         }
 
@@ -238,7 +238,7 @@ class AnnouncementRepository
 
         $params = ['uuid' => $uuid, 'viewer_user_id' => $viewerUserId];
         if ($institutionId !== null) {
-            $sql .= " AND a.institution_id = :institution_id";
+            $sql .= " AND (a.institution_id IS NULL OR a.institution_id = :institution_id)";
             $params['institution_id'] = $institutionId;
         }
 
@@ -318,7 +318,9 @@ class AnnouncementRepository
             'title' => $data['title'],
             'content' => $data['content'] ?? null,
             'author_id' => $data['author_id'],
-            'institution_id' => $data['institution_id'] ?? 1,
+            'institution_id' => array_key_exists('institution_id', $data)
+                ? $data['institution_id']
+                : 1,
             'target_role' => $data['target_role'] ?? 'all',
             'is_published' => $data['is_published'] ?? 0,
             'published_at' => $data['published_at'] ?? null,

@@ -511,7 +511,8 @@ function setupEventListeners() {
     const actionButtons = document.querySelectorAll('.action-btn');
     actionButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-            const actionText = btn.querySelector('span').textContent;
+            const spanElement = btn.querySelector('span');
+            const actionText = spanElement ? spanElement.textContent : btn.textContent;
             
             // Navigate based on button text
             let targetPage = 'dashboard.html';
