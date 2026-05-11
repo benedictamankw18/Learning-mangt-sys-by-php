@@ -1475,7 +1475,8 @@ class UserRepository
     public function getRoleByName(string $roleName): ?array
     {
         try {
-            $stmt = $this->db->prepare("SELECT role_id, role_name FROM roles WHERE role_name = :role_name");
+            // Use case-insensitive lookup to tolerate stored role name casing
+            $stmt = $this->db->prepare("SELECT role_id, role_name FROM roles WHERE LOWER(role_name) = :role_name LIMIT 1");
             $stmt->execute(['role_name' => strtolower($roleName)]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {

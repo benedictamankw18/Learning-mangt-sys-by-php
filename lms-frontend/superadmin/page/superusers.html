@@ -1,0 +1,613 @@
+<!-- SuperUser Management (Super Admin only) -->
+<style>
+  .superusers-page {
+    padding: 20px;
+    
+  }
+  .superusers-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .superusers-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .superusers-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .superusers-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .superusers-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 1024px) {
+    .superusers-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .superusers-stats { grid-template-columns: 1fr; }
+  }
+  .superusers-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+  }
+  .superusers-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .superusers-stat-icon i { font-size: 1.2rem; color: #fff; }
+  .superusers-stat-info h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .superusers-stat-info p {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+  }
+  .superusers-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .superusers-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .superusers-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .su-search-wrap {
+    position: relative;
+    min-width: 220px;
+    flex: 1;
+    max-width: 320px;
+  }
+  .su-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .su-search-wrap input,
+  .su-filter-select {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+    box-sizing: border-box;
+  }
+  .su-search-wrap input { padding-left: 2.1rem; }
+  .su-search-wrap input:focus,
+  .su-filter-select:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+  .su-filter-select {
+    min-width: 140px;
+    max-width: 220px;
+    cursor: pointer;
+  }
+  .superusers-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .superusers-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .superusers-table thead tr { background: #f8fafc; }
+  .superusers-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .superusers-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .superusers-table tbody tr:last-child td { border-bottom: none; }
+  .superusers-table tbody tr:hover { background: #f8fafc; }
+  .superuser-cell { display: flex; align-items: center; gap: 0.75rem; }
+  .superuser-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700; color: #fff;
+    flex-shrink: 0; text-transform: uppercase;
+  }
+  .superuser-cell-name { font-weight: 600; color: var(--text-primary, #1e293b); line-height: 1.3; }
+  .superuser-cell-sub { font-size: 0.75rem; color: var(--text-secondary, #64748b); margin-top: 0.1rem; }
+  .badge-active, .badge-inactive {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+  }
+  .badge-active { background: #dcfce7; color: #15803d; }
+  .badge-inactive { background: #fef3c7; color: #b45309; }
+  .superuser-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .su-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid #dbe3ea;
+    background: #fff;
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .su-icon-btn i {
+    font-size: 0.78rem;
+    pointer-events: none;
+  }
+  .su-icon-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  }
+  .su-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.2);
+  }
+  .su-icon-btn-edit:hover {
+    color: #0369a1;
+    border-color: #7dd3fc;
+    background: #f0f9ff;
+  }
+  .su-icon-btn-delete:hover {
+    color: #b91c1c;
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+  .superusers-table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.875rem 1rem; border-top: 1px solid #e2e8f0; background: #f8fafc;
+    font-size: 0.8rem; color: var(--text-secondary, #64748b); flex-wrap: wrap; gap: 0.5rem;
+  }
+  .superusers-pagination { display: flex; gap: 0.25rem; align-items: center; }
+  .superusers-pagination button {
+    min-width: 32px; height: 32px; padding: 0 0.5rem; border: 1px solid #e2e8f0; background: #fff;
+    border-radius: 6px; cursor: pointer; font-size: 0.8rem; color: var(--text-secondary, #64748b);
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+  }
+  .superusers-pagination button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+  .superusers-pagination button.active { background: var(--primary, #006a3f); border-color: var(--primary, #006a3f); color: #fff; font-weight: 600; }
+  .superusers-pagination button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .superusers-empty { padding: 3rem 1.5rem; text-align: center; color: var(--text-secondary, #94a3b8); }
+  .superusers-empty i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .superusers-empty h4 { margin: 0 0 0.5rem; color: var(--text-primary, #475569); }
+  .superusers-empty p { margin: 0; font-size: 0.875rem; }
+  .superusers-note {
+    display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;
+    color: var(--text-secondary, #64748b); font-size: 0.8rem;
+  }
+
+  /* Popup modal for create/edit superuser */
+  .user-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 2200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .user-modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .user-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(2, 6, 23, 0.28);
+    transform: translateY(14px);
+    transition: transform 0.2s ease;
+  }
+  .user-modal-overlay.open .user-modal {
+    transform: translateY(0);
+  }
+  .user-modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+  }
+  .user-modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+  }
+  .user-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.9rem;
+  }
+  .user-modal-close:hover {
+    background: #e2e8f0;
+    color: var(--text-primary, #1e293b);
+  }
+  .user-modal-body {
+    padding: 1.5rem;
+  }
+  .user-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: #f8fafc;
+    position: sticky;
+    bottom: 0;
+  }
+
+  .role-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+  }
+  .rf-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .rf-group.span-2 {
+    grid-column: 1 / -1;
+  }
+  .rf-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+  }
+  .rf-input {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #dbe3ea;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-primary, #1e293b);
+    background: #fff;
+    outline: none;
+  }
+  .rf-input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+  .rf-error-banner {
+    grid-column: 1 / -1;
+    display: none;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  .form-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #64748b);
+  }
+
+  .password-input-wrap {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .password-icon-btn {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #dbe3ea;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text-secondary, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .password-icon-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--text-primary, #1e293b);
+  }
+  .password-icon-btn:focus {
+    outline: none;
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.14);
+  }
+
+  .switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+  }
+  .switch-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+  }
+  .switch-toggle {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    flex-shrink: 0;
+  }
+  .switch-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .switch-slider {
+    position: absolute;
+    inset: 0;
+    background: #cbd5e1;
+    border-radius: 999px;
+    transition: 0.2s;
+    cursor: pointer;
+  }
+  .switch-slider::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    left: 3px;
+    top: 3px;
+    background: #ffffff;
+    border-radius: 50%;
+    transition: 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+  .switch-toggle input:checked + .switch-slider {
+    background: var(--primary, #006a3f);
+  }
+  .switch-toggle input:checked + .switch-slider::before {
+    transform: translateX(20px);
+  }
+  .switch-toggle input:focus + .switch-slider {
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.18);
+  }
+
+  @media (max-width: 640px) {
+    .role-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="superusers-page" id="superUserRoot">
+  <div class="superusers-page-header">
+    <div>
+      <h2>
+        <i class="fas fa-users-cog" style="margin-right: 0.5rem; color: var(--primary, #006a3f)"></i>
+        Super-User Management
+      </h2>
+      <p>Manage platform super admins and privileged accounts</p>
+    </div>
+    <div class="superusers-header-actions">
+      <button id="suRefreshBtn" class="btn btn-outline btn-sm" title="Refresh users">
+        <i class="fas fa-sync"></i> Refresh
+      </button>
+      <button id="suCreateBtn" class="btn btn-primary btn-sm" title="Add Super User">
+        <i class="fas fa-plus"></i> New SuperUser
+      </button>
+    </div>
+  </div>
+
+  <div class="superusers-stats">
+    <div class="superusers-stat-card">
+      <div class="superusers-stat-icon" style="background: linear-gradient(135deg, #7c3aed, #9333ea)">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <div class="superusers-stat-info">
+        <h3 id="suStatTotal">0</h3>
+        <p>Total SuperUsers</p>
+      </div>
+    </div>
+    <div class="superusers-stat-card">
+      <div class="superusers-stat-icon" style="background: linear-gradient(135deg, #10b981, #059669)">
+        <i class="fas fa-user-check"></i>
+      </div>
+      <div class="superusers-stat-info">
+        <h3 id="suStatActive">0</h3>
+        <p>Active SuperUsers</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="superusers-toolbar">
+    <div class="superusers-toolbar-left">
+      <div class="su-search-wrap">
+        <i class="fas fa-search"></i>
+        <input id="suSearchInput" type="text" placeholder="Search by name, email, username..." />
+      </div>
+      <select id="suStatusFilter" class="su-filter-select">
+        <option value="all">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+    <div class="superusers-toolbar-right">
+      <span id="suCountLabel" class="superusers-note"></span>
+    </div>
+  </div>
+
+  <div class="superusers-table-wrap">
+    <table class="superusers-table">
+      <thead>
+        <tr>
+          <th style="width: 40%;">SuperUser</th>
+          <th style="width: 28%;">Email</th>
+          <th style="width: 10%;">Status</th>
+          <th style="width: 8%;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="suTableBody">
+        <tr>
+          <td colspan="4" style="text-align:center;padding:2rem;color:var(--text-secondary,#64748b)">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="superusers-table-footer" id="suPagination" style="display:none">
+      <span id="suPaginationInfo" style="color: var(--text-secondary, #64748b)">—</span>
+      <div class="superusers-pagination" id="suPaginationControls"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="suModalOverlay" class="user-modal-overlay">
+    <div class="user-modal">
+      <div class="user-modal-header">
+        <h3 id="suModalTitle">New Super User</h3>
+        <button id="suModalClose" class="user-modal-close" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="user-modal-body">
+        <form id="suForm">
+          <div class="role-form-grid">
+            <div class="rf-group">
+              <label for="suFirstName">First Name <span class="req">*</span></label>
+              <input id="suFirstName" class="rf-input" placeholder="John" />
+            </div>
+            <div class="rf-group">
+              <label for="suLastName">Last Name <span class="req">*</span></label>
+              <input id="suLastName" class="rf-input" placeholder="Doe" />
+            </div>
+            <div class="rf-group span-2">
+              <label for="suUsername">Username <span class="req">*</span></label>
+              <input id="suUsername" class="rf-input" placeholder="johndoe" />
+            </div>
+            <div class="rf-group span-2">
+              <label for="suEmail">Email <span class="req">*</span></label>
+              <input id="suEmail" class="rf-input" type="email" placeholder="john@example.com" />
+            </div>
+            <div class="rf-group span-2">
+              <label for="suPassword">Password <span class="req">*</span></label>
+              <div class="password-input-wrap">
+                <input id="suPassword" class="rf-input" type="password" placeholder="Enter temporary password" autocomplete="new-password" />
+                <button type="button" id="suGeneratePasswordBtn" class="password-icon-btn" title="Auto-generate password">
+                  <i class="fas fa-wand-magic-sparkles"></i>
+                </button>
+                <button type="button" id="suTogglePasswordBtn" class="password-icon-btn" title="Show/Hide password">
+                  <i id="suTogglePasswordIcon" class="fas fa-eye"></i>
+                </button>
+              </div>
+              <small class="form-text">Click the wand icon to auto-generate a strong password.</small>
+            </div>
+            <div class="rf-group span-2">
+              <div class="switch-row">
+                <span class="switch-label">Is Super Admin</span>
+                <label class="switch-toggle" for="suIsSuperadmin">
+                  <input type="checkbox" id="suIsSuperadmin" />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="rf-group span-2">
+              <div class="switch-row">
+                <span class="switch-label">Active</span>
+                <label class="switch-toggle" for="suIsActive">
+                  <input type="checkbox" id="suIsActive" checked />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="rf-error-banner" id="suFormError"></div>
+          </div>
+        </form>
+      </div>
+      <div class="user-modal-footer">
+        <button id="suModalCancel" class="btn btn-outline">Cancel</button>
+        <button id="suModalSave" class="btn btn-primary">Save SuperUser</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/superuser.js"></script>

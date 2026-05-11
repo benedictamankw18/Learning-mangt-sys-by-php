@@ -151,6 +151,16 @@ class UserController
         return false;
     }
 
+    private function isSuperadminUsersRequest(): bool
+    {
+        $uri = parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        if (!is_string($uri) || $uri === '') {
+            return false;
+        }
+
+        return (bool) preg_match('#/api/superadmin/users(?:/|$)#', $uri);
+    }
+
     public function __construct()
     {
         $this->userRepo = new UserRepository();
@@ -199,7 +209,8 @@ class UserController
             return;
         }
 
-        // Super admins may only view admin users (paginated)
+        // Super admins can access two list scopes depending on route:
+        // /api/users -> admin users, /api/superadmin/users -> super_admin users.
         if (!empty($user['is_super_admin'])) {
             $filters = [];
             if (isset($_GET['search']) && trim((string) $_GET['search']) !== '') {
@@ -215,8 +226,9 @@ class UserController
                 $filters['is_active'] = (int) $_GET['is_active'];
             }
 
-            $users = $this->userRepo->getByRoleFiltered('admin', $page, $limit, $filters);
-            $total = $this->userRepo->countByRoleFiltered('admin', $filters);
+            $roleName = $this->isSuperadminUsersRequest() ? 'super_admin' : 'admin';
+            $users = $this->userRepo->getByRoleFiltered($roleName, $page, $limit, $filters);
+            $total = $this->userRepo->countByRoleFiltered($roleName, $filters);
             Response::paginated($users, $total, $page, $limit);
             return;
         }
@@ -330,6 +342,20 @@ class UserController
         $userId = $this->userRepo->create($data);
 
         if ($userId) {
+            // If the payload requests a super-admin account, only allow
+            // creation by an existing super admin and assign the
+            // `superadmin` role to the newly created user.
+            if (!empty($data['is_super_admin'])) {
+                if (empty($user['is_super_admin'])) {
+                    Response::forbidden('Only super admins can create super admin users');
+                    return;
+                }
+
+                $superRole = $this->userRepo->getRoleByName('super_admin');
+                if ($superRole && isset($superRole['role_id'])) {
+                    $this->userRepo->assignRole($userId, (int) $superRole['role_id']);
+                }
+            }
             // If creator is super_admin, ensure the new user is assigned the 'admin' role
             if (!empty($user['is_super_admin'])) {
                 $adminRole = $this->userRepo->getRoleByName('admin');
