@@ -459,6 +459,11 @@ return [
     'POST /superadmin-activity' => ['controller' => 'SuperadminActivityController', 'method' => 'store', 'auth' => true],
     'DELETE /superadmin-activity/cleanup' => ['controller' => 'SuperadminActivityController', 'method' => 'cleanup', 'auth' => true],
 
+    // Alias routes for frontend logs UI
+    'GET /logs' => ['controller' => 'SuperadminActivityController', 'method' => 'index', 'auth' => true],
+    'GET /logs/stats' => ['controller' => 'SuperadminActivityController', 'method' => 'stats', 'auth' => true],
+    'POST /logs/clear' => ['controller' => 'SuperadminActivityController', 'method' => 'cleanup', 'auth' => true],
+
     // Teacher Activity routes
     'GET /teacher-activity' => ['controller' => 'TeacherActivityController', 'method' => 'index', 'auth' => true],
     'GET /teacher-activity/recent' => ['controller' => 'TeacherActivityController', 'method' => 'recent', 'auth' => true],

@@ -209,7 +209,7 @@ function updateCharts(stats) {
             systemGrowthChart.data.labels = getLast12MonthLabels();
         }
         
-        console.log('Updating system growth chart with data:', growthData);
+        // console.log('Updating system growth chart with data:', growthData);
         // Update data
         systemGrowthChart.data.datasets[0].data = growthData.institutions || [];
         systemGrowthChart.data.datasets[1].data = growthData.users || [];
@@ -493,7 +493,7 @@ function setupEventListeners() {
             }
             
             // In production, this would load different page content
-            console.log('Navigate to:', page);
+            // console.log('Navigate to:', page);
             showToast(`Navigating to ${getPageTitle(page)}`, 'info');
         });
     });
@@ -603,7 +603,7 @@ async function handleLogout() {
 setInterval(async () => {
     try {
         await Promise.all([loadDashboardStats(), loadRecentActivities()]);
-        console.log('Dashboard data refreshed');
+        // console.log('Dashboard data refreshed');
     } catch (error) {
         console.warn('Auto-refresh issue:', error);
     }

@@ -58,8 +58,21 @@ foreach ($routes as $route => $config) {
         continue;
     }
 
-    // Convert route pattern to regex
-    $pattern = preg_replace('/\{([a-zA-Z0-9_]+)\}/', '(?P<$1>[^/]+)', $routePath);
+    // Convert route pattern to regex.
+    // Numeric-style route params should not match arbitrary strings like "cleanup".
+    $pattern = preg_replace_callback('/\{([a-zA-Z0-9_]+)\}/', function ($matches) {
+        $name = $matches[1];
+
+        if ($name === 'id' || preg_match('/Id$/', $name)) {
+            return '(?P<' . $name . '>[0-9]+)';
+        }
+
+        if (preg_match('/uuid$/i', $name)) {
+            return '(?P<' . $name . '>[A-Za-z0-9-]+)';
+        }
+
+        return '(?P<' . $name . '>[^/]+)';
+    }, $routePath);
     $pattern = '#^' . $pattern . '$#';
 
     if (preg_match($pattern, $uri, $matches)) {

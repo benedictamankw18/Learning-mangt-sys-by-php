@@ -280,6 +280,26 @@ class SuperadminActivityController
         if (!empty($_GET['severity']))      $filters['severity']      = $_GET['severity'];
         if (!empty($_GET['start_date']))    $filters['start_date']    = $_GET['start_date'];
         if (!empty($_GET['end_date']))      $filters['end_date']      = $_GET['end_date'];
+        if (!empty($_GET['q']))             $filters['q']             = trim($_GET['q']);
+
+         // Validate severity filter
+         if (isset($filters['severity'])) {
+             $allowed = ['info', 'warning', 'critical'];
+             if (!in_array($filters['severity'], $allowed, true)) {
+                 Response::badRequest('Severity filter must be info, warning, or critical');
+                 exit;
+             }
+         }
+
+         // Validate date filters
+         if (isset($filters['start_date']) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['start_date'])) {
+             Response::badRequest('start_date must be in YYYY-MM-DD format');
+             exit;
+         }
+         if (isset($filters['end_date']) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $filters['end_date'])) {
+             Response::badRequest('end_date must be in YYYY-MM-DD format');
+             exit;
+         }
 
         return $filters;
     }

@@ -108,6 +108,16 @@ class SuperadminActivityRepository extends BaseRepository
             $params[':end_date'] = $filters['end_date'] . ' 23:59:59';
         }
 
+       if (isset($filters['q']) && trim($filters['q']) !== '') {
+        $sql .= " AND (sa.activity_type LIKE :search1 OR sa.description LIKE :search2 OR u.first_name LIKE :search3 OR u.last_name LIKE :search4 OR u.email LIKE :search5)";
+        $searchVal = '%' . $filters['q'] . '%';
+        $params[':search1'] = $searchVal;
+        $params[':search2'] = $searchVal;
+        $params[':search3'] = $searchVal;
+        $params[':search4'] = $searchVal;
+        $params[':search5'] = $searchVal;
+        }
+
         $sql .= " ORDER BY sa.created_at DESC LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
@@ -126,42 +136,55 @@ class SuperadminActivityRepository extends BaseRepository
      */
     public function count(array $filters = []): int
     {
-        $sql = "SELECT COUNT(*) AS total FROM {$this->table} WHERE 1=1";
+        $sql = "SELECT COUNT(*) AS total
+                FROM {$this->table} sa
+                LEFT JOIN users u ON sa.performed_by = u.user_id
+                WHERE 1=1";
         $params = [];
 
         if (!empty($filters['performed_by'])) {
-            $sql .= " AND performed_by = :performed_by";
+            $sql .= " AND sa.performed_by = :performed_by";
             $params[':performed_by'] = (int) $filters['performed_by'];
         }
 
         if (!empty($filters['activity_type'])) {
-            $sql .= " AND activity_type = :activity_type";
+            $sql .= " AND sa.activity_type = :activity_type";
             $params[':activity_type'] = $filters['activity_type'];
         }
 
         if (!empty($filters['entity_type'])) {
-            $sql .= " AND entity_type = :entity_type";
+            $sql .= " AND sa.entity_type = :entity_type";
             $params[':entity_type'] = $filters['entity_type'];
         }
 
         if (!empty($filters['entity_id'])) {
-            $sql .= " AND entity_id = :entity_id";
+            $sql .= " AND sa.entity_id = :entity_id";
             $params[':entity_id'] = (int) $filters['entity_id'];
         }
 
         if (!empty($filters['severity'])) {
-            $sql .= " AND severity = :severity";
+            $sql .= " AND sa.severity = :severity";
             $params[':severity'] = $filters['severity'];
         }
 
         if (!empty($filters['start_date'])) {
-            $sql .= " AND created_at >= :start_date";
+            $sql .= " AND sa.created_at >= :start_date";
             $params[':start_date'] = $filters['start_date'];
         }
 
         if (!empty($filters['end_date'])) {
-            $sql .= " AND created_at <= :end_date";
+            $sql .= " AND sa.created_at <= :end_date";
             $params[':end_date'] = $filters['end_date'] . ' 23:59:59';
+        }
+
+        if (isset($filters['q']) && trim($filters['q']) !== '') {
+            $sql .= " AND (sa.activity_type LIKE :search1 OR sa.description LIKE :search2 OR u.first_name LIKE :search3 OR u.last_name LIKE :search4 OR u.email LIKE :search5)";
+            $searchVal = '%' . $filters['q'] . '%';
+            $params[':search1'] = $searchVal;
+            $params[':search2'] = $searchVal;
+            $params[':search3'] = $searchVal;
+            $params[':search4'] = $searchVal;
+            $params[':search5'] = $searchVal;
         }
 
         $stmt = $this->db->prepare($sql);
