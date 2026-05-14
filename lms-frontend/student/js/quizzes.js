@@ -956,22 +956,34 @@
 
     const quiz = S.take.quiz;
     const quizId = quizIdOf(quiz);
-    const entries = Object.entries(S.take.answers || {});
-    const answers = entries
-      .map(([questionId, answer]) => ({
-        question_id: toNumber(questionId, 0),
-        answer: String(answer || '').trim(),
-      }))
-      .filter((row) => row.question_id > 0 && row.answer !== '');
+    // Count answered vs unanswered
+    const totalQuestions = Array.isArray(S.take.questions) ? S.take.questions.length : 0;
+    const answeredCount = Object.entries(S.take.answers || {}).filter(([, v]) => String(v || '').trim() !== '').length;
+    const unansweredCount = Math.max(0, totalQuestions - answeredCount);
 
-    if (!answers.length && !isAutoSubmit) {
-      const shouldContinue = await showPopup('You have not answered any question yet. Submit anyway?', {
-        title: 'Submit Empty Attempt?',
-        confirmText: 'Submit',
-        cancelText: 'Keep Editing',
+    if (unansweredCount > 0 && !isAutoSubmit) {
+      await showPopup('You have ' + String(unansweredCount) + ' unanswered question' + (unansweredCount === 1 ? '' : 's') + '. Please answer all questions before submitting.', {
+        title: 'Unanswered Questions',
+        confirmText: 'OK',
+        showCancel: false,
       });
-      if (!shouldContinue) return;
+      return;
     }
+
+    // Build payload for submission. For each question include either the provided answer,
+    // or if this is an auto-submit include a placeholder { answer: null, is_correct: 1 }.
+    const questionsPayload = (Array.isArray(S.take.questions) ? S.take.questions : []).map((q, idx) => {
+      const qid = toNumber(q.question_id || q.id || (idx + 1), 0);
+      const raw = (S.take.answers && (S.take.answers[String(qid)] !== undefined)) ? S.take.answers[String(qid)] : '';
+      const trimmed = String(raw == null ? '' : raw).trim();
+      if (trimmed !== '') {
+        return { question_id: qid, answer: trimmed };
+      }
+      if (isAutoSubmit) {
+        return { question_id: qid, answer: null, is_correct: 1 };
+      }
+      return null;
+    }).filter((r) => r && r.question_id > 0);
 
     S.isSubmitting = true;
     if (E.submitQuizBtn) {
@@ -980,7 +992,7 @@
     }
 
     try {
-      await QuizAPI.submit(S.take.submissionId, { answers: answers });
+      await QuizAPI.submit(S.take.submissionId, { answers: questionsPayload });
       const submissionRes = await QuizAPI.getSubmissionById(S.take.submissionId);
       const payload = submissionRes?.data || submissionRes || {};
       const questionsFromApi = Array.isArray(payload.questions) ? payload.questions : [];

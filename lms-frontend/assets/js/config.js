@@ -9,6 +9,13 @@ const APP_NAME = 'Ghana SHS LMS';
 const _env        = (typeof window !== 'undefined' && window.ENV_CONFIG) || {};
 const APP_ENV     = _env.APP_ENV      || 'development';
 const API_BASE_URL = _env.API_BASE_URL || 'http://192.168.0.184:8000';
+const Mail_HOST = _env.MAIL_HOST;
+const Mail_PORT = _env.MAIL_PORT;
+const Mail_USERNAME = _env.MAIL_USERNAME;
+const Mail_PASSWORD = _env.MAIL_PASSWORD;
+const Mail_FROM_ADDRESS = _env.MAIL_FROM_ADDRESS;
+const Mail_FROM_NAME = _env.MAIL_FROM_NAME;
+
 
 // API Endpoints
 const API_ENDPOINTS = {

@@ -1,0 +1,200 @@
+
+<style>
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.health-item {
+  background: #fff;
+  padding: 20px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.health-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.health-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: auto;
+}
+
+.health-circle svg {
+  width: 100px;
+  height: 100px;
+  transform: rotate(-90deg);
+}
+
+.health-circle circle {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+
+.health-circle .bg {
+  stroke: #e6e6e6;
+}
+
+.health-circle .progress {
+  stroke-dasharray: 239;
+  stroke-dashoffset: 239;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+/* Different colors */
+.progress.db {
+  stroke: #28a745;
+  stroke-dashoffset: calc(239 - (239 * 85) / 100);
+}
+
+.progress.memory {
+  stroke: #17a2b8;
+  stroke-dashoffset: calc(239 - (239 * 62) / 100);
+}
+
+.progress.cpu {
+  stroke: #007bff;
+  stroke-dashoffset: calc(239 - (239 * 45) / 100);
+}
+
+.progress.storage {
+  stroke: #ffc107;
+  stroke-dashoffset: calc(239 - (239 * 73) / 100);
+}
+
+.health-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge-warning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+</style>
+
+           <div class="card-body">
+  <div class="health-grid">
+
+    <!-- Database -->
+    <div class="health-item">
+      <div class="health-label">
+        <i class="fas fa-database"></i>
+        <span>Database</span>
+      <span class="badge badge-success">Healthy</span>
+
+      </div>
+
+
+      <div class="health-circle" data-percent="85">
+        <svg>
+          <circle class="bg" cx="45" cy="45" r="38"></circle>
+          <circle class="progress db" cx="45" cy="45" r="38"></circle>
+        </svg>
+        <div class="health-text">
+          <span id="healthDbValue">85%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Memory -->
+    <div class="health-item">
+      <div class="health-label">
+        <i class="fas fa-memory"></i>
+        <span>Memory Usage</span>
+      <span class="badge badge-success">Healthy</span>
+
+      </div>
+
+
+      <div class="health-circle" data-percent="62">
+        <svg>
+          <circle class="bg" cx="45" cy="45" r="38"></circle>
+          <circle class="progress memory" cx="45" cy="45" r="38"></circle>
+        </svg>
+        <div class="health-text">
+          <span id="healthMemoryValue">62%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CPU -->
+    <div class="health-item">
+      <div class="health-label">
+        <i class="fas fa-microchip"></i>
+        <span>CPU Usage</span>
+      <span class="badge badge-success">Healthy</span>
+
+      </div>
+
+
+      <div class="health-circle" data-percent="45">
+        <svg>
+          <circle class="bg" cx="45" cy="45" r="38"></circle>
+          <circle class="progress cpu" cx="45" cy="45" r="38"></circle>
+        </svg>
+        <div class="health-text">
+          <span id="healthCpuValue">45%</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Storage -->
+    <div class="health-item">
+      <div class="health-label">
+        <i class="fas fa-hdd"></i>
+        <span>Storage</span>
+      <span class="badge badge-warning">Monitor</span>
+
+      </div>
+
+
+      <div class="health-circle" data-percent="73">
+        <svg>
+          <circle class="bg" cx="45" cy="45" r="38"></circle>
+          <circle class="progress storage" cx="45" cy="45" r="38"></circle>
+        </svg>
+        <div class="health-text">
+          <span id="healthStorageValue">73%</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

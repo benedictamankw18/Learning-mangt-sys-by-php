@@ -1058,3 +1058,318 @@ async function uploadPhoto(file) {
       showToast(err.message || 'Photo upload failed.', 'error');
     }
   }
+
+
+
+  dashboard.html#reports:1 Tracking Prevention blocked access to storage for https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css.
+dashboard.html#reports:1 Tracking Prevention blocked access to storage for https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css.
+dashboard.html#reports:1 Tracking Prevention blocked access to storage for https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css.
+dashboard.html#reports:1 Tracking Prevention blocked access to storage for https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css.
+
+system.js:14 System settings script loaded
+reports.js:217 Data: {total_institutions: 9, active_institutions: 8, total_users: 141, total_admins: 12, total_students: 45, …}active_institutions: 8active_subscriptions: 1active_users: 139admins_growth: 100institutions_growth: 0monthly_growth: {institutions: Array(12), users: Array(12)}recent_institutions: (5) [{…}, {…}, {…}, {…}, {…}]subscriptions_growth: 0system_health: cpu: {usage: 0, status: 'healthy'}database: {usage: 1.3, status: 'healthy'}memory: {usage: 0.8, status: 'healthy'}storage: {usage: 96.6, status: 'critical'}[[Prototype]]: Objecttotal_admins: 12total_institutions: 9total_parents: 15total_students: 45total_teachers: 34total_users: 141users_by_role: {students: 45, teachers: 34, parents: 15, admins: 12, super_admins: 6}admins: 12parents: 15students: 45super_admins: 6teachers: 34[[Prototype]]: Objectusers_growth: 100[[Prototype]]: Object
+reports.js:218 Institution Performance Data: undefined
+reports.js:164 Data User growth: (12) [0, 0, 0, 0, 0, 0, 46, 1, 0, 81, 0, 12]
+reports.js:165 Data User growth: (12) [0, 0, 0, 0, 0, 0, 46, 1, 0, 81, 0, 12]
+system.js:42 initializeSystemSettings called, retry: 0
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 1
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 1
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 2
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 2
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 3
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 3
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 4
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 4
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 5
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 5
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 6
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 6
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 7
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 7
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 8
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 8
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 9
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 9
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:53 Settings page elements not found, retrying... 10
+initializeSystemSettings @ system.js:53
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+system.js:42 initializeSystemSettings called, retry: 10
+system.js:48 Found tabs: 0
+system.js:49 Found panels: 0
+system.js:56 Failed to find settings page elements after 10 retries
+initializeSystemSettings @ system.js:56
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:54
+setTimeout
+initializeSystemSettings @ system.js:54
+(anonymous) @ system.js:37
+setTimeout
+(anonymous) @ system.js:36
+requestAnimationFrame
+(anonymous) @ system.js:35
+(anonymous) @ system.js:226
+dashboard.html#reports:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+dashboard.html#reports:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+dashboard.html#reports:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+dashboard.html#reports:1 Uncaught (in promise) AbortError: The play() request was interrupted by a call to pause().
+dashboard.html#reports:1 Uncaught (in promise) AbortError: The play() request was interrupted by a call to pause().
+superadmin.js:496 Navigate to: overview
+dashboard.html#overview:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+superadmin.js:212 Updating system growth chart with data: {institutions: Array(12), users: Array(12)}
+superadmin.js:606 Dashboard data refreshed
+dashboard.html#overview:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+dashboard.html#overview:1 Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.
+
+
+
+if the question is only two it's questions me plus 1 (Score
+1 / 3)  why

@@ -736,6 +736,8 @@
         const quizId = Number(elements.quizId.value || 0);
         const courseId = Number(elements.quizCourseId.value || 0);
         const duration = Number(elements.quizDurationMinutes.value || 0);
+        const start_date = elements.quizStartDate.value ? new Date(elements.quizStartDate.value).toISOString() : null;
+        const end_date = elements.quizEndDate.value ? new Date(elements.quizEndDate.value).toISOString() : null;
 
         if (!courseId) {
             showNotice('Please select a course for this quiz.', 'error');
@@ -745,6 +747,13 @@
         if (!duration || duration < 1) {
             showNotice('Duration must be at least 1 minute.', 'error');
             return;
+        }
+
+        if (start_date && end_date){
+            if(start_date > end_date) {
+                showNotice('Start date cannot be later than end date.', 'error');
+                return;
+            }
         }
 
         const payload = {

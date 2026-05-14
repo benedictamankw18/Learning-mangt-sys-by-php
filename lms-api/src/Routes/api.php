@@ -8,6 +8,9 @@ return [
     'POST /auth/forgot-password' => ['controller' => 'AuthController', 'method' => 'forgotPassword', 'auth' => false],
     'POST /auth/reset-password' => ['controller' => 'AuthController', 'method' => 'resetPassword', 'auth' => false],
 
+    // Public contact form
+    'POST /contact' => ['controller' => 'ContactController', 'method' => 'send', 'auth' => false],
+
     // Auth routes (Protected)
     'GET /auth/me' => ['controller' => 'AuthController', 'method' => 'me', 'auth' => true],
     'POST /auth/logout' => ['controller' => 'AuthController', 'method' => 'logout', 'auth' => false],
