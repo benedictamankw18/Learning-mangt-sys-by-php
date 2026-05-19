@@ -32,7 +32,7 @@ class Database
             $this->connection = new PDO($dsn, $user, $pass, $options);
             $this->runMigrations();
         } catch (PDOException $e) {
-            error_log("Database Connection Error: " . $e->getMessage());
+            log_error("Database Connection Error: " . $e->getMessage());
             throw new Exception("Database connection failed");
         }
     }
@@ -56,7 +56,7 @@ class Database
                 $this->connection->exec($sql);
             } catch (PDOException $e) {
                 // Column already exists or DB version doesn't support IF NOT EXISTS — safe to ignore
-                error_log("Migration skipped: " . $e->getMessage());
+                log_error("Migration skipped: " . $e->getMessage());
             }
         }
 
@@ -69,10 +69,10 @@ class Database
             );
             foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $triggerName) {
                 $this->connection->exec("DROP TRIGGER IF EXISTS `" . str_replace('`', '', $triggerName) . "`");
-                error_log("Dropped recursive trigger on admin_activity: {$triggerName}");
+                log_error("Dropped recursive trigger on admin_activity: {$triggerName}");
             }
         } catch (PDOException $e) {
-            error_log("Trigger cleanup skipped: " . $e->getMessage());
+            log_error("Trigger cleanup skipped: " . $e->getMessage());
         }
     }
 

@@ -64,7 +64,7 @@ class GradeReportController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('GradeReportController::notifyReportPublished ' . $e->getMessage());
+            log_error('GradeReportController::notifyReportPublished ' . $e->getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ class GradeReportController
                 'link' => '/teacher/dashboard.html#grading',
             ]);
         } catch (\Throwable $e) {
-            error_log('GradeReportController::notifyTeacherOnApproved ' . $e->getMessage());
+            log_error('GradeReportController::notifyTeacherOnApproved ' . $e->getMessage());
         }
     }
 
@@ -141,7 +141,7 @@ class GradeReportController
                     $message .= ' Student: ' . $studentLabel . '.';
                 }
             } catch (\Throwable $e) {
-                error_log('Failed to resolve student name: ' . $e->getMessage());
+                log_error('Failed to resolve student name: ' . $e->getMessage());
                 if ($studentLabel !== '') {
                     $message .= ' Student: ' . $studentLabel . '.';
                 }
@@ -166,7 +166,7 @@ class GradeReportController
                 'link' => '/teacher/dashboard.html#grading',
             ]);
         } catch (\Throwable $notifyError) {
-            error_log('GradeReportController::notifyTeacherForCorrection ' . $notifyError->getMessage());
+            log_error('GradeReportController::notifyTeacherForCorrection ' . $notifyError->getMessage());
         }
     }
 

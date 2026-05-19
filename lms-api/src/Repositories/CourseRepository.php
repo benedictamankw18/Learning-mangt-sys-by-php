@@ -45,7 +45,7 @@ class CourseRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Course Create Error: " . $e->getMessage());
+            log_error("Course Create Error: " . $e->getMessage());
             return null;
         }
     }
@@ -86,7 +86,7 @@ class CourseRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Course Find Error: " . $e->getMessage());
+            log_error("Course Find Error: " . $e->getMessage());
             return null;
         }
     }
@@ -126,7 +126,7 @@ class CourseRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Course Update Error: " . $e->getMessage());
+            log_error("Course Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -137,7 +137,7 @@ class CourseRepository
             $stmt = $this->db->prepare("UPDATE class_subjects SET status = 'archived' WHERE course_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Course Delete Error: " . $e->getMessage());
+            log_error("Course Delete Error: " . $e->getMessage());
             return false;
         }
     }
@@ -198,7 +198,7 @@ class CourseRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Courses Error: " . $e->getMessage());
+            log_error("Get All Courses Error: " . $e->getMessage());
             return [];
         }
     }
@@ -224,7 +224,7 @@ class CourseRepository
 
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Courses Error: " . $e->getMessage());
+            log_error("Count Courses Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -258,7 +258,7 @@ class CourseRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Enrolled Students Error: " . $e->getMessage());
+            log_error("Get Enrolled Students Error: " . $e->getMessage());
             return [];
         }
     }
@@ -275,7 +275,7 @@ class CourseRepository
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Course Materials Error: " . $e->getMessage());
+            log_error("Get Course Materials Error: " . $e->getMessage());
             return [];
         }
     }
@@ -292,7 +292,7 @@ class CourseRepository
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Course Assessments Error: " . $e->getMessage());
+            log_error("Get Course Assessments Error: " . $e->getMessage());
             return [];
         }
     }
@@ -316,7 +316,7 @@ class CourseRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result['count'] > 0;
         } catch (\PDOException $e) {
-            error_log("Check Student Enrollment Error: " . $e->getMessage());
+            log_error("Check Student Enrollment Error: " . $e->getMessage());
             return false;
         }
     }

@@ -463,7 +463,7 @@ class AssignmentRepository
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Assignments For Student Error: " . $e->getMessage());
+            log_error("Get Assignments For Student Error: " . $e->getMessage());
             return [];
         }
     }
@@ -484,7 +484,7 @@ class AssignmentRepository
             $stmt->execute(['teacher_id' => $teacherId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Active Assignments Error: " . $e->getMessage());
+            log_error("Count Active Assignments Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -506,7 +506,7 @@ class AssignmentRepository
             $stmt->execute(['teacher_id' => $teacherId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Pending Grades Error: " . $e->getMessage());
+            log_error("Count Pending Grades Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -535,7 +535,7 @@ class AssignmentRepository
             $stmt->execute(['student_id' => $studentId, 'student_id2' => $studentId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Student Pending Assignments Error: " . $e->getMessage());
+            log_error("Count Student Pending Assignments Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -576,7 +576,7 @@ class AssignmentRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Student Pending Assignments Error: " . $e->getMessage());
+            log_error("Get Student Pending Assignments Error: " . $e->getMessage());
             return [];
         }
     }
@@ -612,7 +612,7 @@ class AssignmentRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Student Recent Grades Error: " . $e->getMessage());
+            log_error("Student Recent Grades Error: " . $e->getMessage());
             return [];
         }
     }
@@ -648,7 +648,7 @@ class AssignmentRepository
                 'data'   => array_map('floatval', array_column($rows, 'avg_pct')),
             ];
         } catch (\PDOException $e) {
-            error_log("Student Grade Trend Error: " . $e->getMessage());
+            log_error("Student Grade Trend Error: " . $e->getMessage());
             return ['labels' => [], 'data' => []];
         }
     }
@@ -682,7 +682,7 @@ class AssignmentRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Recent Submissions Error: " . $e->getMessage());
+            log_error("Get Recent Submissions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -704,7 +704,7 @@ class AssignmentRepository
 
             return $result ? $result['title'] : null;
         } catch (\PDOException $e) {
-            error_log('AssignmentRepository::getNameById error: ' . $e->getMessage());
+            log_error('AssignmentRepository::getNameById error: ' . $e->getMessage());
             return null;
         }
     }

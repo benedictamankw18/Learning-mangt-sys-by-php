@@ -51,7 +51,7 @@ class TeacherRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Teacher Create Error: " . $e->getMessage());
+            log_error("Teacher Create Error: " . $e->getMessage());
             return null;
         }
     }
@@ -80,7 +80,7 @@ class TeacherRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Teacher Find Error: " . $e->getMessage());
+            log_error("Teacher Find Error: " . $e->getMessage());
             return null;
         }
     }
@@ -92,7 +92,7 @@ class TeacherRepository
             $stmt->execute(['user_id' => $userId]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Teacher Find By User Error: " . $e->getMessage());
+            log_error("Teacher Find By User Error: " . $e->getMessage());
             return null;
         }
     }
@@ -132,7 +132,7 @@ class TeacherRepository
             $stmt->execute(['uuid' => $uuid]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Teacher Find By UUID Error: " . $e->getMessage());
+            log_error("Teacher Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -159,7 +159,7 @@ class TeacherRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Teacher Update Error: " . $e->getMessage());
+            log_error("Teacher Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -224,7 +224,7 @@ class TeacherRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Teachers Error: " . $e->getMessage());
+            log_error("Get All Teachers Error: " . $e->getMessage());
             return [];
         }
     }
@@ -266,7 +266,7 @@ class TeacherRepository
 
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Teachers Error: " . $e->getMessage());
+            log_error("Count Teachers Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -289,7 +289,7 @@ class TeacherRepository
             $stmt->execute($params);
             return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("isEmployeeIdTaken Error: " . $e->getMessage());
+            log_error("isEmployeeIdTaken Error: " . $e->getMessage());
             return false;
         }
     }
@@ -308,7 +308,7 @@ class TeacherRepository
             $parts = explode('-', $row['employee_id']);
             return (int) end($parts) + 1;
         } catch (\PDOException $e) {
-            error_log("TeacherRepository::getNextIdSequence error: " . $e->getMessage());
+            log_error("TeacherRepository::getNextIdSequence error: " . $e->getMessage());
             return 1;
         }
     }
@@ -324,7 +324,7 @@ class TeacherRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Teachers By Institution Error: " . $e->getMessage());
+            log_error("Count Teachers By Institution Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -342,7 +342,7 @@ class TeacherRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Teachers This Month Error: " . $e->getMessage());
+            log_error("Count Teachers This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -360,7 +360,7 @@ class TeacherRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Teachers Last Month Error: " . $e->getMessage());
+            log_error("Count Teachers Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -398,7 +398,7 @@ class TeacherRepository
             $stmt->execute(['teacher_id' => $teacherId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Teacher Courses Error: " . $e->getMessage());
+            log_error("Get Teacher Courses Error: " . $e->getMessage());
             return [];
         }
     }
@@ -443,7 +443,7 @@ class TeacherRepository
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Teacher Schedule Error: " . $e->getMessage());
+            log_error("Get Teacher Schedule Error: " . $e->getMessage());
             return [];
         }
     }
@@ -476,7 +476,7 @@ class TeacherRepository
             $data   = array_map('floatval', array_column($rows, 'avg_score'));
             return compact('labels', 'data');
         } catch (\PDOException $e) {
-            error_log("Class Performance Chart Error: " . $e->getMessage());
+            log_error("Class Performance Chart Error: " . $e->getMessage());
             return ['labels' => [], 'data' => []];
         }
     }
@@ -495,7 +495,7 @@ class TeacherRepository
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             $institutionId = $row ? (int)$row['institution_id'] : null;
         } catch (\PDOException $e) {
-            error_log("Performance institution lookup error: " . $e->getMessage());
+            log_error("Performance institution lookup error: " . $e->getMessage());
         }
 
         // 1. Average scores per course (reuse existing logic)
@@ -522,7 +522,7 @@ class TeacherRepository
                 ];
             }
         } catch (\PDOException $e) {
-            error_log("Performance attendance error: " . $e->getMessage());
+            log_error("Performance attendance error: " . $e->getMessage());
         }
 
         // 3. Grade distribution — dynamic from grade_scales table.
@@ -566,7 +566,7 @@ class TeacherRepository
                 $grade_dist['data']   = array_map('intval', array_column($rows, 'cnt'));
             }
         } catch (\PDOException $e) {
-            error_log("Performance grade dist error: " . $e->getMessage());
+            log_error("Performance grade dist error: " . $e->getMessage());
         }
 
         // 4. Submission rate per assignment (last 10 active assignments)
@@ -604,7 +604,7 @@ class TeacherRepository
                     : 0;
             }
         } catch (\PDOException $e) {
-            error_log("Performance submission error: " . $e->getMessage());
+            log_error("Performance submission error: " . $e->getMessage());
         }
 
         return compact('avg_scores', 'attendance', 'grade_dist', 'submissions', 'submission_rate');

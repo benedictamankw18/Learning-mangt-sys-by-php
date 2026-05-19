@@ -96,7 +96,7 @@ class FinalScoreController
 
             Response::success($payload, 'Final score computed successfully');
         } catch (\Throwable $e) {
-            error_log('FinalScoreController::show ' . $e->getMessage());
+            log_error('FinalScoreController::show ' . $e->getMessage());
             Response::serverError('Failed to compute final score');
         }
     }

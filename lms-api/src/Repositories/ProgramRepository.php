@@ -87,7 +87,7 @@ class ProgramRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Programs Error: " . $e->getMessage());
+            log_error("Get Programs Error: " . $e->getMessage());
             return [];
         }
     }
@@ -142,7 +142,7 @@ class ProgramRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Programs Error: " . $e->getMessage());
+            log_error("Count Programs Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -182,7 +182,7 @@ class ProgramRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Active Programs Error: " . $e->getMessage());
+            log_error("Get Active Programs Error: " . $e->getMessage());
             return [];
         }
     }
@@ -211,7 +211,7 @@ class ProgramRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Program Error: " . $e->getMessage());
+            log_error("Find Program Error: " . $e->getMessage());
             return null;
         }
     }
@@ -247,7 +247,7 @@ class ProgramRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Program Error: " . $e->getMessage());
+            log_error("Create Program Error: " . $e->getMessage());
             if ($e->errorInfo[1] === 1062) {
                 throw new \RuntimeException('Program code already exists', 409);
             }
@@ -292,7 +292,7 @@ class ProgramRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Program Error: " . $e->getMessage());
+            log_error("Update Program Error: " . $e->getMessage());
             return false;
         }
     }
@@ -309,7 +309,7 @@ class ProgramRepository
             $stmt = $this->db->prepare("DELETE FROM programs WHERE program_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Program Error: " . $e->getMessage());
+            log_error("Delete Program Error: " . $e->getMessage());
             return false;
         }
     }
@@ -338,7 +338,7 @@ class ProgramRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Program Classes Error: " . $e->getMessage());
+            log_error("Get Program Classes Error: " . $e->getMessage());
             return [];
         }
     }

@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../vendor/autoload.php';
+// Load global helpers (functions)
+require_once __DIR__ . '/../src/Utils/helpers.php';
 
 use Dotenv\Dotenv;
 use App\Middleware\AuthMiddleware;
@@ -22,7 +24,11 @@ header('Content-Type: application/json');
 
 // Error handler for uncaught exceptions
 set_exception_handler(function ($exception) {
-    error_log("Uncaught Exception: " . $exception->getMessage());
+    if (function_exists('log_error')) {
+        log_error('Uncaught Exception: ' . $exception->getMessage(), ['exception' => $exception->getMessage(), 'trace' => $exception->getTraceAsString()]);
+    } else {
+        error_log("Uncaught Exception: " . $exception->getMessage());
+    }
     Response::serverError('An unexpected error occurred');
 });
 
@@ -152,7 +158,11 @@ try {
     call_user_func_array([$controller, $methodName], $args);
 
 } catch (Exception $e) {
-    error_log("Controller Error: " . $e->getMessage());
+    if (function_exists('log_error')) {
+        log_error('Controller Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+    } else {
+        error_log("Controller Error: " . $e->getMessage());
+    }
     Response::serverError('An error occurred processing your request');
 }
 

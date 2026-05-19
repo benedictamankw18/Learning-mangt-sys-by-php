@@ -105,7 +105,7 @@ class QuizController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('QuizController::notifyQuizActivated error: ' . $e->getMessage());
+            log_error('QuizController::notifyQuizActivated error: ' . $e->getMessage());
         }
     }
 
@@ -180,7 +180,7 @@ class QuizController
                         ]);
                     }
                 } catch (\Throwable $e) {
-                    error_log('QuizController::notifyQuizDeactivated error: ' . $e->getMessage());
+                    log_error('QuizController::notifyQuizDeactivated error: ' . $e->getMessage());
                 }
             }
 
@@ -264,7 +264,7 @@ class QuizController
                         }
                     }
                 } catch (\Throwable $e) {
-                    error_log('QuizController::notifyQuizDueDates error: ' . $e->getMessage());
+                    log_error('QuizController::notifyQuizDueDates error: ' . $e->getMessage());
                 }
             }
 
@@ -333,7 +333,7 @@ class QuizController
                         }
                     }
                 } catch (\Throwable $e) {
-                    error_log('QuizController::notifyQuizSubmitted error: ' . $e->getMessage());
+                    log_error('QuizController::notifyQuizSubmitted error: ' . $e->getMessage());
                 }
             }
 
@@ -382,7 +382,7 @@ class QuizController
                         'link' => '/student/dashboard.html#quizzes',
                     ]);
                 } catch (\Throwable $e) {
-                    error_log('QuizController::notifyQuizInProgress error: ' . $e->getMessage());
+                    log_error('QuizController::notifyQuizInProgress error: ' . $e->getMessage());
                 }
             }
             

@@ -126,7 +126,7 @@ class ChatRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getRoomsForUser error: ' . $e->getMessage());
+            log_error('ChatRepository::getRoomsForUser error: ' . $e->getMessage());
             return [];
         }
     }
@@ -147,7 +147,7 @@ class ChatRepository
             $room = $stmt->fetch(PDO::FETCH_ASSOC);
             return $room ?: null;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::findRoomByUuid error: ' . $e->getMessage());
+            log_error('ChatRepository::findRoomByUuid error: ' . $e->getMessage());
             return null;
         }
     }
@@ -159,7 +159,7 @@ class ChatRepository
             $stmt->execute(['room_id' => $roomId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getRoomMembers error: ' . $e->getMessage());
+            log_error('ChatRepository::getRoomMembers error: ' . $e->getMessage());
             return [];
         }
     }
@@ -176,7 +176,7 @@ class ChatRepository
             $role = $stmt->fetchColumn();
             return $role !== false ? (string) $role : null;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getRoomMemberRole error: ' . $e->getMessage());
+            log_error('ChatRepository::getRoomMemberRole error: ' . $e->getMessage());
             return null;
         }
     }
@@ -195,7 +195,7 @@ class ChatRepository
             $room = $stmt->fetch(PDO::FETCH_ASSOC);
             return $room ?: null;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::findDirectRoom error: ' . $e->getMessage());
+            log_error('ChatRepository::findDirectRoom error: ' . $e->getMessage());
             return null;
         }
     }
@@ -232,7 +232,7 @@ class ChatRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('ChatRepository::createDirectRoom error: ' . $e->getMessage());
+            log_error('ChatRepository::createDirectRoom error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -274,7 +274,7 @@ class ChatRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('ChatRepository::createGroupRoom error: ' . $e->getMessage());
+            log_error('ChatRepository::createGroupRoom error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -309,7 +309,7 @@ class ChatRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::updateRoom error: ' . $e->getMessage());
+            log_error('ChatRepository::updateRoom error: ' . $e->getMessage());
             return false;
         }
     }
@@ -324,7 +324,7 @@ class ChatRepository
                 'member_role' => $role,
             ]);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::addMember error: ' . $e->getMessage());
+            log_error('ChatRepository::addMember error: ' . $e->getMessage());
             return false;
         }
     }
@@ -338,7 +338,7 @@ class ChatRepository
                 'user_id' => $userId,
             ]);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::removeMember error: ' . $e->getMessage());
+            log_error('ChatRepository::removeMember error: ' . $e->getMessage());
             return false;
         }
     }
@@ -373,7 +373,7 @@ class ChatRepository
 
             return array_reverse($messages);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getMessages error: ' . $e->getMessage());
+            log_error('ChatRepository::getMessages error: ' . $e->getMessage());
             return [];
         }
     }
@@ -425,7 +425,7 @@ class ChatRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('ChatRepository::sendMessage error: ' . $e->getMessage());
+            log_error('ChatRepository::sendMessage error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -442,7 +442,7 @@ class ChatRepository
             $message = $stmt->fetch(PDO::FETCH_ASSOC);
             return $message ?: null;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::findMessageByUuid error: ' . $e->getMessage());
+            log_error('ChatRepository::findMessageByUuid error: ' . $e->getMessage());
             return null;
         }
     }
@@ -458,7 +458,7 @@ class ChatRepository
             $stmt->execute(['message_id' => $messageId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getMessageAttachments error: ' . $e->getMessage());
+            log_error('ChatRepository::getMessageAttachments error: ' . $e->getMessage());
             return [];
         }
     }
@@ -478,7 +478,7 @@ class ChatRepository
                 'message_id' => $messageId,
             ]);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::updateMessage error: ' . $e->getMessage());
+            log_error('ChatRepository::updateMessage error: ' . $e->getMessage());
             return false;
         }
     }
@@ -507,7 +507,7 @@ class ChatRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('ChatRepository::markMessageRead error: ' . $e->getMessage());
+            log_error('ChatRepository::markMessageRead error: ' . $e->getMessage());
             return false;
         }
     }
@@ -539,7 +539,7 @@ class ChatRepository
 
             return $grouped;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getAttachmentsByMessageIds error: ' . $e->getMessage());
+            log_error('ChatRepository::getAttachmentsByMessageIds error: ' . $e->getMessage());
             return [];
         }
     }
@@ -622,7 +622,7 @@ class ChatRepository
 
             return (int) ($stmt->fetch(PDO::FETCH_ASSOC)['total'] ?? 0);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::countUnreadForUser error: ' . $e->getMessage());
+            log_error('ChatRepository::countUnreadForUser error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -636,7 +636,7 @@ class ChatRepository
                 'user_id' => $userId,
             ]);
         } catch (\PDOException $e) {
-            error_log('ChatRepository::softDeleteMessage error: ' . $e->getMessage());
+            log_error('ChatRepository::softDeleteMessage error: ' . $e->getMessage());
             return false;
         }
     }
@@ -649,7 +649,7 @@ class ChatRepository
             $room = $stmt->fetch(PDO::FETCH_ASSOC);
             return $room['uuid'] ?? null;
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getRoomUuidById error: ' . $e->getMessage());
+            log_error('ChatRepository::getRoomUuidById error: ' . $e->getMessage());
             return null;
         }
     }
@@ -754,7 +754,7 @@ class ChatRepository
                 'unread_count' => $unreadCount,
             ];
         } catch (\PDOException $e) {
-            error_log('ChatRepository::getUnreadMessagesForUser error: ' . $e->getMessage());
+            log_error('ChatRepository::getUnreadMessagesForUser error: ' . $e->getMessage());
             return [
                 'messages' => [],
                 'unread_count' => 0,

@@ -29,7 +29,7 @@ class TeacherSubjectRepository
             $stmt->execute(['teacher_id' => $teacherId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Teacher Subjects Error: " . $e->getMessage());
+            log_error("Get Teacher Subjects Error: " . $e->getMessage());
             return [];
         }
     }
@@ -50,7 +50,7 @@ class TeacherSubjectRepository
             $stmt->execute(['subject_id' => $subjectId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Subject Teachers Error: " . $e->getMessage());
+            log_error("Get Subject Teachers Error: " . $e->getMessage());
             return [];
         }
     }
@@ -71,7 +71,7 @@ class TeacherSubjectRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Teacher Subject Error: " . $e->getMessage());
+            log_error("Find Teacher Subject Error: " . $e->getMessage());
             return null;
         }
     }
@@ -90,7 +90,7 @@ class TeacherSubjectRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Teacher Subject Error: " . $e->getMessage());
+            log_error("Create Teacher Subject Error: " . $e->getMessage());
             return null;
         }
     }
@@ -117,7 +117,7 @@ class TeacherSubjectRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Teacher Subject Error: " . $e->getMessage());
+            log_error("Update Teacher Subject Error: " . $e->getMessage());
             return false;
         }
     }
@@ -128,7 +128,7 @@ class TeacherSubjectRepository
             $stmt = $this->db->prepare("DELETE FROM teacher_subjects WHERE teacher_subject_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Teacher Subject Error: " . $e->getMessage());
+            log_error("Delete Teacher Subject Error: " . $e->getMessage());
             return false;
         }
     }
@@ -147,7 +147,7 @@ class TeacherSubjectRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result['count'] > 0;
         } catch (\PDOException $e) {
-            error_log("Check Teacher Subject Assignment Error: " . $e->getMessage());
+            log_error("Check Teacher Subject Assignment Error: " . $e->getMessage());
             return false;
         }
     }

@@ -45,7 +45,7 @@ class AssessmentRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Assessment Create Error: " . $e->getMessage());
+            log_error("Assessment Create Error: " . $e->getMessage());
             return null;
         }
     }
@@ -66,7 +66,7 @@ class AssessmentRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Assessment Find Error: " . $e->getMessage());
+            log_error("Assessment Find Error: " . $e->getMessage());
             return null;
         }
     }
@@ -93,7 +93,7 @@ class AssessmentRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Assessment Update Error: " . $e->getMessage());
+            log_error("Assessment Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -104,7 +104,7 @@ class AssessmentRepository
             $stmt = $this->db->prepare("DELETE FROM assessments WHERE assessment_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Assessment Delete Error: " . $e->getMessage());
+            log_error("Assessment Delete Error: " . $e->getMessage());
             return false;
         }
     }
@@ -121,7 +121,7 @@ class AssessmentRepository
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Assessments By Course Error: " . $e->getMessage());
+            log_error("Get Assessments By Course Error: " . $e->getMessage());
             return [];
         }
     }
@@ -146,7 +146,7 @@ class AssessmentRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Submit Assessment Error: " . $e->getMessage());
+            log_error("Submit Assessment Error: " . $e->getMessage());
             return null;
         }
     }
@@ -166,7 +166,7 @@ class AssessmentRepository
                 'feedback' => $feedback
             ]);
         } catch (\PDOException $e) {
-            error_log("Grade Submission Error: " . $e->getMessage());
+            log_error("Grade Submission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -198,7 +198,7 @@ class AssessmentRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Submissions Error: " . $e->getMessage());
+            log_error("Get Submissions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -220,7 +220,7 @@ class AssessmentRepository
 
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Student Submission Error: " . $e->getMessage());
+            log_error("Get Student Submission Error: " . $e->getMessage());
             return null;
         }
     }
@@ -237,7 +237,7 @@ class AssessmentRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Submission Error: " . $e->getMessage());
+            log_error("Find Submission Error: " . $e->getMessage());
             return null;
         }
     }
@@ -266,7 +266,7 @@ class AssessmentRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Update Submission Error: " . $e->getMessage());
+            log_error("Update Submission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -277,7 +277,7 @@ class AssessmentRepository
             $stmt = $this->db->prepare("DELETE FROM assessment_submissions WHERE submission_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Submission Error: " . $e->getMessage());
+            log_error("Delete Submission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -306,7 +306,7 @@ class AssessmentRepository
             $stmt->execute(['institution_id' => $institutionId, 'days' => $days]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Upcoming Exams Error: " . $e->getMessage());
+            log_error("Count Upcoming Exams Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -329,7 +329,7 @@ class AssessmentRepository
             $stmt->execute(['teacher_id' => $teacherId, 'days' => $days]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Teacher Upcoming Assessments Error: " . $e->getMessage());
+            log_error("Count Teacher Upcoming Assessments Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -355,7 +355,7 @@ class AssessmentRepository
             $stmt->execute();
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Student Upcoming Assessments Error: " . $e->getMessage());
+            log_error("Count Student Upcoming Assessments Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -469,7 +469,7 @@ class AssessmentRepository
                 'formula' => 'SUM((category_score/category_max_score)*category_weight)',
             ];
         } catch (\PDOException $e) {
-            error_log("Compute Published Final Score Error: " . $e->getMessage());
+            log_error("Compute Published Final Score Error: " . $e->getMessage());
             return [
                 'complete' => false,
                 'missing_categories' => [],
@@ -500,7 +500,7 @@ class AssessmentRepository
 
             return $result ? $result['title'] : null;
         } catch (\PDOException $e) {
-            error_log('AssessmentRepository::getNameById error: ' . $e->getMessage());
+            log_error('AssessmentRepository::getNameById error: ' . $e->getMessage());
             return null;
         }
     }

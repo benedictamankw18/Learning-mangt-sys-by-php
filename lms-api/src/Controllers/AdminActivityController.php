@@ -75,7 +75,7 @@ class AdminActivityController
                 ],
             ]);
         } catch (\Exception $e) {
-            error_log('AdminActivity index error: ' . $e->getMessage());
+            log_error('AdminActivity index error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities');
         }
     }
@@ -134,9 +134,13 @@ class AdminActivityController
                 'severity'       => $body['severity'] ?? 'info',
             ]);
 
+            if (function_exists('log_audit')) {
+                log_audit('Activity logged by admin', ['activity_id' => $activityId, 'activity_type' => $body['activity_type'], 'user_id' => $user['user_id']]);
+            }
+
             Response::success(['activity_id' => $activityId], 'Activity logged successfully');
         } catch (\Exception $e) {
-            error_log('AdminActivity store error: ' . $e->getMessage());
+            log_error('AdminActivity store error: ' . $e->getMessage());
             Response::serverError('Failed to log activity');
         }
     }
@@ -171,7 +175,7 @@ class AdminActivityController
 
             Response::success($activity);
         } catch (\Exception $e) {
-            error_log('AdminActivity show error: ' . $e->getMessage());
+            log_error('AdminActivity show error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity');
         }
     }
@@ -195,7 +199,7 @@ class AdminActivityController
 
             Response::success($this->repo->getRecent($institutionId, $limit));
         } catch (\Exception $e) {
-            error_log('AdminActivity recent error: ' . $e->getMessage());
+            log_error('AdminActivity recent error: ' . $e->getMessage());
             Response::serverError('Failed to fetch recent activities');
         }
     }
@@ -221,7 +225,7 @@ class AdminActivityController
 
             Response::success($this->repo->getByType($institutionId, $type, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('AdminActivity byType error: ' . $e->getMessage());
+            log_error('AdminActivity byType error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by type');
         }
     }
@@ -253,7 +257,7 @@ class AdminActivityController
 
             Response::success($this->repo->getBySeverity($institutionId, $severity, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('AdminActivity bySeverity error: ' . $e->getMessage());
+            log_error('AdminActivity bySeverity error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by severity');
         }
     }
@@ -279,7 +283,7 @@ class AdminActivityController
 
             Response::success($this->repo->getByPerformer($institutionId, $userId, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('AdminActivity byPerformer error: ' . $e->getMessage());
+            log_error('AdminActivity byPerformer error: ' . $e->getMessage());
             Response::serverError('Failed to fetch performer activities');
         }
     }
@@ -301,7 +305,7 @@ class AdminActivityController
         try {
             Response::success($this->repo->getStats($institutionId));
         } catch (\Exception $e) {
-            error_log('AdminActivity stats error: ' . $e->getMessage());
+            log_error('AdminActivity stats error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity statistics');
         }
     }
@@ -324,12 +328,16 @@ class AdminActivityController
             $days    = max(1, (int) ($_GET['days'] ?? 90));
             $deleted = $this->repo->deleteOlderThan($institutionId, $days);
 
+            if (function_exists('log_audit')) {
+                log_audit('Deleted old admin activities', ['deleted_count' => $deleted, 'days' => $days, 'user_id' => $user['user_id']]);
+            }
+
             Response::success(
                 ['deleted_count' => $deleted],
                 "Deleted {$deleted} activit" . ($deleted === 1 ? 'y' : 'ies') . " older than {$days} day(s)"
             );
         } catch (\Exception $e) {
-            error_log('AdminActivity cleanup error: ' . $e->getMessage());
+            log_error('AdminActivity cleanup error: ' . $e->getMessage());
             Response::serverError('Failed to cleanup activities');
         }
     }

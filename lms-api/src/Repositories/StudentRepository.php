@@ -54,7 +54,7 @@ class StudentRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Student Create Error: " . $e->getMessage());
+            log_error("Student Create Error: " . $e->getMessage());
             return null;
         }
     }
@@ -77,7 +77,7 @@ class StudentRepository
             $stmt->execute($params);
             return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("isStudentIdTaken Error: " . $e->getMessage());
+            log_error("isStudentIdTaken Error: " . $e->getMessage());
             return false;
         }
     }
@@ -104,7 +104,7 @@ class StudentRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Student Find Error: " . $e->getMessage());
+            log_error("Student Find Error: " . $e->getMessage());
             return null;
         }
     }
@@ -116,7 +116,7 @@ class StudentRepository
             $stmt->execute(['user_id' => $userId]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Student Find By User Error: " . $e->getMessage());
+            log_error("Student Find By User Error: " . $e->getMessage());
             return null;
         }
     }
@@ -160,7 +160,7 @@ class StudentRepository
             $stmt->execute(['uuid' => $uuid]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Student Find By UUID Error: " . $e->getMessage());
+            log_error("Student Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -187,7 +187,7 @@ class StudentRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Student Update Error: " . $e->getMessage());
+            log_error("Student Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -263,7 +263,7 @@ class StudentRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Students Error: " . $e->getMessage());
+            log_error("Get All Students Error: " . $e->getMessage());
             return [];
         }
     }
@@ -319,7 +319,7 @@ class StudentRepository
             $stmt->execute($params);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Students Error: " . $e->getMessage());
+            log_error("Count Students Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -335,7 +335,7 @@ class StudentRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Students By Institution Error: " . $e->getMessage());
+            log_error("Count Students By Institution Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -353,7 +353,7 @@ class StudentRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Active Students By Institution Error: " . $e->getMessage());
+            log_error("Count Active Students By Institution Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -371,7 +371,7 @@ class StudentRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Completed Students By Institution Error: " . $e->getMessage());
+            log_error("Count Completed Students By Institution Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -389,7 +389,7 @@ class StudentRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Students This Month Error: " . $e->getMessage());
+            log_error("Count Students This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -407,7 +407,7 @@ class StudentRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Students Last Month Error: " . $e->getMessage());
+            log_error("Count Students Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -421,7 +421,7 @@ class StudentRepository
             ");
             return $stmt->execute(['student_id' => $studentId, 'course_id' => $courseId]);
         } catch (\PDOException $e) {
-            error_log("Course Enrollment Error: " . $e->getMessage());
+            log_error("Course Enrollment Error: " . $e->getMessage());
             return false;
         }
     }
@@ -436,7 +436,7 @@ class StudentRepository
             ");
             return $stmt->execute(['student_id' => $studentId, 'course_id' => $courseId]);
         } catch (\PDOException $e) {
-            error_log("Course Unenrollment Error: " . $e->getMessage());
+            log_error("Course Unenrollment Error: " . $e->getMessage());
             return false;
         }
     }
@@ -458,7 +458,7 @@ class StudentRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Enrollment Error: " . $e->getMessage());
+            log_error("Find Enrollment Error: " . $e->getMessage());
             return null;
         }
     }
@@ -486,7 +486,7 @@ class StudentRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Update Enrollment Error: " . $e->getMessage());
+            log_error("Update Enrollment Error: " . $e->getMessage());
             return false;
         }
     }
@@ -497,7 +497,7 @@ class StudentRepository
             $stmt = $this->db->prepare("DELETE FROM course_enrollments WHERE enrollment_id = :enrollment_id");
             return $stmt->execute(['enrollment_id' => $enrollmentId]);
         } catch (\PDOException $e) {
-            error_log("Delete Enrollment Error: " . $e->getMessage());
+            log_error("Delete Enrollment Error: " . $e->getMessage());
             return false;
         }
     }
@@ -536,7 +536,7 @@ class StudentRepository
             $stmt->execute(['student_id' => $studentId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Enrolled Courses Error: " . $e->getMessage());
+            log_error("Get Enrolled Courses Error: " . $e->getMessage());
             return [];
         }
     }
@@ -573,7 +573,7 @@ class StudentRepository
             $seq = (int) end($parts);
             return $seq + 1;
         } catch (\PDOException $e) {
-            error_log("Get Next ID Sequence Error: " . $e->getMessage());
+            log_error("Get Next ID Sequence Error: " . $e->getMessage());
             return 1;
         }
     }
@@ -625,7 +625,7 @@ class StudentRepository
 
             return $counts; // index 0 = 11 months ago, index 11 = current month
         } catch (\PDOException $e) {
-            error_log("Get Monthly Enrollments Error: " . $e->getMessage());
+            log_error("Get Monthly Enrollments Error: " . $e->getMessage());
             return array_fill(0, 12, 0);
         }
     }
@@ -654,7 +654,7 @@ class StudentRepository
 
             return $result['first_name'] . ' ' . $result['last_name'];
         } catch (\PDOException $e) {
-            error_log('StudentRepository::getNameById error: ' . $e->getMessage());
+            log_error('StudentRepository::getNameById error: ' . $e->getMessage());
             return null;
         }
     }

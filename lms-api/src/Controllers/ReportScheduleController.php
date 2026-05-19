@@ -136,7 +136,7 @@ class ReportScheduleController
                 'link' => '/admin/dashboard.html#reports',
             ]);
         } catch (\Throwable $e) {
-            error_log('ReportScheduleController::notify create ' . $e->getMessage());
+            log_error('ReportScheduleController::notify create ' . $e->getMessage());
         }
 
         Response::success(['schedule' => $schedule], 'Report schedule created');
@@ -190,7 +190,7 @@ class ReportScheduleController
                 'link' => '/admin/dashboard.html#reports',
             ]);
         } catch (\Throwable $e) {
-            error_log('ReportScheduleController::notify update ' . $e->getMessage());
+            log_error('ReportScheduleController::notify update ' . $e->getMessage());
         }
         Response::success(['schedule' => $updated], 'Schedule status updated');
     }

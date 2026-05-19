@@ -38,7 +38,7 @@ class GradeCategoryRepository
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log('Get Grade Categories Error: ' . $e->getMessage());
+            log_error('Get Grade Categories Error: ' . $e->getMessage());
             return [];
         }
     }
@@ -59,7 +59,7 @@ class GradeCategoryRepository
             $row = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $row ?: null;
         } catch (\PDOException $e) {
-            error_log('Find Grade Category Error: ' . $e->getMessage());
+            log_error('Find Grade Category Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -71,7 +71,7 @@ class GradeCategoryRepository
             $status = strtolower(trim((string) ($data['status'] ?? 'active')));
 
             if ($setAsPrimary === 1 && $status === 'inactive') {
-                error_log('Create Grade Category Error: cannot set inactive category as primary');
+                log_error('Create Grade Category Error: cannot set inactive category as primary');
                 return null;
             }
 
@@ -121,7 +121,7 @@ class GradeCategoryRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('Create Grade Category Error: ' . $e->getMessage());
+            log_error('Create Grade Category Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -152,7 +152,7 @@ class GradeCategoryRepository
                 : (int) ($current['set_as_primary'] ?? 0);
 
             if ($nextPrimary === 1 && $nextStatus === 'inactive') {
-                error_log('Update Grade Category Error: cannot set inactive category as primary');
+                log_error('Update Grade Category Error: cannot set inactive category as primary');
                 return false;
             }
 
@@ -204,7 +204,7 @@ class GradeCategoryRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('Update Grade Category Error: ' . $e->getMessage());
+            log_error('Update Grade Category Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -265,7 +265,7 @@ class GradeCategoryRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log('Delete Grade Category Error: ' . $e->getMessage());
+            log_error('Delete Grade Category Error: ' . $e->getMessage());
             return false;
         }
     }

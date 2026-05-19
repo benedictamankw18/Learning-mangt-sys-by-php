@@ -22,7 +22,7 @@ class ReportScheduleRepository extends BaseRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::getAllByInstitution error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::getAllByInstitution error: ' . $e->getMessage());
             return [];
         }
     }
@@ -46,7 +46,7 @@ class ReportScheduleRepository extends BaseRepository
                 return $value !== '';
             }));
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::getAvailableReportTypesByInstitution error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::getAvailableReportTypesByInstitution error: ' . $e->getMessage());
             return [];
         }
     }
@@ -68,7 +68,7 @@ class ReportScheduleRepository extends BaseRepository
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ?: null;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::findByIdForInstitution error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::findByIdForInstitution error: ' . $e->getMessage());
             return null;
         }
     }
@@ -86,7 +86,7 @@ class ReportScheduleRepository extends BaseRepository
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ?: null;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::createSchedule error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::createSchedule error: ' . $e->getMessage());
             return null;
         }
     }
@@ -110,7 +110,7 @@ class ReportScheduleRepository extends BaseRepository
 
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::setActive error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::setActive error: ' . $e->getMessage());
             return false;
         }
     }
@@ -130,7 +130,7 @@ class ReportScheduleRepository extends BaseRepository
 
             return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::deleteForInstitution error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::deleteForInstitution error: ' . $e->getMessage());
             return false;
         }
     }
@@ -151,7 +151,7 @@ class ReportScheduleRepository extends BaseRepository
             $stmt->execute(['as_of' => $asOf]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::getDueSchedules error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::getDueSchedules error: ' . $e->getMessage());
             return [];
         }
     }
@@ -206,7 +206,7 @@ class ReportScheduleRepository extends BaseRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('ReportScheduleRepository::markRunResult error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::markRunResult error: ' . $e->getMessage());
             return false;
         }
     }
@@ -361,7 +361,7 @@ class ReportScheduleRepository extends BaseRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::findRecentRunsBySchedule error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::findRecentRunsBySchedule error: ' . $e->getMessage());
             return [];
         }
     }
@@ -408,7 +408,7 @@ class ReportScheduleRepository extends BaseRepository
                 $period['end_date'] = (string) ($semester['end_date'] ?? $period['end_date']);
             }
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::getCurrentPeriod error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::getCurrentPeriod error: ' . $e->getMessage());
         }
 
         return $period;
@@ -433,7 +433,7 @@ class ReportScheduleRepository extends BaseRepository
             $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
             return $row ? (string) $row['end_date'] : null;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::findNextSemesterEndDate error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::findNextSemesterEndDate error: ' . $e->getMessage());
             return null;
         }
     }
@@ -457,7 +457,7 @@ class ReportScheduleRepository extends BaseRepository
             $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
             return $row ? (string) $row['end_date'] : null;
         } catch (PDOException $e) {
-            error_log('ReportScheduleRepository::findNextAcademicYearEndDate error: ' . $e->getMessage());
+            log_error('ReportScheduleRepository::findNextAcademicYearEndDate error: ' . $e->getMessage());
             return null;
         }
     }

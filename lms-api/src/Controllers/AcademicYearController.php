@@ -33,7 +33,7 @@ class AcademicYearController
                 'link' => '/admin/dashboard.html#academic-years',
             ]);
         } catch (\Throwable $e) {
-            error_log('AcademicYearController::notifyAdminsForAcademicYearChange ' . $e->getMessage());
+            log_error('AcademicYearController::notifyAdminsForAcademicYearChange ' . $e->getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ class AcademicYearController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('AcademicYearController::notifyAllUsersForCurrentAcademicYear ' . $e->getMessage());
+            log_error('AcademicYearController::notifyAllUsersForCurrentAcademicYear ' . $e->getMessage());
         }
     }
 

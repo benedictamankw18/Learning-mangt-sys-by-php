@@ -94,7 +94,7 @@ class CourseController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('CourseController::notifyCourseMaterialChanged ' . $e->getMessage());
+            log_error('CourseController::notifyCourseMaterialChanged ' . $e->getMessage());
         }
     }
 
@@ -126,7 +126,7 @@ class CourseController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('CourseController::notifyTimetableAudience ' . $e->getMessage());
+            log_error('CourseController::notifyTimetableAudience ' . $e->getMessage());
         }
     }
 

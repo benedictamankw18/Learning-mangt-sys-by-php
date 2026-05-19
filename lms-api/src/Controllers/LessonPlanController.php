@@ -68,7 +68,7 @@ class LessonPlanController
                 'link' => '/teacher/dashboard.html#lesson-plans',
             ]);
         } catch (\Throwable $e) {
-            error_log('LessonPlanController::notifyTeacherLessonPlanChanged ' . $e->getMessage());
+            log_error('LessonPlanController::notifyTeacherLessonPlanChanged ' . $e->getMessage());
         }
     }
 

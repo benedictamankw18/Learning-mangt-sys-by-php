@@ -36,7 +36,7 @@ class GradeLevelController
                 'link' => '/admin/dashboard.html#grade-level',
             ]);
         } catch (\Throwable $e) {
-            error_log('GradeLevelController::notifyAdminsForGradeLevelChange ' . $e->getMessage());
+            log_error('GradeLevelController::notifyAdminsForGradeLevelChange ' . $e->getMessage());
         }
     }
 
@@ -170,7 +170,7 @@ class GradeLevelController
                     Response::error('A duplicate grade level already exists in this institution.', 409);
                 }
             } else {
-                error_log('GradeLevelController::create ' . $e->getMessage());
+                log_error('GradeLevelController::create ' . $e->getMessage());
                 Response::serverError('Failed to create grade level');
             }
         }
@@ -250,7 +250,7 @@ class GradeLevelController
                     Response::error('A duplicate grade level already exists in this institution.', 409);
                 }
             } else {
-                error_log('GradeLevelController::update ' . $e->getMessage());
+                log_error('GradeLevelController::update ' . $e->getMessage());
                 Response::serverError('Failed to update grade level');
             }
         }

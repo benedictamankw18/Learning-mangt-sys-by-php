@@ -59,7 +59,7 @@ class SubjectRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log('Get Subjects Error: ' . $e->getMessage());
+            log_error('Get Subjects Error: ' . $e->getMessage());
             return [];
         }
     }
@@ -92,7 +92,7 @@ class SubjectRepository
             $stmt->execute();
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('Count Subjects Error: ' . $e->getMessage());
+            log_error('Count Subjects Error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -105,7 +105,7 @@ class SubjectRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Subject Error: " . $e->getMessage());
+            log_error("Find Subject Error: " . $e->getMessage());
             return null;
         }
     }
@@ -129,7 +129,7 @@ class SubjectRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Subject By UUID Error: " . $e->getMessage());
+            log_error("Find Subject By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -157,7 +157,7 @@ class SubjectRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Subject Error: " . $e->getMessage());
+            log_error("Create Subject Error: " . $e->getMessage());
             if ($e->errorInfo[1] === 1062) {
                 throw new \RuntimeException('Subject code already exists', 409);
             }
@@ -187,7 +187,7 @@ class SubjectRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Subject Error: " . $e->getMessage());
+            log_error("Update Subject Error: " . $e->getMessage());
             return false;
         }
     }
@@ -198,7 +198,7 @@ class SubjectRepository
             $stmt = $this->db->prepare("DELETE FROM subjects WHERE subject_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Subject Error: " . $e->getMessage());
+            log_error("Delete Subject Error: " . $e->getMessage());
             return false;
         }
     }
@@ -209,7 +209,7 @@ class SubjectRepository
             $stmt = $this->db->query("SELECT * FROM subjects WHERE is_core = 1 ORDER BY subject_code");
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Core Subjects Error: " . $e->getMessage());
+            log_error("Get Core Subjects Error: " . $e->getMessage());
             return [];
         }
     }

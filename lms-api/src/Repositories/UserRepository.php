@@ -111,7 +111,11 @@ class UserRepository
                 'status' => 'active'
             ]);
         } catch (\PDOException $e) {
-            error_log("Ensure Admin Record Error: " . $e->getMessage());
+            if (function_exists('log_error')) {
+                log_error('Ensure Admin Record Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("Ensure Admin Record Error: " . $e->getMessage());
+            }
             return false;
         }
     }
@@ -201,7 +205,11 @@ class UserRepository
                 'alternative_email' => $u['email'] ?? null,
             ]);
         } catch (\PDOException $e) {
-            error_log("Ensure Teacher Record Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('Ensure Teacher Record Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("Ensure Teacher Record Error: " . $e->getMessage());
+                }
             return false;
         }
     }
@@ -274,7 +282,11 @@ class UserRepository
                 'guardian_id'    => $guardianId,
             ]);
         } catch (\PDOException $e) {
-            error_log("Ensure Parent Record Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('Ensure Parent Record Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("Ensure Parent Record Error: " . $e->getMessage());
+                }
             return false;
         }
     }
@@ -364,7 +376,11 @@ class UserRepository
                 'status'          => 'active',
             ]);
         } catch (\PDOException $e) {
-            error_log("Ensure Student Record Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('Ensure Student Record Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("Ensure Student Record Error: " . $e->getMessage());
+                }
             return false;
         }
     }
@@ -405,9 +421,17 @@ class UserRepository
                 'is_active' => $data['is_active'] ?? 1
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $id = (int) $this->db->lastInsertId();
+            if (function_exists('log_audit')) {
+                log_audit('User created', ['user_id' => $id, 'username' => $data['username'] ?? null, 'email' => $data['email'] ?? null]);
+            }
+            return $id;
         } catch (\PDOException $e) {
-            error_log("User Create Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('User Create Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("User Create Error: " . $e->getMessage());
+                }
             return null;
         }
     }
@@ -476,7 +500,11 @@ class UserRepository
 
             return $user ?: null;
         } catch (\PDOException $e) {
-            error_log("User Find Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('User Find Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("User Find Error: " . $e->getMessage());
+                }
             return null;
         }
     }
@@ -488,7 +516,11 @@ class UserRepository
             $stmt->execute(['email' => $email]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("User Find By Email Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('User Find By Email Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("User Find By Email Error: " . $e->getMessage());
+                }
             return null;
         }
     }
@@ -516,7 +548,11 @@ class UserRepository
             $stmt->execute($params);
             return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("isUsernameTaken Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('isUsernameTaken Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("isUsernameTaken Error: " . $e->getMessage());
+                }
             return false;
         }
     }
@@ -545,7 +581,11 @@ class UserRepository
             $stmt->execute($params);
             return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("isEmailTaken Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('isEmailTaken Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("isEmailTaken Error: " . $e->getMessage());
+                }
             return false;
         }
     }
@@ -557,7 +597,11 @@ class UserRepository
             $stmt->execute(['username' => $username]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("User Find By Username Error: " . $e->getMessage());
+                if (function_exists('log_error')) {
+                    log_error('User Find By Username Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+                } else {
+                    log_error("User Find By Username Error: " . $e->getMessage());
+                }
             return null;
         }
     }
@@ -603,7 +647,7 @@ class UserRepository
 
             return $user ?: null;
         } catch (\PDOException $e) {
-            error_log("User Find By UUID Error: " . $e->getMessage());
+            log_error("User Find By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -616,7 +660,7 @@ class UserRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ? $result['password_hash'] : null;
         } catch (\PDOException $e) {
-            error_log("User Get Password Hash Error: " . $e->getMessage());
+            log_error("User Get Password Hash Error: " . $e->getMessage());
             return null;
         }
     }
@@ -723,10 +767,14 @@ class UserRepository
                 $this->db->prepare($sql)->execute($parentParams);
             }
 
-            return $userUpdated || !empty($adminData) || !empty($teacherData) || !empty($studentData) || !empty($parentData);
+            $result = $userUpdated || !empty($adminData) || !empty($teacherData) || !empty($studentData) || !empty($parentData);
+            if ($result && function_exists('log_audit')) {
+                log_audit('User updated', ['user_id' => $id]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
-            error_log("User Update Error: " . $e->getMessage());
+            log_error("User Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -740,7 +788,7 @@ class UserRepository
                 'password' => password_hash($newPassword, PASSWORD_BCRYPT)
             ]);
         } catch (\PDOException $e) {
-            error_log("Password Update Error: " . $e->getMessage());
+            log_error("Password Update Error: " . $e->getMessage());
             return false;
         }
     }
@@ -749,9 +797,13 @@ class UserRepository
     {
         try {
             $stmt = $this->db->prepare("UPDATE users SET is_active = 0, deleted_at = NOW() WHERE user_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $res = $stmt->execute(['id' => $id]);
+            if ($res && function_exists('log_audit')) {
+                log_audit('User deleted', ['user_id' => $id]);
+            }
+            return $res;
         } catch (\PDOException $e) {
-            error_log("User Delete Error: " . $e->getMessage());
+            log_error("User Delete Error: " . $e->getMessage());
             return false;
         }
     }
@@ -809,7 +861,7 @@ class UserRepository
                 if ($this->db->inTransaction()) {
                     $this->db->rollBack();
                 }
-            error_log("Assign Role Error: " . $e->getMessage());
+            log_error("Assign Role Error: " . $e->getMessage());
             return false;
         }
     }
@@ -822,7 +874,7 @@ class UserRepository
             ");
             return $stmt->execute(['user_id' => $userId, 'role_id' => $roleId]);
         } catch (\PDOException $e) {
-            error_log("Remove Role Error: " . $e->getMessage());
+            log_error("Remove Role Error: " . $e->getMessage());
             return false;
         }
     }
@@ -859,7 +911,7 @@ class UserRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log("Get All Users Error: " . $e->getMessage());
+            log_error("Get All Users Error: " . $e->getMessage());
             return [];
         }
     }
@@ -900,7 +952,7 @@ class UserRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log("Get Users By Role Error: " . $e->getMessage());
+            log_error("Get Users By Role Error: " . $e->getMessage());
             return [];
         }
     }
@@ -930,7 +982,7 @@ class UserRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log("Get Users By Institution Error: " . $e->getMessage());
+            log_error("Get Users By Institution Error: " . $e->getMessage());
             return [];
         }
     }
@@ -941,7 +993,7 @@ class UserRepository
             $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL");
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users Error: " . $e->getMessage());
+            log_error("Count Users Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -952,7 +1004,7 @@ class UserRepository
             $stmt = $this->db->query("SELECT COUNT(*) FROM users WHERE deleted_at IS NULL AND is_active = 1");
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Active Users Error: " . $e->getMessage());
+            log_error("Count Active Users Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -964,7 +1016,7 @@ class UserRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users By Institution Error: " . $e->getMessage());
+            log_error("Count Users By Institution Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -989,7 +1041,7 @@ class UserRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Inactive Users Error: " . $e->getMessage());
+            log_error("Count Inactive Users Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1008,7 +1060,7 @@ class UserRepository
             $stmt->execute(['role_name' => $roleName]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users By Role Error: " . $e->getMessage());
+            log_error("Count Users By Role Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1102,7 +1154,7 @@ class UserRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log('getChatCandidates error: ' . $e->getMessage());
+            log_error('getChatCandidates error: ' . $e->getMessage());
             return [];
         }
     }
@@ -1174,7 +1226,7 @@ class UserRepository
             $stmt->execute();
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('countChatCandidates error: ' . $e->getMessage());
+            log_error('countChatCandidates error: ' . $e->getMessage());
             return 0;
         }
     }
@@ -1246,7 +1298,7 @@ class UserRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log("Get Users By Role Filtered Error: " . $e->getMessage());
+            log_error("Get Users By Role Filtered Error: " . $e->getMessage());
             return [];
         }
     }
@@ -1292,7 +1344,7 @@ class UserRepository
                 return (int) ($row['user_id'] ?? 0);
             }, $rows)));
         } catch (\PDOException $e) {
-            error_log("Get Announcement Recipient IDs Error: " . $e->getMessage());
+            log_error("Get Announcement Recipient IDs Error: " . $e->getMessage());
             return [];
         }
     }
@@ -1344,7 +1396,7 @@ class UserRepository
 
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users By Role Filtered Error: " . $e->getMessage());
+            log_error("Count Users By Role Filtered Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1361,7 +1413,7 @@ class UserRepository
             ");
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users Created This Month Error: " . $e->getMessage());
+            log_error("Count Users Created This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1378,7 +1430,7 @@ class UserRepository
             ");
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users Created Last Month Error: " . $e->getMessage());
+            log_error("Count Users Created Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1399,7 +1451,7 @@ class UserRepository
             $stmt->execute(['role_name' => $roleName]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users By Role This Month Error: " . $e->getMessage());
+            log_error("Count Users By Role This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1420,7 +1472,7 @@ class UserRepository
             $stmt->execute(['role_name' => $roleName]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Users By Role Last Month Error: " . $e->getMessage());
+            log_error("Count Users By Role Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -1468,7 +1520,7 @@ class UserRepository
 
             return $counts; // index 0 = 11 months ago, index 11 = current month
         } catch (\PDOException $e) {
-            error_log("Get Monthly Users Error: " . $e->getMessage());
+            log_error("Get Monthly Users Error: " . $e->getMessage());
             return array_fill(0, 12, 0);
         }
     }
@@ -1480,7 +1532,7 @@ class UserRepository
             $stmt->execute(['role_name' => strtolower($roleName)]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Role By Name Error: " . $e->getMessage());
+            log_error("Get Role By Name Error: " . $e->getMessage());
             return null;
         }
     }
@@ -1492,7 +1544,7 @@ class UserRepository
             $stmt->execute(['role_id' => $roleId]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Role By ID Error: " . $e->getMessage());
+            log_error("Get Role By ID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -1511,7 +1563,7 @@ class UserRepository
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
             ]);
         } catch (\PDOException $e) {
-            error_log("Log Activity Error: " . $e->getMessage());
+            log_error("Log Activity Error: " . $e->getMessage());
             return false;
         }
     }
@@ -1556,7 +1608,7 @@ class UserRepository
 
             return $result ? $token : null;
         } catch (\PDOException $e) {
-            error_log("Create Password Reset Token Error: " . $e->getMessage());
+            log_error("Create Password Reset Token Error: " . $e->getMessage());
             return null;
         }
     }
@@ -1583,7 +1635,7 @@ class UserRepository
             $stmt->execute(['token' => $token]);
             return $stmt->fetch(\PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Validate Password Reset Token Error: " . $e->getMessage());
+            log_error("Validate Password Reset Token Error: " . $e->getMessage());
             return null;
         }
     }
@@ -1605,7 +1657,7 @@ class UserRepository
 
             return $stmt->execute(['token' => $token]);
         } catch (\PDOException $e) {
-            error_log("Mark Token As Used Error: " . $e->getMessage());
+            log_error("Mark Token As Used Error: " . $e->getMessage());
             return false;
         }
     }
@@ -1626,7 +1678,7 @@ class UserRepository
             $stmt->execute();
             return $stmt->rowCount();
         } catch (\PDOException $e) {
-            error_log("Cleanup Expired Tokens Error: " . $e->getMessage());
+            log_error("Cleanup Expired Tokens Error: " . $e->getMessage());
             return 0;
         }
     }

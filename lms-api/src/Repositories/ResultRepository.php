@@ -42,7 +42,7 @@ class ResultRepository
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Student Results Error: " . $e->getMessage());
+            log_error("Get Student Results Error: " . $e->getMessage());
             return [];
         }
     }
@@ -67,7 +67,7 @@ class ResultRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Result Error: " . $e->getMessage());
+            log_error("Find Result Error: " . $e->getMessage());
             return null;
         }
     }
@@ -93,7 +93,7 @@ class ResultRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Result Error: " . $e->getMessage());
+            log_error("Create Result Error: " . $e->getMessage());
             return null;
         }
     }
@@ -120,7 +120,7 @@ class ResultRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Result Error: " . $e->getMessage());
+            log_error("Update Result Error: " . $e->getMessage());
             return false;
         }
     }
@@ -131,7 +131,7 @@ class ResultRepository
             $stmt = $this->db->prepare("DELETE FROM results WHERE result_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Result Error: " . $e->getMessage());
+            log_error("Delete Result Error: " . $e->getMessage());
             return false;
         }
     }
@@ -163,7 +163,7 @@ class ResultRepository
             $stmt->execute($params);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Course Results Error: " . $e->getMessage());
+            log_error("Get Course Results Error: " . $e->getMessage());
             return [];
         }
     }

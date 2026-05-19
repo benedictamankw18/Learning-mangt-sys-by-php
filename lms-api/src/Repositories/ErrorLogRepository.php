@@ -75,7 +75,7 @@ class ErrorLogRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Error Logs Error: " . $e->getMessage());
+            log_error("Get All Error Logs Error: " . $e->getMessage());
             return [];
         }
     }
@@ -126,7 +126,7 @@ class ErrorLogRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Error Logs Error: " . $e->getMessage());
+            log_error("Count Error Logs Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -152,7 +152,7 @@ class ErrorLogRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Error Log Error: " . $e->getMessage());
+            log_error("Find Error Log Error: " . $e->getMessage());
             return null;
         }
     }
@@ -183,7 +183,7 @@ class ErrorLogRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Error Log Error: " . $e->getMessage());
+            log_error("Create Error Log Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -204,7 +204,7 @@ class ErrorLogRepository
                 'resolved_by' => $resolvedBy
             ]);
         } catch (\PDOException $e) {
-            error_log("Mark Error Resolved Error: " . $e->getMessage());
+            log_error("Mark Error Resolved Error: " . $e->getMessage());
             return false;
         }
     }
@@ -218,7 +218,7 @@ class ErrorLogRepository
             $stmt = $this->db->prepare("DELETE FROM error_logs WHERE error_log_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Error Log Error: " . $e->getMessage());
+            log_error("Delete Error Log Error: " . $e->getMessage());
             return false;
         }
     }
@@ -246,7 +246,7 @@ class ErrorLogRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Unresolved Errors Error: " . $e->getMessage());
+            log_error("Get Unresolved Errors Error: " . $e->getMessage());
             return [];
         }
     }
@@ -261,7 +261,7 @@ class ErrorLogRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Unresolved Errors Error: " . $e->getMessage());
+            log_error("Count Unresolved Errors Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -290,7 +290,7 @@ class ErrorLogRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Errors By Severity Error: " . $e->getMessage());
+            log_error("Get Errors By Severity Error: " . $e->getMessage());
             return [];
         }
     }

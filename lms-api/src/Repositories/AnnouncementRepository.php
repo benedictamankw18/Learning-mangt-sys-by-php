@@ -376,7 +376,7 @@ class AnnouncementRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('AnnouncementRepository::markAsRead error: ' . $e->getMessage());
+            log_error('AnnouncementRepository::markAsRead error: ' . $e->getMessage());
             return false;
         }
     }
@@ -507,7 +507,7 @@ class AnnouncementRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Student Announcements Error: " . $e->getMessage());
+            log_error("Get Student Announcements Error: " . $e->getMessage());
             return [];
         }
     }

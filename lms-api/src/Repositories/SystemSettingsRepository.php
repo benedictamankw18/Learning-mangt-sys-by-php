@@ -27,7 +27,7 @@ class SystemSettingsRepository
             $data['updated_at'] = isset($row['updated_at']) ? $row['updated_at'] : null;
             return $data;
         } catch (\PDOException $e) {
-            error_log('Get system settings error: ' . $e->getMessage());
+            log_error('Get system settings error: ' . $e->getMessage());
             return [];
         }
     }
@@ -54,7 +54,7 @@ class SystemSettingsRepository
                 $this->db->rollBack();
             } catch (\Throwable $ex) {
             }
-            error_log('Save system settings error: ' . $e->getMessage());
+            log_error('Save system settings error: ' . $e->getMessage());
             return false;
         }
     }

@@ -416,7 +416,7 @@ class AnnouncementController
                 'link' => $this->resolveAnnouncementLink((string) ($announcement['target_role'] ?? '')),
             ]);
         } catch (\Throwable $e) {
-            error_log('Announcement notification error: ' . $e->getMessage());
+            log_error('Announcement notification error: ' . $e->getMessage());
         }
     }
 

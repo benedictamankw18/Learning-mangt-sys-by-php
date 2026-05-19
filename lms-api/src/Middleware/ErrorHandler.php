@@ -106,7 +106,7 @@ class ErrorHandler
 
             // Also log to file for debugging (optional)
             if (getenv('APP_ENV') === 'development' || getenv('APP_ENV') === 'local') {
-                error_log(sprintf(
+                log_error(sprintf(
                     "[%s] %s in %s:%d\nStack trace:\n%s\nRequest: %s %s\nUser Agent: %s\n",
                     date('Y-m-d H:i:s'),
                     $exception->getMessage(),
@@ -120,8 +120,8 @@ class ErrorHandler
             }
         } catch (Exception $e) {
             // If logging fails, at least log to PHP error log
-            error_log('Failed to log error to database: ' . $e->getMessage());
-            error_log('Original error: ' . $exception->getMessage());
+            log_error('Failed to log error to database: ' . $e->getMessage());
+            log_error('Original error: ' . $exception->getMessage());
         }
     }
 

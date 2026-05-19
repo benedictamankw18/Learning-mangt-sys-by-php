@@ -37,7 +37,7 @@ class AcademicYearRepository
 
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Academic Years Error: " . $e->getMessage());
+            log_error("Get Academic Years Error: " . $e->getMessage());
             return [];
         }
     }
@@ -55,7 +55,7 @@ class AcademicYearRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Academic Years Error: " . $e->getMessage());
+            log_error("Count Academic Years Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -76,7 +76,7 @@ class AcademicYearRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Academic Year Error: " . $e->getMessage());
+            log_error("Find Academic Year Error: " . $e->getMessage());
             return null;
         }
     }
@@ -108,7 +108,7 @@ class AcademicYearRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Create Academic Year Error: " . $e->getMessage());
+            log_error("Create Academic Year Error: " . $e->getMessage());
             return null;
         }
     }
@@ -132,7 +132,7 @@ class AcademicYearRepository
 
             return (bool) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('Exists Academic Year Error: ' . $e->getMessage());
+            log_error('Exists Academic Year Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -212,7 +212,7 @@ public function update(int $id, array $data): bool
             $this->db->rollBack();
         }
 
-        error_log("Update Academic Year Error: " . $e->getMessage());
+        log_error("Update Academic Year Error: " . $e->getMessage());
         return false;
     }
 }
@@ -223,7 +223,7 @@ public function update(int $id, array $data): bool
             $stmt = $this->db->prepare("DELETE FROM academic_years WHERE academic_year_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Academic Year Error: " . $e->getMessage());
+            log_error("Delete Academic Year Error: " . $e->getMessage());
             return false;
         }
     }
@@ -241,7 +241,7 @@ public function update(int $id, array $data): bool
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Current Academic Year Error: " . $e->getMessage());
+            log_error("Get Current Academic Year Error: " . $e->getMessage());
             return null;
         }
     }

@@ -61,7 +61,7 @@ class AttendanceController
                 'link' => '/student/dashboard.html#attendance',
             ]);
         } catch (\Throwable $e) {
-            error_log('AttendanceController::notifyAttendanceMarked ' . $e->getMessage());
+            log_error('AttendanceController::notifyAttendanceMarked ' . $e->getMessage());
         }
     }
 

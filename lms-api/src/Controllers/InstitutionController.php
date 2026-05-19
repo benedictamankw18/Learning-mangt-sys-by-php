@@ -35,7 +35,7 @@ class InstitutionController
                 'link' => '/admin/dashboard.html#institution-settings',
             ]);
         } catch (\Throwable $e) {
-            error_log('InstitutionController::notifyAdminsForInstitutionChange ' . $e->getMessage());
+            log_error('InstitutionController::notifyAdminsForInstitutionChange ' . $e->getMessage());
         }
     }
 
@@ -58,7 +58,7 @@ class InstitutionController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('InstitutionController::notifyTimetablePublished ' . $e->getMessage());
+            log_error('InstitutionController::notifyTimetablePublished ' . $e->getMessage());
         }
     }
 

@@ -115,7 +115,11 @@ class AuthMiddleware
             return $user ?: null;
 
         } catch (\PDOException $e) {
-            error_log("Auth Error: " . $e->getMessage());
+            if (function_exists('log_auth')) {
+                log_auth('Auth Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("Auth Error: " . $e->getMessage());
+            }
             return null;
         }
     }
@@ -137,7 +141,11 @@ class AuthMiddleware
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''
             ]);
         } catch (\PDOException $e) {
-            error_log("Activity Log Error: " . $e->getMessage());
+            if (function_exists('log_access')) {
+                log_access('Activity Log Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("Activity Log Error: " . $e->getMessage());
+            }
         }
     }
 }

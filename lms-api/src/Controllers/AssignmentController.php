@@ -818,7 +818,7 @@ class AssignmentController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('AssignmentController::notifyAlmostDueAssignment error: ' . $e->getMessage());
+            log_error('AssignmentController::notifyAlmostDueAssignment error: ' . $e->getMessage());
         }
     }
 }

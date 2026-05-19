@@ -67,7 +67,11 @@ class JWTHandler
 
             return $decoded;
         } catch (Exception $e) {
-            error_log("JWT Validation Error: " . $e->getMessage());
+            if (function_exists('log_auth')) {
+                log_auth('JWT Validation Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("JWT Validation Error: " . $e->getMessage());
+            }
             return null;
         }
     }

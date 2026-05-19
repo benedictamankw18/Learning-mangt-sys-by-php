@@ -36,7 +36,7 @@ class ProgramController
                 'link' => '/admin/dashboard.html#programs',
             ]);
         } catch (\Throwable $e) {
-            error_log('ProgramController::notifyAdminsForProgramChange ' . $e->getMessage());
+            log_error('ProgramController::notifyAdminsForProgramChange ' . $e->getMessage());
         }
     }
 

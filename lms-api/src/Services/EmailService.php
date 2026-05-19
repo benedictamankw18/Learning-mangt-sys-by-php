@@ -44,16 +44,23 @@ class EmailService
 
             // Enable verbose debug output in development
             if ($_ENV['APP_DEBUG'] === 'true') {
-                $this->mailer->SMTPDebug = SMTP::DEBUG_SERVER;
                 $this->mailer->Debugoutput = function ($str, $level) {
-                    error_log("SMTP Debug [$level]: $str");
+                    if (function_exists('log_email')) {
+                        log_email("SMTP Debug [$level]: $str", ['level' => $level, 'debug' => $str]);
+                    } else {
+                        log_error("SMTP Debug [$level]: $str");
+                    }
                 };
             }
 
             // Character set
             $this->mailer->CharSet = PHPMailer::CHARSET_UTF8;
         } catch (Exception $e) {
-            error_log("Email configuration error: " . $e->getMessage());
+            if (function_exists('log_email')) {
+                log_email('Email configuration error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("Email configuration error: " . $e->getMessage());
+            }
             $this->enabled = false;
         }
     }
@@ -78,7 +85,11 @@ class EmailService
         array $attachments = []
     ): bool {
         if (!$this->enabled) {
-            error_log("Email service is disabled. Configure MAIL_USERNAME and MAIL_PASSWORD in .env");
+            if (function_exists('log_email')) {
+                log_email('Email service is disabled. Configure MAIL_USERNAME and MAIL_PASSWORD in .env');
+            } else {
+                log_error("Email service is disabled. Configure MAIL_USERNAME and MAIL_PASSWORD in .env");
+            }
             return false;
         }
 
@@ -112,13 +123,22 @@ class EmailService
             $result = $this->mailer->send();
 
             if ($result) {
-                error_log("Email sent successfully to: $to");
+                if (function_exists('log_email')) {
+                    log_email("Email sent successfully to: $to", ['to' => $to]);
+                } else {
+                    log_error("Email sent successfully to: $to");
+                }
             }
 
             return $result;
         } catch (Exception $e) {
-            error_log("Email send error: " . $this->mailer->ErrorInfo);
-            error_log("Exception: " . $e->getMessage());
+            if (function_exists('log_email')) {
+                log_email('Email send error: ' . $this->mailer->ErrorInfo, ['errorInfo' => $this->mailer->ErrorInfo]);
+                log_email('Exception while sending email: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                log_error("Email send error: " . $this->mailer->ErrorInfo);
+                log_error("Exception: " . $e->getMessage());
+            }
             return false;
         }
     }

@@ -89,7 +89,7 @@ class RoleRepository
                 'pages' => ceil($total / $limit)
             ];
         } catch (\PDOException $e) {
-            error_log("Get All Roles Error: " . $e->getMessage());
+            log_error("Get All Roles Error: " . $e->getMessage());
             return ['data' => [], 'total' => 0, 'page' => 1, 'limit' => $limit, 'pages' => 0];
         }
     }
@@ -115,7 +115,7 @@ class RoleRepository
 
             return $role ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Role Error: " . $e->getMessage());
+            log_error("Find Role Error: " . $e->getMessage());
             return null;
         }
     }
@@ -135,7 +135,7 @@ class RoleRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Role Error: " . $e->getMessage());
+            log_error("Create Role Error: " . $e->getMessage());
             return null;
         }
     }
@@ -162,7 +162,7 @@ class RoleRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Update Role Error: " . $e->getMessage());
+            log_error("Update Role Error: " . $e->getMessage());
             return false;
         }
     }
@@ -178,7 +178,7 @@ class RoleRepository
             $stmt = $this->db->prepare("DELETE FROM roles WHERE role_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Role Error: " . $e->getMessage());
+            log_error("Delete Role Error: " . $e->getMessage());
             return false;
         }
     }
@@ -192,7 +192,7 @@ class RoleRepository
             ");
             return $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
         } catch (\PDOException $e) {
-            error_log("Assign Permission Error: " . $e->getMessage());
+            log_error("Assign Permission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -205,7 +205,7 @@ class RoleRepository
             ");
             return $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
         } catch (\PDOException $e) {
-            error_log("Remove Permission Error: " . $e->getMessage());
+            log_error("Remove Permission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -224,7 +224,7 @@ class RoleRepository
             $stmt->execute(['role_id' => $roleId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Role Permissions Error: " . $e->getMessage());
+            log_error("Get Role Permissions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -247,7 +247,7 @@ class RoleRepository
 
             return $users;
         } catch (\PDOException $e) {
-            error_log("Get Role Users Error: " . $e->getMessage());
+            log_error("Get Role Users Error: " . $e->getMessage());
             return [];
         }
     }

@@ -36,7 +36,7 @@ abstract class BaseRepository
                 ]
             );
         } catch (PDOException $e) {
-            error_log("Database connection failed: " . $e->getMessage());
+            log_error("Database connection failed: " . $e->getMessage());
             throw new \Exception("Database connection failed");
         }
     }

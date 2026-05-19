@@ -38,7 +38,7 @@ class ClassController
                 'link' => '/admin/dashboard.html#classes',
             ]);
         } catch (\Throwable $e) {
-            error_log('ClassController::notifyAdminsForClassChange ' . $e->getMessage());
+            log_error('ClassController::notifyAdminsForClassChange ' . $e->getMessage());
         }
     }
 
@@ -190,7 +190,7 @@ class ClassController
                     );
                 }
             } else {
-                error_log('Class create error: ' . $e->getMessage());
+                log_error('Class create error: ' . $e->getMessage());
                 Response::serverError('Failed to create class');
             }
         }

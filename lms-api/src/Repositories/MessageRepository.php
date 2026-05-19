@@ -45,7 +45,7 @@ class MessageRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Inbox Error: " . $e->getMessage());
+            log_error("Get Inbox Error: " . $e->getMessage());
             return [];
         }
     }
@@ -80,7 +80,7 @@ class MessageRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Sent Messages Error: " . $e->getMessage());
+            log_error("Get Sent Messages Error: " . $e->getMessage());
             return [];
         }
     }
@@ -113,7 +113,7 @@ class MessageRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Message Error: " . $e->getMessage());
+            log_error("Find Message Error: " . $e->getMessage());
             return null;
         }
     }
@@ -154,7 +154,7 @@ class MessageRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Message By UUID Error: " . $e->getMessage());
+            log_error("Find Message By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -191,7 +191,7 @@ class MessageRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Send Message Error: " . $e->getMessage());
+            log_error("Send Message Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -209,7 +209,7 @@ class MessageRepository
             ");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Mark Message Read Error: " . $e->getMessage());
+            log_error("Mark Message Read Error: " . $e->getMessage());
             return false;
         }
     }
@@ -223,7 +223,7 @@ class MessageRepository
             $stmt = $this->db->prepare("DELETE FROM messages WHERE message_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Message Error: " . $e->getMessage());
+            log_error("Delete Message Error: " . $e->getMessage());
             return false;
         }
     }
@@ -243,7 +243,7 @@ class MessageRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Get Unread Count Error: " . $e->getMessage());
+            log_error("Get Unread Count Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -273,7 +273,7 @@ class MessageRepository
             ]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Conversation Error: " . $e->getMessage());
+            log_error("Get Conversation Error: " . $e->getMessage());
             return [];
         }
     }
@@ -293,7 +293,7 @@ class MessageRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Inbox Error: " . $e->getMessage());
+            log_error("Count Inbox Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -313,7 +313,7 @@ class MessageRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Sent Error: " . $e->getMessage());
+            log_error("Count Sent Error: " . $e->getMessage());
             return 0;
         }
     }

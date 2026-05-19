@@ -67,7 +67,11 @@ class UserController
 
             $emailService->send($email, $subject, $body, $recipientName, $altBody);
         } catch (\Throwable $e) {
-            error_log('User created email notification failed: ' . $e->getMessage());
+            if (function_exists('log_email')) {
+                log_email('User created email notification failed: ' . $e->getMessage(), ['exception' => $e->getMessage(), 'recipient' => $recipient['user_id'] ?? null]);
+            } else {
+                log_error('User created email notification failed: ' . $e->getMessage());
+            }
         }
     }
 
@@ -94,7 +98,11 @@ class UserController
 
             $emailService->sendAccountUpdatedEmail($email, $recipientName, $fields, $actorName);
         } catch (\Throwable $e) {
-            error_log('User updated email notification failed: ' . $e->getMessage());
+            if (function_exists('log_email')) {
+                log_email('User updated email notification failed: ' . $e->getMessage(), ['exception' => $e->getMessage(), 'recipient' => $recipient['user_id'] ?? null]);
+            } else {
+                log_error('User updated email notification failed: ' . $e->getMessage());
+            }
         }
     }
 
@@ -121,7 +129,11 @@ class UserController
                 'link' => '/auth/login.html',
             ]);
         } catch (\Throwable $e) {
-            error_log('User in-app notification failed: ' . $e->getMessage());
+            if (function_exists('log_audit')) {
+                log_audit('User in-app notification failed: ' . $e->getMessage(), ['exception' => $e->getMessage(), 'recipient_id' => $recipientId ?? null]);
+            } else {
+                log_error('User in-app notification failed: ' . $e->getMessage());
+            }
         }
     }
 
@@ -624,7 +636,7 @@ class UserController
 
             Response::serverError('Failed to assign role');
         } catch (\Exception $e) {
-            error_log('Assign Roles Error: ' . $e->getMessage());
+            log_error('Assign Roles Error: ' . $e->getMessage());
             Response::serverError('Failed to assign roles');
         }
     }
@@ -697,7 +709,7 @@ class UserController
                     $results['failed']++;
                 }
             } catch (\Exception $e) {
-                error_log('Bulk action error for user ' . $id . ': ' . $e->getMessage());
+                log_error('Bulk action error for user ' . $id . ': ' . $e->getMessage());
                 $results['failed']++;
             }
         }
@@ -988,7 +1000,7 @@ class UserController
 
             Response::success($activity);
         } catch (\PDOException $e) {
-            error_log("Get User Activity Error: " . $e->getMessage());
+            log_error("Get User Activity Error: " . $e->getMessage());
             Response::serverError('Failed to fetch user activity');
         }
     }

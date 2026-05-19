@@ -138,7 +138,7 @@ class TeacherSubjectController
                     ]);
                 }
             } catch (\Throwable $e) {
-                error_log('TeacherSubjectController::notify assign ' . $e->getMessage());
+                log_error('TeacherSubjectController::notify assign ' . $e->getMessage());
             }
             Response::success([
                 'message' => 'Teacher-Subject assignment created successfully',
@@ -219,7 +219,7 @@ class TeacherSubjectController
                     ]);
                 }
             } catch (\Throwable $e) {
-                error_log('TeacherSubjectController::notify unassign ' . $e->getMessage());
+                log_error('TeacherSubjectController::notify unassign ' . $e->getMessage());
             }
             Response::success(['message' => 'Teacher-Subject assignment deleted successfully']);
         } else {

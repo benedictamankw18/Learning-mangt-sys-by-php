@@ -40,7 +40,7 @@ class SemesterRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Semesters Error: " . $e->getMessage());
+            log_error("Get Semesters Error: " . $e->getMessage());
             return [];
         }
     }
@@ -62,7 +62,7 @@ class SemesterRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Semesters Error: " . $e->getMessage());
+            log_error("Count Semesters Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -81,7 +81,7 @@ class SemesterRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Semester Error: " . $e->getMessage());
+            log_error("Find Semester Error: " . $e->getMessage());
             return null;
         }
     }
@@ -116,7 +116,7 @@ class SemesterRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Create Semester Error: " . $e->getMessage());
+            log_error("Create Semester Error: " . $e->getMessage());
             return null;
         }
     }
@@ -133,7 +133,7 @@ class SemesterRepository
 
             return (bool) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('Check Semester Academic Year Error: ' . $e->getMessage());
+            log_error('Check Semester Academic Year Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -158,7 +158,7 @@ class SemesterRepository
 
             return (bool) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('Check Duplicate Semester Error: ' . $e->getMessage());
+            log_error('Check Duplicate Semester Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -232,7 +232,7 @@ class SemesterRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Update Semester Error: " . $e->getMessage());
+            log_error("Update Semester Error: " . $e->getMessage());
             return false;
         }
     }
@@ -244,7 +244,7 @@ class SemesterRepository
             $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
             return $stmt->execute();
         } catch (\PDOException $e) {
-            error_log("Delete Semester Error: " . $e->getMessage());
+            log_error("Delete Semester Error: " . $e->getMessage());
             return false;
         }
     }
@@ -275,7 +275,7 @@ class SemesterRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Current Semester Error: " . $e->getMessage());
+            log_error("Get Current Semester Error: " . $e->getMessage());
             return null;
         }
     }

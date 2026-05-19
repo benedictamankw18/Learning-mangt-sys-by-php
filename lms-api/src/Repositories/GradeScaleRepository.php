@@ -40,7 +40,7 @@ class GradeScaleRepository
 
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log('Get Grade Scales Error: ' . $e->getMessage());
+            log_error('Get Grade Scales Error: ' . $e->getMessage());
             return [];
         }
     }
@@ -72,7 +72,7 @@ class GradeScaleRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log('Find Grade Scale Error: ' . $e->getMessage());
+            log_error('Find Grade Scale Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -118,7 +118,7 @@ class GradeScaleRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log('Create Grade Scale Error: ' . $e->getMessage());
+            log_error('Create Grade Scale Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -156,7 +156,7 @@ class GradeScaleRepository
 
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log('Update Grade Scale Error: ' . $e->getMessage());
+            log_error('Update Grade Scale Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -175,7 +175,7 @@ class GradeScaleRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log('Delete Grade Scale Error: ' . $e->getMessage());
+            log_error('Delete Grade Scale Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -194,7 +194,7 @@ class GradeScaleRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log('Get Grade For Score Error: ' . $e->getMessage());
+            log_error('Get Grade For Score Error: ' . $e->getMessage());
             return null;
         }
     }

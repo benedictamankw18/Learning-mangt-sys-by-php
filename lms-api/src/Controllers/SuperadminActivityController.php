@@ -61,7 +61,7 @@ class SuperadminActivityController
                 ],
             ]);
         } catch (\Exception $e) {
-            error_log('SuperadminActivity index error: ' . $e->getMessage());
+            log_error('SuperadminActivity index error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities');
         }
     }
@@ -113,9 +113,13 @@ class SuperadminActivityController
                 'severity'      => $body['severity'] ?? 'info',
             ]);
 
+            if (function_exists('log_audit')) {
+                log_audit('Activity logged by superadmin', ['activity_id' => $activityId, 'activity_type' => $body['activity_type'], 'user_id' => $user['user_id']]);
+            }
+
             Response::success(['activity_id' => $activityId], 'Activity logged successfully');
         } catch (\Exception $e) {
-            error_log('SuperadminActivity store error: ' . $e->getMessage());
+            log_error('SuperadminActivity store error: ' . $e->getMessage());
             Response::serverError('Failed to log activity');
         }
     }
@@ -138,7 +142,7 @@ class SuperadminActivityController
 
             Response::success($activity);
         } catch (\Exception $e) {
-            error_log('SuperadminActivity show error: ' . $e->getMessage());
+            log_error('SuperadminActivity show error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity');
         }
     }
@@ -156,7 +160,7 @@ class SuperadminActivityController
 
             Response::success($this->repo->getRecent($limit));
         } catch (\Exception $e) {
-            error_log('SuperadminActivity recent error: ' . $e->getMessage());
+            log_error('SuperadminActivity recent error: ' . $e->getMessage());
             Response::serverError('Failed to fetch recent activities');
         }
     }
@@ -176,7 +180,7 @@ class SuperadminActivityController
 
             Response::success($this->repo->getByType($type, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('SuperadminActivity byType error: ' . $e->getMessage());
+            log_error('SuperadminActivity byType error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by type');
         }
     }
@@ -202,7 +206,7 @@ class SuperadminActivityController
 
             Response::success($this->repo->getBySeverity($severity, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('SuperadminActivity bySeverity error: ' . $e->getMessage());
+            log_error('SuperadminActivity bySeverity error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by severity');
         }
     }
@@ -222,7 +226,7 @@ class SuperadminActivityController
 
             Response::success($this->repo->getByPerformer($userId, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('SuperadminActivity byPerformer error: ' . $e->getMessage());
+            log_error('SuperadminActivity byPerformer error: ' . $e->getMessage());
             Response::serverError('Failed to fetch performer activities');
         }
     }
@@ -238,7 +242,7 @@ class SuperadminActivityController
         try {
             Response::success($this->repo->getStats());
         } catch (\Exception $e) {
-            error_log('SuperadminActivity stats error: ' . $e->getMessage());
+            log_error('SuperadminActivity stats error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity statistics');
         }
     }
@@ -254,13 +258,15 @@ class SuperadminActivityController
         try {
             $days = max(1, (int) ($_GET['days'] ?? 90));
             $deleted = $this->repo->deleteOlderThan($days);
-
+            if (function_exists('log_audit')) {
+                log_audit('Deleted old superadmin activities', ['deleted_count' => $deleted, 'days' => $days, 'user_id' => $user['user_id']]);
+            }
             Response::success(
                 ['deleted_count' => $deleted],
                 "Deleted {$deleted} activit" . ($deleted === 1 ? 'y' : 'ies') . " older than {$days} day(s)"
             );
         } catch (\Exception $e) {
-            error_log('SuperadminActivity cleanup error: ' . $e->getMessage());
+            log_error('SuperadminActivity cleanup error: ' . $e->getMessage());
             Response::serverError('Failed to cleanup activities');
         }
     }

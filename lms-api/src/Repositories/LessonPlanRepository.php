@@ -38,7 +38,7 @@ class LessonPlanRepository
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::getCourseLessonPlans error: " . $e->getMessage());
+            log_error("LessonPlanRepository::getCourseLessonPlans error: " . $e->getMessage());
             return [];
         }
     }
@@ -65,7 +65,7 @@ class LessonPlanRepository
             $result['materials'] = $this->getLessonPlanMaterials($id);
             return $result;
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::findById error: " . $e->getMessage());
+            log_error("LessonPlanRepository::findById error: " . $e->getMessage());
             return null;
         }
     }
@@ -86,7 +86,7 @@ class LessonPlanRepository
             $stmt->execute(['lesson_plan_id' => $lessonPlanId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::getLessonPlanMaterials error: " . $e->getMessage());
+            log_error("LessonPlanRepository::getLessonPlanMaterials error: " . $e->getMessage());
             return [];
         }
     }
@@ -147,7 +147,7 @@ class LessonPlanRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::create error: " . $e->getMessage());
+            log_error("LessonPlanRepository::create error: " . $e->getMessage());
             return null;
         }
     }
@@ -205,7 +205,7 @@ class LessonPlanRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($values);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::update error: " . $e->getMessage());
+            log_error("LessonPlanRepository::update error: " . $e->getMessage());
             return false;
         }
     }
@@ -224,7 +224,7 @@ class LessonPlanRepository
             $stmt = $this->db->prepare("DELETE FROM lesson_plans WHERE lesson_plan_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::delete error: " . $e->getMessage());
+            log_error("LessonPlanRepository::delete error: " . $e->getMessage());
             return false;
         }
     }
@@ -247,7 +247,7 @@ class LessonPlanRepository
                 'order_index_update' => $orderIndex,
             ]);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::linkMaterial error: " . $e->getMessage());
+            log_error("LessonPlanRepository::linkMaterial error: " . $e->getMessage());
             return false;
         }
     }
@@ -267,7 +267,7 @@ class LessonPlanRepository
                 'material_id' => $materialId,
             ]);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::unlinkMaterial error: " . $e->getMessage());
+            log_error("LessonPlanRepository::unlinkMaterial error: " . $e->getMessage());
             return false;
         }
     }
@@ -287,7 +287,7 @@ class LessonPlanRepository
             $stmt->execute(['course_id' => $courseId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::getByWeek error: " . $e->getMessage());
+            log_error("LessonPlanRepository::getByWeek error: " . $e->getMessage());
             return [];
         }
     }
@@ -307,7 +307,7 @@ class LessonPlanRepository
             $stmt->execute(['section_id' => $sectionId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("LessonPlanRepository::getBySectionId error: " . $e->getMessage());
+            log_error("LessonPlanRepository::getBySectionId error: " . $e->getMessage());
             return [];
         }
     }

@@ -36,7 +36,7 @@ class SemesterController
                 'link' => '/admin/dashboard.html#semesters',
             ]);
         } catch (\Throwable $e) {
-            error_log('SemesterController::notifyAdminsForSemesterChange ' . $e->getMessage());
+            log_error('SemesterController::notifyAdminsForSemesterChange ' . $e->getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ class SemesterController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('SemesterController::notifyAllUsersForCurrentSemester ' . $e->getMessage());
+            log_error('SemesterController::notifyAllUsersForCurrentSemester ' . $e->getMessage());
         }
     }
     public function index(array $user): void

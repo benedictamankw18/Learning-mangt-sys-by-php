@@ -82,7 +82,7 @@ class ClassSubjectController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('ClassSubjectController::notifyMaterialChanged ' . $e->getMessage());
+            log_error('ClassSubjectController::notifyMaterialChanged ' . $e->getMessage());
         }
     }
 
@@ -110,7 +110,7 @@ class ClassSubjectController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('ClassSubjectController::notifyScheduleChanged ' . $e->getMessage());
+            log_error('ClassSubjectController::notifyScheduleChanged ' . $e->getMessage());
         }
     }
 

@@ -71,7 +71,7 @@ class LoginActivityRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Login Activity Error: " . $e->getMessage());
+            log_error("Get All Login Activity Error: " . $e->getMessage());
             return [];
         }
     }
@@ -117,7 +117,7 @@ class LoginActivityRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Login Activity Error: " . $e->getMessage());
+            log_error("Count Login Activity Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -142,7 +142,7 @@ class LoginActivityRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get User Login History Error: " . $e->getMessage());
+            log_error("Get User Login History Error: " . $e->getMessage());
             return [];
         }
     }
@@ -162,7 +162,7 @@ class LoginActivityRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count User Login Activity Error: " . $e->getMessage());
+            log_error("Count User Login Activity Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -185,7 +185,7 @@ class LoginActivityRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Recent Logins Error: " . $e->getMessage());
+            log_error("Get Recent Logins Error: " . $e->getMessage());
             return [];
         }
     }
@@ -224,7 +224,7 @@ class LoginActivityRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Failed Attempts Error: " . $e->getMessage());
+            log_error("Get Failed Attempts Error: " . $e->getMessage());
             return [];
         }
     }
@@ -255,7 +255,7 @@ class LoginActivityRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Login Activity Error: " . $e->getMessage());
+            log_error("Create Login Activity Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -285,7 +285,7 @@ class LoginActivityRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Log Login Error: " . $e->getMessage());
+            log_error("Log Login Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -306,7 +306,7 @@ class LoginActivityRepository
             ");
             return $stmt->execute(['user_id' => $userId]);
         } catch (\PDOException $e) {
-            error_log("Log Logout Error: " . $e->getMessage());
+            log_error("Log Logout Error: " . $e->getMessage());
             return false;
         }
     }

@@ -31,7 +31,12 @@ class Database
 
             $this->connection = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
-            error_log("Database Connection Error: " . $e->getMessage());
+            // Use centralized logger
+            if (function_exists('log_error')) {
+                log_error('Database Connection Error: ' . $e->getMessage(), ['exception' => $e->getMessage()]);
+            } else {
+                error_log("Database Connection Error: " . $e->getMessage());
+            }
             throw new Exception("Database connection failed");
         }
     }

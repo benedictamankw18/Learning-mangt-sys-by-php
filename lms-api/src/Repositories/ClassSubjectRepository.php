@@ -1425,7 +1425,7 @@ class ClassSubjectRepository
                 'data'   => array_map('intval', array_column($results, 'count')),
             ];
         } catch (\PDOException $e) {
-            error_log("Get Course Distribution Error: " . $e->getMessage());
+            log_error("Get Course Distribution Error: " . $e->getMessage());
             return [
                 'labels' => [],
                 'data'   => [],
@@ -1465,7 +1465,7 @@ class ClassSubjectRepository
 
             return $name;
         } catch (\PDOException $e) {
-            error_log('ClassSubjectRepository::getNameById error: ' . $e->getMessage());
+            log_error('ClassSubjectRepository::getNameById error: ' . $e->getMessage());
             return null;
         }
     }

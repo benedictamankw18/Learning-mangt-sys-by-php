@@ -127,7 +127,7 @@ class SupportTicketController
                 ]);
             } catch (\Exception $e) {
                 // Log error but don't fail the request
-                error_log('Failed to log support ticket activity: ' . $e->getMessage());
+                log_error('Failed to log support ticket activity: ' . $e->getMessage());
             }
         }
 

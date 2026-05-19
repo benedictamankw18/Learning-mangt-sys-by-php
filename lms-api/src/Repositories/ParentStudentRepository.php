@@ -28,7 +28,7 @@ class ParentStudentRepository
             $stmt->execute(['parent_id' => $parentId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Parent Students Error: " . $e->getMessage());
+            log_error("Get Parent Students Error: " . $e->getMessage());
             return [];
         }
     }
@@ -49,7 +49,7 @@ class ParentStudentRepository
             $stmt->execute(['student_id' => $studentId]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Student Parents Error: " . $e->getMessage());
+            log_error("Get Student Parents Error: " . $e->getMessage());
             return [];
         }
     }
@@ -73,7 +73,7 @@ class ParentStudentRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Parent Student Error: " . $e->getMessage());
+            log_error("Find Parent Student Error: " . $e->getMessage());
             return null;
         }
     }
@@ -94,7 +94,7 @@ class ParentStudentRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Parent Student Error: " . $e->getMessage());
+            log_error("Create Parent Student Error: " . $e->getMessage());
             return null;
         }
     }
@@ -121,7 +121,7 @@ class ParentStudentRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Parent Student Error: " . $e->getMessage());
+            log_error("Update Parent Student Error: " . $e->getMessage());
             return false;
         }
     }
@@ -132,7 +132,7 @@ class ParentStudentRepository
             $stmt = $this->db->prepare("DELETE FROM parent_students WHERE parent_student_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Parent Student Error: " . $e->getMessage());
+            log_error("Delete Parent Student Error: " . $e->getMessage());
             return false;
         }
     }
@@ -151,7 +151,7 @@ class ParentStudentRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result['count'] > 0;
         } catch (\PDOException $e) {
-            error_log("Check Parent Student Relationship Error: " . $e->getMessage());
+            log_error("Check Parent Student Relationship Error: " . $e->getMessage());
             return false;
         }
     }

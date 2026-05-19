@@ -95,7 +95,7 @@ class InstitutionRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institutions Error: " . $e->getMessage());
+            log_error("Get Institutions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -155,7 +155,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Filtered Institutions Error: " . $e->getMessage());
+            log_error("Count Filtered Institutions Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -164,7 +164,7 @@ class InstitutionRepository
     //         $stmt->execute();
     //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     //     } catch (\PDOException $e) {
-    //         error_log("Get Institutions Error: " . $e->getMessage());
+    //         log_error("Get Institutions Error: " . $e->getMessage());
     //         return [];
     //     }
     // }
@@ -181,7 +181,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institutions Error: " . $e->getMessage());
+            log_error("Count Institutions Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -215,7 +215,7 @@ class InstitutionRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institutions With Admins Error: " . $e->getMessage());
+            log_error("Get Institutions With Admins Error: " . $e->getMessage());
             return [];
         }
     }
@@ -237,7 +237,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institutions With Admins Error: " . $e->getMessage());
+            log_error("Count Institutions With Admins Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -254,7 +254,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Active Institutions Error: " . $e->getMessage());
+            log_error("Count Active Institutions Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -280,7 +280,7 @@ class InstitutionRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Recent Institutions Error: " . $e->getMessage());
+            log_error("Get Recent Institutions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -302,7 +302,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institutions This Month Error: " . $e->getMessage());
+            log_error("Count Institutions This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -324,7 +324,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institutions Last Month Error: " . $e->getMessage());
+            log_error("Count Institutions Last Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -376,7 +376,7 @@ class InstitutionRepository
 
             return $counts; // index 0 = 11 months ago, index 11 = current month
         } catch (\PDOException $e) {
-            error_log("Get Monthly Institutions Error: " . $e->getMessage());
+            log_error("Get Monthly Institutions Error: " . $e->getMessage());
             return array_fill(0, 12, 0);
         }
     }
@@ -407,7 +407,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Institution Error: " . $e->getMessage());
+            log_error("Find Institution Error: " . $e->getMessage());
             return null;
         }
     }
@@ -443,7 +443,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Institution By UUID Error: " . $e->getMessage());
+            log_error("Find Institution By UUID Error: " . $e->getMessage());
             return null;
         }
     }
@@ -467,7 +467,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return ((int) $result['total']) > 0;
         } catch (\PDOException $e) {
-            error_log("Has Admin Users Error: " . $e->getMessage());
+            log_error("Has Admin Users Error: " . $e->getMessage());
             return false;
         }
     }
@@ -486,7 +486,7 @@ class InstitutionRepository
             $res = $stmt->fetch(PDO::FETCH_ASSOC);
             return $res ?: null;
         } catch (\PDOException $e) {
-            error_log('Find Institution By Name Error: ' . $e->getMessage());
+            log_error('Find Institution By Name Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -564,7 +564,7 @@ class InstitutionRepository
             return $institutionId;
         } catch (\PDOException $e) {
             $this->db->rollBack();
-            error_log("Create Institution Error: " . $e->getMessage());
+            log_error("Create Institution Error: " . $e->getMessage());
             return null;
         }
     }
@@ -616,7 +616,7 @@ class InstitutionRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Institution Error: " . $e->getMessage());
+            log_error("Update Institution Error: " . $e->getMessage());
             return false;
         }
     }
@@ -632,7 +632,7 @@ class InstitutionRepository
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             return $row ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Institution By Code Error: " . $e->getMessage());
+            log_error("Find Institution By Code Error: " . $e->getMessage());
             return null;
         }
     }
@@ -657,7 +657,7 @@ class InstitutionRepository
 
             return (bool) $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Institution Code Exists Check Error: " . $e->getMessage());
+            log_error("Institution Code Exists Check Error: " . $e->getMessage());
             return false;
         }
     }
@@ -674,7 +674,7 @@ class InstitutionRepository
             $stmt = $this->db->prepare("DELETE FROM institutions WHERE institution_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Institution Error: " . $e->getMessage());
+            log_error("Delete Institution Error: " . $e->getMessage());
             return false;
         }
     }
@@ -711,7 +711,7 @@ class InstitutionRepository
             ]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institution Statistics Error: " . $e->getMessage());
+            log_error("Get Institution Statistics Error: " . $e->getMessage());
             return [];
         }
     }
@@ -753,7 +753,7 @@ class InstitutionRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institution Users Error: " . $e->getMessage());
+            log_error("Get Institution Users Error: " . $e->getMessage());
             return [];
         }
     }
@@ -772,7 +772,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institution Users Error: " . $e->getMessage());
+            log_error("Count Institution Users Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -797,7 +797,7 @@ class InstitutionRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institution Programs Error: " . $e->getMessage());
+            log_error("Get Institution Programs Error: " . $e->getMessage());
             return [];
         }
     }
@@ -835,7 +835,7 @@ class InstitutionRepository
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Institution Classes Error: " . $e->getMessage());
+            log_error("Get Institution Classes Error: " . $e->getMessage());
             return [];
         }
     }
@@ -854,7 +854,7 @@ class InstitutionRepository
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Institution Classes Error: " . $e->getMessage());
+            log_error("Count Institution Classes Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -875,7 +875,7 @@ class InstitutionRepository
                 'status' => $status
             ]);
         } catch (\PDOException $e) {
-            error_log("Update Institution Status Error: " . $e->getMessage());
+            log_error("Update Institution Status Error: " . $e->getMessage());
             return false;
         }
     }
@@ -929,7 +929,7 @@ class InstitutionRepository
 
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Get Institution Settings Error: " . $e->getMessage());
+            log_error("Get Institution Settings Error: " . $e->getMessage());
             return null;
         }
     }
@@ -991,7 +991,7 @@ class InstitutionRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Institution Settings Error: " . $e->getMessage());
+            log_error("Update Institution Settings Error: " . $e->getMessage());
             return false;
         }
     }
@@ -1018,7 +1018,7 @@ class InstitutionRepository
             $raw = strtolower(trim((string) $row['is_timetable_published'], '"'));
             return in_array($raw, ['1', 'true'], true);
         } catch (\PDOException $e) {
-            error_log("Get Timetable Publish State Error: " . $e->getMessage());
+            log_error("Get Timetable Publish State Error: " . $e->getMessage());
             return false;
         }
     }
@@ -1077,7 +1077,7 @@ class InstitutionRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Update Timetable Publish State Error: " . $e->getMessage());
+            log_error("Update Timetable Publish State Error: " . $e->getMessage());
             return false;
         }
     }
@@ -1116,7 +1116,7 @@ class InstitutionRepository
 
             return [];
         } catch (\PDOException $e) {
-            error_log("Get Timetable Period Slots Error: " . $e->getMessage());
+            log_error("Get Timetable Period Slots Error: " . $e->getMessage());
             return [];
         }
     }
@@ -1142,7 +1142,7 @@ class InstitutionRepository
                 'period_slots' => json_encode($periodSlots)
             ]);
         } catch (\PDOException $e) {
-            error_log("Update Timetable Period Slots Error: " . $e->getMessage());
+            log_error("Update Timetable Period Slots Error: " . $e->getMessage());
             return false;
         }
     }

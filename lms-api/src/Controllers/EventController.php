@@ -125,7 +125,7 @@ class EventController
                 ]);
             }
         } catch (\Throwable $e) {
-            error_log('EventController::notifyEventPublished ' . $e->getMessage());
+            log_error('EventController::notifyEventPublished ' . $e->getMessage());
         }
     }
 

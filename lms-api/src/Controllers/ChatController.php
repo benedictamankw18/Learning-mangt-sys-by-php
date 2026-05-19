@@ -252,7 +252,7 @@ class ChatController
                         'link' => '/chat/rooms/' . ($room['uuid'] ?? ''),
                     ]);
                 } catch (\Throwable $e) {
-                    error_log('ChatController::notify addMembers ' . $e->getMessage());
+                    log_error('ChatController::notify addMembers ' . $e->getMessage());
                 }
             }
         }

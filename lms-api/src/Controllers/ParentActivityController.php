@@ -75,7 +75,7 @@ class ParentActivityController
                 ],
             ]);
         } catch (\Exception $e) {
-            error_log('ParentActivity index error: ' . $e->getMessage());
+            log_error('ParentActivity index error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities');
         }
     }
@@ -134,9 +134,13 @@ class ParentActivityController
                 'severity'       => $body['severity'] ?? 'info',
             ]);
 
+            if (function_exists('log_audit')) {
+                log_audit('Activity logged by parent', ['activity_id' => $activityId, 'activity_type' => $body['activity_type'], 'user_id' => $user['user_id']]);
+            }
+
             Response::success(['activity_id' => $activityId], 'Activity logged successfully');
         } catch (\Exception $e) {
-            error_log('ParentActivity store error: ' . $e->getMessage());
+            log_error('ParentActivity store error: ' . $e->getMessage());
             Response::serverError('Failed to log activity');
         }
     }
@@ -171,7 +175,7 @@ class ParentActivityController
 
             Response::success($activity);
         } catch (\Exception $e) {
-            error_log('ParentActivity show error: ' . $e->getMessage());
+            log_error('ParentActivity show error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity');
         }
     }
@@ -195,7 +199,7 @@ class ParentActivityController
 
             Response::success($this->repo->getRecent($institutionId, $limit));
         } catch (\Exception $e) {
-            error_log('ParentActivity recent error: ' . $e->getMessage());
+            log_error('ParentActivity recent error: ' . $e->getMessage());
             Response::serverError('Failed to fetch recent activities');
         }
     }
@@ -221,7 +225,7 @@ class ParentActivityController
 
             Response::success($this->repo->getByType($institutionId, $type, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('ParentActivity byType error: ' . $e->getMessage());
+            log_error('ParentActivity byType error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by type');
         }
     }
@@ -253,7 +257,7 @@ class ParentActivityController
 
             Response::success($this->repo->getBySeverity($institutionId, $severity, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('ParentActivity bySeverity error: ' . $e->getMessage());
+            log_error('ParentActivity bySeverity error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activities by severity');
         }
     }
@@ -279,7 +283,7 @@ class ParentActivityController
 
             Response::success($this->repo->getByPerformer($institutionId, $userId, $limit, $offset));
         } catch (\Exception $e) {
-            error_log('ParentActivity byPerformer error: ' . $e->getMessage());
+            log_error('ParentActivity byPerformer error: ' . $e->getMessage());
             Response::serverError('Failed to fetch performer activities');
         }
     }
@@ -301,7 +305,7 @@ class ParentActivityController
         try {
             Response::success($this->repo->getStats($institutionId));
         } catch (\Exception $e) {
-            error_log('ParentActivity stats error: ' . $e->getMessage());
+            log_error('ParentActivity stats error: ' . $e->getMessage());
             Response::serverError('Failed to fetch activity statistics');
         }
     }
@@ -324,12 +328,16 @@ class ParentActivityController
             $days    = max(1, (int) ($_GET['days'] ?? 90));
             $deleted = $this->repo->deleteOlderThan($institutionId, $days);
 
+            if (function_exists('log_audit')) {
+                log_audit('Deleted old parent activities', ['deleted_count' => $deleted, 'days' => $days, 'user_id' => $user['user_id']]);
+            }
+
             Response::success(
                 ['deleted_count' => $deleted],
                 "Deleted {$deleted} activit" . ($deleted === 1 ? 'y' : 'ies') . " older than {$days} day(s)"
             );
         } catch (\Exception $e) {
-            error_log('ParentActivity cleanup error: ' . $e->getMessage());
+            log_error('ParentActivity cleanup error: ' . $e->getMessage());
             Response::serverError('Failed to cleanup activities');
         }
     }

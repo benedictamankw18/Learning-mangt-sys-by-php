@@ -26,7 +26,7 @@ class PermissionRepository
             ");
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get All Permissions Error: " . $e->getMessage());
+            log_error("Get All Permissions Error: " . $e->getMessage());
             return [];
         }
     }
@@ -38,7 +38,7 @@ class PermissionRepository
             $stmt->execute(['id' => $id]);
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Permission Error: " . $e->getMessage());
+            log_error("Find Permission Error: " . $e->getMessage());
             return null;
         }
     }
@@ -58,7 +58,7 @@ class PermissionRepository
 
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Permission Error: " . $e->getMessage());
+            log_error("Create Permission Error: " . $e->getMessage());
             return null;
         }
     }
@@ -85,7 +85,7 @@ class PermissionRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Update Permission Error: " . $e->getMessage());
+            log_error("Update Permission Error: " . $e->getMessage());
             return false;
         }
     }
@@ -101,7 +101,7 @@ class PermissionRepository
             $stmt = $this->db->prepare("DELETE FROM permissions WHERE permission_id = :id");
             return $stmt->execute(['id' => $id]);
         } catch (\PDOException $e) {
-            error_log("Delete Permission Error: " . $e->getMessage());
+            log_error("Delete Permission Error: " . $e->getMessage());
             return false;
         }
     }

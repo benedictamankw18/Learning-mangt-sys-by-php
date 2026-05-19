@@ -33,7 +33,7 @@ class AttendanceRepository
 
             return true;
         } catch (\PDOException $e) {
-            error_log("Mark Attendance Error: " . $e->getMessage());
+            log_error("Mark Attendance Error: " . $e->getMessage());
             return false;
         }
     }
@@ -76,7 +76,7 @@ class AttendanceRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Attendance By Student Error: " . $e->getMessage());
+            log_error("Get Attendance By Student Error: " . $e->getMessage());
             return [];
         }
     }
@@ -100,7 +100,7 @@ class AttendanceRepository
 
             return (bool) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log('Attendance Exists Error: ' . $e->getMessage());
+            log_error('Attendance Exists Error: ' . $e->getMessage());
             return false;
         }
     }
@@ -128,7 +128,7 @@ class AttendanceRepository
 
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Attendance By Course Error: " . $e->getMessage());
+            log_error("Get Attendance By Course Error: " . $e->getMessage());
             return [];
         }
     }
@@ -160,7 +160,7 @@ class AttendanceRepository
 
             return $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
         } catch (\PDOException $e) {
-            error_log("Get Attendance Stats Error: " . $e->getMessage());
+            log_error("Get Attendance Stats Error: " . $e->getMessage());
             return [];
         }
     }
@@ -193,7 +193,7 @@ class AttendanceRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log("Bulk Mark Attendance Error: " . $e->getMessage());
+            log_error("Bulk Mark Attendance Error: " . $e->getMessage());
             return false;
         }
     }
@@ -216,7 +216,7 @@ class AttendanceRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Attendance Error: " . $e->getMessage());
+            log_error("Find Attendance Error: " . $e->getMessage());
             return null;
         }
     }
@@ -244,7 +244,7 @@ class AttendanceRepository
             return $stmt->execute($params);
 
         } catch (\PDOException $e) {
-            error_log("Update Attendance Error: " . $e->getMessage());
+            log_error("Update Attendance Error: " . $e->getMessage());
             return false;
         }
     }
@@ -255,7 +255,7 @@ class AttendanceRepository
             $stmt = $this->db->prepare("DELETE FROM attendance WHERE attendance_id = :attendance_id");
             return $stmt->execute(['attendance_id' => $attendanceId]);
         } catch (\PDOException $e) {
-            error_log("Delete Attendance Error: " . $e->getMessage());
+            log_error("Delete Attendance Error: " . $e->getMessage());
             return false;
         }
     }
@@ -286,7 +286,7 @@ class AttendanceRepository
             if (!$row || (int) $row['total'] === 0) return 0.0;
             return round(((int) $row['present'] / (int) $row['total']) * 100, 1);
         } catch (\PDOException $e) {
-            error_log("Daily Attendance Rate Error: " . $e->getMessage());
+            log_error("Daily Attendance Rate Error: " . $e->getMessage());
             return 0.0;
         }
     }
@@ -321,7 +321,7 @@ class AttendanceRepository
             if (!$row || (int) $row['total'] === 0) return 0.0;
             return round(((int) $row['present'] / (int) $row['total']) * 100, 1);
         } catch (\PDOException $e) {
-            error_log("Weekly Attendance Rate Error: " . $e->getMessage());
+            log_error("Weekly Attendance Rate Error: " . $e->getMessage());
             return 0.0;
         }
     }
@@ -389,7 +389,7 @@ class AttendanceRepository
                 'rate' => $rate,
             ];
         } catch (\PDOException $e) {
-            error_log("Attendance Summary Error: " . $e->getMessage());
+            log_error("Attendance Summary Error: " . $e->getMessage());
             return [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
@@ -426,7 +426,7 @@ class AttendanceRepository
             if (!$row || (int) $row['total'] === 0) return 0.0;
             return round(((int) $row['present'] / (int) $row['total']) * 100, 1);
         } catch (\PDOException $e) {
-            error_log("Teacher Daily Attendance Rate Error: " . $e->getMessage());
+            log_error("Teacher Daily Attendance Rate Error: " . $e->getMessage());
             return 0.0;
         }
     }
@@ -453,7 +453,7 @@ class AttendanceRepository
             if (!$row || (int) $row['total'] === 0) return 0.0;
             return round(((int) $row['present'] / (int) $row['total']) * 100, 1);
         } catch (\PDOException $e) {
-            error_log("Teacher Weekly Attendance Rate Error: " . $e->getMessage());
+            log_error("Teacher Weekly Attendance Rate Error: " . $e->getMessage());
             return 0.0;
         }
     }
@@ -478,7 +478,7 @@ class AttendanceRepository
             $stmt->execute(['teacher_id' => $teacherId, 'day_name' => $dayName]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Teacher Today Schedule Count Error: " . $e->getMessage());
+            log_error("Teacher Today Schedule Count Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -501,7 +501,7 @@ class AttendanceRepository
             if (!$row || (int) $row['total'] === 0) return 0.0;
             return round(((int) $row['present'] / (int) $row['total']) * 100, 1);
         } catch (\PDOException $e) {
-            error_log("Student Overall Attendance Rate Error: " . $e->getMessage());
+            log_error("Student Overall Attendance Rate Error: " . $e->getMessage());
             return 0.0;
         }
     }
@@ -542,7 +542,7 @@ class AttendanceRepository
             $stmt->execute(['student_id' => $studentId, 'day_name' => $dayName]);
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Student Today Schedule Error: " . $e->getMessage());
+            log_error("Student Today Schedule Error: " . $e->getMessage());
             return [];
         }
     }
@@ -589,7 +589,7 @@ class AttendanceRepository
             }
             return $result;
         } catch (\PDOException $e) {
-            error_log("Teacher Attendance Trend Error: " . $e->getMessage());
+            log_error("Teacher Attendance Trend Error: " . $e->getMessage());
             return array_fill(0, 12, 0.0);
         }
     }

@@ -343,7 +343,7 @@ class NotificationRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('NotificationRepository::markAsRead error: ' . $e->getMessage());
+            log_error('NotificationRepository::markAsRead error: ' . $e->getMessage());
             return false;
         }
     }
@@ -391,7 +391,7 @@ class NotificationRepository
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('NotificationRepository::markAllAsRead error: ' . $e->getMessage());
+            log_error('NotificationRepository::markAllAsRead error: ' . $e->getMessage());
             return false;
         }
     }

@@ -55,7 +55,7 @@ class TeacherAssessmentController
                         $message .= " for class subject ID {$courseId}";
                     }
                 } catch (\Throwable $e) {
-                    error_log('Failed to resolve class subject name: ' . $e->getMessage());
+                    log_error('Failed to resolve class subject name: ' . $e->getMessage());
                     $message .= " for class subject ID {$courseId}";
                 }
             }
@@ -74,7 +74,7 @@ class TeacherAssessmentController
                 'link' => '/admin/dashboard.html#grading',
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::notifyAdminsForApprovalSubmission ' . $e->getMessage());
+            log_error('TeacherAssessmentController::notifyAdminsForApprovalSubmission ' . $e->getMessage());
         }
     }
 
@@ -132,7 +132,7 @@ class TeacherAssessmentController
                 'link' => '/teacher/dashboard.html#assessments',
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::notifyTeacherForSubmissionStatus ' . $e->getMessage());
+            log_error('TeacherAssessmentController::notifyTeacherForSubmissionStatus ' . $e->getMessage());
         }
     }
 
@@ -206,7 +206,7 @@ class TeacherAssessmentController
                 }
             }
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::notifyAssessmentSubmissionEvent ' . $e->getMessage());
+            log_error('TeacherAssessmentController::notifyAssessmentSubmissionEvent ' . $e->getMessage());
         }
     }
 
@@ -232,7 +232,7 @@ class TeacherAssessmentController
                 'count' => count($categories),
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::getCategories ' . $e->getMessage());
+            log_error('TeacherAssessmentController::getCategories ' . $e->getMessage());
             Response::serverError('Failed to fetch assessment categories');
         }
     }
@@ -300,7 +300,7 @@ class TeacherAssessmentController
                 'count' => count($grouped),
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::getClassesSubjects ' . $e->getMessage());
+            log_error('TeacherAssessmentController::getClassesSubjects ' . $e->getMessage());
             Response::serverError('Failed to fetch classes and subjects');
         }
     }
@@ -376,7 +376,7 @@ class TeacherAssessmentController
                 'count' => count($students),
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::getStudents ' . $e->getMessage());
+            log_error('TeacherAssessmentController::getStudents ' . $e->getMessage());
             Response::serverError('Failed to fetch students');
         }
     }
@@ -483,7 +483,7 @@ class TeacherAssessmentController
                 'count' => count($grouped),
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::getExistingAssessments ' . $e->getMessage());
+            log_error('TeacherAssessmentController::getExistingAssessments ' . $e->getMessage());
             Response::serverError('Failed to fetch existing assessments');
         }
     }
@@ -582,7 +582,7 @@ class TeacherAssessmentController
                 'count' => count($items),
             ]);
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::getAssignmentsAndQuizzes ' . $e->getMessage());
+            log_error('TeacherAssessmentController::getAssignmentsAndQuizzes ' . $e->getMessage());
             Response::serverError('Failed to fetch graded items');
         }
     }
@@ -768,7 +768,7 @@ class TeacherAssessmentController
                     }
                 }
             } catch (\Throwable $e) {
-                error_log('TeacherAssessmentController::generateGradeReportsFromAssessments ' . $e->getMessage());
+                log_error('TeacherAssessmentController::generateGradeReportsFromAssessments ' . $e->getMessage());
                 $stats['errors'][] = $e->getMessage();
             }
 
@@ -964,6 +964,10 @@ class TeacherAssessmentController
 
             $this->db->commit();
 
+            if (function_exists('log_audit')) {
+                log_audit('Assessment submissions approved and published', ['approved_submissions' => $approvedRows, 'published_assessments' => $publishedAssessments, 'course_id' => $courseId, 'user_id' => $user['user_id'] ?? null]);
+            }
+
             Response::success([
                 'approved_submissions' => $approvedRows,
                 'published_assessments' => $publishedAssessments,
@@ -975,7 +979,7 @@ class TeacherAssessmentController
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('TeacherAssessmentController::approveAssessments ' . $e->getMessage());
+            log_error('TeacherAssessmentController::approveAssessments ' . $e->getMessage());
             Response::serverError('Failed to approve assessments');
         }
     }
@@ -1139,6 +1143,11 @@ class TeacherAssessmentController
             }
 
             $this->db->commit();
+
+            if (function_exists('log_audit')) {
+                log_audit('Assessment scores imported successfully', ['processed' => $processed, 'total' => count($rows), 'publish' => $publish, 'user_id' => $user['user_id'] ?? null]);
+            }
+
             Response::success([
                 'processed' => $processed,
                 'total' => count($rows),
@@ -1151,7 +1160,7 @@ class TeacherAssessmentController
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('TeacherAssessmentController::importAssessments ' . $e->getMessage());
+            log_error('TeacherAssessmentController::importAssessments ' . $e->getMessage());
             Response::serverError('Failed to import assessment scores');
         }
     }
@@ -1274,7 +1283,7 @@ class TeacherAssessmentController
             fclose($out);
             exit();
         } catch (\Throwable $e) {
-            error_log('TeacherAssessmentController::exportAssessments ' . $e->getMessage());
+            log_error('TeacherAssessmentController::exportAssessments ' . $e->getMessage());
             Response::serverError('Failed to export assessment scores');
         }
     }
@@ -1528,6 +1537,10 @@ class TeacherAssessmentController
 
             $this->db->commit();
 
+            if (function_exists('log_audit')) {
+                log_audit('Assessment submissions persisted successfully', ['processed' => $processed, 'mode' => $mode, 'total' => count($assessments), 'user_id' => $user['user_id'] ?? null]);
+            }
+
             if (in_array($mode, ['pending_approval', 'published'], true) && $processed > 0) {
                 $courseIdForTeacherNotification = $courseIdFromBody > 0 ? $courseIdFromBody : (
                     is_array($assessments) && count($assessments) > 0
@@ -1608,7 +1621,7 @@ class TeacherAssessmentController
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
-            error_log('TeacherAssessmentController::persistAssessments ' . $e->getMessage());
+            log_error('TeacherAssessmentController::persistAssessments ' . $e->getMessage());
             Response::serverError('Failed to persist assessments');
         }
     }

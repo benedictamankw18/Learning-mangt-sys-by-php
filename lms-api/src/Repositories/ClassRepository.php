@@ -277,7 +277,7 @@ class ClassRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Classes This Month Error: " . $e->getMessage());
+            log_error("Count Classes This Month Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -294,7 +294,7 @@ class ClassRepository
             $stmt->execute(['institution_id' => $institutionId]);
             return (int) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Count Classes Last Month Error: " . $e->getMessage());
+            log_error("Count Classes Last Month Error: " . $e->getMessage());
             return 0;
         }
     }

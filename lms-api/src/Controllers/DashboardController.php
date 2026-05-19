@@ -115,7 +115,7 @@ class DashboardController
 
             Response::success($stats);
         } catch (\Exception $e) {
-            error_log("Super Admin Stats Error: " . $e->getMessage());
+            log_error("Super Admin Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
     }
@@ -272,7 +272,7 @@ class DashboardController
 
             Response::success($stats);
         } catch (\Exception $e) {
-            error_log("Admin Stats Error: " . $e->getMessage());
+            log_error("Admin Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
     }
@@ -314,7 +314,7 @@ class DashboardController
 
             Response::success($stats);
         } catch (\Exception $e) {
-            error_log("Teacher Stats Error: " . $e->getMessage());
+            log_error("Teacher Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
     }
@@ -361,7 +361,7 @@ class DashboardController
 
             Response::success($stats);
         } catch (\Exception $e) {
-            error_log("Student Stats Error: " . $e->getMessage());
+            log_error("Student Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
     }
@@ -489,7 +489,7 @@ class DashboardController
 
             Response::success($stats);
         } catch (\Exception $e) {
-            error_log("Parent Stats Error: " . $e->getMessage());
+            log_error("Parent Stats Error: " . $e->getMessage());
             Response::serverError('Failed to load dashboard statistics');
         }
     }

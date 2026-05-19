@@ -29,7 +29,7 @@ class AssessmentCategoryRepository
             $stmt->execute();
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Get Assessment Categories Error: " . $e->getMessage());
+            log_error("Get Assessment Categories Error: " . $e->getMessage());
             return [];
         }
     }
@@ -42,7 +42,7 @@ class AssessmentCategoryRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return (int) $result['total'];
         } catch (\PDOException $e) {
-            error_log("Count Assessment Categories Error: " . $e->getMessage());
+            log_error("Count Assessment Categories Error: " . $e->getMessage());
             return 0;
         }
     }
@@ -63,7 +63,7 @@ class AssessmentCategoryRepository
             $result = $stmt->fetch(\PDO::FETCH_ASSOC);
             return $result ?: null;
         } catch (\PDOException $e) {
-            error_log("Find Assessment Category Error: " . $e->getMessage());
+            log_error("Find Assessment Category Error: " . $e->getMessage());
             return null;
         }
     }
@@ -83,7 +83,7 @@ class AssessmentCategoryRepository
             ]);
             return (int) $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            error_log("Create Assessment Category Error: " . $e->getMessage());
+            log_error("Create Assessment Category Error: " . $e->getMessage());
             return null;
         }
     }
@@ -113,7 +113,7 @@ class AssessmentCategoryRepository
             $stmt = $this->db->prepare($sql);
             return $stmt->execute($params);
         } catch (\PDOException $e) {
-            error_log("Update Assessment Category Error: " . $e->getMessage());
+            log_error("Update Assessment Category Error: " . $e->getMessage());
             return false;
         }
     }
@@ -128,7 +128,7 @@ class AssessmentCategoryRepository
             ]);
             return $stmt->rowCount() > 0;
         } catch (\PDOException $e) {
-            error_log("Delete Assessment Category Error: " . $e->getMessage());
+            log_error("Delete Assessment Category Error: " . $e->getMessage());
             return false;
         }
     }
@@ -151,7 +151,7 @@ class AssessmentCategoryRepository
 
             return (bool) $stmt->fetchColumn();
         } catch (\PDOException $e) {
-            error_log("Has Linked Assessments Error: " . $e->getMessage());
+            log_error("Has Linked Assessments Error: " . $e->getMessage());
             return false;
         }
     }

@@ -35,7 +35,7 @@ class SubjectController
                 'link' => '/admin/dashboard.html#subjects',
             ]);
         } catch (\Throwable $e) {
-            error_log('SubjectController::notifyAdminsForSubjectChange ' . $e->getMessage());
+            log_error('SubjectController::notifyAdminsForSubjectChange ' . $e->getMessage());
         }
     }
 
