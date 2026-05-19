@@ -48,10 +48,6 @@
           <i class="fas fa-calendar-week"></i>
           <span>Timetable</span>
         </a>
-        <a href="#" class="nav-item" data-page="grades">
-          <i class="fas fa-star"></i>
-          <span>Grades</span>
-        </a>
         <a href="#" class="nav-item" data-page="announcements">
           <i class="fas fa-bullhorn"></i>
           <span>Announcements</span>
@@ -68,9 +64,13 @@
           <i class="fas fa-calendar-alt"></i>
           <span>School Calendar</span>
         </a>
-        <a href="#" class="nav-item" data-page="fees">
-          <i class="fas fa-dollar-sign"></i>
-          <span>Fees</span>
+        <a href="#" class="nav-item" data-page="help">
+          <i class="fas fa-circle-question"></i>
+          <span>Help Center</span>
+        </a>
+        <a href="#" class="nav-item" data-page="support">
+          <i class="fas fa-headset"></i>
+          <span>Support</span>
         </a>
         <a href="#" class="nav-item" data-page="notifications">
           <i class="fas fa-bell"></i>
@@ -183,8 +183,8 @@
               <a href="#myprofile" class="dropdown-item" data-page="myprofile">
                 <i class="fas fa-user"></i> My Profile
               </a>
-              <a href="#" class="dropdown-item">
-                <i class="fas fa-cog"></i> Settings
+              <a href="#help" class="dropdown-item" data-page="help">
+                <i class="fas fa-question-circle"></i> Help Center
               </a>
               <div class="dropdown-divider"></div>
               <a href="#" class="dropdown-item" id="userLogoutBtn">
@@ -267,19 +267,6 @@
               </div>
             </div>
 
-            <div class="stat-card fade-in stagger-5">
-              <div class="stat-icon bg-secondary">
-                <i class="fas fa-receipt"></i>
-              </div>
-              <div class="stat-details">
-                <h3 id="pendingFeeStatus">N/A</h3>
-                <p>Pending Fee Status</p>
-                <div class="stat-change neutral" id="pendingFeeDetail">
-                  <i class="fas fa-info-circle"></i>
-                  <span>Fee tracking not configured</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- Children Overview + Recent Grades -->
@@ -310,7 +297,7 @@
             <div class="card fade-in-up">
               <div class="card-header">
                 <h3><i class="fas fa-star"></i> Recent Grades</h3>
-                <a href="#" class="btn btn-sm btn-outline">View All</a>
+                <a href="#performance" class="btn btn-sm btn-outline">View All</a>
               </div>
               <div class="card-body p-0">
                 <div id="recentGrades">
@@ -475,6 +462,33 @@
           if (match) match.classList.add("active");
         }
 
+        function executeEmbeddedScripts(container) {
+          const scripts = container.querySelectorAll("script");
+          scripts.forEach((oldScript) => {
+            const newScript = document.createElement("script");
+            const src = oldScript.getAttribute("src");
+            if (src) {
+              const resolved = new URL(src, window.location.href).href;
+              window.__fragmentScripts = window.__fragmentScripts || new Set();
+              if (window.__fragmentScripts.has(resolved)) {
+                oldScript.remove();
+                return;
+              }
+              window.__fragmentScripts.add(resolved);
+              newScript.src = src;
+            }
+            Array.from(oldScript.attributes).forEach((attr) => {
+              if (attr.name !== "src") {
+                newScript.setAttribute(attr.name, attr.value);
+              }
+            });
+            if (!src) {
+              newScript.textContent = oldScript.textContent;
+            }
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        }
+
         async function loadPage(page) {
           if (!dynamicSection) return;
           if (!page || page === "dashboard") {
@@ -497,7 +511,11 @@
                 ? `../common/calendar.html`
                 : page === "notifications"
                   ? `../common/notifications.html`
-                  : `./page/${page}.html`;
+                  : page === "help"
+                    ? `../common/help.html`
+                    : page === "support"
+                      ? `../common/support.html`
+                      : `./page/${page}.html`;
             const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
@@ -506,6 +524,7 @@
               .forEach((s) => s.classList.remove("active"));
             dynamicSection.classList.add("active");
             dynamicSection.innerHTML = html;
+            executeEmbeddedScripts(dynamicSection);
             const title = document.getElementById("pageTitle");
             if (title)
               title.textContent =
@@ -513,8 +532,12 @@
                   ? "School Calendar"
                   : page === "notifications"
                     ? "Notifications"
-                    : page.charAt(0).toUpperCase() +
-                      page.slice(1).replace(/-/g, " ");
+                    : page === "help"
+                      ? "Help Center"
+                      : page === "support"
+                        ? "Support"
+                        : page.charAt(0).toUpperCase() +
+                          page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             document.dispatchEvent(
               new CustomEvent("page:loaded", { detail: { page } }),

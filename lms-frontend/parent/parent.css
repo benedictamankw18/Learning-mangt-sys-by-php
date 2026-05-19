@@ -221,6 +221,7 @@
 .welcome-content p {
     margin: 0;
     opacity: 0.9;
+    color: white;
 }
 
 .welcome-illustration {

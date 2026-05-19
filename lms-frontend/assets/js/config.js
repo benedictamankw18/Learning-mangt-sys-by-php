@@ -298,6 +298,9 @@ const API_ENDPOINTS = {
     TEACHER_STATS: '/api/dashboard/teacher',
     STUDENT_STATS: '/api/dashboard/student',
     PARENT_STATS: '/api/dashboard/parent',
+
+    // Support
+    SUPPORT_SEND: '/api/support/send',
 };
 
 // Storage Keys

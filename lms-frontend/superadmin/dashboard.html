@@ -55,10 +55,6 @@
             <i class="fas fa-server"></i>
             <span>System Settings</span>
           </a>
-          <a href="#" class="nav-item" data-page="database">
-            <i class="fas fa-database"></i>
-            <span>Database</span>
-          </a>
           <a href="#" class="nav-item" data-page="logs">
             <i class="fas fa-file-alt"></i>
             <span>System Logs</span>
@@ -67,17 +63,17 @@
             <i class="fas fa-shield-alt"></i>
             <span>Reports</span>
           </a>
-          <a href="#" class="nav-item" data-page="api">
-            <i class="fas fa-key"></i>
-            <span>API Management</span>
-          </a>
-          <a href="#" class="nav-item" data-page="backup">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <span>Backup & Restore</span>
-          </a>
           <a href="#" class="nav-item" data-page="platform-announcements">
             <i class="fas fa-bullhorn"></i>
             <span>Platform Announcements</span>
+          </a>
+          <a href="#" class="nav-item" data-page="help">
+            <i class="fas fa-circle-question"></i>
+            <span>Help Center</span>
+          </a>
+          <a href="#" class="nav-item" data-page="support">
+            <i class="fas fa-headset"></i>
+            <span>Support</span>
           </a>
         </nav>
 
@@ -406,7 +402,7 @@
                 </button>
               </div>
             </div>
-            <div class="card-body">
+            <div class="card-body" style="max-height: 500px; overflow-x: hidden; overflow-y: auto;">
               <div id="activityList" class="activity-list">
                 <div
                   style="
@@ -440,17 +436,9 @@
                   <i class="fas fa-cog"></i>
                   <span>System Settings</span>
                 </button>
-                <button class="action-btn bg-gradient-blue">
-                  <i class="fas fa-cloud-upload-alt"></i>
-                  <span>Backup Now</span>
-                </button>
                 <button class="action-btn bg-gradient-green">
                   <i class="fas fa-file-alt"></i>
                   <span>View Logs</span>
-                </button>
-                <button class="action-btn bg-gradient-indigo">
-                  <i class="fas fa-shield-alt"></i>
-                  <span>Security Scan</span>
                 </button>
               </div>
             </div>
@@ -524,6 +512,33 @@
           if (match) match.classList.add("active");
         }
 
+        function executeEmbeddedScripts(container) {
+          const scripts = container.querySelectorAll("script");
+          scripts.forEach((oldScript) => {
+            const newScript = document.createElement("script");
+            const src = oldScript.getAttribute("src");
+            if (src) {
+              const resolved = new URL(src, window.location.href).href;
+              window.__fragmentScripts = window.__fragmentScripts || new Set();
+              if (window.__fragmentScripts.has(resolved)) {
+                oldScript.remove();
+                return;
+              }
+              window.__fragmentScripts.add(resolved);
+              newScript.src = src;
+            }
+            Array.from(oldScript.attributes).forEach((attr) => {
+              if (attr.name !== "src") {
+                newScript.setAttribute(attr.name, attr.value);
+              }
+            });
+            if (!src) {
+              newScript.textContent = oldScript.textContent;
+            }
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        }
+
         async function loadPage(page) {
           if (!dynamicSection) return;
           if (!page || page === "overview") {
@@ -541,7 +556,15 @@
 
           try {
             dynamicSection.innerHTML = `<div class="card"><div class="card-body"><div class="spinner"></div></div></div>`;
-            const res = await fetch(`./page/${page}.html`);
+            const pagePath =
+              page === "notifications"
+                ? `../common/notifications.html`
+                : page === "help"
+                  ? `../common/help.html`
+                  : page === "support"
+                    ? `../common/support.html`
+                    : `./page/${page}.html`;
+            const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
             document
@@ -549,6 +572,7 @@
               .forEach((s) => s.classList.remove("active"));
             dynamicSection.classList.add("active");
             dynamicSection.innerHTML = html;
+            executeEmbeddedScripts(dynamicSection);
             const title = document.querySelector(".page-title");
             if (title) {
               const titleMap = {
@@ -557,12 +581,12 @@
                 users: "Users",
                 roles: "Roles",
                 system: "System",
-                database: "Database",
                 logs: "Logs",
                 reports: "Reports",
-                api: "API",
-                backup: "Backup",
                 "institution-details": "Institution Details",
+                notifications: "Notifications",
+                help: "Help Center",
+                support: "Support",
               };
               title.textContent =
                 titleMap[page] ||

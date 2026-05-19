@@ -129,7 +129,7 @@ function setupEventListeners() {
     const btnCreate     = document.getElementById('quickCreateAssignment');
     const btnSchedule   = document.getElementById('quickViewSchedule');
     if (btnAttendance) btnAttendance.addEventListener('click', () => { window.location.hash = '#attendance'; });
-    if (btnGrade)      btnGrade.addEventListener('click',      () => { window.location.hash = '#grading'; });
+    if (btnGrade)      btnGrade.addEventListener('click',      () => { window.location.hash = '#assignments'; });
     if (btnCreate)     btnCreate.addEventListener('click',     () => { window.location.hash = '#assignments'; });
     if (btnSchedule)   btnSchedule.addEventListener('click',  () => { window.location.hash = '#timetable'; });
 
@@ -691,7 +691,7 @@ function renderRecentSubmissions(submissions) {
                     <p>Assignment: ${escapeHtml(title)}</p>
                     <small>${when}</small>
                 </div>
-                <button class="btn btn-sm btn-primary">Grade</button>
+                <a href="#assignments" class="btn btn-sm btn-primary">Grade</a>
             </div>`;
     }).join('');
 }
@@ -784,7 +784,7 @@ function getLast12MonthLabels() {
  * Initialize chart canvases
  */
 function initCharts() {
-    // Class Performance — bar chart (avg assignment score per course)
+    // Class Performance — bar chart (avg assignment score per Subject)
     const perfCtx = document.getElementById('classPerformanceChart');
     if (perfCtx) {
         classPerformanceChart = new Chart(perfCtx, {
@@ -867,7 +867,7 @@ function renderCourses(courses) {
     if (!grid) return;
 
     if (!courses || courses.length === 0) {
-        grid.innerHTML = '<div style="color:var(--text-secondary);padding:.5rem 0">No courses assigned.</div>';
+        grid.innerHTML = '<div style="color:var(--text-secondary);padding:.5rem 0">No subjects assigned.</div>';
         return;
     }
 
@@ -879,17 +879,17 @@ function renderCourses(courses) {
         return `
         <div class="course-card">
             <div class="course-header" style="background:#f8f9fa;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(c.subject_name || 'Course')}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/img/ghana-education-service.png'">
+                <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(c.subject_name || 'Subject')}" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/img/ghana-education-service.png'">
             </div>
             <div class="course-body">
-                <h4>${escapeHtml(c.subject_name || c.course_name || 'Course')}</h4>
+                <h4>${escapeHtml(c.subject_name || c.course_name || 'Subject')}</h4>
                 <p>${escapeHtml(c.class_name || '')}</p>
                 <div class="course-stats">
                     <span><i class="fas fa-users"></i> ${c.enrolled_students || 0} students</span>
                 </div>
             </div>
             <div class="course-footer">
-                <button class="btn btn-sm btn-outline">View Course</button>
+                <a href="#my-classes" class="btn btn-sm btn-outline">View Class</a>
             </div>
         </div>`;
     }).join('');

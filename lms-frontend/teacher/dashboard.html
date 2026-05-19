@@ -40,10 +40,6 @@
           <i class="fas fa-book-open"></i>
           <span>My Subjects</span>
         </a>
-        <a href="#" class="nav-item" data-page="my-courses">
-          <i class="fas fa-book-open"></i>
-          <span>My Courses</span>
-        </a>
         <a href="#" class="nav-item" data-page="timetable">
           <i class="fas fa-calendar-alt"></i>
           <span>Timetable</span>
@@ -76,10 +72,6 @@
           <i class="fas fa-user-check"></i>
           <span>Attendance</span>
         </a>
-        <a href="#" class="nav-item" data-page="students">
-          <i class="fas fa-users"></i>
-          <span>Students</span>
-        </a>
         <a href="#" class="nav-item" data-page="messages">
           <i class="fas fa-envelope"></i>
           <span>Messages</span>
@@ -90,7 +82,7 @@
         </a>
         <a href="#" class="nav-item" data-page="course-materials">
           <i class="fas fa-folder-open"></i>
-          <span>Course Materials</span>
+          <span>Subject Materials</span>
         </a>
         <a href="#" class="nav-item" data-page="lesson-plans">
           <i class="fas fa-book-open"></i>
@@ -99,6 +91,14 @@
         <a href="#" class="nav-item" data-page="analytics">
           <i class="fas fa-chart-pie  "></i>
           <span>Analytics</span>
+        </a>
+        <a href="#" class="nav-item" data-page="help">
+          <i class="fas fa-circle-question"></i>
+          <span>Help Center</span>
+        </a>
+        <a href="#" class="nav-item" data-page="support">
+          <i class="fas fa-headset"></i>
+          <span>Support</span>
         </a>
         <a href="#" class="nav-item" data-page="notifications">
           <i class="fas fa-bell"></i>
@@ -192,8 +192,8 @@
               <a href="#myprofile" class="dropdown-item" data-page="myprofile">
                 <i class="fas fa-user"></i> My Profile
               </a>
-              <a href="#" class="dropdown-item">
-                <i class="fas fa-cog"></i> Settings
+              <a href="#help" class="dropdown-item" data-page="help">
+                <i class="fas fa-question-circle"></i> Help Center
               </a>
               <div class="dropdown-divider"></div>
               <a href="#" class="dropdown-item" id="userLogoutBtn">
@@ -345,7 +345,7 @@
             <div class="card fade-in-up">
               <div class="card-header">
                 <h3><i class="fas fa-file-alt"></i> Recent Submissions</h3>
-                <a href="#" class="btn btn-sm btn-outline">View All</a>
+                <a href="#assignments" class="btn btn-sm btn-outline">View All</a>
               </div>
               <div class="card-body p-0">
                 <div class="submissions-list" id="recentSubmissions">
@@ -589,7 +589,11 @@
                 ? `../common/calendar.html`
                 : page === "notifications"
                   ? `../common/notifications.html`
-                  : `./page/${page}.html`;
+                  : page === "help"
+                    ? `../common/help.html`
+                    : page === "support"
+                      ? `../common/support.html`
+                      : `./page/${page}.html`;
             const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
@@ -606,8 +610,12 @@
                   ? "School Calendar"
                   : page === "notifications"
                     ? "Notifications"
-                    : page.charAt(0).toUpperCase() +
-                      page.slice(1).replace(/-/g, " ");
+                    : page === "help"
+                      ? "Help Center"
+                      : page === "support"
+                        ? "Support"
+                        : page.charAt(0).toUpperCase() +
+                          page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             try {
               document.dispatchEvent(

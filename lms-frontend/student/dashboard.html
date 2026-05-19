@@ -40,10 +40,6 @@
           <i class="fas fa-book-open"></i>
           <span>My Subjects</span>
         </a>
-        <a href="#" class="nav-item" data-page="my-courses">
-          <i class="fas fa-book-reader"></i>
-          <span>My Courses</span>
-        </a>
         <a href="#" class="nav-item" data-page="assignments">
           <i class="fas fa-clipboard-list"></i>
           <span>Assignments</span>
@@ -87,6 +83,14 @@
         <a href="#" class="nav-item" data-page="myprofile">
           <i class="fas fa-user-circle"></i>
           <span>My Profile</span>
+        </a>
+        <a href="#" class="nav-item" data-page="help">
+          <i class="fas fa-circle-question"></i>
+          <span>Help Center</span>
+        </a>
+        <a href="#" class="nav-item" data-page="support">
+          <i class="fas fa-headset"></i>
+          <span>Support</span>
         </a>
       </nav>
 
@@ -191,8 +195,8 @@
               <a href="#myprofile" class="dropdown-item" data-page="myprofile">
                 <i class="fas fa-user"></i> My Profile
               </a>
-              <a href="#" class="dropdown-item">
-                <i class="fas fa-cog"></i> Settings
+              <a href="#help" class="dropdown-item" data-page="help">
+                <i class="fas fa-question-circle"></i> Help Center
               </a>
               <div class="dropdown-divider"></div>
               <a href="#" class="dropdown-item" id="userLogoutBtn">
@@ -318,7 +322,7 @@
             <div class="card fade-in-up">
               <div class="card-header">
                 <h3><i class="fas fa-star"></i> Recent Grades</h3>
-                <a href="#" class="btn btn-sm btn-outline">View All</a>
+                <a href="#assignments" class="btn btn-sm btn-outline">View All</a>
               </div>
               <div class="card-body p-0">
                 <div class="grades-list" id="recentGrades">
@@ -348,9 +352,9 @@
                 <h3>
                   <i class="fas fa-clipboard-list"></i> Pending Assignments
                 </h3>
-                <a href="#" class="btn btn-sm btn-outline">View All</a>
+                <a href="#assignments" class="btn btn-sm btn-outline">View All</a>
               </div>
-              <div class="card-body p-0">
+              <div class="card-body p-0" style="max-height: 250px; overflow-y:auto; overflow-x: hidden;">
                 <div class="assignments-list" id="pendingAssignmentsList">
                   <div
                     style="padding: 1.5rem; text-align: center; color: #6b7280"
@@ -375,7 +379,7 @@
               <div class="card-header">
                 <h3><i class="fas fa-bullhorn"></i> Announcements</h3>
               </div>
-              <div class="card-body p-0">
+              <div class="card-body p-0" style="max-height: 250px; overflow-y:auto; overflow-x: hidden;">
                 <div class="announcements-list" id="recentAnnouncements">
                   <div
                     style="padding: 1.5rem; text-align: center; color: #6b7280"
@@ -505,6 +509,33 @@
           if (match) match.classList.add("active");
         }
 
+        function executeEmbeddedScripts(container) {
+          const scripts = container.querySelectorAll("script");
+          scripts.forEach((oldScript) => {
+            const newScript = document.createElement("script");
+            const src = oldScript.getAttribute("src");
+            if (src) {
+              const resolved = new URL(src, window.location.href).href;
+              window.__fragmentScripts = window.__fragmentScripts || new Set();
+              if (window.__fragmentScripts.has(resolved)) {
+                oldScript.remove();
+                return;
+              }
+              window.__fragmentScripts.add(resolved);
+              newScript.src = src;
+            }
+            Array.from(oldScript.attributes).forEach((attr) => {
+              if (attr.name !== "src") {
+                newScript.setAttribute(attr.name, attr.value);
+              }
+            });
+            if (!src) {
+              newScript.textContent = oldScript.textContent;
+            }
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+          });
+        }
+
         async function loadPage(page) {
           if (!dynamicSection) return;
           if (!page || page === "dashboard") {
@@ -527,7 +558,11 @@
                 ? `../common/calendar.html`
                 : page === "notifications"
                   ? `../common/notifications.html`
-                  : `./page/${page}.html`;
+                  : page === "help"
+                    ? `../common/help.html`
+                    : page === "support"
+                      ? `../common/support.html`
+                      : `./page/${page}.html`;
             const res = await fetch(pagePath);
             if (!res.ok) throw new Error("Not found");
             const html = await res.text();
@@ -536,6 +571,7 @@
               .forEach((s) => s.classList.remove("active"));
             dynamicSection.classList.add("active");
             dynamicSection.innerHTML = html;
+            executeEmbeddedScripts(dynamicSection);
             const title = document.getElementById("pageTitle");
             if (title)
               title.textContent =
@@ -543,8 +579,12 @@
                   ? "School Calendar"
                   : page === "notifications"
                     ? "Notifications"
-                    : page.charAt(0).toUpperCase() +
-                      page.slice(1).replace(/-/g, " ");
+                    : page === "help"
+                      ? "Help Center"
+                      : page === "support"
+                        ? "Support"
+                        : page.charAt(0).toUpperCase() +
+                          page.slice(1).replace(/-/g, " ");
             setActiveNav(page);
             document.dispatchEvent(
               new CustomEvent("page:loaded", { detail: { page } }),

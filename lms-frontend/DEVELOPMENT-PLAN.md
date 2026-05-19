@@ -1254,7 +1254,7 @@ Complete messaging, announcements, analytics, and final polish for production re
   - User growth analytics
   - System usage reports
   - Export reports
-- [ ] **Create** `superadmin/activity-logs.html` _(implemented as `superadmin/page/logs.html`)_
+- [x] **Create** `superadmin/activity-logs.html` _(implemented as `superadmin/page/logs.html`)_
   - User login activity (all institutions)
   - System activity logs
   - Security events
@@ -1308,12 +1308,11 @@ Complete messaging, announcements, analytics, and final polish for production re
 
 **Day 5: Support & Operations**
 
-- [ ] **Create** `common/help.html`
+- [x] **Create** `common/help.html`
   - User guides by role
   - FAQs and tutorials
-- [ ] **Create** `common/support.html`
-  - Support ticket submission
-  - Ticket tracking and knowledge base search
+- [x] **Create** `common/support.html`
+  - Send an email
 
 **Day 4: Admin Settings & Logs**
 

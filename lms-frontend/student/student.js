@@ -721,12 +721,36 @@ function renderCourses(courses) {
                 </div>
             </div>
             <div class="course-footer">
-                <button class="btn btn-sm btn-outline">Continue Learning</button>
+                <a href="#my-subjects" class="btn btn-sm btn-outline">Continue Learning</a>
             </div>
         </div>`;
     }).join('');
 }
 
+
+function parseAnnouncementContent(rawContent = '') {
+    let meta = {};
+    let cleanContent = rawContent;
+
+    if (rawContent.startsWith('__ANN_META__')) {
+        const lines = rawContent.split('\n');
+
+        try {
+            meta = JSON.parse(
+                lines[0].replace('__ANN_META__', '')
+            );
+        } catch (e) {
+            console.error('Metadata parse error:', e);
+        }
+
+        cleanContent = lines.slice(1).join('\n').trim();
+    }
+
+    return {
+        meta,
+        content: cleanContent
+    };
+}
 /**
  * Render recent announcements
  */
@@ -743,20 +767,27 @@ function renderAnnouncements(announcements) {
         return;
     }
 
-    const priorityColor = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
+    const priorityColor = { urgent: '#ef4444', normal: '#10a73b'};
 
     container.innerHTML = announcements.map(a => {
-        const color = priorityColor[a.priority] || '#6b7280';
+    const parsed = parseAnnouncementContent(a.content || '');
+    const priority = parsed.meta.priority || a.priority || 'normal';
+
+    const color = priorityColor[priority] || '#6b7280';
+    // console.log('Rendering announcements:', a);
+
         return `
         <div style="display:flex;gap:.75rem;padding:.875rem 1.25rem;border-bottom:1px solid #f3f4f6;align-items:flex-start;">
             <div style="width:8px;height:8px;border-radius:50%;background:${color};margin-top:.4rem;flex-shrink:0;"></div>
             <div style="flex:1;min-width:0;">
                 <div style="font-weight:600;font-size:.9rem;">${escapeHtml(a.title)}</div>
-                <div style="font-size:.8rem;color:#6b7280;margin:.2rem 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(a.content || '')}</div>
+                <div style="font-size:.8rem;color:#6b7280;margin:.2rem 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${escapeHtml(parsed.content || '')}</div>
                 <div style="font-size:.75rem;color:#9ca3af;">${timeAgo(a.published_at)}</div>
             </div>
         </div>`;
     }).join('');
+
+
 }
 
 /**

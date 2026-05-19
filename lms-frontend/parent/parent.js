@@ -594,7 +594,6 @@ function updateStatistics(data) {
     const elAvgAttendance = document.getElementById('avgAttendance');
     const elTotalUpcoming = document.getElementById('totalUpcoming');
     const elTotalCourses  = document.getElementById('totalCourses');
-    const elPendingFee    = document.getElementById('pendingFeeStatus');
     const elPendingDetail = document.getElementById('pendingFeeDetail');
     const elTotalBanner   = document.getElementById('totalChildrenBanner');
     const elAttBanner     = document.getElementById('avgAttendanceBanner');
@@ -609,10 +608,7 @@ function updateStatistics(data) {
     if (elTotalUpcoming) animateNumber(elTotalUpcoming, totalUpcoming);
     if (elTotalCourses)  animateNumber(elTotalCourses, totalCourses);
 
-    const feeStatus = data.pending_fee_status || {};
-    if (elPendingFee) {
-        elPendingFee.textContent = feeStatus.label || 'N/A';
-    }
+
     if (elPendingDetail) {
         const detailText = feeStatus.detail || 'Fee tracking not configured';
         elPendingDetail.innerHTML = '<i class="fas fa-info-circle"></i> <span>' + escapeHtml(String(detailText)) + '</span>';
@@ -673,34 +669,82 @@ function renderChildren(children) {
 }
 
 /* ========== Render: Recent Grades ========== */
-function renderRecentGrades(grades) {
+async function renderRecentGrades(grades) {
     const container = document.getElementById('recentGrades');
     if (!container) return;
     if (!grades.length) {
         container.innerHTML = '<div style="padding:1.5rem;text-align:center;color:#6b7280;"><i class="fas fa-star" style="font-size:2rem;margin-bottom:.5rem;display:block;"></i><p>No grades recorded yet.</p></div>';
         return;
-    }
-    container.innerHTML = grades.map(g => {
-        const initials   = escapeHtml(g.child_initials || '??');
-        const childName  = escapeHtml(g.child_name || 'Child');
-        const title      = escapeHtml(g.assignment_title || g.title || 'Assessment');
-        const subject    = escapeHtml(g.subject_name || '');
-        const pct        = g.score != null && g.max_score ? Math.round(g.score / g.max_score * 100) : null;
-        const letterGrade = pct != null ? pctToGrade(pct) : '—';
-        const gradeClass = pct != null ? (pct >= 70 ? 'grade-a' : pct >= 55 ? 'grade-b' : 'grade-f') : 'grade-b';
-        const when       = g.graded_at ? timeAgo(g.graded_at) : '';
-        const scoreLabel = g.score != null && g.max_score ? `${g.score}/${g.max_score}` : '';
-        return `
-        <div class="activity-item" style="display:flex;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid #f1f5f9;gap:.9rem;">
-            <div class="activity-avatar" style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">${initials}</div>
-            <div class="activity-details" style="flex:1;min-width:0;">
-                <h4 style="margin:0 0 .1rem;font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</h4>
-                <p style="margin:0;font-size:.78rem;color:#6b7280;">${childName}${subject ? ' &bull; ' + subject : ''}</p>
-                <small style="color:#9ca3af;font-size:.73rem;">${scoreLabel}${when ? ' &bull; ' + when : ''}</small>
-            </div>
-            <div class="grade-badge ${gradeClass}" style="padding:.25rem .6rem;border-radius:8px;font-weight:700;font-size:.82rem;">${letterGrade}</div>
-        </div>`;
-    }).join('');
+    }const cards = await Promise.all(
+
+        grades.map(async (g) => {
+
+            const initials   = escapeHtml(g.child_initials || '??');
+            const childName  = escapeHtml(g.child_name || 'Child');
+            const title      = escapeHtml(g.assignment_title || g.title || 'Assessment');
+            const subject    = escapeHtml(g.subject_name || '');
+
+            const pct = g.score != null && g.max_score
+                ? Math.round((g.score / g.max_score) * 100)
+                : null;
+
+            const letterGrade = pct != null
+                ? await pctToGrade(pct)
+                : '-';
+
+            const gradeClass =
+                pct != null
+                    ? (pct >= 70
+                        ? 'grade-a'
+                        : pct >= 55
+                            ? 'grade-b'
+                            : 'grade-f')
+                    : 'grade-b';
+
+            const when = g.graded_at
+                ? timeAgo(g.graded_at)
+                : '';
+
+            const scoreLabel =
+                g.score != null && g.max_score
+                    ? `${g.score}/${g.max_score}`
+                    : '';
+
+            return `
+            <div class="activity-item" style="display:flex;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid #f1f5f9;gap:.9rem;">
+
+                <div class="activity-avatar"
+                    style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">
+                    ${initials}
+                </div>
+
+                <div class="activity-details" style="flex:1;min-width:0;">
+
+                    <h4 style="margin:0 0 .1rem;font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                        ${title}
+                    </h4>
+
+                    <p style="margin:0;font-size:.78rem;color:#6b7280;">
+                        ${childName}${subject ? ' &bull; ' + subject : ''}
+                    </p>
+
+                    <small style="color:#9ca3af;font-size:.73rem;">
+                        ${scoreLabel}${when ? ' &bull; ' + when : ''}
+                    </small>
+
+                </div>
+
+                <div class="grade-badge ${gradeClass}"
+                    style="padding:.25rem .6rem;border-radius:8px;font-weight:700;font-size:.82rem;">
+                    ${letterGrade}
+                </div>
+
+            </div>`;
+        })
+
+    );
+
+    container.innerHTML = cards.join('');
 }
 
 /* ========== Render: Attendance Summary ========== */
@@ -730,6 +774,30 @@ function renderAttendanceSummary(children) {
     }).join('');
 }
 
+function parseAnnouncementContent(rawContent = '') {
+    let meta = {};
+    let cleanContent = rawContent;
+
+    if (rawContent.startsWith('__ANN_META__')) {
+        const lines = rawContent.split('\n');
+
+        try {
+            meta = JSON.parse(
+                lines[0].replace('__ANN_META__', '')
+            );
+        } catch (e) {
+            console.error('Metadata parse error:', e);
+        }
+
+        cleanContent = lines.slice(1).join('\n').trim();
+    }
+
+    return {
+        meta,
+        content: cleanContent
+    };
+}
+
 /* ========== Render: Upcoming Events / Announcements ========== */
 function renderUpcomingEvents(events) {
     const container = document.getElementById('upcomingEvents');
@@ -740,9 +808,10 @@ function renderUpcomingEvents(events) {
     }
     container.innerHTML = events.map(ev => {
         const title    = escapeHtml(ev.title || 'Announcement');
-        const content  = escapeHtml((ev.content || ev.message || '').substring(0, 90));
-        const when     = ev.created_at ? timeAgo(ev.created_at) : '';
+        const { content } = parseAnnouncementContent(ev.content || ev.message || '');
+        const when     = ev.published_at ? timeAgo(ev.published_at) : '';
         const audience = ev.target_audience ? ` &bull; ${escapeHtml(ev.target_audience)}` : '';
+
         return `
         <div style="display:flex;gap:.8rem;padding:.85rem 1.2rem;border-bottom:1px solid #f1f5f9;">
             <div style="width:36px;height:36px;border-radius:50%;background:#ede9fe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -881,14 +950,132 @@ function timeAgo(dateStr) {
     return new Date(dateStr).toLocaleDateString();
 }
 
-function pctToGrade(pct) {
-    if (pct >= 80) return 'A1';
-    if (pct >= 75) return 'B2';
-    if (pct >= 70) return 'B3';
-    if (pct >= 65) return 'C4';
-    if (pct >= 60) return 'C5';
-    if (pct >= 55) return 'C6';
-    if (pct >= 50) return 'D7';
-    if (pct >= 45) return 'E8';
-    return 'F9';
+
+  function normalizeApiList(response) {
+    if (Array.isArray(response)) return response;
+
+    const payload = response?.data ?? response;
+    if (Array.isArray(payload)) return payload;
+
+    const candidates = [
+      payload?.grade_scales,
+      payload?.data,
+      payload?.items,
+      response?.grade_scales,
+      response?.items,
+    ];
+
+    for (const value of candidates) {
+      if (Array.isArray(value)) return value;
+    }
+
+    return [];
+  }
+
+   function toNumber(value, fallback = null) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+  
+  function resolveActiveGradeScaleRows(response) {
+    const rows = normalizeApiList(response);
+    if (!rows.length) return [];
+
+    const normalized = rows
+      .map((row) => {
+        const min = toNumber(row?.min_score, null);
+        const max = toNumber(row?.max_score, null);
+        const grade = String(row?.grade || '').trim().toUpperCase();
+        if (min == null || max == null || !grade) return null;
+
+        const status = String(row?.Status || row?.status || '').trim().toLowerCase();
+        const categoryStatus = String(row?.category_status || '').trim().toLowerCase();
+        const interpretation = String(row?.Interpretation || row?.interpretation || '').trim();
+        const remark = String(row?.remark || '').trim();
+        const gradePoint = toNumber(row?.grade_point, null);
+        const categoryId = String(row?.grade_categories_id || '');
+        const categoryName = String(row?.grade_categories_name || '').trim();
+        const isPrimary = Number(row?.set_as_primary || 0) === 1;
+
+        return {
+          grade,
+          min_score: min,
+          max_score: max,
+          status,
+          category_status: categoryStatus,
+          interpretation,
+          remark,
+          grade_point: gradePoint,
+          grade_categories_id: categoryId,
+          grade_categories_name: categoryName,
+          set_as_primary: isPrimary,
+        };
+      })
+      .filter(Boolean)
+      .filter((row) => {
+        const rowActive = !row.status || row.status === 'active';
+        const categoryActive = !row.category_status || row.category_status === 'active';
+        return rowActive && categoryActive;
+      });
+
+    if (!normalized.length) return [];
+
+    const grouped = normalized.reduce((acc, row) => {
+      const key = row.grade_categories_id || '__uncategorized__';
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(row);
+      return acc;
+    }, {});
+
+    const groups = Object.values(grouped);
+    const primaryGroup = groups.find((rowsByCategory) => rowsByCategory.some((row) => row.set_as_primary));
+    const selected = primaryGroup || groups.sort((a, b) => b.length - a.length)[0] || [];
+
+    return selected.sort((a, b) => {
+      if (a.max_score !== b.max_score) return b.max_score - a.max_score;
+      return a.min_score - b.min_score;
+    });
+  }
+
+async function pctToGrade(pct) {
+
+    let gradeScaleRows = [];
+
+    try {
+
+        const response = await GradeScaleAPI.getAll();
+
+        gradeScaleRows = resolveActiveGradeScaleRows(response);
+
+    } catch (err) {
+
+        console.error('Failed to load grade scales:', err);
+
+    }
+
+    // fallback grading system
+    if (!gradeScaleRows.length) {
+
+        gradeScaleRows = [
+            { min_score: 80, grade: 'A1' },
+            { min_score: 75, grade: 'B2' },
+            { min_score: 70, grade: 'B3' },
+            { min_score: 65, grade: 'C4' },
+            { min_score: 60, grade: 'C5' },
+            { min_score: 55, grade: 'C6' },
+            { min_score: 50, grade: 'D7' },
+            { min_score: 45, grade: 'E8' },
+            { min_score: 0, grade: 'F9' }
+        ];
+
+    }
+
+    for (const scale of gradeScaleRows) {
+        if (pct >= scale.min_score) {
+            return scale.grade;
+        }
+
+    }
+
+    return '—';
 }

@@ -1,0 +1,1031 @@
+<style>
+    .help-shell { display: grid; gap: 1.5rem; }
+    
+    .help-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .help-head h2 { margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 700; }
+    .help-head p { margin: 0.3rem 0 0; color: #64748b; font-size: 0.9rem; }
+
+    .help-search {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .help-search-box {
+      border: 1px solid #dbe3ea;
+      border-radius: 10px;
+      background: #fff;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
+      color: #0f172a;
+      min-width: 250px;
+      outline: none;
+    }
+    .help-search-box:focus {
+      border-color: #006a3f;
+      box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+    }
+    .help-search-btn {
+      border: 1px solid #dbe3ea;
+      background: #fff;
+      color: #334155;
+      border-radius: 9px;
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .help-search-btn:hover {
+      background: #f8fafc;
+      border-color: #006a3f;
+      color: #006a3f;
+    }
+
+    .help-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #e2e8f0;
+      overflow-x: auto;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+    .help-tab {
+      border: none;
+      background: transparent;
+      color: #64748b;
+      padding: 0.75rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .help-tab:hover {
+      color: #006a3f;
+    }
+    .help-tab.active {
+      color: #006a3f;
+      border-bottom-color: #006a3f;
+    }
+
+    .help-content { display: none; }
+    .help-content.active { display: grid; gap: 1.5rem; }
+
+    .help-section { display: grid; gap: 0.75rem; }
+    .help-section-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
+      padding: 1rem;
+      background: linear-gradient(180deg, #f8fafc, #fff);
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .help-section-title:hover { background: linear-gradient(180deg, #f1f5f9, #fff); }
+    .help-section-title i { font-size: 0.9rem; color: #64748b; transition: transform 0.3s; }
+    .help-section-title.collapsed i { transform: rotate(0deg); }
+    .help-section-title.expanded i { transform: rotate(90deg); }
+
+    .help-section-content {
+      display: none;
+      padding: 1.2rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      line-height: 1.6;
+      color: #334155;
+    }
+    .help-section-content.show { display: block; }
+    .help-section-content ol, .help-section-content ul {
+      margin: 0.8rem 0;
+      padding-left: 1.5rem;
+    }
+    .help-section-content li { margin: 0.5rem 0; }
+    .help-section-content strong { color: #0f172a; font-weight: 700; }
+
+    .help-faq { display: grid; gap: 0.65rem; }
+    .help-faq-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .help-faq-question {
+      padding: 1rem;
+      background: #fafbfc;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      user-select: none;
+    }
+    .help-faq-question:hover { background: #f1f5f9; }
+    .help-faq-question-text {
+      margin: 0;
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 0.95rem;
+      flex: 1;
+    }
+    .help-faq-icon {
+      color: #64748b;
+      font-size: 0.85rem;
+      transition: transform 0.3s;
+    }
+    .help-faq-item.open .help-faq-icon { transform: rotate(180deg); }
+    .help-faq-answer {
+      display: none;
+      padding: 1.2rem;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+      color: #334155;
+      line-height: 1.6;
+    }
+    .help-faq-answer.show { display: block; }
+    .help-faq-answer ol, .help-faq-answer ul {
+      margin: 0.8rem 0;
+      padding-left: 1.5rem;
+    }
+    .help-faq-answer li { margin: 0.5rem 0; }
+    .help-faq-answer strong { color: #0f172a; font-weight: 700; }
+
+    .help-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .help-support {
+      background: linear-gradient(135deg, #006a3f 0%, #005a35 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .help-support h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .help-support p { margin: 0 0 1rem; color: rgba(255, 255, 255, 0.9); font-size: 0.95rem; }
+    .help-support-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #fff;
+      color: #006a3f;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .help-support-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+
+    .help-empty {
+      text-align: center;
+      padding: 2rem;
+      color: #64748b;
+    }
+    .help-empty i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+    .help-empty p { margin: 0; font-size: 0.95rem; }
+
+    @media (max-width: 768px) {
+      .help-head { flex-direction: column; }
+      .help-search { width: 100%; }
+      .help-search-box { width: 100%; }
+      .help-tabs { gap: 0; padding: 0.5rem 0; }
+      .help-tab { padding: 0.5rem 0.9rem; font-size: 0.85rem; }
+    }
+  </style>
+
+  <div class="help-shell">
+    <!-- Header -->
+    <div class="help-head">
+      <div>
+        <h2>Help Center</h2>
+        <p>Find guides, tutorials, and answers to common questions</p>
+      </div>
+      <div class="help-search">
+        <input type="text" id="helpSearch" class="help-search-box" placeholder="Search guides & FAQs..." />
+        <button class="help-search-btn" onclick="resetSearch()">
+          <i class="fas fa-times"></i> Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Role Tabs -->
+    <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+      <ul class="help-tabs" id="helpTabs">
+        <li>
+          <button class="help-tab" data-role="superadmin">
+            <i class="fas fa-crown"></i> Super Admin
+          </button>
+        </li>
+        <li>
+          <button class="help-tab" data-role="admin">
+            <i class="fas fa-user-tie"></i> Admin
+          </button>
+        </li>
+        <li>
+          <button class="help-tab" data-role="teacher">
+            <i class="fas fa-chalkboard-user"></i> Teacher
+          </button>
+        </li>
+        <li>
+          <button class="help-tab" data-role="student">
+            <i class="fas fa-graduation-cap"></i> Student
+          </button>
+        </li>
+        <li>
+          <button class="help-tab" data-role="parent">
+            <i class="fas fa-users"></i> Parent
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Content for each role -->
+    <div id="helpContents"></div>
+  </div>
+
+  <!-- <script src="../assets/js/auth.js"></script> -->
+  <script>
+    // Use window.HELP_CONTENT to avoid redeclaration errors when page is reloaded
+    if (!window.HELP_CONTENT) {
+      window.HELP_CONTENT = {
+      superadmin: {
+        guides: [
+          {
+            title: 'Managing Institutions',
+            icon: 'fa-building',
+            content: `
+              <ol>
+                <li><strong>View All Institutions:</strong> Go to Institutions page to see a list of all registered institutions.</li>
+                <li><strong>Create New Institution:</strong> Click "Add Institution" button, fill in institution details (name, contact, address), and set admin user.</li>
+                <li><strong>Edit Institution:</strong> Click on any institution and update details. Changes take effect immediately.</li>
+                <li><strong>Manage Institution Status:</strong> Activate or deactivate institutions to control access.</li>
+                <li><strong>View Institution Statistics:</strong> See enrollment, attendance, and performance metrics for each institution.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Managing Platform Users',
+            icon: 'fa-users',
+            content: `
+              <ol>
+                <li><strong>View All Users:</strong> Access Users page to see all platform users across institutions.</li>
+                <li><strong>Create Users:</strong> Click "Add User", select role (Super Admin, Admin, Teacher, Student, Parent), and fill details.</li>
+                <li><strong>Assign Roles:</strong> Click on a user and assign or change their role.</li>
+                <li><strong>Reset User Password:</strong> Click "Reset Password" to send reset link to user's email.</li>
+                <li><strong>Deactivate Users:</strong> Disable user accounts without deleting data.</li>
+                <li><strong>Bulk Import:</strong> Upload CSV file to create multiple users at once.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'System Settings & Configuration',
+            icon: 'fa-sliders',
+            content: `
+              <ol>
+                <li><strong>Access Settings:</strong> Go to System Settings page.</li>
+                <li><strong>General Settings:</strong> Configure app name, logo, and default timezone.</li>
+                <li><strong>Email Settings:</strong> Set up SMTP for password resets and notifications.</li>
+                <li><strong>Security Settings:</strong> Configure password policy, session timeout, and two-factor authentication.</li>
+                <li><strong>Grading Scale:</strong> Define grade boundaries for Ghana WAEC scale (A1-F9).</li>
+                <li><strong>Academic Calendar:</strong> Set up semesters and academic years.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Platform-Wide Announcements',
+            icon: 'fa-megaphone',
+            content: `
+              <ol>
+                <li><strong>Create Announcement:</strong> Click "New Announcement" and compose message for all institutions.</li>
+                <li><strong>Target Audience:</strong> Select who sees it: all users, specific roles, or specific institutions.</li>
+                <li><strong>Set Priority:</strong> Mark as urgent to highlight importance.</li>
+                <li><strong>Schedule Publishing:</strong> Set publish date and expiry date.</li>
+                <li><strong>Track Engagement:</strong> View read counts and see which institutions have acknowledged announcements.</li>
+                <li><strong>Edit or Delete:</strong> You can modify announcements before they expire.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Viewing Platform Analytics & Reports',
+            icon: 'fa-chart-line',
+            content: `
+              <ol>
+                <li><strong>Dashboard Overview:</strong> See key metrics: total institutions, users, active students, teachers.</li>
+                <li><strong>Institution Performance:</strong> Compare performance across institutions (attendance, grades, completion rates).</li>
+                <li><strong>User Growth Analytics:</strong> Track enrollment and user registration trends over time.</li>
+                <li><strong>System Usage Reports:</strong> See login activity, API usage, and system health.</li>
+                <li><strong>Export Reports:</strong> Download analytics in PDF or Excel format.</li>
+              </ol>
+            `
+          }
+        ],
+        faqs: [
+          {
+            q: 'How do I add a new institution?',
+            a: 'Go to Institutions → Click "Add Institution" → Fill in name, contact info, and address → Assign an admin user → Save.'
+          },
+          {
+            q: 'Can I deactivate an institution without deleting its data?',
+            a: 'Yes. Click on the institution → Click "Deactivate" → All student and teacher data is preserved. Reactivate anytime.'
+          },
+          {
+            q: 'How do I reset a super admin password?',
+            a: 'Go to Users → Find the user → Click "Reset Password" → A reset link is sent to their registered email.'
+          },
+          {
+            q: 'What happens if an institution exceeds its user limit?',
+            a: 'You can set soft or hard limits. When exceeded, admins see a warning and cannot create new users until the limit is increased.'
+          },
+          {
+            q: 'Can I export all user data from the platform?',
+            a: 'Yes. Go to Reports → Select "Users" → Choose date range and export as CSV or PDF.'
+          },
+          {
+            q: 'How do I configure the Ghana WAEC grading scale?',
+            a: 'Go to System Settings → Grading Scale → Define grade boundaries (e.g., 75-100 = A1, 70-74 = B2).'
+          },
+          {
+            q: 'Can I schedule announcements for later?',
+            a: 'Yes. When creating an announcement, set "Publish Date" and "Expiry Date" to control when it appears.'
+          }
+        ]
+      },
+      admin: {
+        guides: [
+          {
+            title: 'Managing Students',
+            icon: 'fa-user-graduate',
+            content: `
+              <ol>
+                <li><strong>View Students:</strong> Go to Students page to see all enrolled students.</li>
+                <li><strong>Add Single Student:</strong> Click "Add Student", enter ID, name, email, class, and program.</li>
+                <li><strong>Bulk Import:</strong> Download CSV template, fill with student data, and upload to create multiple at once.</li>
+                <li><strong>Edit Student Info:</strong> Click on a student and update details like name, contact, or program.</li>
+                <li><strong>Enroll in Classes:</strong> Select a student and assign to classes and subjects.</li>
+                <li><strong>View Student Profile:</strong> See grades, attendance, and activity history.</li>
+                <li><strong>Promote/Retain Students:</strong> Use "Promote Students" page to move students to next level or retain them.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Managing Teachers',
+            icon: 'fa-chalkboard-user',
+            content: `
+              <ol>
+                <li><strong>View Teachers:</strong> Go to Teachers page to see all staff.</li>
+                <li><strong>Add Teacher:</strong> Click "Add Teacher", enter ID, name, email, and qualifications.</li>
+                <li><strong>Assign Classes/Subjects:</strong> Click on a teacher and assign them to classes and subjects they teach.</li>
+                <li><strong>Edit Teacher Info:</strong> Update contact details, qualifications, or department.</li>
+                <li><strong>Generate Teacher ID:</strong> Click "Generate ID" to auto-create unique teacher IDs.</li>
+                <li><strong>View Teacher Performance:</strong> See their grades, attendance tracking, and student feedback.</li>
+                <li><strong>Deactivate Teacher:</strong> Remove a teacher from active roster (data preserved).</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Attendance Management',
+            icon: 'fa-clipboard-check',
+            content: `
+              <ol>
+                <li><strong>View Attendance Dashboard:</strong> Go to Attendance page to see overview by class and date.</li>
+                <li><strong>Filter by Class:</strong> Select a class to see attendance records for that group.</li>
+                <li><strong>View Attendance Details:</strong> Click on a date to see which students were present/absent.</li>
+                <li><strong>Generate Reports:</strong> Click "Export" to download attendance by student or class.</li>
+                <li><strong>Set Absence Threshold:</strong> Configure system settings to alert parents when student misses X classes.</li>
+                <li><strong>Send Absence Notifications:</strong> Parents receive alerts for excessive absences.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Grading & Assessments',
+            icon: 'fa-pen-fancy',
+            content: `
+              <ol>
+                <li><strong>Access Grades Page:</strong> Go to Grades → choose academic year, semester, and class.</li>
+                <li><strong>Configure Grade Categories:</strong> Set up categories (Class Test 40%, Exam 60%) in Management → Grades.</li>
+                <li><strong>Review Submitted Grades:</strong> Teachers submit grades; you review in Grades → Submissions queue.</li>
+                <li><strong>Approve Grades:</strong> Click "Approve" after verifying data is complete and accurate.</li>
+                <li><strong>Reject Grades:</strong> If issues found, click "Reject" and teacher can resubmit.</li>
+                <li><strong>Publish Grades:</strong> Once approved, "Publish" to make visible to students/parents.</li>
+                <li><strong>View Analytics:</strong> See class performance, grade distribution, and average scores.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Generating Reports',
+            icon: 'fa-file-pdf',
+            content: `
+              <ol>
+                <li><strong>Access Reports:</strong> Go to Reports page.</li>
+                <li><strong>Choose Report Type:</strong> Select academic performance, attendance, enrollment, or grades.</li>
+                <li><strong>Filter Data:</strong> Select class, program, date range, and other criteria.</li>
+                <li><strong>Generate Report:</strong> Click "Generate" to create report with charts and tables.</li>
+                <li><strong>Export:</strong> Download as PDF (printable) or Excel (editable).</li>
+                <li><strong>Schedule Reports:</strong> Set up automated reports to generate and email on a schedule.</li>
+              </ol>
+            `
+          }
+        ],
+        faqs: [
+          {
+            q: 'How do I bulk import students?',
+            a: 'Go to Students → Click "Import" → Download CSV template → Fill with student data → Upload file. System creates all students at once.'
+          },
+          {
+            q: 'Can I assign a teacher to multiple classes?',
+            a: 'Yes. Click on the teacher, then in "Assign Classes" select multiple classes and subjects.'
+          },
+          {
+            q: 'How do I know if attendance is being marked?',
+            a: 'Go to Attendance → Filter by class and date → Click on a date to see live attendance data marked by teachers.'
+          },
+          {
+            q: 'What does "Reject Grades" do?',
+            a: 'It returns grades to the teacher with a reason. Teacher must correct and resubmit before you can approve again.'
+          },
+          {
+            q: 'Can I generate a report card for a single student?',
+            a: 'Yes. Go to Reports → Select "Student Report" → Choose student → Generate and download their report card.'
+          },
+          {
+            q: 'How do I promote all students from SHS 1 to SHS 2?',
+            a: 'Go to Promote Students → Select class (SHS 1) → Click "Promote All" → Confirm → All students move to SHS 2.'
+          },
+          {
+            q: 'Can parents see grades before I publish them?',
+            a: 'No. Grades are only visible to parents after you click "Publish". Before that, only teachers and admins can see them.'
+          },
+          {
+            q: 'How do I export attendance data for a full semester?',
+            a: 'Go to Attendance → Select date range → Click "Export" → Choose format (PDF or Excel) → Download.'
+          }
+        ]
+      },
+      teacher: {
+        guides: [
+          {
+            title: 'Creating & Managing Assignments',
+            icon: 'fa-scroll',
+            content: `
+              <ol>
+                <li><strong>Go to Assignments:</strong> Navigate to your dashboard and click Assignments.</li>
+                <li><strong>Create New Assignment:</strong> Click "Create Assignment" button.</li>
+                <li><strong>Fill Assignment Details:</strong> Enter title, description, select class/subject, set due date.</li>
+                <li><strong>Choose Submission Type:</strong> Select "File Upload", "Text Entry", or "Both".</li>
+                <li><strong>Set Points:</strong> Enter total points for grading.</li>
+                <li><strong>Add Instructions:</strong> Provide clear instructions; attach files if needed (PDFs, images, etc.).</li>
+                <li><strong>Publish Assignment:</strong> Click "Publish" to make visible to students.</li>
+                <li><strong>View Submissions:</strong> Once published, track student submissions in real-time.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Grading Student Submissions',
+            icon: 'fa-check-to-slot',
+            content: `
+              <ol>
+                <li><strong>Go to Submissions:</strong> Click "Submissions" after students begin submitting.</li>
+                <li><strong>Filter by Assignment:</strong> Select the assignment you want to grade.</li>
+                <li><strong>Open Student Work:</strong> Click on a student's submission to view and download files.</li>
+                <li><strong>Enter Grade:</strong> Type score out of total points in the grade field.</li>
+                <li><strong>Add Feedback:</strong> Write comments to help student improve.</li>
+                <li><strong>Save Grade:</strong> Click "Save" to store the grade (not yet visible to student).</li>
+                <li><strong>Publish Grades:</strong> After grading all, click "Publish Grades" to reveal to students.</li>
+                <li><strong>Download Submissions:</strong> Click "Download All" to get a ZIP file of all submissions.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Marking Attendance',
+            icon: 'fa-clipboard-list',
+            content: `
+              <ol>
+                <li><strong>Go to Attendance:</strong> Click Attendance in your dashboard.</li>
+                <li><strong>Select Class & Subject:</strong> Choose the class you want to mark attendance for.</li>
+                <li><strong>Mark Present/Absent:</strong> Check boxes for present students or click "Mark All Present" then uncheck absences.</li>
+                <li><strong>Add Notes:</strong> Optionally add notes for absences (sick, excused, etc.).</li>
+                <li><strong>Save Attendance:</strong> Click "Save" to record for the date.</li>
+                <li><strong>View Attendance Records:</strong> Go to "Reports" to see historical attendance by student.</li>
+                <li><strong>Import Attendance:</strong> Upload CSV file to mark attendance for offline sessions.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Entering Student Grades',
+            icon: 'fa-star',
+            content: `
+              <ol>
+                <li><strong>Go to Grades:</strong> Click Grades in your dashboard.</li>
+                <li><strong>Select Academic Year & Semester:</strong> Choose the current academic year and semester.</li>
+                <li><strong>Select Class & Subject:</strong> Pick the class and subject you're grading.</li>
+                <li><strong>Select Grade Category:</strong> Choose which category to enter (e.g., Class Test, Exam).</li>
+                <li><strong>Enter Scores:</strong> Type student scores in the table rows.</li>
+                <li><strong>System Converts to Grades:</strong> Scores automatically convert to Ghana WAEC grades (A1-F9).</li>
+                <li><strong>Save as Draft:</strong> Click "Save All" to save work in progress.</li>
+                <li><strong>Submit for Approval:</strong> Click "Publish" when ready for admin to approve.</li>
+                <li><strong>View Analytics:</strong> See class average, highest/lowest scores, and grade distribution.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Creating Quizzes & Online Tests',
+            icon: 'fa-question',
+            content: `
+              <ol>
+                <li><strong>Go to Quizzes:</strong> Click Quizzes in your dashboard.</li>
+                <li><strong>Create Quiz:</strong> Click "Create Quiz" and enter title, description, and time limit.</li>
+                <li><strong>Add Questions:</strong> Click "Add Question" and choose type: Multiple Choice, True/False, Short Answer, Essay.</li>
+                <li><strong>Enter Question Details:</strong> Type question, options (for MC), and mark correct answer.</li>
+                <li><strong>Set Points per Question:</strong> Assign point value for each question.</li>
+                <li><strong>Configure Quiz Settings:</strong> Set number of attempts, show results immediately, shuffle questions.</li>
+                <li><strong>Set Availability:</strong> Choose when quiz opens and closes.</li>
+                <li><strong>Publish Quiz:</strong> Click "Publish" to make available to students.</li>
+                <li><strong>View Results:</strong> See student responses, scores, and auto-grade MCQs.</li>
+              </ol>
+            `
+          }
+        ],
+        faqs: [
+          {
+            q: 'How do I give an extension on an assignment?',
+            a: 'Go to the assignment → Click "Edit" → Change the due date → Save. Students see the new deadline.'
+          },
+          {
+            q: 'Can I grade submissions offline?',
+            a: 'Yes. Download all submissions, grade locally, then upload grades back via "Upload Grades" button.'
+          },
+          {
+            q: 'What happens if I mark a student absent by mistake?',
+            a: 'Go back to Attendance for that date → Uncheck the student → Save. It updates immediately.'
+          },
+          {
+            q: 'How do I import grades from an Excel file?',
+            a: 'Go to Grades → Click "Import" → Download the template → Fill with scores → Upload the file.'
+          },
+          {
+            q: 'Can students retake a quiz?',
+            a: 'Yes. In quiz settings, set "Number of Attempts" to more than 1. Students can retake it.'
+          },
+          {
+            q: 'How do I weight different grade categories?',
+            a: 'Your admin sets weights in Management → Grades (e.g., Class Test 40%, Exam 60%). You just enter scores; system calculates final grade.'
+          },
+          {
+            q: 'Can I see attendance data for my classes?',
+            a: 'Yes. Go to Attendance → Filter by your class → View daily records. Reports show trends and statistics.'
+          },
+          {
+            q: 'What if a student submits after the deadline?',
+            a: 'The system marks it "Late". You can still grade it, but it\'s flagged for the student to know.'
+          }
+        ]
+      },
+      student: {
+        guides: [
+          {
+            title: 'Viewing Your Classes & Subjects',
+            icon: 'fa-book',
+            content: `
+              <ol>
+                <li><strong>Go to My Classes:</strong> Click "My Classes" in your dashboard.</li>
+                <li><strong>See Enrolled Classes:</strong> View all classes you're enrolled in for this semester.</li>
+                <li><strong>View Class Details:</strong> Click on a class to see teacher info, schedule, and enrolled subjects.</li>
+                <li><strong>Access Class Materials:</strong> See textbooks, notes, and resources shared by your teacher.</li>
+                <li><strong>View Timetable:</strong> Click "Timetable" to see your class schedule by day and period.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Submitting Assignments',
+            icon: 'fa-file-arrow-up',
+            content: `
+              <ol>
+                <li><strong>Go to Assignments:</strong> Click "Assignments" in your dashboard.</li>
+                <li><strong>View Assignment List:</strong> See all assignments with due dates and status.</li>
+                <li><strong>Open Assignment:</strong> Click on an assignment to see instructions and files.</li>
+                <li><strong>Check Submission Type:</strong> See if you need to upload a file or type an answer.</li>
+                <li><strong>Submit Work:</strong> Upload file or type answer → Click "Submit".</li>
+                <li><strong>Confirm Submission:</strong> You'll see "Submitted" confirmation with timestamp.</li>
+                <li><strong>View Grade:</strong> Once graded, your score and teacher feedback appear.</li>
+                <li><strong>Late Submissions:</strong> You can still submit after due date, but it's marked "Late".</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Checking Your Grades',
+            icon: 'fa-chart-bar',
+            content: `
+              <ol>
+                <li><strong>Go to Grades:</strong> Click "My Grades" in your dashboard.</li>
+                <li><strong>View Grades by Subject:</strong> See all your grades organized by subject.</li>
+                <li><strong>See Grade Breakdown:</strong> View individual assessment grades (Class Test, Exam, etc.).</li>
+                <li><strong>Check Overall Grade:</strong> Your final grade is shown (converted to A1-F9 scale).</li>
+                <li><strong>View Grade Trends:</strong> See how your grades change over time with charts.</li>
+                <li><strong>Download Report Card:</strong> Click "Download Report Card" to get PDF of all grades.</li>
+                <li><strong>View Class Average:</strong> Compare your scores to class average (if enabled).</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Taking Quizzes & Tests',
+            icon: 'fa-pencil-square',
+            content: `
+              <ol>
+                <li><strong>Go to Quizzes:</strong> Click "Quizzes" in your dashboard.</li>
+                <li><strong>View Available Quizzes:</strong> See all active quizzes with time limits and due dates.</li>
+                <li><strong>Start Quiz:</strong> Click "Start" to begin. Timer appears if there's a time limit.</li>
+                <li><strong>Answer Questions:</strong> Read each question and select your answer.</li>
+                <li><strong>Navigate Questions:</strong> Use "Next" and "Previous" buttons or click question numbers.</li>
+                <li><strong>Submit Quiz:</strong> Click "Submit" when done. You cannot change answers after submission.</li>
+                <li><strong>View Results:</strong> If enabled, see your score and correct answers immediately.</li>
+                <li><strong>Retake Quiz:</strong> If allowed, "Retake" button appears to attempt again.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Viewing Your Attendance',
+            icon: 'fa-calendar-check',
+            content: `
+              <ol>
+                <li><strong>Go to Attendance:</strong> Click "My Attendance" in your dashboard.</li>
+                <li><strong>See Attendance Record:</strong> View your attendance for each class.</li>
+                <li><strong>Calculate Attendance %:</strong> Your overall attendance percentage is shown.</li>
+                <li><strong>View by Subject:</strong> See attendance breakdown by subject or class.</li>
+                <li><strong>Download Report:</strong> Export your attendance report as PDF.</li>
+                <li><strong>Absence Alert:</strong> If you miss too many classes, you'll receive a notification.</li>
+              </ol>
+            `
+          }
+        ],
+        faqs: [
+          {
+            q: 'How do I know when an assignment is due?',
+            a: 'Go to Assignments → The due date is shown next to each assignment. Your teacher also sends a notification.'
+          },
+          {
+            q: 'Can I submit an assignment after the deadline?',
+            a: "Yes, but it will be marked \"Late\". Your teacher will see it's late, but they can still grade it."
+          },
+          {
+            q: 'How do I know my grade after taking a quiz?',
+            a: 'If your teacher allows, you see results immediately after submitting. Otherwise, your teacher will grade manually.'
+          },
+          {
+            q: 'What does my attendance percentage mean?',
+            a: "It's the number of classes you attended divided by total classes, shown as a percentage. Aim for 100%!"
+          },
+          {
+            q: 'Can I download my report card?',
+            a: 'Yes. Go to My Grades → Click "Download Report Card" → Choose PDF format → Download.'
+          },
+          {
+            q: 'How do I know which classes I\'m enrolled in?',
+            a: "Go to My Classes → See all classes and subjects for your current semester and program."
+          },
+          {
+            q: 'What if I fail a quiz, can I retake it?',
+            a: "Only if your teacher allows multiple attempts in the quiz settings. Check the quiz details."
+          },
+          {
+            q: 'How do I download course materials from my teacher?',
+            a: "Go to My Subjects → Click on a subject → View Materials → Click \"Download\" next to each file."
+          }
+        ]
+      },
+      parent: {
+        guides: [
+          {
+            title: 'Adding & Managing Your Children',
+            icon: 'fa-child',
+            content: `
+              <ol>
+                <li><strong>Go to My Children:</strong> Click "My Children" in your dashboard.</li>
+                <li><strong>View Linked Children:</strong> See all your children enrolled in the system.</li>
+                <li><strong>Link New Child:</strong> Click "Link Child" and enter their student ID.</li>
+                <li><strong>View Child Profile:</strong> Click on a child to see their school, classes, and contact teacher.</li>
+                <li><strong>Update Contact Info:</strong> Ensure your email and phone are current so you get notifications.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Tracking Academic Performance',
+            icon: 'fa-trend-up',
+            content: `
+              <ol>
+                <li><strong>Go to Performance:</strong> Click "Academic Performance" in your dashboard.</li>
+                <li><strong>Select Child:</strong> If you have multiple children, select which one to view.</li>
+                <li><strong>View Grades by Subject:</strong> See your child's grades in each subject.</li>
+                <li><strong>See Grade Trends:</strong> Charts show how grades are trending over the semester.</li>
+                <li><strong>Compare to Class Average:</strong> Your child's grade is compared to class average (if shown).</li>
+                <li><strong>Download Report Card:</strong> Click "Download Report Card" to get PDF for record-keeping.</li>
+                <li><strong>Identify Strengths/Weaknesses:</strong> Charts show which subjects your child excels in or struggles with.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Monitoring Attendance',
+            icon: 'fa-calendar-days',
+            content: `
+              <ol>
+                <li><strong>Go to Attendance:</strong> Click "Child Attendance" in your dashboard.</li>
+                <li><strong>Select Child:</strong> Choose which child if you have multiple.</li>
+                <li><strong>View Attendance %:</strong> Your child's overall attendance percentage.</li>
+                <li><strong>See Absence Details:</strong> View dates of absences and any notes from school.</li>
+                <li><strong>Receive Alerts:</strong> You're notified if your child misses too many classes.</li>
+                <li><strong>Download Report:</strong> Export attendance report as PDF for your records.</li>
+                <li><strong>Follow Up:</strong> If you see excessive absences, contact your child's teacher.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Communicating with Teachers',
+            icon: 'fa-comments',
+            content: `
+              <ol>
+                <li><strong>Go to Messages:</strong> Click "Messages" in your dashboard.</li>
+                <li><strong>Start Conversation:</strong> Click "New Message" to message a teacher.</li>
+                <li><strong>Select Recipient:</strong> Type teacher's name to search for them.</li>
+                <li><strong>Type Message:</strong> Write your question or concern.</li>
+                <li><strong>Send Message:</strong> Click "Send" to deliver immediately.</li>
+                <li><strong>Receive Replies:</strong> Teachers reply in your message thread. You're notified when they respond.</li>
+                <li><strong>Keep Record:</strong> All messages are saved in your inbox for future reference.</li>
+              </ol>
+            `
+          },
+          {
+            title: 'Viewing Assignments & Events',
+            icon: 'fa-tasks',
+            content: `
+              <ol>
+                <li><strong>Go to Assignments:</strong> Click "Child Assignments" in your dashboard.</li>
+                <li><strong>See Due Dates:</strong> View all upcoming assignments with due dates.</li>
+                <li><strong>Track Submissions:</strong> See which assignments your child has submitted.</li>
+                <li><strong>View Results:</strong> Once graded, see your child's score and teacher feedback.</li>
+                <li><strong>Go to School Calendar:</strong> Click "School Calendar" to see holidays, exams, and events.</li>
+                <li><strong>Plan Ahead:</strong> Know key dates (exam period, holiday breaks, special events).</li>
+              </ol>
+            `
+          }
+        ],
+        faqs: [
+          {
+            q: 'How do I link my child to their school account?',
+            a: 'Go to My Children → Click "Link Child" → Enter your child\'s student ID (found in school records) → Click "Link".'
+          },
+          {
+            q: 'Can I see my child\'s grades in real-time?',
+            a: 'Yes. Go to Academic Performance → You see all grades as soon as teachers publish them.'
+          },
+          {
+            q: 'Will I get notified if my child\'s grades drop?',
+            a: 'You receive notifications for major events (low grades, absences). Set preferences in your account settings.'
+          },
+          {
+            q: 'How often is attendance updated?',
+            a: 'Attendance is updated daily after your child\'s teacher marks it in the morning or after class.'
+          },
+          {
+            q: 'Can I message my child\'s teacher directly?',
+            a: 'Yes. Go to Messages → Click "New Message" → Type teacher\'s name → Send message. Teachers typically reply within 24 hours.'
+          },
+          {
+            q: 'What if I have concerns about my child\'s performance?',
+            a: 'Message the teacher directly or contact your child\'s homeroom teacher. You can also download reports to discuss with your child.'
+          },
+          {
+            q: 'Can I see my child\'s homework/assignments?',
+            a: 'Yes. Go to Child Assignments → See all assignments with due dates and your child\'s submission status.'
+          },
+          {
+            q: 'How do I download my child\'s report card?',
+            a: 'Go to Academic Performance → Click "Download Report Card" → Choose PDF → Download and print.'
+          }
+        ]
+      }
+      };
+    }
+
+    let helpcurrentRole = 'teacher'; // Default
+    let allContent = []; // For search
+
+    function init() {
+      helpcurrentRole = Auth.getUserRole();
+      if (!helpcurrentRole) {
+        window.location.href = '../auth/login.html';
+        return;
+      }
+
+      // Map role names if needed (backend may use different casing)
+      const roleMap = {
+        'superadmin': 'superadmin',
+        'super_admin': 'superadmin',
+        'admin': 'admin',
+        'teacher': 'teacher',
+        'student': 'student',
+        'parent': 'parent'
+      };
+
+      helpcurrentRole = roleMap[helpcurrentRole.toLowerCase()] || 'teacher';
+
+      renderContent();
+      setupEventListeners();
+      switchTab(helpcurrentRole);
+    }
+
+    function renderContent() {
+      const container = document.getElementById('helpContents');
+      container.innerHTML = '';
+
+      for (const [role, data] of Object.entries(window.HELP_CONTENT)) {
+        const content = document.createElement('div');
+        content.className = `help-content ${role === helpcurrentRole ? 'active' : ''}`;
+        content.id = `content-${role}`;
+
+        let html = '';
+
+        // Guides Section
+        html += '<div class="help-section">';
+        html += '<h3 style="font-size: 1.2rem; color: #0f172a; margin: 0 0 1rem; font-weight: 700;"><i class="fas fa-book-open"></i> User Guides</h3>';
+        data.guides.forEach((guide, idx) => {
+          const contentId = `guide-${role}-${idx}`;
+          html += `
+            <div>
+              <div class="help-section-title collapsed" onclick="toggleSection(this, '${contentId}')">
+                <i class="fas fa-chevron-right"></i>
+                <i class="fas ${guide.icon}"></i>
+                <span>${guide.title}</span>
+              </div>
+              <div class="help-section-content" id="${contentId}">
+                ${guide.content}
+              </div>
+            </div>
+          `;
+          allContent.push({ type: 'guide', text: guide.title.toLowerCase(), role });
+        });
+        html += '</div>';
+
+        // FAQs Section
+        html += '<div class="help-section" style="margin-top: 2rem;">';
+        html += '<h3 style="font-size: 1.2rem; color: #0f172a; margin: 0 0 1rem; font-weight: 700;"><i class="fas fa-circle-question"></i> Frequently Asked Questions</h3>';
+        html += '<div class="help-faq">';
+        data.faqs.forEach((faq, idx) => {
+          const faqId = `faq-${role}-${idx}`;
+          html += `
+            <div class="help-faq-item" id="${faqId}">
+              <div class="help-faq-question" onclick="toggleFaq(this, '${faqId}')">
+                <h4 class="help-faq-question-text">${faq.q}</h4>
+                <i class="fas fa-chevron-down help-faq-icon"></i>
+              </div>
+              <div class="help-faq-answer">
+                <p>${faq.a}</p>
+              </div>
+            </div>
+          `;
+          allContent.push({ type: 'faq', text: faq.q.toLowerCase(), role });
+        });
+        html += '</div>';
+        html += '</div>';
+
+        // Support section
+        html += `
+          <div class="help-support">
+            <h3>Still need help?</h3>
+            <p>Can't find what you're looking for? Contact our support team.</p>
+            <a href="#support" class="help-support-btn">
+              <i class="fas fa-headset"></i> Contact Support
+            </a>
+          </div>
+        `;
+
+        content.innerHTML = html;
+        container.appendChild(content);
+      }
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll('.help-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const role = tab.dataset.role;
+          switchTab(role);
+        });
+      });
+
+      document.getElementById('helpSearch').addEventListener('input', (e) => {
+        filterContent(e.target.value);
+      });
+    }
+
+    function switchTab(role) {
+      // Update active tab
+      document.querySelectorAll('.help-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.role === role);
+      });
+
+      // Update active content
+      document.querySelectorAll('.help-content').forEach(content => {
+        content.classList.toggle('active', content.id === `content-${role}`);
+      });
+
+      helpcurrentRole = role;
+    }
+
+    function toggleSection(header, contentId) {
+      const content = document.getElementById(contentId);
+      header.classList.toggle('expanded');
+      header.classList.toggle('collapsed');
+      content.classList.toggle('show');
+
+      // Persist state
+      const key = `help_section_${contentId}`;
+      sessionStorage.setItem(key, content.classList.contains('show'));
+    }
+
+    function toggleFaq(question, itemId) {
+      const item = document.getElementById(itemId);
+      const answer = item.querySelector('.help-faq-answer');
+      item.classList.toggle('open');
+      answer.classList.toggle('show');
+
+      // Persist state
+      const key = `help_faq_${itemId}`;
+      sessionStorage.setItem(key, item.classList.contains('open'));
+    }
+
+    function filterContent(query) {
+      if (!query.trim()) {
+        document.querySelectorAll('[id^="guide-"], [id^="faq-"]').forEach(el => {
+          el.parentElement.style.display = '';
+        });
+        return;
+      }
+
+      const lowerQuery = query.toLowerCase();
+      document.querySelectorAll('[id^="guide-"], [id^="faq-"]').forEach(el => {
+        const text = el.textContent.toLowerCase();
+        const isMatch = text.includes(lowerQuery);
+        el.parentElement.style.display = isMatch ? '' : 'none';
+      });
+
+      // Check if no results
+      const activeContent = document.querySelector('.help-content.active');
+      const visibleItems = activeContent.querySelectorAll('[id^="guide-"], [id^="faq-"]').length;
+      const visibleMatches = Array.from(activeContent.querySelectorAll('[id^="guide-"], [id^="faq-"]')).filter(el => el.parentElement.style.display !== 'none').length;
+
+      if (visibleMatches === 0 && query.trim()) {
+        activeContent.innerHTML += `
+          <div class="help-empty">
+            <i class="fas fa-search"></i>
+            <p>No results found for "<strong>${query}</strong>"</p>
+          </div>
+        `;
+      }
+    }
+
+    function resetSearch() {
+      document.getElementById('helpSearch').value = '';
+      filterContent('');
+      const empty = document.querySelector('.help-empty');
+      if (empty) empty.remove();
+    }
+
+    // Page load listener for dashboard hash routing
+    document.addEventListener('page:loaded', function (e) {
+      if (e?.detail?.page === 'help') {
+        init();
+      }
+    });
+
+    // Initialize on direct load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>

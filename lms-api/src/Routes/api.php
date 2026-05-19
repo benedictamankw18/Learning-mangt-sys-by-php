@@ -11,6 +11,9 @@ return [
     // Public contact form
     'POST /contact' => ['controller' => 'ContactController', 'method' => 'send', 'auth' => false],
 
+    // Support tickets (Protected)
+    'POST /support/send' => ['controller' => 'SupportTicketController', 'method' => 'send', 'auth' => true],
+
     // Auth routes (Protected)
     'GET /auth/me' => ['controller' => 'AuthController', 'method' => 'me', 'auth' => true],
     'POST /auth/logout' => ['controller' => 'AuthController', 'method' => 'logout', 'auth' => false],

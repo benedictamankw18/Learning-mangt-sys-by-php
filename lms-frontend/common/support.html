@@ -1,0 +1,475 @@
+<style>
+  .support-shell { display: grid; gap: 1.5rem; }
+  
+  .support-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .support-head h2 { margin: 0; font-size: 1.5rem; color: #0f172a; font-weight: 700; }
+  .support-head p { margin: 0.3rem 0 0; color: #64748b; font-size: 0.9rem; }
+
+  .support-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  @media (max-width: 1024px) {
+    .support-container { grid-template-columns: 1fr; }
+  }
+
+  .support-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .support-card h3 {
+    font-size: 1.1rem;
+    color: #0f172a;
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+  }
+
+  .support-card p {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .support-form-group {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .support-form-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .support-form-group input,
+  .support-form-group textarea,
+  .support-form-group select {
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+    color: #0f172a;
+    background: #fff;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .support-form-group input:focus,
+  .support-form-group textarea:focus,
+  .support-form-group select:focus {
+    border-color: #006a3f;
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+  }
+
+  .support-form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+
+  .support-form-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .support-btn {
+    border: none;
+    border-radius: 9px;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .support-btn-primary {
+    background: #006a3f;
+    color: #fff;
+  }
+
+  .support-btn-primary:hover {
+    background: #004f2e;
+  }
+
+  .support-btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #dbe3ea;
+  }
+
+  .support-btn-secondary:hover {
+    background: #e2e8f0;
+  }
+
+  .support-status {
+    padding: 1rem;
+    border-radius: 10px;
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .support-status.show { display: flex; }
+
+  .support-status.success {
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+    color: #065f46;
+  }
+
+  .support-status.error {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #7f1d1d;
+  }
+
+  .support-status.loading {
+    background: #e0e7ff;
+    border: 1px solid #a5b4fc;
+    color: #312e81;
+  }
+
+  .support-topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .support-topic {
+    border: 1px solid #dbe3ea;
+    border-radius: 9px;
+    padding: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+  }
+
+  .support-topic:hover {
+    border-color: #006a3f;
+    background: #f0fdf4;
+  }
+
+  .support-topic input[type="radio"] {
+    display: none;
+  }
+
+  .support-topic input[type="radio"]:checked + label {
+    color: #006a3f;
+    font-weight: 700;
+  }
+
+  .support-topic label {
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: block;
+    margin: 0;
+  }
+
+  .support-channels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .support-channel {
+    padding: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-align: center;
+    background: #f8fafc;
+  }
+
+  .support-channel i {
+    font-size: 1.75rem;
+    color: #006a3f;
+    margin-bottom: 0.5rem;
+  }
+
+  .support-channel p {
+    font-size: 0.85rem;
+    margin: 0;
+    color: #475569;
+  }
+
+  .support-channel a {
+    color: #006a3f;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .support-channel a:hover {
+    text-decoration: underline;
+  }
+
+  .support-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 106, 63, 0.2);
+    border-top-color: #006a3f;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<div class="support-shell">
+  <div class="support-head">
+    <div>
+      <h2>Support Center</h2>
+      <p>Get help from our support team or check common solutions</p>
+    </div>
+  </div>
+
+  <div class="support-container">
+    <!-- Support Form -->
+    <div class="support-card">
+      <h3><i class="fas fa-envelope"></i> Send a Message</h3>
+
+      <div id="supportStatus" class="support-status">
+        <span id="supportStatusIcon"></span>
+        <span id="supportStatusMessage"></span>
+      </div>
+
+      <form id="supportForm">
+        <!-- Category -->
+        <div class="support-form-group">
+          <label>Support Category *</label>
+          <select id="supportCategory" required>
+            <option value="">Select a category...</option>
+            <option value="technical">Technical Issue</option>
+            <option value="account">Account & Login</option>
+            <option value="feature">Feature Request</option>
+            <option value="bug">Report a Bug</option>
+            <option value="data">Data & Privacy</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <!-- Subject -->
+        <div class="support-form-group">
+          <label>Subject *</label>
+          <input type="text" id="supportSubject" placeholder="Brief description of your issue" required />
+        </div>
+
+        <!-- Email (pre-filled if available) -->
+        <div class="support-form-group">
+          <label>Email Address *</label>
+          <input type="email" id="supportEmail" placeholder="your@email.com" required />
+        </div>
+
+        <!-- Message -->
+        <div class="support-form-group">
+          <label>Message *</label>
+          <textarea id="supportMessage" placeholder="Describe your issue in detail..." required></textarea>
+        </div>
+
+        <!-- Priority -->
+        <div class="support-form-group">
+          <label>Priority</label>
+          <select id="supportPriority">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="support-form-actions">
+          <button type="submit" class="support-btn support-btn-primary">
+            <i class="fas fa-paper-plane"></i>
+            Send Message
+          </button>
+          <button type="reset" class="support-btn support-btn-secondary">
+            <i class="fas fa-redo"></i>
+            Clear
+          </button>
+        </div>
+      </form>
+
+      <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #94a3b8;">
+        <i class="fas fa-info-circle"></i>
+        Our support team typically responds within 24 hours.
+      </p>
+    </div>
+
+    <!-- Support Info & Resources -->
+    <div>
+      <!-- Quick Links -->
+      <div class="support-card" style="margin-bottom: 1.5rem;">
+        <h3><i class="fas fa-question-circle"></i> Quick Resources</h3>
+        <div class="support-channels">
+          <div class="support-channel">
+            <i class="fas fa-book"></i>
+            <p><a href="#help">Knowledge Base</a></p>
+          </div>
+          <div class="support-channel">
+            <i class="fas fa-video"></i>
+            <p><a href="javascript:alert('Video tutorials coming soon!')">Tutorials</a></p>
+          </div>
+          <div class="support-channel">
+            <i class="fas fa-comments"></i>
+            <p><a href="#support">Contact Support</a></p>
+          </div>
+          <div class="support-channel">
+            <i class="fas fa-external-link-alt"></i>
+            <p><a href="https://docs.example.com" target="_blank">Documentation</a></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Common Issues -->
+      <div class="support-card">
+        <h3><i class="fas fa-lightbulb"></i> Common Issues</h3>
+        <div style="display: grid; gap: 0.75rem;">
+          <div style="padding: 0.75rem; border-left: 3px solid #006a3f; background: #f0fdf4;">
+            <strong style="color: #0f172a; font-size: 0.9rem;">Can't log in?</strong>
+            <p style="font-size: 0.8rem; margin: 0.25rem 0 0;">Check your email and password. Use "Forgot Password" to reset.</p>
+          </div>
+          <div style="padding: 0.75rem; border-left: 3px solid #006a3f; background: #f0fdf4;">
+            <strong style="color: #0f172a; font-size: 0.9rem;">File upload issues?</strong>
+            <p style="font-size: 0.8rem; margin: 0.25rem 0 0;">Ensure file is under 50MB and in an allowed format (PDF, DOCX, XLSX, JPG, PNG).</p>
+          </div>
+          <div style="padding: 0.75rem; border-left: 3px solid #006a3f; background: #f0fdf4;">
+            <strong style="color: #0f172a; font-size: 0.9rem;">Missing grades?</strong>
+            <p style="font-size: 0.8rem; margin: 0.25rem 0 0;">Grades may be pending approval. Contact your teacher or admin for status.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize support form
+  function initSupport() {
+    const supportForm = document.getElementById('supportForm');
+    const emailInput = document.getElementById('supportEmail');
+    const statusDiv = document.getElementById('supportStatus');
+
+    // Pre-fill email if user is logged in
+    try {
+      const user = Auth.getUser();
+      if (user && user.email) {
+        emailInput.value = user.email;
+      }
+    } catch (e) {
+      // Auth not available or user not logged in
+    }
+
+    // Form submission
+    supportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const category = document.getElementById('supportCategory').value;
+      const subject = document.getElementById('supportSubject').value;
+      const email = document.getElementById('supportEmail').value;
+      const message = document.getElementById('supportMessage').value;
+      const priority = document.getElementById('supportPriority').value;
+
+      // Validate
+      if (!category || !subject.trim() || !email.trim() || !message.trim()) {
+        showStatus('Please fill in all required fields', 'error');
+        return;
+      }
+
+      // Show loading state
+      showStatus('Sending your message...', 'loading');
+      const submitBtn = supportForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+
+      try {
+        // Send support ticket to backend using APIService
+        const response = await API.post(API_ENDPOINTS.SUPPORT_SEND, {
+          category,
+          subject,
+          email,
+          message,
+          priority,
+          user_role: Auth.getUserRole?.() || 'guest',
+          timestamp: new Date().toISOString(),
+        });
+
+        if (response) {
+          showStatus(
+            'Thank you! Your message has been sent. We\'ll respond within 24 hours.',
+            'success'
+          );
+          supportForm.reset();
+          // Re-populate email after reset
+          if (email) emailInput.value = email;
+        } else {
+          showStatus(
+            'Failed to send message. Please try again.',
+            'error'
+          );
+        }
+      } catch (error) {
+        console.error('Support form error:', error);
+        const errorMsg = error?.message || 'Network error. Please check your connection and try again.';
+        showStatus(errorMsg, 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    function showStatus(message, type) {
+      const statusDiv = document.getElementById('supportStatus');
+      const statusIcon = document.getElementById('supportStatusIcon');
+      const statusMessage = document.getElementById('supportStatusMessage');
+
+      statusDiv.className = `support-status show ${type}`;
+
+      switch (type) {
+        case 'success':
+          statusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+          break;
+        case 'error':
+          statusIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+          break;
+        case 'loading':
+          statusIcon.innerHTML = '<div class="support-loading"></div>';
+          break;
+      }
+
+      statusMessage.textContent = message;
+    }
+  }
+
+  // Page load listener for dashboard hash routing
+  document.addEventListener('page:loaded', function (e) {
+    if (e?.detail?.page === 'support') {
+      initSupport();
+    }
+  });
+
+  // Initialize on direct load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSupport);
+  } else {
+    initSupport();
+  }
+</script>
