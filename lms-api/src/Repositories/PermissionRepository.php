@@ -56,7 +56,9 @@ class PermissionRepository
                 'description' => $data['description'] ?? null
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $permissionId = (int) $this->db->lastInsertId();
+            log_audit('Permission created', ['permission_id' => $permissionId, 'permission_name' => $data['permission_name']]);
+            return $permissionId;
         } catch (\PDOException $e) {
             log_error("Create Permission Error: " . $e->getMessage());
             return null;
@@ -82,7 +84,11 @@ class PermissionRepository
 
             $sql = "UPDATE permissions SET " . implode(', ', $fields) . " WHERE permission_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Permission updated', ['permission_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Update Permission Error: " . $e->getMessage());
@@ -99,7 +105,11 @@ class PermissionRepository
 
             // Then delete the permission
             $stmt = $this->db->prepare("DELETE FROM permissions WHERE permission_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Permission deleted', ['permission_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Permission Error: " . $e->getMessage());
             return false;

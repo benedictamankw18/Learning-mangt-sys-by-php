@@ -307,7 +307,9 @@ class NotificationRepository
         }
         $stmt->execute();
 
-        return (int) $this->db->lastInsertId();
+        $notificationId = (int) $this->db->lastInsertId();
+        log_audit('Notification created', ['notification_id' => $notificationId, 'institution_id' => $institutionId, 'title' => $title, 'notification_type' => $notificationType]);
+        return $notificationId;
     }
 
     /**
@@ -407,7 +409,11 @@ class NotificationRepository
         ");
 
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        return $stmt->execute();
+        $result = $stmt->execute();
+        if ($result) {
+            log_audit('Notification deleted', ['notification_id' => $id]);
+        }
+        return $result;
     }
 
     /**

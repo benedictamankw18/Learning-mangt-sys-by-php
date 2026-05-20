@@ -111,7 +111,9 @@ class SemesterRepository
             $stmt->execute();
 
             $this->db->commit();
-            return (int) $this->db->lastInsertId();
+            $semesterId = (int) $this->db->lastInsertId();
+            log_audit('Semester created', ['semester_id' => $semesterId, 'institution_id' => $institutionId, 'semester_name' => $data['semester_name'], 'is_current' => $isCurrent]);
+            return $semesterId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
@@ -223,6 +225,7 @@ class SemesterRepository
 
             if ($result) {
                 $this->db->commit();
+                log_audit('Semester updated', ['semester_id' => $id, 'institution_id' => $institutionId, 'fields_updated' => array_keys($data)]);
                 return true;
             }
 

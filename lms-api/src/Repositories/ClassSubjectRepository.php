@@ -367,7 +367,11 @@ class ClassSubjectRepository
         $query = "UPDATE class_subjects SET " . implode(', ', $fields) . " WHERE course_id = :id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Class subject updated', ['course_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -376,7 +380,11 @@ class ClassSubjectRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM class_subjects WHERE course_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Class subject deleted', ['course_id' => $id]);
+        }
+        return $result;
     }
 
     /**
@@ -574,6 +582,7 @@ class ClassSubjectRepository
             'order_index' => $data['order_index']
         ]);
 
+        log_audit('Class subject material created', ['material_id' => $materialId, 'course_id' => $data['course_id'], 'section_id' => $data['section_id'], 'title' => $data['title']]);
         return $materialId;
     }
 
@@ -661,7 +670,11 @@ class ClassSubjectRepository
         $query = "UPDATE course_materials SET " . implode(', ', $fields) . " WHERE material_id = :material_id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Class subject material updated', ['material_id' => $materialId, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -675,7 +688,11 @@ class ClassSubjectRepository
 
         // Then delete the material
         $stmt = $this->db->prepare("DELETE FROM course_materials WHERE material_id = :material_id");
-        return $stmt->execute(['material_id' => $materialId]);
+        $result = $stmt->execute(['material_id' => $materialId]);
+        if ($result) {
+            log_audit('Class subject material deleted', ['material_id' => $materialId]);
+        }
+        return $result;
     }
 
     /**
@@ -1113,6 +1130,7 @@ class ClassSubjectRepository
             'order_index' => $data['order_index']
         ]);
 
+        log_audit('Class subject content created', ['content_id' => $contentId, 'course_id' => $data['course_id'], 'section_id' => $data['section_id'], 'title' => $data['title']]);
         return $contentId;
     }
 
@@ -1150,7 +1168,11 @@ class ClassSubjectRepository
         $query = "UPDATE course_content SET " . implode(', ', $fields) . " WHERE course_content_id = :content_id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Class subject content updated', ['content_id' => $contentId, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -1164,7 +1186,11 @@ class ClassSubjectRepository
 
         // Then delete the content
         $stmt = $this->db->prepare("DELETE FROM course_content WHERE course_content_id = :content_id");
-        return $stmt->execute(['content_id' => $contentId]);
+        $result = $stmt->execute(['content_id' => $contentId]);
+        if ($result) {
+            log_audit('Class subject content deleted', ['content_id' => $contentId]);
+        }
+        return $result;
     }
 
     /**
@@ -1309,7 +1335,12 @@ class ClassSubjectRepository
             'is_recurring' => $data['is_recurring'] ?? 1
         ]);
 
-        return $result ? (int) $this->db->lastInsertId() : null;
+        if ($result) {
+            $scheduleId = (int) $this->db->lastInsertId();
+            log_audit('Class subject schedule created', ['schedule_id' => $scheduleId, 'course_id' => $data['course_id'], 'day_of_week' => strtolower($data['day_of_week'])]);
+            return $scheduleId;
+        }
+        return null;
     }
 
     /**
@@ -1368,7 +1399,11 @@ class ClassSubjectRepository
         $query = "UPDATE course_schedules SET " . implode(', ', $fields) . " WHERE schedule_id = :schedule_id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Class subject schedule updated', ['schedule_id' => $scheduleId, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -1377,7 +1412,11 @@ class ClassSubjectRepository
     public function deleteSchedule(int $scheduleId): bool
     {
         $stmt = $this->db->prepare("DELETE FROM course_schedules WHERE schedule_id = :schedule_id");
-        return $stmt->execute(['schedule_id' => $scheduleId]);
+        $result = $stmt->execute(['schedule_id' => $scheduleId]);
+        if ($result) {
+            log_audit('Class subject schedule deleted', ['schedule_id' => $scheduleId]);
+        }
+        return $result;
     }
 
     /**

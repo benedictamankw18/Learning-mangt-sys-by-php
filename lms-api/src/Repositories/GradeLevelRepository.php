@@ -265,7 +265,9 @@ class GradeLevelRepository
             'status' => $data['status']
         ]);
 
-        return $result ? (int) $this->db->lastInsertId() : null;
+        $gradeLevelId = (int) $this->db->lastInsertId();
+        log_audit('Grade level created', ['grade_level_id' => $gradeLevelId, 'institution_id' => $data['institution_id'], 'grade_level_name' => $data['grade_level_name'], 'level_order' => $data['level_order']]);
+        return $gradeLevelId;
     }
 
     /**
@@ -301,7 +303,11 @@ class GradeLevelRepository
         $query = "UPDATE grade_levels SET " . implode(', ', $fields) . " WHERE grade_level_id = :id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Grade level updated', ['grade_level_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -310,7 +316,11 @@ class GradeLevelRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM grade_levels WHERE grade_level_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Grade level deleted', ['grade_level_id' => $id]);
+        }
+        return $result;
     }
 
     /**

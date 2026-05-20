@@ -245,7 +245,9 @@ class ProgramRepository
                 'status' => $data['status'] ?? 'active'
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $programId = (int) $this->db->lastInsertId();
+            log_audit('Program created', ['program_id' => $programId, 'institution_id' => $data['institution_id'], 'program_code' => $data['program_code'], 'program_name' => $data['program_name']]);
+            return $programId;
         } catch (\PDOException $e) {
             log_error("Create Program Error: " . $e->getMessage());
             if ($e->errorInfo[1] === 1062) {
@@ -290,7 +292,11 @@ class ProgramRepository
 
             $sql = "UPDATE programs SET " . implode(', ', $updates) . " WHERE program_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Program updated', ['program_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Program Error: " . $e->getMessage());
             return false;
@@ -307,7 +313,11 @@ class ProgramRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM programs WHERE program_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Program deleted', ['program_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Program Error: " . $e->getMessage());
             return false;

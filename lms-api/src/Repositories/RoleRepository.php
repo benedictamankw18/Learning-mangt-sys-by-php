@@ -133,7 +133,9 @@ class RoleRepository
                 'description' => $data['description'] ?? null
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $roleId = (int) $this->db->lastInsertId();
+            log_audit('Role created', ['role_id' => $roleId, 'role_name' => strtolower($data['role_name'])]);
+            return $roleId;
         } catch (\PDOException $e) {
             log_error("Create Role Error: " . $e->getMessage());
             return null;
@@ -159,7 +161,11 @@ class RoleRepository
 
             $sql = "UPDATE roles SET " . implode(', ', $fields) . " WHERE role_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Role updated', ['role_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Update Role Error: " . $e->getMessage());
@@ -176,7 +182,11 @@ class RoleRepository
 
             // Then delete the role
             $stmt = $this->db->prepare("DELETE FROM roles WHERE role_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Role deleted', ['role_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Role Error: " . $e->getMessage());
             return false;
