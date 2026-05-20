@@ -356,7 +356,9 @@ class QuizRepository
         ]);
 
         $optionId = (int) $this->db->lastInsertId();
-        log_audit('Quiz question option added', ['option_id' => $optionId, 'question_id' => $questionId, 'label' => $data['label']]);\n        return $optionId;
+        log_audit('Quiz question option added', ['option_id' => $optionId, 'question_id' => $questionId, 'label' => $data['label']]);
+        
+        return $optionId;
     }
 
     /**
