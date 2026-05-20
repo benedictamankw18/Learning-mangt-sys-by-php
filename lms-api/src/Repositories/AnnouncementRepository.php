@@ -404,7 +404,11 @@ class AnnouncementRepository
 
         $sql = "UPDATE announcements SET " . implode(', ', $fields) . " WHERE announcement_id = :id";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Announcement updated', ['announcement_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -515,7 +519,11 @@ class AnnouncementRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM announcements WHERE announcement_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Announcement deleted', ['announcement_id' => $id]);
+        }
+        return $result;
     }
 
     private function buildStudentClassAudienceClause(?string $studentClassName, ?string $studentClassCode, ?int $studentClassId, string $alias = 'a'): string

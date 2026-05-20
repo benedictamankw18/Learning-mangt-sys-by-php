@@ -116,7 +116,9 @@ class GradeScaleRepository
                 'remark' => $data['remark'] ?? null,
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $gradeScaleId = (int) $this->db->lastInsertId();
+            log_audit('Grade scale created', ['grade_scale_id' => $gradeScaleId, 'grade' => $data['grade'], 'min_score' => $data['min_score'], 'max_score' => $data['max_score']]);
+            return $gradeScaleId;
         } catch (\PDOException $e) {
             log_error('Create Grade Scale Error: ' . $e->getMessage());
             return null;
@@ -153,8 +155,11 @@ class GradeScaleRepository
 
             $sql = 'UPDATE grade_scales SET ' . implode(', ', $updates) . ' WHERE grade_scale_id = :id';
             $stmt = $this->db->prepare($sql);
-
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Grade scale updated', ['grade_scale_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('Update Grade Scale Error: ' . $e->getMessage());
             return false;
@@ -173,7 +178,11 @@ class GradeScaleRepository
             }
 
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Grade scale deleted', ['grade_scale_id' => $id, 'institution_id' => $institutionId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('Delete Grade Scale Error: ' . $e->getMessage());
             return false;

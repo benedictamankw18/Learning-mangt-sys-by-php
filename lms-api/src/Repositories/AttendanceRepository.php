@@ -241,7 +241,11 @@ class AttendanceRepository
 
             $sql = "UPDATE attendance SET " . implode(', ', $updates) . " WHERE attendance_id = :attendance_id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Attendance updated', ['attendance_id' => $attendanceId, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Update Attendance Error: " . $e->getMessage());
@@ -253,7 +257,11 @@ class AttendanceRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM attendance WHERE attendance_id = :attendance_id");
-            return $stmt->execute(['attendance_id' => $attendanceId]);
+            $result = $stmt->execute(['attendance_id' => $attendanceId]);
+            if ($result) {
+                log_audit('Attendance deleted', ['attendance_id' => $attendanceId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Attendance Error: " . $e->getMessage());
             return false;

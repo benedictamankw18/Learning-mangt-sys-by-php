@@ -43,7 +43,9 @@ class CourseRepository
                 'status' => $data['status'] ?? 'active'
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $courseId = (int) $this->db->lastInsertId();
+            log_audit('Course created', ['course_id' => $courseId, 'institution_id' => $data['institution_id'], 'class_id' => $data['class_id'], 'subject_id' => $data['subject_id']]);
+            return $courseId;
         } catch (\PDOException $e) {
             log_error("Course Create Error: " . $e->getMessage());
             return null;
@@ -123,7 +125,11 @@ class CourseRepository
 
             $sql = "UPDATE class_subjects SET " . implode(', ', $fields) . " WHERE course_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Course updated', ['course_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Course Update Error: " . $e->getMessage());
@@ -135,7 +141,11 @@ class CourseRepository
     {
         try {
             $stmt = $this->db->prepare("UPDATE class_subjects SET status = 'archived' WHERE course_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Course archived', ['course_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Course Delete Error: " . $e->getMessage());
             return false;

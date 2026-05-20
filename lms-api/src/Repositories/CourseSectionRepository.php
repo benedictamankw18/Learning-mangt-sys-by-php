@@ -86,7 +86,9 @@ class CourseSectionRepository
             'created_by' => $data['created_by'] ?? null
         ]);
 
-        return (int) $this->db->lastInsertId();
+        $sectionId = (int) $this->db->lastInsertId();
+        log_audit('Course section created', ['section_id' => $sectionId, 'course_id' => $data['course_id'], 'section_name' => $data['section_name']]);
+        return $sectionId;
     }
 
     /**
@@ -114,8 +116,11 @@ class CourseSectionRepository
 
         $sql = "UPDATE course_sections SET " . implode(', ', $fields) . " WHERE course_sections_id = :id";
         $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Course section updated', ['section_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -127,7 +132,11 @@ class CourseSectionRepository
             DELETE FROM course_sections WHERE course_sections_id = :id
         ");
 
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Course section deleted', ['section_id' => $id]);
+        }
+        return $result;
     }
 
     /**

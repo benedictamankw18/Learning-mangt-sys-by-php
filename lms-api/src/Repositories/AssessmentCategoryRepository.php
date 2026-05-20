@@ -81,7 +81,9 @@ class AssessmentCategoryRepository
                 'weight_percentage' => $data['weight_percentage'] ?? 1,
                 'description' => $data['description'] ?? null
             ]);
-            return (int) $this->db->lastInsertId();
+            $categoryId = (int) $this->db->lastInsertId();
+            log_audit('Assessment category created', ['category_id' => $categoryId, 'institution_id' => $institutionId, 'category_name' => $data['category_name']]);
+            return $categoryId;
         } catch (\PDOException $e) {
             log_error("Create Assessment Category Error: " . $e->getMessage());
             return null;
@@ -111,7 +113,11 @@ class AssessmentCategoryRepository
 
             $sql = "UPDATE assessment_categories SET " . implode(', ', $updates) . " WHERE category_id = :id AND institution_id = :institution_id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Assessment category updated', ['category_id' => $id, 'institution_id' => $institutionId, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Assessment Category Error: " . $e->getMessage());
             return false;
@@ -126,7 +132,11 @@ class AssessmentCategoryRepository
                 'id' => $id,
                 'institution_id' => $institutionId,
             ]);
-            return $stmt->rowCount() > 0;
+            $result = $stmt->rowCount() > 0;
+            if ($result) {
+                log_audit('Assessment category deleted', ['category_id' => $id, 'institution_id' => $institutionId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Assessment Category Error: " . $e->getMessage());
             return false;

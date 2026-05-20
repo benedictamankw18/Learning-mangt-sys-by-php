@@ -88,7 +88,9 @@ class TeacherSubjectRepository
                 'subject_id' => $data['subject_id'],
                 'assigned_date' => $data['assigned_date'] ?? date('Y-m-d')
             ]);
-            return (int) $this->db->lastInsertId();
+            $teacherSubjectId = (int) $this->db->lastInsertId();
+            log_audit('Teacher subject assigned', ['teacher_subject_id' => $teacherSubjectId, 'teacher_id' => $data['teacher_id'], 'subject_id' => $data['subject_id']]);
+            return $teacherSubjectId;
         } catch (\PDOException $e) {
             log_error("Create Teacher Subject Error: " . $e->getMessage());
             return null;
@@ -115,7 +117,11 @@ class TeacherSubjectRepository
 
             $sql = "UPDATE teacher_subjects SET " . implode(', ', $updates) . " WHERE teacher_subject_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Teacher subject updated', ['teacher_subject_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Teacher Subject Error: " . $e->getMessage());
             return false;
@@ -126,7 +132,11 @@ class TeacherSubjectRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM teacher_subjects WHERE teacher_subject_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Teacher subject deleted', ['teacher_subject_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Teacher Subject Error: " . $e->getMessage());
             return false;

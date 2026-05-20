@@ -169,8 +169,11 @@ class QuizRepository
 
         $sql = "UPDATE quizzes SET " . implode(', ', $fields) . " WHERE quiz_id = :id";
         $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Quiz updated', ['quiz_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -182,7 +185,11 @@ class QuizRepository
             DELETE FROM quizzes WHERE quiz_id = :id
         ");
 
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Quiz deleted', ['quiz_id' => $id]);
+        }
+        return $result;
     }
 
     /**
@@ -318,6 +325,7 @@ class QuizRepository
             }
         }
 
+        log_audit('Quiz question added', ['question_id' => $questionId, 'quiz_id' => $data['quiz_id'], 'question_type' => $data['question_type']]);
         return $questionId;
     }
 
@@ -407,6 +415,7 @@ class QuizRepository
             $this->replaceQuestionOptions($questionId, $data['options']);
         }
 
+        log_audit('Quiz question updated', ['question_id' => $questionId, 'fields_updated' => array_keys($data)]);
         return true;
     }
 
@@ -420,7 +429,11 @@ class QuizRepository
             WHERE question_id = :question_id
         ");
 
-        return $stmt->execute(['question_id' => $questionId]);
+        $result = $stmt->execute(['question_id' => $questionId]);
+        if ($result) {
+            log_audit('Quiz question deleted', ['question_id' => $questionId]);
+        }
+        return $result;
     }
 
     /**

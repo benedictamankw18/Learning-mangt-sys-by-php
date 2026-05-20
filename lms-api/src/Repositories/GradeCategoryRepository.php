@@ -116,6 +116,7 @@ class GradeCategoryRepository
                 $this->db->commit();
             }
 
+            log_audit('Grade category created', ['category_id' => $newId, 'institution_id' => $data['institution_id'], 'category_name' => $data['grade_categories_name'], 'set_as_primary' => $setAsPrimary]);
             return $newId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -199,6 +200,7 @@ class GradeCategoryRepository
                 $this->db->commit();
             }
 
+            log_audit('Grade category updated', ['category_id' => $id, 'institution_id' => $institutionId, 'fields_updated' => array_keys($data)]);
             return true;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -263,7 +265,11 @@ class GradeCategoryRepository
             }
 
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Grade category deleted', ['category_id' => $id, 'institution_id' => $institutionId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('Delete Grade Category Error: ' . $e->getMessage());
             return false;

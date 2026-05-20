@@ -106,7 +106,9 @@ class CourseScheduleRepository
             'is_recurring' => $data['is_recurring'] ?? 1
         ]);
 
-        return (int) $this->db->lastInsertId();
+        $scheduleId = (int) $this->db->lastInsertId();
+        log_audit('Course schedule created', ['schedule_id' => $scheduleId, 'course_id' => $data['course_id'], 'day_of_week' => $data['day_of_week']]);
+        return $scheduleId;
     }
 
     /**
@@ -132,7 +134,11 @@ class CourseScheduleRepository
 
         $sql = "UPDATE course_schedules SET " . implode(', ', $fields) . " WHERE schedule_id = :id";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Course schedule updated', ['schedule_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -141,7 +147,11 @@ class CourseScheduleRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM course_schedules WHERE schedule_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Course schedule deleted', ['schedule_id' => $id]);
+        }
+        return $result;
     }
 
     /**
@@ -150,6 +160,10 @@ class CourseScheduleRepository
     public function deleteByCourse(int $courseId): bool
     {
         $stmt = $this->db->prepare("DELETE FROM course_schedules WHERE course_id = :course_id");
-        return $stmt->execute(['course_id' => $courseId]);
+        $result = $stmt->execute(['course_id' => $courseId]);
+        if ($result) {
+            log_audit('Course schedules deleted by course', ['course_id' => $courseId]);
+        }
+        return $result;
     }
 }

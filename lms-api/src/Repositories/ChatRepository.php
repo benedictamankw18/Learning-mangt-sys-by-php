@@ -227,6 +227,7 @@ class ChatRepository
             $memberStmt->execute(['room_id' => $roomId, 'user_id' => $user2]);
 
             $this->db->commit();
+            log_audit('Direct chat room created', ['room_id' => $roomId, 'user_1' => $user1, 'user_2' => $user2, 'institution_id' => $institutionId]);
             return $roomId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -269,6 +270,7 @@ class ChatRepository
             }
 
             $this->db->commit();
+            log_audit('Group chat room created', ['room_id' => $roomId, 'creator_id' => $creatorId, 'room_name' => $data['room_name'] ?? null, 'member_count' => count($data['member_ids'] ?? [])]);
             return $roomId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -307,7 +309,11 @@ class ChatRepository
             $fields[] = 'updated_at = NOW()';
             $sql = 'UPDATE chat_rooms SET ' . implode(', ', $fields) . ' WHERE room_id = :room_id';
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Chat room updated', ['room_id' => $roomId, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('ChatRepository::updateRoom error: ' . $e->getMessage());
             return false;
@@ -318,11 +324,15 @@ class ChatRepository
     {
         try {
             $stmt = $this->db->prepare("\n                INSERT INTO chat_room_members (room_id, user_id, member_role)\n                VALUES (:room_id, :user_id, :member_role)\n                ON DUPLICATE KEY UPDATE left_at = NULL, member_role = VALUES(member_role)\n            ");
-            return $stmt->execute([
+            $result = $stmt->execute([
                 'room_id' => $roomId,
                 'user_id' => $userId,
                 'member_role' => $role,
             ]);
+            if ($result) {
+                log_audit('Chat room member added', ['room_id' => $roomId, 'user_id' => $userId, 'role' => $role]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('ChatRepository::addMember error: ' . $e->getMessage());
             return false;
@@ -333,10 +343,14 @@ class ChatRepository
     {
         try {
             $stmt = $this->db->prepare("\n                UPDATE chat_room_members\n                SET left_at = NOW(), is_archived = 1\n                WHERE room_id = :room_id AND user_id = :user_id AND left_at IS NULL\n            ");
-            return $stmt->execute([
+            $result = $stmt->execute([
                 'room_id' => $roomId,
                 'user_id' => $userId,
             ]);
+            if ($result) {
+                log_audit('Chat room member removed', ['room_id' => $roomId, 'user_id' => $userId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('ChatRepository::removeMember error: ' . $e->getMessage());
             return false;
@@ -420,6 +434,7 @@ class ChatRepository
             $updateRoom->execute(['room_id' => $roomId]);
 
             $this->db->commit();
+            log_audit('Chat message sent', ['room_id' => $roomId, 'sender_id' => $senderId, 'message_id' => $messageId, 'message_type' => $messageType, 'has_attachments' => !empty($attachments)]);
             return $messageId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -472,11 +487,15 @@ class ChatRepository
         try {
             $stmt = $this->db->prepare("\n                UPDATE chat_messages\n                SET message_text = :message_text,\n                    message_type = :message_type,\n                    is_edited = 1,\n                    edited_at = NOW()\n                WHERE chat_message_id = :message_id\n                  AND deleted_at IS NULL\n            ");
 
-            return $stmt->execute([
+            $result = $stmt->execute([
                 'message_text' => $messageText,
                 'message_type' => trim($messageType) !== '' ? $messageType : 'text',
                 'message_id' => $messageId,
             ]);
+            if ($result) {
+                log_audit('Chat message updated', ['message_id' => $messageId, 'message_type' => $messageType]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error('ChatRepository::updateMessage error: ' . $e->getMessage());
             return false;

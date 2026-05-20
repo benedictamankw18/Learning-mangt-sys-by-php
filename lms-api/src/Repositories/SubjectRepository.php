@@ -155,7 +155,9 @@ class SubjectRepository
                 'credits' => $data['credits'] ?? 3,
                 'is_core' => $data['is_core'] ?? 0
             ]);
-            return (int) $this->db->lastInsertId();
+            $subjectId = (int) $this->db->lastInsertId();
+            log_audit('Subject created', ['subject_id' => $subjectId, 'institution_id' => $data['institution_id'], 'subject_code' => $data['subject_code'], 'subject_name' => $data['subject_name']]);
+            return $subjectId;
         } catch (\PDOException $e) {
             log_error("Create Subject Error: " . $e->getMessage());
             if ($e->errorInfo[1] === 1062) {
@@ -185,7 +187,11 @@ class SubjectRepository
 
             $sql = "UPDATE subjects SET " . implode(', ', $updates) . " WHERE subject_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Subject updated', ['subject_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Subject Error: " . $e->getMessage());
             return false;
@@ -196,7 +202,11 @@ class SubjectRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM subjects WHERE subject_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Subject deleted', ['subject_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Subject Error: " . $e->getMessage());
             return false;

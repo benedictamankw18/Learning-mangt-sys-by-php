@@ -460,7 +460,9 @@ class ClassRepository
             'status' => $data['status']
         ]);
 
-        return $result ? (int) $this->db->lastInsertId() : null;
+        $classId = (int) $this->db->lastInsertId();
+        log_audit('Class created', ['class_id' => $classId, 'institution_id' => $data['institution_id'], 'class_name' => $data['class_name'], 'class_code' => $data['class_code']]);
+        return $classId;
     }
 
     /**
@@ -500,7 +502,11 @@ class ClassRepository
         $query = "UPDATE classes SET " . implode(', ', $fields) . " WHERE class_id = :id";
 
         $stmt = $this->db->prepare($query);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Class updated', ['class_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -509,7 +515,11 @@ class ClassRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM classes WHERE class_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Class deleted', ['class_id' => $id]);
+        }
+        return $result;
     }
 
     /**

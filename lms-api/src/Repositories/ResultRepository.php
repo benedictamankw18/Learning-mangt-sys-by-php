@@ -91,7 +91,9 @@ class ResultRepository
                 'grade_point' => $data['grade_point'] ?? null,
                 'remark' => $data['remark'] ?? null
             ]);
-            return (int) $this->db->lastInsertId();
+            $resultId = (int) $this->db->lastInsertId();
+            log_audit('Result created', ['result_id' => $resultId, 'student_id' => $data['student_id'], 'course_id' => $data['course_id'], 'total_score' => $data['total_score']]);
+            return $resultId;
         } catch (\PDOException $e) {
             log_error("Create Result Error: " . $e->getMessage());
             return null;
@@ -118,7 +120,11 @@ class ResultRepository
 
             $sql = "UPDATE results SET " . implode(', ', $updates) . " WHERE result_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Result updated', ['result_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Result Error: " . $e->getMessage());
             return false;
@@ -129,7 +135,11 @@ class ResultRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM results WHERE result_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Result deleted', ['result_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Result Error: " . $e->getMessage());
             return false;

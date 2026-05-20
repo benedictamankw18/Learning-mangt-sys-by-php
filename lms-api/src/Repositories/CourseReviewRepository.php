@@ -150,7 +150,9 @@ class CourseReviewRepository
             'review_text' => $data['review_text'] ?? null
         ]);
 
-        return (int) $this->db->lastInsertId();
+        $reviewId = (int) $this->db->lastInsertId();
+        log_audit('Course review created', ['review_id' => $reviewId, 'course_id' => $data['course_id'], 'student_id' => $data['student_id'], 'rating' => $data['rating']]);
+        return $reviewId;
     }
 
     /**
@@ -177,7 +179,11 @@ class CourseReviewRepository
 
         $sql = "UPDATE course_reviews SET " . implode(', ', $fields) . " WHERE review_id = :id";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Course review updated', ['review_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -186,6 +192,10 @@ class CourseReviewRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("DELETE FROM course_reviews WHERE review_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Course review deleted', ['review_id' => $id]);
+        }
+        return $result;
     }
 }

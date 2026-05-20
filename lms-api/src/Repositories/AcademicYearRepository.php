@@ -103,7 +103,9 @@ class AcademicYearRepository
 
             $this->db->commit();
 
-            return (int) $this->db->lastInsertId();
+            $academicYearId = (int) $this->db->lastInsertId();
+            log_audit('Academic year created', ['academic_year_id' => $academicYearId, 'year_name' => $data['year_name'], 'institution_id' => $institutionId, 'is_current' => $isCurrent]);
+            return $academicYearId;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
@@ -221,7 +223,11 @@ public function update(int $id, array $data): bool
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM academic_years WHERE academic_year_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Academic year deleted', ['academic_year_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Academic Year Error: " . $e->getMessage());
             return false;

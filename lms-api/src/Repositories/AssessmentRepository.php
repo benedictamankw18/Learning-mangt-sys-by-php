@@ -43,7 +43,9 @@ class AssessmentRepository
                 'weight_percentage' => $data['weight_percentage'] ?? null
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $assessmentId = (int) $this->db->lastInsertId();
+            log_audit('Assessment created', ['assessment_id' => $assessmentId, 'course_id' => $data['course_id'], 'title' => $data['title'], 'type' => $data['assessment_type']]);
+            return $assessmentId;
         } catch (\PDOException $e) {
             log_error("Assessment Create Error: " . $e->getMessage());
             return null;
@@ -90,8 +92,11 @@ class AssessmentRepository
 
             $sql = "UPDATE assessments SET " . implode(', ', $fields) . " WHERE assessment_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
-
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Assessment updated', ['assessment_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Assessment Update Error: " . $e->getMessage());
             return false;
@@ -102,7 +107,11 @@ class AssessmentRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM assessments WHERE assessment_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Assessment deleted', ['assessment_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Assessment Delete Error: " . $e->getMessage());
             return false;
@@ -263,8 +272,11 @@ class AssessmentRepository
 
             $sql = "UPDATE assessment_submissions SET " . implode(', ', $fields) . " WHERE submission_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
-
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Assessment submission updated', ['submission_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Submission Error: " . $e->getMessage());
             return false;
@@ -275,7 +287,11 @@ class AssessmentRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM assessment_submissions WHERE submission_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Assessment submission deleted', ['submission_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Submission Error: " . $e->getMessage());
             return false;

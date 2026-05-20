@@ -561,6 +561,7 @@ class InstitutionRepository
             ]);
 
             $this->db->commit();
+            log_audit('Institution created', ['institution_id' => $institutionId, 'institution_code' => $data['institution_code'], 'institution_name' => $data['institution_name'], 'type' => $data['institution_type'] ?? 'shs']);
             return $institutionId;
         } catch (\PDOException $e) {
             $this->db->rollBack();
@@ -614,7 +615,11 @@ class InstitutionRepository
 
             $sql = "UPDATE institutions SET " . implode(', ', $updates) . " WHERE institution_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Institution updated', ['institution_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Institution Error: " . $e->getMessage());
             return false;
@@ -672,7 +677,11 @@ class InstitutionRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM institutions WHERE institution_id = :id");
-            return $stmt->execute(['id' => $id]);
+            $result = $stmt->execute(['id' => $id]);
+            if ($result) {
+                log_audit('Institution deleted', ['institution_id' => $id]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Institution Error: " . $e->getMessage());
             return false;
@@ -870,10 +879,14 @@ class InstitutionRepository
     {
         try {
             $stmt = $this->db->prepare("UPDATE institutions SET status = :status WHERE institution_id = :id");
-            return $stmt->execute([
+            $result = $stmt->execute([
                 'id' => $id,
                 'status' => $status
             ]);
+            if ($result) {
+                log_audit('Institution status updated', ['institution_id' => $id, 'status' => $status]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Institution Status Error: " . $e->getMessage());
             return false;
@@ -989,7 +1002,11 @@ class InstitutionRepository
 
             $sql = "UPDATE institution_settings SET " . implode(', ', $updates) . " WHERE institution_id = :institution_id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Institution settings updated', ['institution_id' => $institutionId, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Institution Settings Error: " . $e->getMessage());
             return false;
@@ -1072,6 +1089,7 @@ class InstitutionRepository
             }
 
             $this->db->commit();
+            log_audit('Institution timetable publish status updated', ['institution_id' => $institutionId, 'is_published' => $isPublished]);
             return true;
         } catch (\PDOException $e) {
             if ($this->db->inTransaction()) {
@@ -1137,10 +1155,14 @@ class InstitutionRepository
                 WHERE institution_id = :institution_id
             ");
 
-            return $stmt->execute([
+            $result = $stmt->execute([
                 'institution_id' => $institutionId,
                 'period_slots' => json_encode($periodSlots)
             ]);
+            if ($result) {
+                log_audit('Institution timetable period slots updated', ['institution_id' => $institutionId, 'slot_count' => count($periodSlots)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Update Timetable Period Slots Error: " . $e->getMessage());
             return false;

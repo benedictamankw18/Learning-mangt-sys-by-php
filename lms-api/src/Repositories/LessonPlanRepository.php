@@ -145,7 +145,9 @@ class LessonPlanRepository
                 'is_active' => $data['is_active'] ?? 1,
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $lessonPlanId = (int) $this->db->lastInsertId();
+            log_audit('Lesson plan created', ['lesson_plan_id' => $lessonPlanId, 'course_id' => $data['course_id'], 'strand' => $strandValue]);
+            return $lessonPlanId;
         } catch (\PDOException $e) {
             log_error("LessonPlanRepository::create error: " . $e->getMessage());
             return null;
@@ -203,7 +205,11 @@ class LessonPlanRepository
 
             $sql = "UPDATE lesson_plans SET " . implode(', ', $updateParts) . " WHERE lesson_plan_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($values);
+            $result = $stmt->execute($values);
+            if ($result) {
+                log_audit('Lesson plan updated', ['lesson_plan_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("LessonPlanRepository::update error: " . $e->getMessage());
             return false;

@@ -105,7 +105,9 @@ class CourseMaterialRepository
             'tags' => $data['tags'] ?? null
         ]);
 
-        return (int) $this->db->lastInsertId();
+        $materialId = (int) $this->db->lastInsertId();
+        log_audit('Course material created', ['material_id' => $materialId, 'course_id' => $data['course_id'], 'title' => $data['title']]);
+        return $materialId;
     }
 
     /**
@@ -131,7 +133,11 @@ class CourseMaterialRepository
 
         $sql = "UPDATE course_materials SET " . implode(', ', $fields) . " WHERE material_id = :id";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Course material updated', ['material_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -140,7 +146,11 @@ class CourseMaterialRepository
     public function delete(int $id): bool
     {
         $stmt = $this->db->prepare("UPDATE course_materials SET is_active = 0 WHERE material_id = :id");
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Course material deleted', ['material_id' => $id]);
+        }
+        return $result;
     }
 
     /**

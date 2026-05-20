@@ -52,7 +52,9 @@ class StudentRepository
                 'status' => $data['status'] ?? 'active'
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $studentId = (int) $this->db->lastInsertId();
+            log_audit('Student created', ['student_id' => $studentId, 'user_id' => $userId, 'institution_id' => $data['institution_id'], 'student_id_number' => $data['student_id_number']]);
+            return $studentId;
         } catch (\PDOException $e) {
             log_error("Student Create Error: " . $e->getMessage());
             return null;
@@ -184,7 +186,11 @@ class StudentRepository
 
             $sql = "UPDATE students SET " . implode(', ', $fields) . " WHERE student_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Student updated', ['student_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Student Update Error: " . $e->getMessage());
@@ -483,7 +489,11 @@ class StudentRepository
 
             $sql = "UPDATE course_enrollments SET " . implode(', ', $updates) . " WHERE enrollment_id = :enrollment_id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Student course enrollment updated', ['enrollment_id' => $enrollmentId, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
 
         } catch (\PDOException $e) {
             log_error("Update Enrollment Error: " . $e->getMessage());
@@ -495,7 +505,11 @@ class StudentRepository
     {
         try {
             $stmt = $this->db->prepare("DELETE FROM course_enrollments WHERE enrollment_id = :enrollment_id");
-            return $stmt->execute(['enrollment_id' => $enrollmentId]);
+            $result = $stmt->execute(['enrollment_id' => $enrollmentId]);
+            if ($result) {
+                log_audit('Student course enrollment deleted', ['enrollment_id' => $enrollmentId]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Delete Enrollment Error: " . $e->getMessage());
             return false;

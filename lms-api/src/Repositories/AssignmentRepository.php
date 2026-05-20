@@ -185,8 +185,11 @@ class AssignmentRepository
 
         $sql = "UPDATE assignments SET " . implode(', ', $fields) . " WHERE assignment_id = :id";
         $stmt = $this->db->prepare($sql);
-
-        return $stmt->execute($params);
+        $result = $stmt->execute($params);
+        if ($result) {
+            log_audit('Assignment updated', ['assignment_id' => $id, 'fields_updated' => array_keys($data)]);
+        }
+        return $result;
     }
 
     /**
@@ -198,7 +201,11 @@ class AssignmentRepository
             DELETE FROM assignments WHERE assignment_id = :id
         ");
 
-        return $stmt->execute(['id' => $id]);
+        $result = $stmt->execute(['id' => $id]);
+        if ($result) {
+            log_audit('Assignment deleted', ['assignment_id' => $id]);
+        }
+        return $result;
     }
 
     /**

@@ -49,7 +49,9 @@ class TeacherRepository
                 'years_of_experience' => $data['years_of_experience'] ?? null
             ]);
 
-            return (int) $this->db->lastInsertId();
+            $teacherId = (int) $this->db->lastInsertId();
+            log_audit('Teacher created', ['teacher_id' => $teacherId, 'user_id' => $userId, 'institution_id' => $data['institution_id'], 'employee_id' => $data['employee_id']]);
+            return $teacherId;
         } catch (\PDOException $e) {
             log_error("Teacher Create Error: " . $e->getMessage());
             return null;
@@ -156,8 +158,11 @@ class TeacherRepository
 
             $sql = "UPDATE teachers SET " . implode(', ', $fields) . " WHERE teacher_id = :id";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute($params);
-
+            $result = $stmt->execute($params);
+            if ($result) {
+                log_audit('Teacher updated', ['teacher_id' => $id, 'fields_updated' => array_keys($data)]);
+            }
+            return $result;
         } catch (\PDOException $e) {
             log_error("Teacher Update Error: " . $e->getMessage());
             return false;
