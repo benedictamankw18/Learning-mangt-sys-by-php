@@ -352,18 +352,18 @@
 
             return [
                 '<tr data-uuid="' + esc(report.uuid) + '">',
-                '<td><input type="checkbox" class="adm-grades-row-select" data-uuid="' + esc(report.uuid) + '" ' + checked + ' /></td>',
-                '<td>',
+                '<td data-label="Select"><input type="checkbox" class="adm-grades-row-select" data-uuid="' + esc(report.uuid) + '" ' + checked + ' /></td>',
+                '<td data-label="Student">',
                 '<strong>' + esc(report.student_name || 'Student') + '</strong><br />',
                 '<small>' + esc(detailSubjects || report.student_number || '-') + '</small>',
                 '</td>',
-                '<td>' + esc(report.class_name || '-') + '</td>',
-                '<td>' + esc([report.semester_name, report.academic_year].filter(Boolean).join(' / ') || '-') + '</td>',
-                '<td>' + esc(getReportGrade(report)) + '</td>',
-                '<td>' + esc(formatNumber(report.attendance_percentage, 1)) + '%</td>',
-                '<td><span class="adm-grades-chip ' + esc(status) + '">' + esc(statusLabel) + '</span></td>',
-                '<td>' + esc(generatedBy) + '<br /><small>' + esc(formatDateTime(report.generated_at)) + '</small></td>',
-                '<td>',
+                '<td data-label="Class">' + esc(report.class_name || '-') + '</td>',
+                '<td data-label="Term">' + esc([report.semester_name, report.academic_year].filter(Boolean).join(' / ') || '-') + '</td>',
+                '<td data-label="Grade">' + esc(getReportGrade(report)) + '</td>',
+                '<td data-label="Attendance">' + esc(formatNumber(report.attendance_percentage, 1)) + '%</td>',
+                '<td data-label="Workflow"><span class="adm-grades-chip ' + esc(status) + '">' + esc(statusLabel) + '</span></td>',
+                '<td data-label="Generated">' + esc(generatedBy) + '<br /><small>' + esc(formatDateTime(report.generated_at)) + '</small></td>',
+                '<td data-label="Actions">',
                 '<div class="adm-grades-inline-actions">',
                 '<button class="adm-grades-btn small ghost" type="button" data-action="view" data-uuid="' + esc(report.uuid) + '"><i class="fas fa-eye"></i></button>',
                 '<button class="adm-grades-btn small soft" type="button" data-action="approve" data-uuid="' + esc(report.uuid) + '"><i class="fas fa-circle-check"></i></button>',
@@ -468,10 +468,10 @@
                 const percentage = toNumber(detail.percentage);
                 const band = scoreToBand(percentage);
                 return '<tr>' +
-                    '<td>' + esc(detail.subject_name || detail.subject_code || 'Subject') + '</td>' +
-                    '<td>' + esc(formatNumber(detail.total_score, 2)) + '</td>' +
-                    '<td>' + esc(formatNumber(percentage, 1)) + '%</td>' +
-                    '<td>' + esc((band && (band.grade || band.grade_letter)) || detail.grade_letter || detail.grade || '-') + '</td>' +
+                    '<td data-label="Subject">' + esc(detail.subject_name || detail.subject_code || 'Subject') + '</td>' +
+                    '<td data-label="Total score">' + esc(formatNumber(detail.total_score, 2)) + '</td>' +
+                    '<td data-label="Percentage">' + esc(formatNumber(percentage, 1)) + '%</td>' +
+                    '<td data-label="Grade">' + esc((band && (band.grade || band.grade_letter)) || detail.grade_letter || detail.grade || '-') + '</td>' +
                     '</tr>';
             }).join('');
         }

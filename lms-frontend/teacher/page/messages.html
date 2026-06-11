@@ -129,7 +129,7 @@
       .hambger-three-dot {cursor: pointer; border: none; background: transparent; color: #334155; font-size: 1.1rem; display: grid; place-items: center; }
       .hambger-three-dot:hover { background: rgba(0,0,0,.05); }
       .messages-thread-action-menu.messages-hidden{ display: none !important; }
-      .messages-thread-action-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.15); z-index: 1000; min-width: 180px; }
+      .messages-thread-action-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.15); z-index: 1000; width: 100%; }
       .messages-thread-action-btn { width: 100%; padding: .65rem 1rem; background: transparent; border: none; text-align: left; color: #334155; font-size: .875rem; cursor: pointer; }
       .messages-thread-action-btn:hover { background: rgba(0,0,0,.05); }
       .messages-thread-action-btn i { margin-right: .5rem; color: #64748b; }
@@ -204,7 +204,7 @@
                 <h3>Chats</h3>
                 <p>Search conversations and switch between direct and group rooms.</p>
                 <div class="messages-toolbar">
-                  <select class="messages-select" id="admMessagesRoomFilter" style="min-width: 160px">
+                  <select class="messages-select" id="admMessagesRoomFilter">
                     <option value="all">All rooms</option>
                     <option value="direct">Direct chats</option>
                     <option value="group">Group chats</option>

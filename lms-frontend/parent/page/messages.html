@@ -5,15 +5,16 @@
       .messages-topbar p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
       .messages-top-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
       .messages-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-      @media (max-width: 1024px) { .messages-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-      @media (max-width: 640px) { .messages-stats { grid-template-columns: 1fr; } }
+      @media (min-width: 1024px) { .messages-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+      @media (min-width: 640px) { .messages-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+      .messages-stats { grid-template-columns: 1fr; }
       .messages-stat-card, .messages-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
       .messages-stat-card { display: flex; align-items: center; gap: .85rem; padding: 1rem 1.1rem; }
       .messages-stat-icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
       .messages-stat-info h3 { margin: 0; font-size: 1.45rem; color: #0f172a; }
       .messages-stat-info p { margin: .15rem 0 0; color: #64748b; font-size: .78rem; }
       .messages-workbench { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 1rem; min-height: 72vh; }
-      @media (max-width: 1180px) { .messages-workbench { grid-template-columns: 1fr; } }
+      @media (min-width: 1180px) { .messages-workbench { grid-template-columns: 380px minmax(0, 1fr); } }
       .messages-panel-head { padding: 1rem; border-bottom: 1px solid #eef2f7; background: linear-gradient(180deg,#f8fafc,#fff); }
       .messages-panel-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
       .messages-panel-head p { margin: .2rem 0 0; color: #64748b; font-size: .8rem; }
@@ -118,7 +119,7 @@
       .messages-tab { border:1px solid #dbe3ea; background:#fff; color:#334155; border-radius:999px; padding:.42rem .8rem; cursor:pointer; font-size:.82rem; font-weight:700; }
       .messages-tab.active { background:#006a3f; border-color:#006a3f; color:#fff; }
       .messages-user-grid { display:block; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:.65rem; max-height: 240px; overflow:auto; padding-right:.25rem; }
-      @media (max-width: 720px) { .messages-user-grid { grid-template-columns: 1fr; } }
+      @media (min-width: 720px) { .messages-user-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
       .messages-user-chip { display:flex; align-items:center; gap:.55rem; padding:.65rem .75rem; border:1px solid #e2e8f0; border-radius:12px; cursor:pointer; }
       .messages-user-chip.selected { border-color:#006a3f; background:#f0fdf4; }
       .messages-user-chip input { margin:0; }
@@ -129,7 +130,7 @@
       .hambger-three-dot {cursor: pointer; border: none; background: transparent; color: #334155; font-size: 1.1rem; display: grid; place-items: center; }
       .hambger-three-dot:hover { background: rgba(0,0,0,.05); }
       .messages-thread-action-menu.messages-hidden{ display: none !important; }
-      .messages-thread-action-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.15); z-index: 1000; min-width: 180px; }
+      .messages-thread-action-menu { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(15,23,42,.15); z-index: 1000; width: 100%; }
       .messages-thread-action-btn { width: 100%; padding: .65rem 1rem; background: transparent; border: none; text-align: left; color: #334155; font-size: .875rem; cursor: pointer; }
       .messages-thread-action-btn:hover { background: rgba(0,0,0,.05); }
       .messages-thread-action-btn i { margin-right: .5rem; color: #64748b; }
@@ -204,7 +205,7 @@
                 <h3>Chats</h3>
                 <p>Search conversations and switch between direct and group rooms.</p>
                 <div class="messages-toolbar">
-                  <select class="messages-select" id="admMessagesRoomFilter" style="min-width: 160px">
+                  <select class="messages-select" id="admMessagesRoomFilter">
                     <option value="all">All rooms</option>
                     <option value="direct">Direct chats</option>
                     <option value="group">Group chats</option>

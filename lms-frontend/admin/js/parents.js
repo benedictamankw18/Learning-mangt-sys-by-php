@@ -223,20 +223,20 @@
 
       return '' +
         '<tr>' +
-          '<td>' +
+          '<td data-label="Parent">' +
             '<div class="parent-name">' + esc(fullName) + '</div>' +
             '<div class="parent-sub">Guardian ID: ' + esc(parentLabel) + ' - Linked students: ' + esc(String(linkedCount)) + '</div>' +
           '</td>' +
-          '<td class="parent-contact">' +
+          '<td data-label="Contact" class="parent-contact">' +
             (p.email ? '<div><a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a></div>' : '<div>-</div>') +
             '<div class="parent-sub">' + esc(p.phone_number || '-') + '</div>' +
           '</td>' +
-          '<td>' + esc(p.occupation || '-') + '</td>' +
-          '<td>' +
+          '<td data-label="Occupation">' + esc(p.occupation || '-') + '</td>' +
+          '<td data-label="Preferences">' +
             prefChip('Email', pref.email) +
             prefChip('SMS', pref.sms) +
           '</td>' +
-          '<td>' +
+          '<td data-label="Actions">' +
             '<div class="parents-actions">' +
               actionBtn('link', 'fa-link', 'Link Students', p.parent_id, 'btn-parent-link') +
               actionBtn('edit', 'fa-pen', 'Edit Parent', p.parent_id, 'btn-parent-edit') +

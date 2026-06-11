@@ -284,9 +284,9 @@
       const studentId = String(report.student_id_number || report.student_id || '').trim();
       return `
         <tr>
-          <td>${esc(studentName)} (${esc(studentId)})</td>
-          <td>${esc(workflow)}</td>
-          <td>${esc(comment)}</td>
+          <td data-label="Student">${esc(studentName)} (${esc(studentId)})</td>
+          <td data-label="Workflow">${esc(workflow)}</td>
+          <td data-label="Comment">${esc(comment)}</td>
         </tr>
       `;
     }).join('');
@@ -1042,9 +1042,9 @@
 
       return `
         <tr>
-          <td>${esc(name)}</td>
-          <td>${esc(idNumber)}</td>
-          <td>${esc(status)}</td>
+          <td data-label="Name">${esc(name)}</td>
+          <td data-label="ID Number">${esc(idNumber)}</td>
+          <td data-label="Status">${esc(status)}</td>
         </tr>
       `;
     }).join('');

@@ -391,11 +391,11 @@
         const status  = c.enrollment_status || c.status || '—';
         const statusColor = status === 'active' ? '#10b981' : (status === 'completed' ? '#3b82f6' : '#9ca3af');
         return `<tr>
-          <td><strong>${esc(c.subject_name || '—')}</strong></td>
-          <td><span style="font-family:monospace;font-size:.85em">${esc(c.subject_code || '—')}</span></td>
-          <td>${esc(c.class_name || '—')}</td>
-          <td>${esc(teacher)}</td>
-          <td><span style="color:${statusColor};font-weight:600;text-transform:capitalize">${esc(status)}</span></td>
+          <td data-label="Subject"><strong>${esc(c.subject_name || '—')}</strong></td>
+          <td data-label="Code"><span style="font-family:monospace;font-size:.85em">${esc(c.subject_code || '—')}</span></td>
+          <td data-label="Class">${esc(c.class_name || '—')}</td>
+          <td data-label="Teacher">${esc(teacher)}</td>
+          <td data-label="Status"><span style="color:${statusColor};font-weight:600;text-transform:capitalize">${esc(status)}</span></td>
         </tr>`;
       }).join('');
 

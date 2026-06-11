@@ -6,8 +6,9 @@
   .evt-top-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
   .evt-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
-  @media (max-width: 1000px) { .evt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .evt-stats { grid-template-columns: 1fr; } }
+  @media (min-width: 1000px) { .evt-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (min-width: 640px) { .evt-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .evt-stats { grid-template-columns: 1fr; }
 
   .evt-stat, .evt-card {
     background: #fff;
@@ -60,8 +61,9 @@
   }
   .ann-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
 
-  @media (max-width: 900px) { .evt-filters { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 620px) { .evt-filters { grid-template-columns: 1fr; } }
+  @media (min-width: 900px) { .evt-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 620px) { .evt-filters { grid-template-columns: 1fr 1fr; } }
+  .evt-filters { grid-template-columns: 1fr; }
 
   .evt-input, .evt-select, .evt-textarea {
     width: 100%;
@@ -80,7 +82,7 @@
   }
 
   .evt-table-wrap { overflow: auto; }
-  .evt-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  .evt-table { width: 100%; border-collapse: collapse; }
   .evt-table th, .evt-table td {
     border-bottom: 1px solid #eef2f7;
     padding: 0.8rem 0.9rem;
@@ -234,7 +236,7 @@
       </div>
 
       <div class="evt-table-wrap">
-        <table class="evt-table">
+        <table class="evt-table responsive-table">
           <thead>
             <tr>
               <th>Event</th>

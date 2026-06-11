@@ -214,13 +214,13 @@
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-sm);
     background: var(--gray-50);
-    width: 300px;
+    width: 100%;
+    max-width: 350px;
     transition: all 0.3s ease;
 }
 
 .search-box input:focus {
     background: white;
-    width: 350px;
     box-shadow: var(--shadow-md);
 }
 
@@ -456,7 +456,8 @@
 
 .users-search {
     position: relative;
-    min-width: 300px;
+    width: 100%;
+    min-width: 0;
 }
 
 .users-search input {
@@ -884,83 +885,135 @@
     border-color: transparent;
 }
 
-/* Responsive design */
-@media (max-width: 1200px) {
-
-    .users-table thead th:nth-child(5),
-    .users-table tbody td:nth-child(5) {
-        display: none;
-    }
+/* ── Users Table Responsive (Mobile-First) ─────────────────────── */
+/* Base (mobile): Essential columns, stacked layout */
+.users-toolbar {
+    flex-direction: column;
+    align-items: stretch;
 }
 
-@media (max-width: 768px) {
+.users-toolbar-left,
+.users-toolbar-right {
+    width: 100%;
+}
+
+.users-search {
+    width: 100%;
+}
+
+.users-filter {
+    flex-wrap: wrap;
+}
+
+.users-filter select {
+    flex: 1;
+    min-width: 150px;
+}
+
+.btn-add-user,
+.btn-import,
+.btn-export {
+    flex: 1;
+    justify-content: center;
+}
+
+.users-table thead th:nth-child(4),
+.users-table tbody td:nth-child(4),
+.users-table thead th:nth-child(5),
+.users-table tbody td:nth-child(5),
+.users-table thead th:nth-child(6),
+.users-table tbody td:nth-child(6) {
+    display: none;
+}
+
+.user-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.user-actions {
+    gap: 0.375rem;
+}
+
+.pagination-controls button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.users-card-body {
+    padding: 1rem;
+}
+
+/* Tablet and up (md: 768px+): Multi-column, normal layout */
+@media (min-width: 768px) {
     .users-toolbar {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
     }
 
     .users-toolbar-left,
     .users-toolbar-right {
-        width: 100%;
+        width: auto;
     }
 
     .users-search {
-        min-width: 100%;
+        max-width: 350px;
     }
 
     .users-filter {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .users-filter select {
-        flex: 1;
-        min-width: 150px;
+        flex: 0;
+        min-width: auto;
     }
 
     .btn-add-user,
     .btn-import,
     .btn-export {
-        flex: 1;
-        justify-content: center;
+        flex: 0;
+        justify-content: flex-start;
     }
 
-    .users-table thead th:nth-child(4),
-    .users-table tbody td:nth-child(4) {
-        display: none;
+    .user-cell {
+        flex-direction: row;
+        align-items: center;
     }
 
     .user-actions {
-        gap: 0.375rem;
+        gap: 0.5rem;
     }
 
     .pagination-controls button {
-        padding: 0.4rem 0.75rem;
-        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
     }
-}
 
-@media (max-width: 480px) {
     .users-card-body {
-        padding: 1rem;
+        padding: 1.5rem 2rem;
     }
 
     .users-table thead th:nth-child(4),
     .users-table tbody td:nth-child(4),
     .users-table thead th:nth-child(6),
     .users-table tbody td:nth-child(6) {
-        display: none;
+        display: table-cell;
     }
+}
 
-    .user-cell {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+/* Large screens (xl: 1200px+): Show all columns */
+@media (min-width: 1200px) {
+    .users-table thead th:nth-child(5),
+    .users-table tbody td:nth-child(5) {
+        display: table-cell;
     }
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -1101,41 +1154,67 @@
 /* ============================================
    Responsive Design
 ============================================ */
-@media (max-width: 1024px) {
+
+/* ── Mobile (xs: <768px) ─────────────────────────────────────────── */
+/* Base: Sidebar is a drawer, hidden by default */
+.sidebar {
+    transform: translateX(-280px);
+}
+
+.sidebar.active {
+    transform: translateX(0);
+}
+
+.sidebar-toggle,
+.mobile-menu-toggle {
+    display: block;
+}
+
+.search-box {
+    display: none;
+}
+
+.stats-grid {
+    grid-template-columns: 1fr;
+}
+
+.grid.grid-cols-2 {
+    grid-template-columns: 1fr;
+}
+
+/* ── Tablet (md: 768px+) ─────────────────────────────────────────── */
+@media (min-width: 768px) {
+    /* Sidebar becomes visible sidebar */
     .sidebar {
-        transform: translateX(-280px);
-    }
-
-    .sidebar.active {
         transform: translateX(0);
+        position: relative;
+        height: auto;
     }
 
-    .main-content {
-        margin-left: 0;
-    }
-
-    .sidebar-toggle {
-        display: block;
-    }
-
+    .sidebar-toggle,
     .mobile-menu-toggle {
-        display: block;
-    }
-
-    .search-box {
         display: none;
     }
 
+    .main-content {
+        margin-left: 280px;
+    }
+
+    /* Search box visible on larger screens */
+    .search-box {
+        display: flex;
+    }
+
+    /* Stats grid: 2 columns on tablet */
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .grid.grid-cols-2 {
-        grid-template-columns: 1fr;
+    /* Form row: 2 columns on tablet */
+    .form-row {
+        grid-template-columns: repeat(2, 1fr);
     }
-}
 
-@media (max-width: 768px) {
     .top-navbar {
         padding: 1rem;
     }
@@ -1144,16 +1223,28 @@
         padding: 1rem;
     }
 
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
     .user-info {
         display: none;
     }
 
     .navbar-right {
         gap: 0.5rem;
+    }
+}
+
+/* ── Desktop (lg: 1024px+) ───────────────────────────────────────── */
+@media (min-width: 1024px) {
+    /* Stats grid: 3 columns on desktop */
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* ── Large Desktop (xl: 1280px+) ────────────────────────────────── */
+@media (min-width: 1280px) {
+    /* Stats grid: 6 columns on large desktop */
+    .stats-grid {
+        grid-template-columns: repeat(6, 1fr);
     }
 }
 
@@ -1249,7 +1340,8 @@
 
 .courses-search {
     position: relative;
-    min-width: 350px;
+    width: 100%;
+    min-width: 0;
 }
 
 .courses-search input {
@@ -1547,70 +1639,115 @@
     border-top: 2px solid var(--gray-200);
 }
 
-/* Responsive design for courses */
-@media (max-width: 1200px) {
-
-    .courses-table thead th:nth-child(7),
-    .courses-table tbody td:nth-child(7) {
-        display: none;
-    }
+/* ── Courses Table Responsive (Mobile-First) ──────────────────── */
+/* Base (mobile): Minimal columns, stacked layout */
+.courses-toolbar {
+    flex-direction: column;
+    align-items: stretch;
 }
 
-@media (max-width: 768px) {
+.courses-toolbar-left,
+.courses-toolbar-right {
+    width: 100%;
+}
+
+.courses-search {
+    width: 100%;
+}
+
+.courses-filter {
+    flex-wrap: wrap;
+}
+
+.courses-filter select {
+    flex: 1;
+    min-width: 140px;
+}
+
+.btn-add-course,
+.btn-import,
+.btn-export {
+    flex: 1;
+    justify-content: center;
+}
+
+.courses-table thead th:nth-child(3),
+.courses-table tbody td:nth-child(3),
+.courses-table thead th:nth-child(4),
+.courses-table tbody td:nth-child(4),
+.courses-table thead th:nth-child(5),
+.courses-table tbody td:nth-child(5),
+.courses-table thead th:nth-child(6),
+.courses-table tbody td:nth-child(6),
+.courses-table thead th:nth-child(7),
+.courses-table tbody td:nth-child(7) {
+    display: none;
+}
+
+.course-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.courses-card-body {
+    padding: 1rem;
+}
+
+/* Tablet and up (md: 768px+): Multi-column layout */
+@media (min-width: 768px) {
     .courses-toolbar {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
     }
 
     .courses-toolbar-left,
     .courses-toolbar-right {
-        width: 100%;
+        width: auto;
     }
 
     .courses-search {
-        min-width: 100%;
+        max-width: 350px;
     }
 
     .courses-filter {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .courses-filter select {
-        flex: 1;
-        min-width: 140px;
+        flex: 0;
+        min-width: auto;
     }
 
     .btn-add-course,
     .btn-import,
     .btn-export {
-        flex: 1;
-        justify-content: center;
+        flex: 0;
+        justify-content: flex-start;
+    }
+
+    .course-cell {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .courses-card-body {
+        padding: 1.5rem 2rem;
     }
 
     .courses-table thead th:nth-child(5),
     .courses-table tbody td:nth-child(5),
     .courses-table thead th:nth-child(6),
     .courses-table tbody td:nth-child(6) {
-        display: none;
+        display: table-cell;
     }
 }
 
-@media (max-width: 480px) {
-    .courses-card-body {
-        padding: 1rem;
-    }
-
-    .courses-table thead th:nth-child(3),
-    .courses-table tbody td:nth-child(3),
-    .courses-table thead th:nth-child(4),
-    .courses-table tbody td:nth-child(4) {
-        display: none;
-    }
-
-    .course-cell {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+/* Large screens (xl: 1200px+): Show all columns */
+@media (min-width: 1200px) {
+    .courses-table thead th:nth-child(7),
+    .courses-table tbody td:nth-child(7) {
+        display: table-cell;
     }
 }
 
@@ -1941,43 +2078,79 @@ input:checked+.toggle-slider:hover {
     background-color: #008c54;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* ── Institutions Responsive (Mobile-First) ─────────────────────── */
+/* Base (mobile): Stacked, minimal layout */
+.institutions-card-body {
+    padding: 1rem;
+}
+
+.institution-section {
+    padding: 1rem;
+}
+
+.section-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+}
+
+.btn-edit-section {
+    width: 100%;
+    justify-content: center;
+}
+
+.info-grid {
+    grid-template-columns: 1fr;
+}
+
+.stats-grid {
+    grid-template-columns: 1fr;
+}
+
+.setting-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.toggle-switch {
+    align-self: flex-end;
+}
+
+/* Tablet and up (md: 768px+): Normal layout */
+@media (min-width: 768px) {
     .institutions-card-body {
-        padding: 1rem;
+        padding: 1.5rem 2rem;
     }
 
     .institution-section {
-        padding: 1rem;
+        padding: 1.5rem;
     }
 
     .section-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
+        flex-direction: row;
+        gap: 0;
+        align-items: center;
+        justify-content: space-between;
     }
 
     .btn-edit-section {
-        width: 100%;
-        justify-content: center;
+        width: auto;
+        justify-content: flex-start;
     }
 
     .info-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .setting-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 0;
     }
 
     .toggle-switch {
-        align-self: flex-end;
+        align-self: auto;
     }
 }
 
@@ -2061,7 +2234,8 @@ input:checked+.toggle-slider:hover {
 
 .departments-search {
     position: relative;
-    min-width: 350px;
+    width: 100%;
+    min-width: 0;
 }
 
 .departments-search input {
@@ -2309,43 +2483,98 @@ input:checked+.toggle-slider:hover {
     border-top: 2px solid var(--gray-200);
 }
 
-/* Responsive design for departments */
-@media (max-width: 1200px) {
-
-    .departments-table thead th:nth-child(7),
-    .departments-table tbody td:nth-child(7) {
-        display: none;
-    }
+/* ── Departments Table Responsive (Mobile-First) ────────────────── */
+/* Base (mobile): Minimal columns, stacked layout */
+.departments-toolbar {
+    flex-direction: column;
+    align-items: stretch;
 }
 
-@media (max-width: 768px) {
+.departments-toolbar-left,
+.departments-toolbar-right {
+    width: 100%;
+}
+
+.departments-search {
+    width: 100%;
+}
+
+.departments-filter {
+    flex-wrap: wrap;
+}
+
+.departments-filter select {
+    flex: 1;
+    min-width: 140px;
+}
+
+.btn-add-department,
+.btn-export {
+    flex: 1;
+    justify-content: center;
+}
+
+.departments-table thead th:nth-child(3),
+.departments-table tbody td:nth-child(3),
+.departments-table thead th:nth-child(4),
+.departments-table tbody td:nth-child(4),
+.departments-table thead th:nth-child(5),
+.departments-table tbody td:nth-child(5),
+.departments-table thead th:nth-child(6),
+.departments-table tbody td:nth-child(6),
+.departments-table thead th:nth-child(7),
+.departments-table tbody td:nth-child(7) {
+    display: none;
+}
+
+.department-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.departments-card-body {
+    padding: 1rem;
+}
+
+/* Tablet and up (md: 768px+): Multi-column layout */
+@media (min-width: 768px) {
     .departments-toolbar {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
     }
 
     .departments-toolbar-left,
     .departments-toolbar-right {
-        width: 100%;
+        width: auto;
     }
 
     .departments-search {
-        min-width: 100%;
+        max-width: 350px;
     }
 
     .departments-filter {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .departments-filter select {
-        flex: 1;
-        min-width: 140px;
+        flex: 0;
+        min-width: auto;
     }
 
     .btn-add-department,
     .btn-export {
-        flex: 1;
-        justify-content: center;
+        flex: 0;
+        justify-content: flex-start;
+    }
+
+    .department-cell {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .departments-card-body {
+        padding: 1.5rem 2rem;
     }
 
     .departments-table thead th:nth-child(4),
@@ -2354,25 +2583,17 @@ input:checked+.toggle-slider:hover {
     .departments-table tbody td:nth-child(5),
     .departments-table thead th:nth-child(6),
     .departments-table tbody td:nth-child(6) {
-        display: none;
+        display: table-cell;
     }
 }
 
-@media (max-width: 480px) {
-    .departments-card-body {
-        padding: 1rem;
+/* Large screens (xl: 1200px+): Show all columns */
+@media (min-width: 1200px) {
+    .departments-table thead th:nth-child(7),
+    .departments-table tbody td:nth-child(7) {
+        display: table-cell;
     }
 
-    .departments-table thead th:nth-child(3),
-    .departments-table tbody td:nth-child(3) {
-        display: none;
-    }
-
-    .department-cell {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
 
     .department-actions {
         flex-direction: column;
@@ -2951,21 +3172,81 @@ input:checked+.toggle-slider:hover {
     font-style: italic;
 }
 
-/* Responsive Styles for Attendance Page */
-@media (max-width: 1024px) {
-    .attendance-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .attendance-table thead th:nth-child(3),
-    .attendance-table tbody td:nth-child(3) {
-        display: none;
-    }
+/* ── Attendance Table Responsive (Mobile-First) ─────────────────── */
+/* Base (mobile): Minimal columns, stacked layout */
+.attendance-page {
+    padding: 1rem;
 }
 
-@media (max-width: 768px) {
+.attendance-card-header {
+    padding: 1rem;
+}
+
+.attendance-card-body {
+    padding: 1rem;
+}
+
+.attendance-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.attendance-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.attendance-toolbar-left,
+.attendance-toolbar-right {
+    width: 100%;
+}
+
+.attendance-filter {
+    flex-wrap: wrap;
+}
+
+.attendance-filter select {
+    flex: 1;
+    min-width: 140px;
+}
+
+.btn-generate-report,
+.btn-export {
+    flex: 1;
+    justify-content: center;
+}
+
+.attendance-table thead th:nth-child(2),
+.attendance-table tbody td:nth-child(2),
+.attendance-table thead th:nth-child(3),
+.attendance-table tbody td:nth-child(3),
+.attendance-table thead th:nth-child(4),
+.attendance-table tbody td:nth-child(4),
+.attendance-table thead th:nth-child(6),
+.attendance-table tbody td:nth-child(6),
+.attendance-table thead th:nth-child(7),
+.attendance-table tbody td:nth-child(7) {
+    display: none;
+}
+
+.rate-bar {
+    min-width: 40px;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+}
+
+/* Tablet and up (md: 768px+): Multi-column layout */
+@media (min-width: 768px) {
     .attendance-page {
-        padding: 1rem;
+        padding: 1.5rem 2rem;
     }
 
     .attendance-card-header {
@@ -2977,33 +3258,22 @@ input:checked+.toggle-slider:hover {
     }
 
     .attendance-stats {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 1.5rem;
     }
 
     .attendance-toolbar {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
     }
 
     .attendance-toolbar-left,
     .attendance-toolbar-right {
-        width: 100%;
+        width: auto;
     }
 
     .attendance-filter {
-        flex-wrap: wrap;
-    }
-
-    .attendance-filter select {
-        flex: 1;
-        min-width: 140px;
-    }
-
-    .btn-generate-report,
-    .btn-export {
-        flex: 1;
-        justify-content: center;
+        flex-wrap: nowrap;
     }
 
     .attendance-table thead th:nth-child(2),
@@ -3014,28 +3284,31 @@ input:checked+.toggle-slider:hover {
     .attendance-table tbody td:nth-child(6),
     .attendance-table thead th:nth-child(7),
     .attendance-table tbody td:nth-child(7) {
-        display: none;
-    }
-
-    .rate-bar {
-        min-width: 40px;
-    }
-}
-
-@media (max-width: 480px) {
-    .attendance-card-body {
-        padding: 1rem;
+        display: table-cell;
     }
 
     .stat-icon {
-        width: 50px;
-        height: 50px;
-        font-size: 1.25rem;
+        width: 64px;
+        height: 64px;
+        font-size: 1.75rem;
     }
 
     .stat-value {
-        font-size: 1.5rem;
+        font-size: 2rem;
     }
+}
+
+/* Large screens (lg: 1024px+): More columns visible */
+@media (min-width: 1024px) {
+    .attendance-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .attendance-table thead th:nth-child(3),
+    .attendance-table tbody td:nth-child(3) {
+        display: table-cell;
+    }
+
 
     .class-cell {
         flex-direction: column;
@@ -3908,7 +4181,200 @@ input:checked+.toggle-slider:hover {
 }
 
 /* Responsive Styles for Grades Page */
-@media (max-width: 1024px) {
+/* ── Grades Table Responsive (Mobile-First) ─────────────────────── */
+/* Base (mobile): Minimal columns, stacked layout */
+.grades-page {
+    padding: 1rem;
+}
+
+.grades-card-header {
+    padding: 1rem;
+}
+
+.grades-card-body {
+    padding: 1rem;
+}
+
+.grades-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.grades-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.grades-toolbar-left,
+.grades-toolbar-right {
+    width: 100%;
+}
+
+.search-box {
+    width: 100%;
+}
+
+.grades-filter {
+    flex-direction: column;
+}
+
+.grades-filter select {
+    width: 100%;
+}
+
+.btn-bulk-publish,
+.btn-add-scale,
+.btn-export {
+    flex: 1;
+    justify-content: center;
+}
+
+.scale-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.scale-meta {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 0.875rem;
+}
+
+.meta-item {
+    padding: 0.75rem 0.875rem;
+}
+
+.meta-item i {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+}
+
+.meta-item strong {
+    font-size: 1rem;
+}
+
+.scale-description {
+    padding: 1rem;
+}
+
+.scale-title {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.scale-table thead th:nth-child(2),
+.scale-table tbody td:nth-child(2),
+.scale-table thead th:nth-child(4),
+.scale-table tbody td:nth-child(4),
+.grades-table thead th:nth-child(3),
+.grades-table tbody td:nth-child(3),
+.grades-table thead th:nth-child(4),
+.grades-table tbody td:nth-child(4),
+.grades-table thead th:nth-child(5),
+.grades-table tbody td:nth-child(5),
+.grades-table thead th:nth-child(6),
+.grades-table tbody td:nth-child(6),
+.grades-table thead th:nth-child(8),
+.grades-table tbody td:nth-child(8),
+.grades-table thead th:nth-child(9),
+.grades-table tbody td:nth-child(9) {
+    display: none;
+}
+
+.subject-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.grade-actions {
+    gap: 0.375rem;
+}
+
+/* Tablet and up (md: 768px+): Multi-column layout */
+@media (min-width: 768px) {
+    .grades-page {
+        padding: 1.5rem 2rem;
+    }
+
+    .grades-card-header {
+        padding: 1.5rem;
+    }
+
+    .grades-card-body {
+        padding: 1.5rem;
+    }
+
+    .grades-toolbar {
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .grades-toolbar-left,
+    .grades-toolbar-right {
+        width: auto;
+    }
+
+    .search-box {
+        max-width: 350px;
+    }
+
+    .grades-filter {
+        flex-direction: row;
+    }
+
+    .grades-filter select {
+        width: auto;
+    }
+
+    .scale-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0;
+        padding: 1.5rem;
+    }
+
+    .scale-meta {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 1rem;
+    }
+
+    .meta-item {
+        padding: 1rem;
+    }
+
+    .scale-table thead th:nth-child(4),
+    .scale-table tbody td:nth-child(4) {
+        display: table-cell;
+    }
+
+    .grades-table thead th:nth-child(3),
+    .grades-table tbody td:nth-child(3),
+    .grades-table thead th:nth-child(4),
+    .grades-table tbody td:nth-child(4),
+    .grades-table thead th:nth-child(6),
+    .grades-table tbody td:nth-child(6) {
+        display: table-cell;
+    }
+
+    .subject-cell {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .grade-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Large screens (lg: 1024px+): More columns visible */
+@media (min-width: 1024px) {
     .grades-stats {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -3923,130 +4389,11 @@ input:checked+.toggle-slider:hover {
     .grades-table tbody td:nth-child(8),
     .grades-table thead th:nth-child(9),
     .grades-table tbody td:nth-child(9) {
-        display: none;
-    }
-}
-
-@media (max-width: 768px) {
-    .grades-page {
-        padding: 1rem;
+        display: table-cell;
     }
 
-    .grades-card-header {
-        padding: 1.5rem;
-    }
-
-    .grades-card-body {
-        padding: 1.5rem;
-    }
-
-    .grades-stats {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .grades-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .grades-toolbar-left,
-    .grades-toolbar-right {
-        width: 100%;
-    }
-
-    .search-box {
-        min-width: 100%;
-    }
-
-    .grades-filter {
-        flex-direction: column;
-    }
-
-    .grades-filter select {
-        width: 100%;
-    }
-
-    .btn-bulk-publish,
-    .btn-add-scale,
-    .btn-export {
-        flex: 1;
-        justify-content: center;
-    }
-
-    .scale-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .scale-meta {
-        grid-template-columns: 1fr;
-        padding: 1rem;
-        gap: 0.875rem;
-    }
-
-    .meta-item {
-        padding: 0.75rem 0.875rem;
-    }
-
-    .meta-item i {
-        width: 32px;
-        height: 32px;
-        font-size: 0.875rem;
-    }
-
-    .meta-item strong {
-        font-size: 1rem;
-    }
-
-    .scale-table thead th:nth-child(4),
-    .scale-table tbody td:nth-child(4) {
-        display: none;
-    }
-
-    .grades-table thead th:nth-child(3),
-    .grades-table tbody td:nth-child(3),
-    .grades-table thead th:nth-child(4),
-    .grades-table tbody td:nth-child(4),
-    .grades-table thead th:nth-child(6),
-    .grades-table tbody td:nth-child(6) {
-        display: none;
-    }
-}
-
-@media (max-width: 480px) {
-    .grades-card-body {
-        padding: 1rem;
-    }
-
-    .scale-header {
-        padding: 1rem;
-    }
-
-    .scale-description {
-        padding: 1rem;
-    }
-
-    .scale-title {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .scale-table thead th:nth-child(2),
-    .scale-table tbody td:nth-child(2) {
-        display: none;
-    }
-
-    .subject-cell {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-
-    .grade-actions {
-        flex-direction: column;
-    }
+        
+    
 
     .grades-pagination .pagination-controls button {
         width: 32px;
@@ -4962,7 +5309,7 @@ input:checked+.toggle-slider:hover {
     padding: 0.75rem 1rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    font-size: 0.9375rem;
+    font-size: 1rem;
     color: var(--gray-900);
     transition: all 0.2s;
 }
@@ -4980,7 +5327,7 @@ input:checked+.toggle-slider:hover {
 
 .form-row {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 1.5rem;
 }
 

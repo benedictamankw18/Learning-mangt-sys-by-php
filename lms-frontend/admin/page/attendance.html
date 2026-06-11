@@ -103,15 +103,18 @@
     gap: 1rem;
     margin-bottom: 1.25rem;
   }
-  @media (max-width: 1024px) {
+  @media (min-width: 1024px) {
+    .attendance-stats {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (min-width: 600px) {
     .attendance-stats {
       grid-template-columns: repeat(2, 1fr);
     }
   }
-  @media (max-width: 600px) {
-    .attendance-stats {
-      grid-template-columns: 1fr;
-    }
+  .attendance-stats {
+    grid-template-columns: 1fr;
   }
 
   .attendance-stat-card {
@@ -153,10 +156,13 @@
     gap: 0.9rem;
     margin-bottom: 1.25rem;
   }
-  @media (max-width: 1024px) {
+  @media (min-width: 1024px) {
     .attendance-period-stats {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
+  }
+  .attendance-period-stats {
+    grid-template-columns: 1fr;
   }
   .attendance-period-card {
     position: relative;
@@ -251,15 +257,18 @@
     gap: 0.5rem;
     flex: 1;
   }
-  @media (max-width: 1100px) {
+  @media (min-width: 1100px) {
+    .attendance-toolbar-left {
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    }
+  }
+  @media (min-width: 600px) {
     .attendance-toolbar-left {
       grid-template-columns: 1fr 1fr;
     }
   }
-  @media (max-width: 600px) {
-    .attendance-toolbar-left {
-      grid-template-columns: 1fr;
-    }
+  .attendance-toolbar-left {
+    grid-template-columns: 1fr;
   }
   .attendance-toolbar-right {
     display: flex;
@@ -289,10 +298,13 @@
     gap: 1rem;
     margin-bottom: 1rem;
   }
-  @media (max-width: 1150px) {
+  @media (min-width: 1150px) {
     .attendance-insights-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(3, 1fr);
     }
+  }
+  .attendance-insights-grid {
+    grid-template-columns: 1fr;
   }
 
   .attendance-insight-card {
@@ -607,7 +619,7 @@
   </div>
 
   <div class="attendance-table-wrap">
-    <table class="attendance-table">
+    <table class="attendance-table responsive-table">
       <thead>
         <tr>
           <th>Class</th>

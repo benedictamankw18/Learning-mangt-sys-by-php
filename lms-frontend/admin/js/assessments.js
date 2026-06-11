@@ -500,15 +500,15 @@
         const status = a.isPublished ? "Teacher Published" : "Teacher Draft";
         return `
           <tr>
-            <td>
+            <td data-label="Assessment">
               <div style="font-weight:600;color:#0f172a">${esc(a.title)}</div>
               <div style="font-size:0.76rem;color:#64748b">Teacher: ${esc(a.teacherName)}</div>
             </td>
-            <td>${esc(a.className)}<br /><span style="font-size:0.76rem;color:#64748b">${esc(a.courseCode || a.courseName)}</span></td>
-            <td><span class="adm-ass-chip ${typeClass}">${esc(getTypeLabel(a.type))}</span></td>
-            <td>${esc(fmtDateTime(a.dueDate))}</td>
-            <td>${esc(a.weight == null ? "-" : `${a.weight}%`)}</td>
-            <td>${esc(status)}</td>
+            <td data-label="Class / Course">${esc(a.className)}<br /><span style="font-size:0.76rem;color:#64748b">${esc(a.courseCode || a.courseName)}</span></td>
+            <td data-label="Type"><span class="adm-ass-chip ${typeClass}">${esc(getTypeLabel(a.type))}</span></td>
+            <td data-label="Due Date">${esc(fmtDateTime(a.dueDate))}</td>
+            <td data-label="Weight">${esc(a.weight == null ? "-" : `${a.weight}%`)}</td>
+            <td data-label="Status">${esc(status)}</td>
           </tr>
         `;
       })

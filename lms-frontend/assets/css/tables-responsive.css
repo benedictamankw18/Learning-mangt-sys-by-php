@@ -1,0 +1,267 @@
+/* ============================================
+   Responsive Tables - Mobile Card Layout
+   ============================================
+   
+   Pattern: Convert HTML tables to card layout on mobile (<768px)
+   
+   CSS-only approach: Uses ::before pseudo-elements with data-label
+   No JavaScript required for layout transformation
+   
+   Usage:
+   <table class="responsive-table">
+     <thead>
+       <tr>
+         <th>Column 1</th>
+         <th>Column 2</th>
+       </tr>
+     </thead>
+     <tbody>
+       <tr>
+         <td data-label="Column 1">Value 1</td>
+         <td data-label="Column 2">Value 2</td>
+       </tr>
+     </tbody>
+   </table>
+*/
+
+/* ── Base Table Styles (Desktop) ────────────────────────────── */
+.responsive-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: var(--border-radius-lg, 12px);
+    overflow: hidden;
+}
+
+.responsive-table thead {
+    background: linear-gradient(135deg, #fafafa, #f5f5f5);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.responsive-table thead th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 2px solid var(--border-color, #e2e8f0);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.responsive-table tbody tr {
+    transition: all 0.2s;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.responsive-table tbody tr:hover {
+    background: var(--gray-50, #f8fafc);
+}
+
+.responsive-table tbody td {
+    padding: 1rem 1.5rem;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.95rem;
+}
+
+/* ── Mobile Card Layout (<768px) ────────────────────────────── */
+@media (max-width: 767px) {
+    .responsive-table {
+        display: block;
+        border: none;
+        border-radius: 0;
+    }
+
+    .responsive-table thead {
+        display: none;
+    }
+
+    .responsive-table tbody {
+        display: block;
+    }
+
+    .responsive-table tbody tr {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: var(--border-radius-md, 10px);
+        margin-bottom: 1rem;
+        background: white;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .responsive-table tbody tr:last-child {
+        margin-bottom: 0;
+    }
+
+    .responsive-table tbody tr:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .responsive-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.875rem 1rem;
+        border: none;
+        border-bottom: 1px solid var(--border-color, #f1f5f9);
+        position: relative;
+    }
+
+    .responsive-table tbody td:last-child {
+        border-bottom: none;
+    }
+
+    /* Data label display (pseudo-element) */
+    .responsive-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        position: absolute;
+        left: 1rem;
+        top: 0.875rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--text-tertiary, #94a3b8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Adjust td content to fit with label */
+    .responsive-table tbody td {
+        padding-top: 2.25rem;
+        padding-left: 1rem;
+    }
+
+    /* For action cells (usually last), make full width */
+    .responsive-table tbody td:last-child {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: flex-start;
+    }
+}
+
+/* ── Action Buttons - Mobile Optimization ────────────────────────── */
+@media (max-width: 767px) {
+    .responsive-table .btn-view,
+    .responsive-table .btn-edit,
+    .responsive-table .btn-delete,
+    .responsive-table .btn-action {
+        min-width: 36px;
+        min-height: 36px;
+    }
+}
+
+/* ── Empty State ────────────────────────────────────────────────── */
+.responsive-table tbody tr[data-empty] {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    border: 2px dashed var(--border-color, #e2e8f0);
+    border-radius: var(--border-radius-lg, 12px);
+    color: var(--text-secondary, #64748b);
+    font-style: italic;
+}
+
+.responsive-table tbody tr[data-empty] td {
+    display: flex;
+    justify-content: center;
+    border: none;
+}
+
+/* ── Status/Badge Styling (Common Patterns) ────────────────────────── */
+.responsive-table .status-badge,
+.responsive-table .role-badge,
+.responsive-table .type-badge,
+.responsive-table .grade-badge {
+    display: inline-block;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* ── Cell Content Styling ────────────────────────────────────────────────── */
+.responsive-table .cell-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.responsive-table .cell-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.responsive-table .cell-primary {
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
+}
+
+.responsive-table .cell-secondary {
+    font-size: 0.8rem;
+    color: var(--text-tertiary, #94a3b8);
+}
+
+/* ── Scroll Hint (Mobile) ────────────────────────────────────────────────── */
+.table-scroll-hint {
+    display: none;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-tertiary, #94a3b8);
+    padding: 0.5rem;
+}
+
+@media (max-width: 767px) {
+    .responsive-table {
+        display: block;
+    }
+
+    .table-scroll-hint {
+        display: block;
+    }
+}
+
+/* ── Accessibility ────────────────────────────────────────────────── */
+.responsive-table tbody tr:focus-within {
+    outline: 2px solid var(--primary, #006a3f);
+    outline-offset: -2px;
+}
+
+/* ── Print Styles ────────────────────────────────────────────────── */
+@media print {
+    .responsive-table {
+        page-break-inside: avoid;
+    }
+
+    .responsive-table thead {
+        display: table-header-group;
+    }
+
+    .responsive-table tbody tr {
+        display: table-row;
+        page-break-inside: avoid;
+    }
+
+    .responsive-table tbody td {
+        display: table-cell;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+    }
+
+    .responsive-table tbody td::before {
+        display: none;
+    }
+}

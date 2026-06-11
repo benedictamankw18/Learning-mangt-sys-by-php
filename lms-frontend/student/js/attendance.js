@@ -241,11 +241,11 @@
       const fcls = pctFillClass(pct);
       return `
         <tr>
-          <td>${esc(s.name)}</td>
-          <td>${s.total}</td>
-          <td class="present" style="color:#15803d;font-weight:600;">${s.present}</td>
-          <td class="absent"  style="color:#b91c1c;font-weight:600;">${s.absent}</td>
-          <td>
+          <td data-label="Subject">${esc(s.name)}</td>
+          <td data-label="Total">${s.total}</td>
+          <td data-label="Present" class="present" style="color:#15803d;font-weight:600;">${s.present}</td>
+          <td data-label="Absent" class="absent" style="color:#b91c1c;font-weight:600;">${s.absent}</td>
+          <td data-label="Rate">
             <span class="sat-pct-bar"><span class="sat-pct-fill ${fcls}" style="width:${pct}%;"></span></span>
             <span style="margin-left:.4rem;font-weight:600;">${pct}%</span>
           </td>
@@ -372,10 +372,10 @@
       String(b.attendance_date).localeCompare(String(a.attendance_date))
     ).map(r => `
       <tr>
-        <td>${esc(fmtDate(r.attendance_date))}</td>
-        <td>${esc(r.course_name || r.subject_name || `Course ${r.course_id}`)}</td>
-        <td><span class="sat-badge ${esc(String(r.status).toLowerCase())}">${esc(r.status)}</span></td>
-        <td>${esc(r.remarks || '—')}</td>
+        <td data-label="Date">${esc(fmtDate(r.attendance_date))}</td>
+        <td data-label="Subject">${esc(r.course_name || r.subject_name || `Course ${r.course_id}`)}</td>
+        <td data-label="Status"><span class="sat-badge ${esc(String(r.status).toLowerCase())}">${esc(r.status)}</span></td>
+        <td data-label="Remarks">${esc(r.remarks || '—')}</td>
       </tr>`).join('');
   }
 
@@ -409,10 +409,10 @@
 
     tbody.innerHTML = filtered.map(r => `
       <tr>
-        <td>${esc(fmtDate(r.attendance_date))}</td>
-        <td>${esc(r.course_name || r.subject_name || `Course ${r.course_id}`)}</td>
-        <td><span class="sat-badge ${esc(String(r.status).toLowerCase())}">${esc(r.status)}</span></td>
-        <td>${esc(r.remarks || '—')}</td>
+        <td data-label="Date">${esc(fmtDate(r.attendance_date))}</td>
+        <td data-label="Subject">${esc(r.course_name || r.subject_name || `Course ${r.course_id}`)}</td>
+        <td data-label="Status"><span class="sat-badge ${esc(String(r.status).toLowerCase())}">${esc(r.status)}</span></td>
+        <td data-label="Remarks">${esc(r.remarks || '—')}</td>
       </tr>`).join('');
   }
 

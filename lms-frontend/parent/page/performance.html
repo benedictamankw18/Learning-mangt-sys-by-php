@@ -56,7 +56,6 @@
       gap: 0.6rem;
       align-items: center;
       flex-wrap: wrap;
-      min-width: 280px;
     }
     .ppf-hero-controls label {
       font-size: 0.85rem;
@@ -528,33 +527,58 @@
     }
 
     /* === RESPONSIVE === */
-    @media (max-width: 1024px) {
+    @media (min-width: 1024px) {
       .ppf-grid-2 {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
       }
       .ppf-quiz-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
       }
       .ppf-report-card-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
       }
       .ppf-hero-header {
-        flex-direction: column;
+        flex-direction: row;
       }
       .ppf-hero-controls {
-        min-width: 100%;
+        min-width: auto;
       }
     }
-    @media (max-width: 640px) {
+    @media (min-width: 640px) {
       .ppf-hero {
-        padding: 1.5rem;
+        padding: 2rem;
       }
       .ppf-metrics-row {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
       }
       .ppf-subject-item {
-        grid-template-columns: 80px 1fr 50px;
+        grid-template-columns: 80px 1fr 50px 80px;
       }
+    }
+
+    .ppf-grid-2 {
+      grid-template-columns: 1fr;
+    }
+    .ppf-quiz-grid {
+      grid-template-columns: 1fr;
+    }
+    .ppf-report-card-grid {
+      grid-template-columns: 1fr;
+    }
+    .ppf-hero-header {
+      flex-direction: column;
+    }
+    .ppf-hero-controls {
+      min-width: 100%;
+    }
+    .ppf-hero {
+      padding: 1.5rem;
+    }
+    .ppf-metrics-row {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .ppf-subject-item {
+      grid-template-columns: 80px 1fr 50px;
     }
   </style>
 
@@ -672,7 +696,7 @@
         <small>Semester history and rank progression</small>
       </div>
       <div class="ppf-card-body ppf-history-table-wrap">
-        <table class="ppf-table">
+        <table class="ppf-table responsive-table">
           <thead>
             <tr>
               <th>Semester</th>
@@ -696,7 +720,7 @@
         <small>Average and best quiz score per subject</small>
       </div>
       <div class="ppf-card-body ppf-table-wrap">
-        <table class="ppf-table">
+        <table class="ppf-table responsive-table">
           <thead>
             <tr>
               <th>Subject</th>
@@ -725,7 +749,7 @@
       <small>Latest quiz submissions and progress</small>
     </div>
     <div class="ppf-card-body ppf-table-wrap">
-      <table class="ppf-table">
+      <table class="ppf-table responsive-table">
         <thead>
           <tr>
             <th>Quiz</th>
@@ -747,7 +771,7 @@
       <small>All materials your child has opened or downloaded</small>
     </div>
     <div class="ppf-card-body ppf-table-wrap">
-      <table class="ppf-table">
+      <table class=\"ppf-table responsive-table\">
         <thead>
           <tr>
             <th>Material</th>

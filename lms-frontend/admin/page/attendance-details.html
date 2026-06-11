@@ -321,18 +321,18 @@
     background: #fffbeb;
   }
 
-  @media (max-width: 900px) {
+  @media (min-width: 900px) {
     .attd-toolbar {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
     }
   }
-  @media (max-width: 640px) {
+  @media (min-width: 640px) {
     .attd-header {
-      flex-direction: column;
+      flex-direction: row;
     }
     .attd-header-actions {
-      width: 100%;
-      margin-left: 0;
+      width: auto;
+      margin-left: auto;
       justify-content: space-between;
     }
   }

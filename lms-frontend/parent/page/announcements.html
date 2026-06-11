@@ -12,8 +12,9 @@
   .ann-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
   .ann-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
-  @media (max-width: 1000px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .ann-stats { grid-template-columns: 1fr; } }
+  @media (min-width: 1000px) { .ann-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (min-width: 640px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .ann-stats { grid-template-columns: 1fr; }
 
   .ann-stat, .ann-card {
     background: #fff;
@@ -47,7 +48,7 @@
     border-bottom: 1px solid #eef2f7;
     background: linear-gradient(180deg, #faf5ff, #fff);
   }
-  @media (max-width: 780px) { .ann-filters { grid-template-columns: 1fr; } }
+  @media (min-width: 780px) { .ann-filters { grid-template-columns: minmax(240px, 1fr) 180px; } }
 
   .ann-input, .ann-select {
     width: 100%;

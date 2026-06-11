@@ -197,7 +197,7 @@
             const classCnt  = parseInt(p.class_count) || 0;
 
             return '<tr>' +
-                '<td>' +
+                '<td data-label="Program">' +
                   '<div class="prog-cell">' +
                     '<div class="prog-icon"><i class="fas fa-graduation-cap"></i></div>' +
                     '<div class="prog-details">' +
@@ -206,11 +206,11 @@
                     '</div>' +
                   '</div>' +
                 '</td>' +
-                '<td>' + duration + '</td>' +
-                '<td style="max-width:220px">' + desc + '</td>' +
-                '<td><span class="prog-class-count">' + classCnt + '</span></td>' +
-                '<td><span class="prog-status-badge ' + statusCls + '">' + statusTxt + '</span></td>' +
-                '<td>' +
+                '<td data-label="Duration">' + duration + '</td>' +
+                '<td data-label="Description" style="max-width:220px">' + desc + '</td>' +
+                '<td data-label="Classes"><span class="prog-class-count">' + classCnt + '</span></td>' +
+                '<td data-label="Status"><span class="prog-status-badge ' + statusCls + '">' + statusTxt + '</span></td>' +
+                '<td data-label="Actions">' +
                   '<div class="prog-actions">' +
                     '<button class="btn-edit" title="Edit" onclick="window._progEdit(' + esc(p.program_id) + ')"><i class="fas fa-edit"></i></button>' +
                     '<button class="btn-delete" title="Delete" onclick="window._progDelete(' + esc(p.program_id) + ', \'' + esc(p.program_name) + '\')"><i class="fas fa-trash"></i></button>' +

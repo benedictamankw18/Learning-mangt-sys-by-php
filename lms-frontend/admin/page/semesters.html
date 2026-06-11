@@ -33,11 +33,11 @@
 .sem-search-box { position: relative; display: flex; align-items: center; gap: 0.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.5rem 0.75rem; }
 .sem-search-box:focus-within { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
 .sem-search-box i { color: var(--text-secondary, #64748b); font-size: 0.9rem; }
-.sem-search-input { border: none; outline: none; background: transparent; font-size: 0.9rem; color: var(--text-primary, #0f172a); min-width: 220px; padding: 0; }
-.sem-filter-select { min-width: 240px; }
+.sem-search-input { border: none; outline: none; background: transparent; font-size: 0.9rem; color: var(--text-primary, #0f172a); width: 100%; padding: 0; }
+.sem-filter-select { width: 100%; }
 .sem-table-card { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
 .sem-table-wrap { overflow-x: auto; }
-.sem-table { width: 100%; border-collapse: collapse; min-width: 840px; font-size: 0.875rem; }
+.sem-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .sem-table thead tr { background: #f8fafc; }
 .sem-table th { padding: 0.75rem 1rem; text-align: left; font-weight: 600; color: var(--text-secondary, #64748b); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
 .sem-table td { padding: 0.85rem 1rem; color: var(--text-primary, #1e293b); border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
@@ -82,7 +82,7 @@
 .pf-input { padding: 0.65rem 0.85rem; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 0.92rem; color: var(--text-primary, #0f172a); background: #fff; outline: none; box-sizing: border-box; width: 100%; }
 .pf-input:focus { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
 .pf-error-banner { display: none; grid-column: span 2; padding: 0.85rem 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; color: #dc2626; font-size: 0.85rem; font-weight: 600; }
-@media (max-width: 768px) { .sem-search-input { min-width: 160px; } .sem-table { min-width: 700px; } .sem-filter-select { min-width: 200px; } }
+@media (max-width: 768px) { .sem-search-input { width: 100%; } .sem-table { width: 100%; } .sem-filter-select { width: 100%; } }
 @media (max-width: 640px) { .sem-page-header, .sem-toolbar { flex-direction: column; align-items: flex-start; } .sem-filter-row { width: 100%; flex-direction: column; align-items: stretch; } .sem-filter-select, .sem-search-box { width: 100%; } .sem-search-input { min-width: 100%; flex: 1; } .prog-form-grid { grid-template-columns: 1fr; } .pf-error-banner { grid-column: span 1; } }
 </style>
 

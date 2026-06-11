@@ -189,11 +189,11 @@
       const score = item.score == null ? '-' : `${Number(item.score)} / ${Number(item.max_score || 0)}`;
       return `
         <tr>
-          <td>${title}</td>
-          <td>${subject}</td>
-          <td>${due}</td>
-          <td><span class="pas-badge ${esc(status)}">${esc(status)}</span></td>
-          <td>${esc(score)}</td>
+          <td data-label="Assignment">${title}</td>
+          <td data-label="Subject">${subject}</td>
+          <td data-label="Due Date">${due}</td>
+          <td data-label="Status"><span class="pas-badge ${esc(status)}">${esc(status)}</span></td>
+          <td data-label="Score">${esc(score)}</td>
         </tr>
       `;
     }).join('');

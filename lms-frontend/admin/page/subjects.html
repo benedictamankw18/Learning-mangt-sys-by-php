@@ -15,8 +15,9 @@
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 1rem; margin-bottom: 1.5rem;
 }
-@media (max-width:1024px) { .subj-stats { grid-template-columns: repeat(2,1fr); } }
-@media (max-width:600px)  { .subj-stats { grid-template-columns: 1fr; } }
+@media (min-width:1024px) { .subj-stats { grid-template-columns: repeat(3,1fr); } }
+@media (min-width:600px) { .subj-stats { grid-template-columns: repeat(2,1fr); } }
+.subj-stats { grid-template-columns: 1fr; }
 .subj-stat-card {
     background: #fff; border-radius: 12px; padding: 1.2rem 1.4rem;
     display: flex; align-items: center; gap: 1rem;
@@ -251,7 +252,7 @@
 
     <!-- Table -->
     <div class="subj-table-wrap">
-        <table class="subj-table" id="subjectsTable">
+        <table class="subj-table responsive-table" id="subjectsTable">
             <thead>
                 <tr>
                     <th>Subject</th>

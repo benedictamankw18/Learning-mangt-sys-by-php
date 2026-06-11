@@ -195,7 +195,8 @@
 
     // ─── API – Load Students ──────────────────────────────────────────────────
     async function loadStudents() {
-        setTableLoading(true);
+        const tbody = document.getElementById('studentsTableBody');
+        if (tbody) Loading.showTableLoading(tbody, 5, 8);
 
         const params = new URLSearchParams({
             page:  S.page,
@@ -222,7 +223,7 @@
             setTableEmpty('Error loading students.');
             if (typeof showToast === 'function') showToast('Failed to load students', 'error');
         } finally {
-            setTableLoading(false);
+            if (tbody) Loading.hideTableLoading(tbody);
         }
     }
 
@@ -265,8 +266,8 @@
             const programName = s.program_name || '—';
 
             return `<tr data-uuid="${escapeHtml(s.uuid)}">
-                <td><input type="checkbox" class="student-row-check" data-uuid="${escapeHtml(s.uuid)}" ${isChecked}></td>
-                <td>
+                <td data-label="Select"><input type="checkbox" class="student-row-check" data-uuid="${escapeHtml(s.uuid)}" ${isChecked}></td>
+                <td data-label="Student">
                     <div class="student-cell">
                         <div class="student-avatar">${escapeHtml(initials)}</div>
                         <div>
@@ -275,12 +276,12 @@
                         </div>
                     </div>
                 </td>
-                <td><code style="font-size:.8rem;background:#f1f5f9;padding:.15rem .4rem;border-radius:4px">${escapeHtml(s.student_id_number || '—')}</code></td>
-                <td>${escapeHtml(className)}</td>
-                <td>${escapeHtml(programName)}</td>
-                <td>${escapeHtml(enrollDate)}</td>
-                <td><span class="students-badge ${badgeClass}">${capitalize(s.status || 'unknown')}</span></td>
-                <td>
+                <td data-label="ID Number"><code style="font-size:.8rem;background:#f1f5f9;padding:.15rem .4rem;border-radius:4px">${escapeHtml(s.student_id_number || '—')}</code></td>
+                <td data-label="Class">${escapeHtml(className)}</td>
+                <td data-label="Program">${escapeHtml(programName)}</td>
+                <td data-label="Enrolled">${escapeHtml(enrollDate)}</td>
+                <td data-label="Status"><span class="students-badge ${badgeClass}">${capitalize(s.status || 'unknown')}</span></td>
+                <td data-label="Actions">
                     <div class="student-actions">
                         <button class="btn-view-student" data-uuid="${escapeHtml(s.uuid)}" title="View Details"><i class="fas fa-eye"></i></button>
                         <button class="btn-edit-student" data-uuid="${escapeHtml(s.uuid)}" title="Edit"><i class="fas fa-edit"></i></button>
@@ -495,7 +496,8 @@
         }
 
         const payload = buildStudentPayload();
-        setSaveLoading(true);
+        const saveBtn = document.getElementById('studentModalSaveBtn');
+        if (saveBtn) Loading.showButtonLoading(saveBtn);
 
         try {
             let res;
@@ -562,7 +564,7 @@
                 if (typeof showToast === 'function') showToast(msg, 'error');
             }
         } finally {
-            setSaveLoading(false);
+            if (saveBtn) Loading.hideButtonLoading(saveBtn);
         }
     }
 
@@ -736,16 +738,21 @@
                 <span>Remove <strong>${count} student${count !== 1 ? 's' : ''}</strong>? They will be marked as withdrawn.</span>
             </div>`,
             async () => {
+                Loading.showOverlay(`Removing ${count} student${count !== 1 ? 's' : ''}...`);
                 let success = 0;
-                for (const uuid of S.selectedUuids) {
-                    try {
-                        const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
-                        if (res && res.success) success++;
-                    } catch (_) { /* ignore per-item */ }
+                try {
+                    for (const uuid of S.selectedUuids) {
+                        try {
+                            const res = await API.delete(API_ENDPOINTS.STUDENT_BY_UUID(uuid));
+                            if (res && res.success) success++;
+                        } catch (_) { /* ignore per-item */ }
+                    }
+                } finally {
+                    Loading.hideOverlay();
+                    showToast(`${success} / ${count} students removed`, 'success');
+                    clearSelection();
+                    loadStudents();
                 }
-                showToast(`${success} / ${count} students removed`, 'success');
-                clearSelection();
-                loadStudents();
             }
         );
     }
@@ -973,47 +980,45 @@
 
     async function confirmImport() {
         if (!S.importRows.length) return;
-        const confirmBtn = q('#confirmImportBtn');
-        if (confirmBtn) confirmBtn.disabled = true;
-        show('confirmImportSpinner');
-        setText('confirmImportText', 'Importing…');
+        
+        Loading.showOverlay(`Importing ${S.importRows.length} student(s)...`);
 
         const results = []; // { row, name, status: 'success'|'failed', reason }
         const REQUIRED = ['first_name', 'last_name', 'email', 'student_id_number', 'username', 'password'];
 
-        for (let i = 0; i < S.importRows.length; i++) {
-            const row  = S.importRows[i];
-            const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || `Row ${i + 2}`;
+        try {
+            for (let i = 0; i < S.importRows.length; i++) {
+                const row  = S.importRows[i];
+                const name = [row.first_name, row.last_name].filter(Boolean).join(' ') || `Row ${i + 2}`;
 
-            // Client-side required field check
-            const missing = REQUIRED.filter(f => !row[f] || !String(row[f]).trim());
-            if (missing.length) {
-                results.push({ name, status: 'failed', reason: `Missing: ${missing.map(f => f.replace(/_/g,' ')).join(', ')}` });
-                continue;
-            }
+                // Client-side required field check
+                const missing = REQUIRED.filter(f => !row[f] || !String(row[f]).trim());
+                if (missing.length) {
+                    results.push({ name, status: 'failed', reason: `Missing: ${missing.map(f => f.replace(/_/g,' ')).join(', ')}` });
+                    continue;
+                }
 
-            try {
-                const res = await API.post(API_ENDPOINTS.STUDENTS, row);
-                if (res && res.success) {
-                    results.push({ name, status: 'success', reason: '' });
-                } else {
-                    results.push({ name, status: 'failed', reason: res?.message || 'Unknown error' });
+                try {
+                    const res = await API.post(API_ENDPOINTS.STUDENTS, row);
+                    if (res && res.success) {
+                        results.push({ name, status: 'success', reason: '' });
+                    } else {
+                        results.push({ name, status: 'failed', reason: res?.message || 'Unknown error' });
+                    }
+                } catch (err) {
+                    // Extract field-level errors if available
+                    let reason = err.message || 'Request failed';
+                    if (err.body && err.body.errors) {
+                        const msgs = Object.entries(err.body.errors).map(([k, v]) =>
+                            `${k.replace(/_/g,' ')}: ${Array.isArray(v) ? v[0] : v}`);
+                        if (msgs.length) reason = msgs.join('; ');
+                    }
+                    results.push({ name, status: 'failed', reason });
                 }
-            } catch (err) {
-                // Extract field-level errors if available
-                let reason = err.message || 'Request failed';
-                if (err.body && err.body.errors) {
-                    const msgs = Object.entries(err.body.errors).map(([k, v]) =>
-                        `${k.replace(/_/g,' ')}: ${Array.isArray(v) ? v[0] : v}`);
-                    if (msgs.length) reason = msgs.join('; ');
-                }
-                results.push({ name, status: 'failed', reason });
             }
+        } finally {
+            Loading.hideOverlay();
         }
-
-        hide('confirmImportSpinner');
-        setText('confirmImportText', 'Import');
-        if (confirmBtn) confirmBtn.disabled = false;
 
         const success = results.filter(r => r.status === 'success').length;
         closeImportModal();

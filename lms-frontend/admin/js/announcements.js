@@ -247,22 +247,22 @@
       const expiresAt = formatDate(item.expires_at);
 
       return '<tr>' +
-        '<td>' +
+        '<td data-label="Announcement">' +
           '<p class="ann-title">' + esc(item.title || '(untitled)') + '</p>' +
           '<p class="ann-snippet">' + esc(truncate(item.content_body || '', 140)) + '</p>' +
           (item.attachments.length
             ? '<div class="ann-snippet"><i class="fas fa-paperclip"></i> ' + item.attachments.length + ' attachment(s)</div>' + renderAttachmentLinks(item.attachments)
             : '') +
         '</td>' +
-        '<td><span class="ann-chip role">' + esc(audience || 'all') + '</span></td>' +
-        '<td><span class="ann-chip ' + esc(item.priority) + '">' + esc(capitalize(item.priority)) + '</span></td>' +
-        '<td>' +
+        '<td data-label="Audience"><span class="ann-chip role">' + esc(audience || 'all') + '</span></td>' +
+        '<td data-label="Priority"><span class="ann-chip ' + esc(item.priority) + '">' + esc(capitalize(item.priority)) + '</span></td>' +
+        '<td data-label="Schedule">' +
           '<div class="ann-snippet"><strong>Publish:</strong> ' + esc(publishAt || '-') + '</div>' +
           '<div class="ann-snippet"><strong>Expiry:</strong> ' + esc(expiresAt || '-') + '</div>' +
         '</td>' +
-        '<td><span class="ann-chip ' + statusClass + '">' + statusLabel + '</span></td>' +
-        '<td>' + esc(String(item.read_count)) + '</td>' +
-        '<td>' +
+        '<td data-label="Status"><span class="ann-chip ' + statusClass + '">' + statusLabel + '</span></td>' +
+        '<td data-label="Reads">' + esc(String(item.read_count)) + '</td>' +
+        '<td data-label="Actions">' +
           '<div class="ann-actions">' +
             '<button class="ann-btn" type="button" data-action="edit" data-uuid="' + escAttr(item.uuid) + '"><i class="fas fa-pen"></i> Edit</button>' +
             '<button class="ann-btn" type="button" data-action="toggle-publish" data-uuid="' + escAttr(item.uuid) + '"><i class="fas fa-toggle-on"></i> ' + publishBtn + '</button>' +

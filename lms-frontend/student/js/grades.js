@@ -355,11 +355,11 @@
       const subject = String(row?.subject_name || row?.subject_code || row?.name || 'Subject');
 
       return '<tr>'
-        + '<td>' + esc(subject) + '</td>'
-        + '<td>' + esc(score != null ? score.toFixed(2) : 'N/A') + '</td>'
-        + '<td>' + esc(percentage != null ? formatPct(percentage) : 'N/A') + '</td>'
-        + '<td><span class="sgd-badge ' + esc(gradeClass(grade)) + '">' + esc(grade) + '</span></td>'
-        + '<td>' + esc(remark) + '</td>'
+        + '<td data-label="Subject">' + esc(subject) + '</td>'
+        + '<td data-label="Total Score">' + esc(score != null ? score.toFixed(2) : 'N/A') + '</td>'
+        + '<td data-label="Percentage">' + esc(percentage != null ? formatPct(percentage) : 'N/A') + '</td>'
+        + '<td data-label="Grade"><span class="sgd-badge ' + esc(gradeClass(grade)) + '">' + esc(grade) + '</span></td>'
+        + '<td data-label="Remark">' + esc(remark) + '</td>'
         + '</tr>';
     }).join('');
 

@@ -11,6 +11,9 @@
     <!-- Font Awesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Performance: Loading States & Lazy Loading -->
+    <link rel="stylesheet" href="../assets/css/loading.css">
+    
     <style>
         .log-viewer {
             height: calc(100vh - 200px);
@@ -348,5 +351,8 @@ logger.clear();
         // Auto-refresh every 5 seconds
         setInterval(refreshLogs, 5000);
     </script>
+    <!-- Performance: Loading States & Lazy Loading -->
+    <script defer src="../assets/js/loading.js"></script>
+    <script defer src="../assets/js/lazy-loading.js"></script>
 </body>
 </html>

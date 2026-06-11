@@ -411,13 +411,13 @@
 
     DOM.tableBody.innerHTML = STATE.filteredRows.map(function (row) {
       return "<tr>"
-        + "<td>" + esc(row.type_label || row.type) + "</td>"
-        + "<td>" + esc(row.name) + "</td>"
-        + "<td>" + esc(row.group || "-") + "</td>"
-        + "<td>" + esc(formatPct(row.average)) + "</td>"
-        + "<td>" + esc(formatPct(row.pass_rate)) + "</td>"
-        + "<td>" + esc(String(toNumber(row.count, 0))) + "</td>"
-        + "<td>" + esc(row.notes || "-") + "</td>"
+        + "<td data-label=\"Type\">" + esc(row.type_label || row.type) + "</td>"
+        + "<td data-label=\"Name\">" + esc(row.name) + "</td>"
+        + "<td data-label=\"Group\">" + esc(row.group || "-") + "</td>"
+        + "<td data-label=\"Average %\">" + esc(formatPct(row.average)) + "</td>"
+        + "<td data-label=\"Pass Rate\">" + esc(formatPct(row.pass_rate)) + "</td>"
+        + "<td data-label=\"Count\">" + esc(String(toNumber(row.count, 0))) + "</td>"
+        + "<td data-label=\"Notes\">" + esc(row.notes || "-") + "</td>"
         + "</tr>";
     }).join("");
   }

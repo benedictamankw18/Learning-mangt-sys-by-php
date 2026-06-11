@@ -328,26 +328,45 @@
     background: #ffe4e6;
   }
 
-  @media (max-width: 1000px) {
+  @media (min-width: 1000px) {
+    .adm-ass-kpis {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .adm-ass-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 640px) {
     .adm-ass-kpis {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .adm-ass-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 640px) {
-    .adm-ass-kpis {
-      grid-template-columns: 1fr;
-    }
-
     .adm-ass-weight-row {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .adm-ass-create-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .adm-ass-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-ass-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-ass-weight-row {
+    grid-template-columns: 1fr;
+  }
+
+  .adm-ass-create-grid {
+    grid-template-columns: 1fr;
+  }
       grid-template-columns: 1fr;
     }
   }
@@ -459,7 +478,7 @@
       </button>
     </div>
     <div class="adm-ass-card-b adm-ass-table-wrap">
-      <table class="adm-ass-table">
+      <table class="adm-ass-table responsive-table">
         <thead>
           <tr>
             <th>Assessment</th>

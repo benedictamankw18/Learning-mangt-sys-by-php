@@ -911,7 +911,7 @@
       const initial = String(room.display_name || room.room_name || 'Chat').trim().charAt(0).toUpperCase() || 'C';
       const avatarUrl = buildUploadUrl(room.display_avatar || room.room_avatar || '');
       const avatarMarkup = avatarUrl
-        ? '<img src="' + esc(avatarUrl) + '" alt="' + esc(room.display_name || room.room_name || 'Chat') + '" />'
+        ? '<img data-src="' + esc(avatarUrl) + '" alt="' + esc(room.display_name || room.room_name || 'Chat') + '" />'
         : esc(initial);
       const preview = String(room.last_message_text || 'No messages yet').trim().slice(0, 100);
       const meta = [room.room_type === 'direct' ? 'Direct' : 'Group', room.last_message_created_at ? fmtDateTime(room.last_message_created_at) : 'New room'].filter(Boolean).join(' • ');
@@ -2028,7 +2028,7 @@
       return String(member?.member_role || '').trim().toLowerCase() === 'admin';
     }).length;
     const avatarMarkup = avatarUrl
-      ? '<img src="' + esc(avatarUrl) + '" alt="' + esc(name) + '" />'
+      ? '<img data-src="' + esc(avatarUrl) + '" alt="' + esc(name) + '" />'
       : esc(avatarInitial);
 
     return '<div class="messages-chat-info-card" style="align-items:flex-start">'
@@ -2074,7 +2074,7 @@
       const role = String(member?.member_role || 'member').trim().toLowerCase();
       const tag = role === 'admin' ? '<span class="messages-badge unread" style="margin-left:.5rem">Admin</span>' : '';
       const avatarMarkup = avatarUrl
-        ? '<img src="' + esc(avatarUrl) + '" alt="' + esc(name) + '" />'
+        ? '<img data-src="' + esc(avatarUrl) + '" alt="' + esc(name) + '" />'
         : esc(name.charAt(0).toUpperCase() || 'M');
 
       return '<div class="messages-room-item" style="border-radius:12px; margin-bottom:.5rem; border:1px solid #e2e8f0">'

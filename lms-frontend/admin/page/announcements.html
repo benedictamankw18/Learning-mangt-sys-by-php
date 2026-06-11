@@ -6,8 +6,9 @@
   .ann-top-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
   .ann-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
-  @media (max-width: 1000px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 640px) { .ann-stats { grid-template-columns: 1fr; } }
+  @media (min-width: 1000px) { .ann-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (min-width: 640px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .ann-stats { grid-template-columns: 1fr; }
 
   .ann-stat, .ann-card {
     background: #fff;
@@ -37,8 +38,9 @@
     border-bottom: 1px solid #eef2f7;
     background: linear-gradient(180deg, #f8fafc, #fff);
   }
-  @media (max-width: 900px) { .ann-filters { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 620px) { .ann-filters { grid-template-columns: 1fr; } }
+  @media (min-width: 900px) { .ann-filters { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 620px) { .ann-filters { grid-template-columns: 1fr 1fr; } }
+  .ann-filters { grid-template-columns: 1fr; }
 
   .ann-input, .ann-select, .ann-textarea {
     width: 100%;
@@ -57,7 +59,7 @@
   }
 
   .ann-table-wrap { overflow: auto; }
-  .ann-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  .ann-table { width: 100%; border-collapse: collapse; }
   .ann-table th, .ann-table td {
     border-bottom: 1px solid #eef2f7;
     padding: 0.8rem 0.9rem;
@@ -223,7 +225,7 @@
       </div>
 
       <div class="ann-table-wrap">
-        <table class="ann-table">
+        <table class="ann-table responsive-table">
           <thead>
             <tr>
               <th>Announcement</th>

@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Parent Dashboard - LMS</title>
     <link rel="icon" type="image/png" href="../assets/img/favicon.ico" />
+    <link rel="stylesheet" href="../assets/css/responsive.css" />
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/animations.css" />
+    <link rel="stylesheet" href="../assets/css/tables-responsive.css" />
+    <link rel="stylesheet" href="../assets/css/loading.css" />
     <link rel="stylesheet" href="parent.css" />
     <link
       rel="stylesheet"
@@ -116,7 +119,7 @@
             <div
               class="dropdown-menu dropdown-menu-right"
               id="parentNotificationDropdown"
-              style="min-width: 360px; max-width: 420px"
+              style="width: 100%; max-width: 420px"
             >
               <div
                 class="dropdown-header"
@@ -571,5 +574,9 @@
         handleHashChange();
       })();
     </script>
+    <!-- Performance: Loading States & Lazy Loading -->
+    <script defer src="../assets/js/loading.js"></script>
+    <script defer src="../assets/js/lazy-loading.js"></script>
+    <script src="../common/js/navigation.js"></script>
   </body>
 </html>

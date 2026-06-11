@@ -305,7 +305,6 @@
 
   .gr-table {
     width: 100%;
-    min-width: 980px;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.84rem;
@@ -345,7 +344,7 @@
   }
 
   .gr-student-cell {
-    min-width: 190px;
+    width: 100%;
   }
 
   .gr-name {
@@ -363,7 +362,6 @@
   .gr-cell-wrap {
     display: grid;
     gap: 0.35rem;
-    min-width: 160px;
   }
 
   .gr-cell-head {
@@ -464,7 +462,7 @@
     border: 1px solid #dbe4ef;
     border-radius: 10px;
     background: #fff;
-    min-width: 260px;
+    width: 100%;
     max-width: 100%;
   }
 
@@ -627,10 +625,20 @@
     text-transform: uppercase;
   }
 
-  @media (max-width: 1080px) {
+  @media (min-width: 1080px) {
+    .gr-stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .gr-legend-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 768px) {
     .gr-filters,
     .gr-insight-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .gr-stats {
@@ -639,16 +647,6 @@
 
     .gr-legend-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 760px) {
-    .gr-stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .gr-legend-grid {
-      grid-template-columns: 1fr;
     }
 
     .gr-feedback-grid {
@@ -844,7 +842,7 @@
             Draft 0 | Pending 0 | Approved 0
           </div>
           <div class="gr-feedback-table-wrap" style="max-height: 170px">
-            <table class="gr-feedback-table">
+            <table class="gr-feedback-table responsive-table">
               <thead>
                 <tr>
                   <th>Student</th>
@@ -884,7 +882,7 @@
             Load a class and subject to view feedback notes.
           </div>
           <div class="gr-feedback-table-wrap" style="max-height: 180px">
-            <table class="gr-feedback-table">
+            <table class="gr-feedback-table responsive-table">
               <thead>
                 <tr>
                   <th>Student</th>

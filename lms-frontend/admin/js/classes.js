@@ -173,6 +173,9 @@
 
     // ─── Load Classes ─────────────────────────────────────────────────────────
     async function loadClasses() {
+        const table = document.getElementById('classesTableBody');
+        if (table) Loading.showTableLoading(table, 5, 9);
+        
         const params = { page: S.page, limit: S.limit };
         if (S.search)       params.search         = S.search;
         if (S.programId)    params.program_id     = S.programId;
@@ -195,6 +198,8 @@
         } catch (err) {
             console.error('loadClasses error:', err);
             showTableError('Network error · ' + (err.message || ''));
+        } finally {
+            if (table) Loading.hideTableLoading(table);
         }
     }
 
@@ -245,8 +250,8 @@
 
             return `
             <tr data-uuid="${esc(c.uuid)}">
-              <td><input type="checkbox" class="class-row-cb" data-uuid="${esc(c.uuid)}" ${checked}></td>
-              <td>
+              <td data-label="Select"><input type="checkbox" class="class-row-cb" data-uuid="${esc(c.uuid)}" ${checked}></td>
+              <td data-label="Class">
                 <div class="department-cell">
                   <div class="department-icon"><i class="fas ${programIcon(c.program_name)}"></i></div>
                   <div class="department-details">
@@ -255,13 +260,13 @@
                   </div>
                 </div>
               </td>
-              <td><span class="program-badge">${esc(c.program_name || '—')}</span></td>
-              <td>${esc(c.grade_level_name || '—')}</td>
-              <td>${c.class_teacher_name ? esc(c.class_teacher_name) : '<span style="color:#94a3b8;">—</span>'}</td>
-              <td style="${capColor}">${cap}</td>
-              <td>${esc(c.room_number || '—')}</td>
-              <td>${statusBadge}</td>
-              <td>
+              <td data-label="Program"><span class="program-badge">${esc(c.program_name || '—')}</span></td>
+              <td data-label="Grade Level">${esc(c.grade_level_name || '—')}</td>
+              <td data-label="Class Teacher">${c.class_teacher_name ? esc(c.class_teacher_name) : '<span style="color:#94a3b8;">—</span>'}</td>
+              <td data-label="Students / Capacity" style="${capColor}">${cap}</td>
+              <td data-label="Room">${esc(c.room_number || '—')}</td>
+              <td data-label="Status">${statusBadge}</td>
+              <td data-label="Actions">
                 <div class="department-actions">
                   <button class="btn-view" title="View Class Details" onclick="classViewDetails('${esc(c.uuid)}')">
                     <i class="fas fa-eye"></i>
@@ -547,7 +552,7 @@
             return;
         }
 
-        if (saveBtn) { saveBtn.disabled = true; saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…'; }
+        if (saveBtn) Loading.showButtonLoading(saveBtn);
 
         try {
             const isEdit = !!(uuid || S.editingUuid);
@@ -571,7 +576,7 @@
             const msg = 'Network error. Please try again.';
             if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
         } finally {
-            if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Class'; }
+            if (saveBtn) Loading.hideButtonLoading(saveBtn);
         }
     }
 
@@ -608,17 +613,22 @@
             'Bulk ' + label,
             `${label.charAt(0).toUpperCase() + label.slice(1)} ${uuids.length} class(es)?`,
             async () => {
+                Loading.showOverlay(`Updating ${uuids.length} class(es)...`);
                 let ok = 0, fail = 0;
-                for (const uuid of uuids) {
-                    try {
-                        const res = await API.put(API_ENDPOINTS.CLASS_BY_UUID(uuid), { status });
-                        if (res?.success) ok++;
-                        else fail++;
-                    } catch (_) { fail++; }
+                try {
+                    for (const uuid of uuids) {
+                        try {
+                            const res = await API.put(API_ENDPOINTS.CLASS_BY_UUID(uuid), { status });
+                            if (res?.success) ok++;
+                            else fail++;
+                        } catch (_) { fail++; }
+                    }
+                } finally {
+                    Loading.hideOverlay();
+                    toast(`${ok} updated${fail ? ', ' + fail + ' failed' : ''}.`, fail ? 'warning' : 'success');
+                    S.selectedUuids.clear();
+                    loadClasses();
                 }
-                toast(`${ok} updated${fail ? ', ' + fail + ' failed' : ''}.`, fail ? 'warning' : 'success');
-                S.selectedUuids.clear();
-                loadClasses();
             }
         );
     }
@@ -630,17 +640,22 @@
             'Delete Classes',
             `Permanently delete ${uuids.length} class(es)? This cannot be undone.`,
             async () => {
+                Loading.showOverlay(`Deleting ${uuids.length} class(es)...`);
                 let ok = 0, fail = 0;
-                for (const uuid of uuids) {
-                    try {
-                        const res = await API.delete(API_ENDPOINTS.CLASS_BY_UUID(uuid));
-                        if (res?.success) ok++;
-                        else fail++;
-                    } catch (_) { fail++; }
+                try {
+                    for (const uuid of uuids) {
+                        try {
+                            const res = await API.delete(API_ENDPOINTS.CLASS_BY_UUID(uuid));
+                            if (res?.success) ok++;
+                            else fail++;
+                        } catch (_) { fail++; }
+                    }
+                } finally {
+                    Loading.hideOverlay();
+                    toast(`${ok} deleted${fail ? ', ' + fail + ' failed' : ''}.`, fail ? 'warning' : 'success');
+                    S.selectedUuids.clear();
+                    loadClasses();
                 }
-                toast(`${ok} deleted${fail ? ', ' + fail + ' failed' : ''}.`, fail ? 'warning' : 'success');
-                S.selectedUuids.clear();
-                loadClasses();
             }
         );
     }
@@ -877,89 +892,87 @@
 
     async function confirmImport() {
         if (!S.importRows.length) return;
-        const btn = document.getElementById('classImportConfirmBtn');
-        if (btn) btn.disabled = true;
-        showEl('classImportConfirmSpinner');
-        setElText('classImportConfirmText', 'Importing…');
+        
+        Loading.showOverlay(`Importing ${S.importRows.length} class(es)...`);
 
         const REQUIRED_NAME_COLS = ['class_name', 'class_code', 'section'];
         const results  = [];
 
-        for (let i = 0; i < S.importRows.length; i++) {
-            const row  = { ...S.importRows[i] };
-            const name = row.class_name || `Row ${i + 2}`;
+        try {
+            for (let i = 0; i < S.importRows.length; i++) {
+                const row  = { ...S.importRows[i] };
+                const name = row.class_name || `Row ${i + 2}`;
 
-            // ── Resolve program_name → program_id ──────────────────────────
-            if (row.program_name && !row.program_id) {
-                const match = S.programs.find(
-                    p => (p.program_name || '').trim().toLowerCase() === String(row.program_name).trim().toLowerCase()
-                      || (p.program_code || '').trim().toLowerCase() === String(row.program_name).trim().toLowerCase()
-                );
-                if (!match) {
-                    results.push({ name, status: 'failed', reason: `Program not found: "${row.program_name}". Available: ${S.programs.map(p => p.program_name).join(', ')}` });
+                // ── Resolve program_name → program_id ──────────────────────────
+                if (row.program_name && !row.program_id) {
+                    const match = S.programs.find(
+                        p => (p.program_name || '').trim().toLowerCase() === String(row.program_name).trim().toLowerCase()
+                          || (p.program_code || '').trim().toLowerCase() === String(row.program_name).trim().toLowerCase()
+                    );
+                    if (!match) {
+                        results.push({ name, status: 'failed', reason: `Program not found: "${row.program_name}". Available: ${S.programs.map(p => p.program_name).join(', ')}` });
+                        continue;
+                    }
+                    row.program_id = match.program_id;
+                }
+                delete row.program_name;
+
+                // ── Resolve grade_level_name → grade_level_id ──────────────────
+                if (row.grade_level_name && !row.grade_level_id) {
+                    const match = S.gradeLevels.find(
+                        g => (g.grade_level_name || g.level_name || g.name || '').trim().toLowerCase() === String(row.grade_level_name).trim().toLowerCase()
+                    );
+                    if (!match) {
+                        results.push({ name, status: 'failed', reason: `Grade Level not found: "${row.grade_level_name}". Available: ${S.gradeLevels.map(g => g.grade_level_name || g.level_name || g.name).join(', ')}` });
+                        continue;
+                    }
+                    row.grade_level_id = match.grade_level_id;
+                }
+                delete row.grade_level_name;
+
+                // ── Resolve academic_year_name → academic_year_id ──────────────
+                if (row.academic_year_name && !row.academic_year_id) {
+                    const match = S.academicYears.find(
+                        a => (a.year_name || '').trim().toLowerCase() === String(row.academic_year_name).trim().toLowerCase()
+                    );
+                    if (!match) {
+                        results.push({ name, status: 'failed', reason: `Academic Year not found: "${row.academic_year_name}". Available: ${S.academicYears.map(a => a.year_name).join(', ')}` });
+                        continue;
+                    }
+                    row.academic_year_id = match.academic_year_id;
+                }
+                delete row.academic_year_name;
+
+                // ── Check required fields after resolution ─────────────────────
+                const missing = [...REQUIRED_NAME_COLS, 'program_id', 'grade_level_id', 'academic_year_id']
+                    .filter(f => !row[f] || !String(row[f]).trim());
+                if (missing.length) {
+                    results.push({ name, status: 'failed', reason: `Missing: ${missing.map(f => f.replace(/_/g,' ')).join(', ')}` });
                     continue;
                 }
-                row.program_id = match.program_id;
-            }
-            delete row.program_name;
 
-            // ── Resolve grade_level_name → grade_level_id ──────────────────
-            if (row.grade_level_name && !row.grade_level_id) {
-                const match = S.gradeLevels.find(
-                    g => (g.grade_level_name || g.level_name || g.name || '').trim().toLowerCase() === String(row.grade_level_name).trim().toLowerCase()
-                );
-                if (!match) {
-                    results.push({ name, status: 'failed', reason: `Grade Level not found: "${row.grade_level_name}". Available: ${S.gradeLevels.map(g => g.grade_level_name || g.level_name || g.name).join(', ')}` });
-                    continue;
+                try {
+                    const res = await API.post(API_ENDPOINTS.CLASSES, row);
+                    if (res && res.success) {
+                        results.push({ name, status: 'success', reason: '' });
+                    } else {
+                        results.push({ name, status: 'failed', reason: res?.message || 'Unknown error' });
+                    }
+                } catch (err) {
+                    // 409 = duplicate class code — treat as a skipped/warning row, not a hard failure
+                    const status = (err.status === 409 || (err.body && err.body.message && err.body.message.includes('already exists'))) ? 'skipped' : 'failed';
+                    let reason = (err.body?.message) || err.message || 'Request failed';
+                    if (err.body && err.body.errors) {
+                        const msgs = Object.entries(err.body.errors).map(([k, v]) =>
+                            `${k.replace(/_/g,' ')}: ${Array.isArray(v) ? v[0] : v}`);
+                        if (msgs.length) reason = msgs.join('; ');
+                    }
+                    results.push({ name, status, reason });
                 }
-                row.grade_level_id = match.grade_level_id;
             }
-            delete row.grade_level_name;
-
-            // ── Resolve academic_year_name → academic_year_id ──────────────
-            if (row.academic_year_name && !row.academic_year_id) {
-                const match = S.academicYears.find(
-                    a => (a.year_name || '').trim().toLowerCase() === String(row.academic_year_name).trim().toLowerCase()
-                );
-                if (!match) {
-                    results.push({ name, status: 'failed', reason: `Academic Year not found: "${row.academic_year_name}". Available: ${S.academicYears.map(a => a.year_name).join(', ')}` });
-                    continue;
-                }
-                row.academic_year_id = match.academic_year_id;
-            }
-            delete row.academic_year_name;
-
-            // ── Check required fields after resolution ─────────────────────
-            const missing = [...REQUIRED_NAME_COLS, 'program_id', 'grade_level_id', 'academic_year_id']
-                .filter(f => !row[f] || !String(row[f]).trim());
-            if (missing.length) {
-                results.push({ name, status: 'failed', reason: `Missing: ${missing.map(f => f.replace(/_/g,' ')).join(', ')}` });
-                continue;
-            }
-
-            try {
-                const res = await API.post(API_ENDPOINTS.CLASSES, row);
-                if (res && res.success) {
-                    results.push({ name, status: 'success', reason: '' });
-                } else {
-                    results.push({ name, status: 'failed', reason: res?.message || 'Unknown error' });
-                }
-            } catch (err) {
-                // 409 = duplicate class code — treat as a skipped/warning row, not a hard failure
-                const status = (err.status === 409 || (err.body && err.body.message && err.body.message.includes('already exists'))) ? 'skipped' : 'failed';
-                let reason = (err.body?.message) || err.message || 'Request failed';
-                if (err.body && err.body.errors) {
-                    const msgs = Object.entries(err.body.errors).map(([k, v]) =>
-                        `${k.replace(/_/g,' ')}: ${Array.isArray(v) ? v[0] : v}`);
-                    if (msgs.length) reason = msgs.join('; ');
-                }
-                results.push({ name, status, reason });
-            }
+        } finally {
+            Loading.hideOverlay();
         }
-
-        hideEl('classImportConfirmSpinner');
-        setElText('classImportConfirmText', 'Import');
-        if (btn) btn.disabled = false;
 
         const success = results.filter(r => r.status === 'success').length;
         closeImportModal();

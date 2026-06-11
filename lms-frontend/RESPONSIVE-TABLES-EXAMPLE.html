@@ -1,0 +1,430 @@
+<!-- 
+  Mobile-Friendly Table Patterns
+  LMS Frontend - Data Tables Implementation Guide
+  
+  These patterns show how to convert tables to mobile-friendly card layouts
+  Use on: grades, attendance, announcements, events, academic-years, etc.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Responsive Table Examples - LMS</title>
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <link rel="stylesheet" href="../assets/css/responsive.css" />
+    <style>
+        /* TABLE CARD LAYOUT - Convert Table Rows to Cards on Mobile */
+        
+        /* Mobile: Card Layout (default) */
+        @media (max-width: 767px) {
+            .table-responsive {
+                overflow-x: visible;
+            }
+
+            .table-responsive table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0 1rem;
+            }
+
+            .table-responsive thead {
+                display: none; /* Hide headers on mobile */
+            }
+
+            .table-responsive tbody {
+                display: block;
+            }
+
+            .table-responsive tbody tr {
+                display: block;
+                background: white;
+                border: 1px solid #e5e7eb;
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            .table-responsive tbody tr:hover {
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .table-responsive td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.75rem 1rem;
+                border-bottom: 1px solid #f3f4f6;
+                text-align: right;
+            }
+
+            .table-responsive td:last-child {
+                border-bottom: none;
+            }
+
+            .table-responsive td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #374151;
+                margin-right: 1rem;
+                text-align: left;
+                flex: 0 0 40%;
+            }
+
+            /* Action column spans full width */
+            .table-responsive td.action-cell {
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.5rem;
+                padding: 1rem;
+            }
+
+            .table-responsive td.action-cell::before {
+                display: none;
+            }
+        }
+
+        /* Desktop: Normal Table Layout */
+        @media (min-width: 768px) {
+            .table-responsive::after {
+                display: none; /* Hide scroll hint on desktop */
+            }
+
+            .table-responsive table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .table-responsive thead {
+                background-color: #f9fafb;
+                border-bottom: 2px solid #e5e7eb;
+            }
+
+            .table-responsive th {
+                padding: 1rem;
+                text-align: left;
+                font-weight: 600;
+                color: #374151;
+                font-size: 0.875rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .table-responsive td {
+                padding: 1rem;
+                border-bottom: 1px solid #e5e7eb;
+                color: #111827;
+            }
+
+            .table-responsive td::before {
+                display: none; /* Hide labels on desktop */
+            }
+
+            .table-responsive tbody tr:hover {
+                background-color: #f9fafb;
+            }
+        }
+
+        /* STATUS BADGES */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: #0c2d6b;
+        }
+
+        /* ACTION BUTTONS */
+        .action-btn {
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 36px;
+            min-width: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:hover {
+            background-color: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .action-btn-primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .action-btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        /* RESPONSIVE TABLE SCROLL HINT */
+        .table-scroll-hint {
+            display: block;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+            animation: scroll-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scroll-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        @media (min-width: 768px) {
+            .table-scroll-hint {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ===============================================
+         EXAMPLE 1: GRADES TABLE
+    =============================================== -->
+    <section class="p-6">
+        <h2 class="text-2xl font-bold mb-4">Example 1: Grades Table</h2>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Class</th>
+                        <th>Score</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Row 1 -->
+                    <tr>
+                        <td data-label="Subject">Mathematics</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Score">92</td>
+                        <td data-label="Grade">A1</td>
+                        <td data-label="Status"><span class="badge badge-success">Published</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                            <button class="action-btn" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Row 2 -->
+                    <tr>
+                        <td data-label="Subject">English</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Score">85</td>
+                        <td data-label="Grade">B2</td>
+                        <td data-label="Status"><span class="badge badge-info">Draft</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                            <button class="action-btn" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Row 3 -->
+                    <tr>
+                        <td data-label="Subject">Science</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Score">78</td>
+                        <td data-label="Grade">C3</td>
+                        <td data-label="Status"><span class="badge badge-warning">Pending Review</span></td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                            <button class="action-btn" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="table-scroll-hint">← Scroll horizontally for more →</div>
+        </div>
+    </section>
+
+    <!-- ===============================================
+         EXAMPLE 2: ATTENDANCE TABLE
+    =============================================== -->
+    <section class="p-6">
+        <h2 class="text-2xl font-bold mb-4">Example 2: Attendance Table</h2>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Percentage</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Student">John Doe</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Date">2024-05-20</td>
+                        <td data-label="Status"><span class="badge badge-success">Present</span></td>
+                        <td data-label="Percentage">95%</td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td data-label="Student">Jane Smith</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Date">2024-05-20</td>
+                        <td data-label="Status"><span class="badge badge-danger">Absent</span></td>
+                        <td data-label="Percentage">72%</td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td data-label="Student">Bob Johnson</td>
+                        <td data-label="Class">Form 1A</td>
+                        <td data-label="Date">2024-05-20</td>
+                        <td data-label="Status"><span class="badge badge-warning">Late</span></td>
+                        <td data-label="Percentage">88%</td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="table-scroll-hint">← Scroll horizontally for more →</div>
+        </div>
+    </section>
+
+    <!-- ===============================================
+         EXAMPLE 3: ANNOUNCEMENTS TABLE
+    =============================================== -->
+    <section class="p-6">
+        <h2 class="text-2xl font-bold mb-4">Example 3: Announcements Table</h2>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Target</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Read Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Title">Holiday Announcement</td>
+                        <td data-label="Target">All Students</td>
+                        <td data-label="Date">2024-05-20</td>
+                        <td data-label="Status"><span class="badge badge-success">Published</span></td>
+                        <td data-label="Read Count">234 / 300</td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                            <button class="action-btn" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td data-label="Title">Exam Results Ready</td>
+                        <td data-label="Target">Form 1</td>
+                        <td data-label="Date">2024-05-19</td>
+                        <td data-label="Status"><span class="badge badge-success">Published</span></td>
+                        <td data-label="Read Count">89 / 150</td>
+                        <td class="action-cell">
+                            <button class="action-btn" title="Edit">✏️</button>
+                            <button class="action-btn" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="table-scroll-hint">← Scroll horizontally for more →</div>
+        </div>
+    </section>
+
+    <!-- ===============================================
+         USAGE INSTRUCTIONS
+    =============================================== -->
+    <section class="p-6 bg-gray-50 rounded-lg">
+        <h3 class="text-lg font-bold mb-3">Implementation Guide</h3>
+        
+        <h4 class="font-semibold mt-4 mb-2">1. HTML Structure</h4>
+        <pre class="bg-white p-4 rounded border"><code>&lt;div class="table-responsive"&gt;
+    &lt;table&gt;
+        &lt;thead&gt;...&lt;/thead&gt;
+        &lt;tbody&gt;
+            &lt;tr&gt;
+                &lt;td data-label="Column Name"&gt;Value&lt;/td&gt;
+                ...
+            &lt;/tr&gt;
+        &lt;/tbody&gt;
+    &lt;/table&gt;
+&lt;/div&gt;</code></pre>
+
+        <h4 class="font-semibold mt-4 mb-2">2. Key Points</h4>
+        <ul class="list-disc pl-6 space-y-2">
+            <li>Use <code>data-label="Column Name"</code> attribute on each &lt;td&gt;</li>
+            <li>Mobile (&lt; 768px): Hides headers, converts rows to cards</li>
+            <li>Desktop (≥ 768px): Shows normal table layout</li>
+            <li>Each &lt;td&gt; displays label before value on mobile</li>
+            <li>Scroll hint appears on mobile tables</li>
+        </ul>
+
+        <h4 class="font-semibold mt-4 mb-2">3. Responsive Classes to Use</h4>
+        <ul class="list-disc pl-6 space-y-2">
+            <li><code>table-responsive</code>: Wrapper for table</li>
+            <li><code>action-btn</code>: Buttons with proper touch size (44px+)</li>
+            <li><code>badge badge-success/warning/danger/info</code>: Status badges</li>
+        </ul>
+
+        <h4 class="font-semibold mt-4 mb-2">4. Apply to These Pages</h4>
+        <ul class="list-disc pl-6 space-y-2">
+            <li>admin/page/grades.html</li>
+            <li>admin/page/attendance.html</li>
+            <li>admin/page/announcements.html</li>
+            <li>admin/page/events.html</li>
+            <li>admin/page/academic-years.html</li>
+            <li>admin/page/semesters.html</li>
+            <li>And 10+ other table pages</li>
+        </ul>
+    </section>
+
+</body>
+</html>

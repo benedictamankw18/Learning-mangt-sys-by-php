@@ -278,6 +278,9 @@
 
     // ─── Load Teachers ────────────────────────────────────────────────────────
     async function loadTeachers() {
+        const tbody = document.getElementById('teachersTableBody');
+        if (tbody) Loading.showTableLoading(tbody, 5, 7);
+
         const params = { page: S.page, limit: S.subjectId ? 10000 : S.limit };
         if (S.search)    params.search     = S.search;
         if (S.programId) params.program_id = S.programId;
@@ -311,6 +314,8 @@
         } catch (err) {
             console.error('Load teachers error:', err);
             showTableError('Network error. Please try again.');
+        } finally {
+            if (tbody) Loading.hideTableLoading(tbody);
         }
     }
 
@@ -353,8 +358,8 @@
 
             return `
             <tr>
-              <td><input type="checkbox" class="teacher-row-cb" data-uuid="${t.uuid}" ${checked}></td>
-              <td>
+              <td data-label="Select"><input type="checkbox" class="teacher-row-cb" data-uuid="${t.uuid}" ${checked}></td>
+              <td data-label="Teacher">
                 <div class="teacher-cell">
                   <div class="teacher-initials">${init}</div>
                   <div>
@@ -363,12 +368,12 @@
                   </div>
                 </div>
               </td>
-              <td>${escHtml(t.employee_id || '—')}</td>
-              <td>${escHtml(t.program_name || '—')}</td>
-              <td>${escHtml(t.qualification || '—')}</td>
-              <td>${fmtDate(t.hire_date)}</td>
-              <td>${statusBadge}</td>
-              <td>
+              <td data-label="Employee ID">${escHtml(t.employee_id || '—')}</td>
+              <td data-label="Department">${escHtml(t.program_name || '—')}</td>
+              <td data-label="Qualification">${escHtml(t.qualification || '—')}</td>
+              <td data-label="Hire Date">${fmtDate(t.hire_date)}</td>
+              <td data-label="Status">${statusBadge}</td>
+              <td data-label="Actions">
                 <div class="teachers-actions">
                   <button class="btn-icon-sm view" title="View details" onclick="teacherView('${t.uuid}')">
                     <i class="fas fa-eye"></i>
@@ -820,10 +825,8 @@
 
     async function saveTeacher() {
         clearModalErrors();
-        const spinner = document.getElementById('saveTeacherSpinner');
-        const btn     = document.getElementById('saveTeacherBtn');
-        if (spinner) spinner.style.display = 'inline-block';
-        if (btn) btn.disabled = true;
+        const btn = document.getElementById('saveTeacherBtn');
+        if (btn) Loading.showButtonLoading(btn);
 
         try {
             const payload = buildTeacherPayload();
@@ -865,8 +868,7 @@
                 showToast('Network error. Please try again.', 'error');
             }
         } finally {
-            if (spinner) spinner.style.display = 'none';
-            if (btn) btn.disabled = false;
+            if (btn) Loading.hideButtonLoading(btn);
         }
     }
 

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="assets/css/index.css">
     <link rel="stylesheet" href="assets/css/landing.css">
+    <link rel="stylesheet" href="assets/css/loading.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -86,42 +87,42 @@
             <div class="features-grid">
                 <div class="feature-card fade-in" style="animation-delay: 0.1s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #006a3f, #008c54)">
-                            <img src="assets/img/icon/online-education.gif" alt="Course Management Icon" class="feature-icon-img">
+                            <img data-src="assets/img/icon/online-education.gif" alt="Course Management Icon" class="feature-icon-img">
                     </div>
                     <h3>Course Management</h3>
                     <p>Create, organize, and deliver engaging courses with intuitive tools for educators</p>
                 </div>
                 <div class="feature-card fade-in" style="animation-delay: 0.2s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #d4af37, #e0c560)">
-                            <img src="assets/img/icon/tasking.gif" alt="Assignment Tracking Icon" class="feature-icon-img">
+                            <img data-src="assets/img/icon/tasking.gif" alt="Assignment Tracking Icon" class="feature-icon-img">
                     </div>
                     <h3>Assignment Tracking</h3>
                     <p>Streamline assignment submission, grading, and feedback processes</p>
                 </div>
                 <div class="feature-card fade-in" style="animation-delay: 0.3s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #3090cf, #5ab0df)">
-                        <img src="assets/img/icon/analytics.gif" alt="Analytics & Reports Icon" class="feature-icon-img">
+                        <img data-src="assets/img/icon/analytics.gif" alt="Analytics & Reports Icon" class="feature-icon-img">
                     </div>
                     <h3>Analytics & Reports</h3>
                     <p>Gain insights with comprehensive analytics and performance tracking</p>
                 </div>
                 <div class="feature-card fade-in" style="animation-delay: 0.4s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #006a3f, #00945a)">
-                        <img src="assets/img/icon/graduate.gif" alt="Student Portal Icon" class="feature-icon-img">
+                        <img data-src="assets/img/icon/graduate.gif" alt="Student Portal Icon" class="feature-icon-img">
                     </div>
                     <h3>Student Portal</h3>
                     <p>Empower students with personalized dashboards and learning resources</p>
                 </div>
                 <div class="feature-card fade-in" style="animation-delay: 0.5s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #d4af37, #b8992f)">
-                        <img src="assets/img/icon/receptionist-desk.gif" alt="Attendance System Icon" class="feature-icon-img">
+                        <img data-src="assets/img/icon/receptionist-desk.gif" alt="Attendance System Icon" class="feature-icon-img">
                     </div>
                     <h3>Attendance System</h3>
                     <p>Automated attendance tracking with detailed reporting and alerts</p>
                 </div>
                 <div class="feature-card fade-in" style="animation-delay: 0.6s">
                     <div class="feature-icon" style="background: linear-gradient(135deg, #3090cf, #006a3f)">
-                        <img src="assets/img/icon/remote-work.gif" alt="Attendance System Icon" class="feature-icon-img">
+                        <img data-src="assets/img/icon/remote-work.gif" alt="Attendance System Icon" class="feature-icon-img">
                     </div>
                     <h3>Communication Hub</h3>
                     <p>Foster collaboration with integrated messaging and announcements</p>
@@ -139,7 +140,7 @@
             </div>
             <div class="team-grid">
                 <div class="team-card fade-in" style="animation-delay: 0.1s">
-                    <img src="assets/img/OIP.png" alt="Sarah Johnson" class="team-image">
+                    <img data-src="assets/img/OIP.png" alt="Sarah Johnson" class="team-image">
                     <div class="team-info">
                         <h3>Sarah Johnson</h3>
                         <p class="team-role">CEO & Founder</p>
@@ -151,7 +152,7 @@
                     </div>
                 </div>
                 <div class="team-card fade-in" style="animation-delay: 0.2s">
-                    <img src="assets/img/OIP.png" alt="Michael Chen" class="team-image">
+                    <img data-src="assets/img/OIP.png" alt="Michael Chen" class="team-image">
                     <div class="team-info">
                         <h3>Michael Chen</h3>
                         <p class="team-role">Lead Developer</p>
@@ -163,7 +164,7 @@
                     </div>
                 </div>
                 <div class="team-card fade-in" style="animation-delay: 0.3s">
-                    <img src="assets/img/OIP.png" alt="Emily Rodriguez" class="team-image">
+                    <img data-src="assets/img/OIP.png" alt="Emily Rodriguez" class="team-image">
                     <div class="team-info">
                         <h3>Emily Rodriguez</h3>
                         <p class="team-role">Education Specialist</p>
@@ -175,7 +176,7 @@
                     </div>
                 </div>
                 <div class="team-card fade-in" style="animation-delay: 0.4s">
-                    <img src="assets/img/OIP.png" alt="David Kim" class="team-image">
+                    <img data-src="assets/img/OIP.png" alt="David Kim" class="team-image">
                     <div class="team-info">
                         <h3>David Kim</h3>
                         <p class="team-role">UX Designer</p>
@@ -338,5 +339,8 @@
     <script src="assets/js/landing.js"></script>
     <script src="assets/js/index.js"></script>
     <script src="assets/js/config.js"></script>
+    <!-- Performance: Loading States & Lazy Loading -->
+    <script defer src="assets/js/loading.js"></script>
+    <script defer src="assets/js/lazy-loading.js"></script>
 </body>
 </html>

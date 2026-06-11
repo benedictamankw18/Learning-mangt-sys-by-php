@@ -281,7 +281,6 @@
 
     .adm-grades-table {
       width: 100%;
-      min-width: 1180px;
       border-collapse: collapse;
       font-size: 0.88rem;
     }
@@ -505,44 +504,44 @@
       text-align: center;
     }
 
-    @media (max-width: 1200px) {
+    @media (min-width: 1200px) {
+      .adm-grades-kpis {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .adm-grades-layout {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+
+      .adm-grades-side {
+        position: sticky;
+      }
+    }
+
+    @media (min-width: 900px) {
+      .adm-grades-filter-grid,
       .adm-grades-kpis {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
-      .adm-grades-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .adm-grades-side {
-        position: static;
+      .adm-grades-drawer .mini-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 900px) {
+    @media (min-width: 640px) {
+      .adm-grades-shell {
+        padding: 1.5rem;
+      }
+
       .adm-grades-filter-grid,
       .adm-grades-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .adm-grades-drawer .mini-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .adm-grades-shell {
-        padding: 0.85rem;
-      }
-
-      .adm-grades-filter-grid,
-      .adm-grades-kpis {
-        grid-template-columns: 1fr;
-      }
-
       .adm-grades-card-header,
       .adm-grades-drawer-top {
-        flex-direction: column;
+        flex-direction: row;
       }
     }
   </style>
@@ -708,7 +707,7 @@
         </div>
 
         <div style="margin-top: 1rem" class="adm-grades-table-wrap">
-          <table class="adm-grades-table">
+          <table class="adm-grades-table responsive-table">
             <thead>
               <tr>
                 <th>
@@ -877,7 +876,7 @@
             >
           </div>
           <div class="adm-grades-table-wrap">
-            <table class="adm-grades-detail-table">
+            <table class="adm-grades-detail-table responsive-table">
               <thead>
                 <tr>
                   <th>Subject</th>

@@ -192,26 +192,33 @@
     }
 
     async function loadUsers() {
+        const tbody = document.getElementById('usersTableBody');
+        if (tbody) Loading.showTableLoading(tbody, 5, 6);
+
         const users = [];
         let page = 1;
         const limit = 100;
         let total = 0;
 
-        while (true) {
-            const res = await API.get(API_ENDPOINTS.USERS, { page: page, limit: limit });
-            const rows = extractList(res);
-            const pageRows = Array.isArray(rows) ? rows : [];
-            const pagination = extractPagination(res);
+        try {
+            while (true) {
+                const res = await API.get(API_ENDPOINTS.USERS, { page: page, limit: limit });
+                const rows = extractList(res);
+                const pageRows = Array.isArray(rows) ? rows : [];
+                const pagination = extractPagination(res);
 
-            users.push.apply(users, pageRows);
-            total = pagination.total || users.length;
+                users.push.apply(users, pageRows);
+                total = pagination.total || users.length;
 
-            if (!pageRows.length || users.length >= total) break;
-            page += 1;
-            if (page > 50) break;
+                if (!pageRows.length || users.length >= total) break;
+                page += 1;
+                if (page > 50) break;
+            }
+
+            S.users = users;
+        } finally {
+            if (tbody) Loading.hideTableLoading(tbody);
         }
-
-        S.users = users;
     }
 
     function applyFilters() {
@@ -293,7 +300,7 @@
 
             return '' +
                 '<tr>' +
-                    '<td>' +
+                    '<td data-label="User">' +
                         '<div class="user-cell">' +
                             '<div class="user-avatar" style="background:' + avatarColor + '">' + esc(initials) + '</div>' +
                             '<div class="user-cell-details">' +
@@ -302,11 +309,11 @@
                             '</div>' +
                         '</div>' +
                     '</td>' +
-                    '<td>' + roleBadge + '</td>' +
-                    '<td><code class="id-number">' + esc(user.username || '-') + '</code></td>' +
-                    '<td>' + esc(created) + '</td>' +
-                    '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
-                    '<td>' +
+                    '<td data-label="Role">' + roleBadge + '</td>' +
+                    '<td data-label="Username"><code class="id-number">' + esc(user.username || '-') + '</code></td>' +
+                    '<td data-label="Date Joined">' + esc(created) + '</td>' +
+                    '<td data-label="Status"><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+                    '<td data-label="Actions">' +
                         '<div class="user-actions">' +
                             actionBtn('edit', 'fa-edit', 'Edit User', user.uuid, 'btn-edit') +
                             actionBtn('assign-role', 'fa-user-shield', 'Assign Role', user.uuid, 'btn-role') +
@@ -506,6 +513,9 @@
             payload.password = password;
         }
 
+        const saveBtn = document.getElementById('saveUserBtn');
+        if (saveBtn) Loading.showButtonLoading(saveBtn);
+
         try {
             if (S.editingUuid) {
                 await API.put(API_ENDPOINTS.USER_BY_ID(S.editingUuid), payload);
@@ -533,6 +543,8 @@
                 if (fieldErrors) msg = fieldErrors;
             }
             showError('userFormError', msg);
+        } finally {
+            if (saveBtn) Loading.hideButtonLoading(saveBtn);
         }
     }
 

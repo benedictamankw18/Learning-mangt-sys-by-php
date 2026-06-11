@@ -195,7 +195,7 @@
             const assigned = parseInt(s.assigned_classes) || 0;
 
             return '<tr>' +
-                '<td>' +
+                '<td data-label="Subject">' +
                   '<div class="subj-cell">' +
                     '<div class="subj-icon"><i class="fas fa-book-open"></i></div>' +
                     '<div class="subj-details">' +
@@ -204,11 +204,11 @@
                     '</div>' +
                   '</div>' +
                 '</td>' +
-                '<td>' + credits + '</td>' +
-                '<td style="max-width:220px">' + desc + '</td>' +
-                '<td><span class="subj-type-badge ' + typeCls + '">' + typeTxt + '</span></td>' +
-                '<td><span class="subj-assigned-count">' + assigned + '</span></td>' +
-                '<td>' +
+                '<td data-label="Credits">' + credits + '</td>' +
+                '<td data-label="Description" style="max-width:220px">' + desc + '</td>' +
+                '<td data-label="Type"><span class="subj-type-badge ' + typeCls + '">' + typeTxt + '</span></td>' +
+                '<td data-label="Classes"><span class="subj-assigned-count">' + assigned + '</span></td>' +
+                '<td data-label="Actions">' +
                   '<div class="subj-actions">' +
                     '<button class="btn-edit" title="Edit" onclick="window._subjEdit(\'' + esc(s.uuid) + '\')"><i class="fas fa-edit"></i></button>' +
                     '<button class="btn-delete" title="Delete" onclick="window._subjDelete(\'' + esc(s.uuid) + '\', \'' + esc(s.subject_name) + '\')"><i class="fas fa-trash"></i></button>' +

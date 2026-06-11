@@ -22,8 +22,9 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
-@media (max-width: 1024px) { .prog-stats { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px)  { .prog-stats { grid-template-columns: 1fr; } }
+@media (min-width: 1024px) { .prog-stats { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 600px) { .prog-stats { grid-template-columns: repeat(2, 1fr); } }
+.prog-stats { grid-template-columns: 1fr; }
 
 .prog-stat-card {
     background: #fff;
@@ -53,7 +54,7 @@
 .prog-toolbar-left  { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
 .prog-toolbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
-.prog-search-wrap { position: relative; min-width: 220px; }
+.prog-search-wrap { position: relative; width: 100%; }
 .prog-search-wrap i {
     position: absolute; left: 0.75rem; top: 50%;
     transform: translateY(-50%);
@@ -73,7 +74,7 @@
 .prog-filter-select {
     padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;
     font-size: 0.875rem; background: #fff; outline: none; cursor: pointer;
-    color: var(--text-primary, #1e293b); min-width: 130px;
+    color: var(--text-primary, #1e293b); width: 100%;
 }
 .prog-filter-select:focus { border-color: var(--primary, #006a3f); }
 
@@ -308,7 +309,7 @@
 
     <!-- Table -->
     <div class="prog-table-wrap">
-        <table class="prog-table" id="programsTable">
+        <table class="prog-table responsive-table" id="programsTable">
             <thead>
                 <tr>
                     <th>Program</th>

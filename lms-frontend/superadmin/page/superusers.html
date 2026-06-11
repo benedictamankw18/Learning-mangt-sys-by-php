@@ -35,12 +35,13 @@
     gap: 1rem;
     margin-bottom: 1.5rem;
   }
-  @media (max-width: 1024px) {
+  @media (min-width: 1024px) {
+    .superusers-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (min-width: 600px) {
     .superusers-stats { grid-template-columns: repeat(2, 1fr); }
   }
-  @media (max-width: 600px) {
-    .superusers-stats { grid-template-columns: 1fr; }
-  }
+  .superusers-stats { grid-template-columns: 1fr; }
   .superusers-stat-card {
     background: #fff;
     border-radius: 12px;
@@ -95,7 +96,7 @@
   }
   .su-search-wrap {
     position: relative;
-    min-width: 220px;
+    min-width: 0;
     flex: 1;
     max-width: 320px;
   }
@@ -127,7 +128,7 @@
     box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
   }
   .su-filter-select {
-    min-width: 140px;
+    width: 100%;
     max-width: 220px;
     cursor: pointer;
   }

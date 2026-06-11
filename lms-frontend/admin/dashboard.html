@@ -2,10 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Admin Dashboard - LMS</title>
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/animations.css" />
+    <link rel="stylesheet" href="../assets/css/responsive.css" />
+    <link rel="stylesheet" href="../assets/css/tables-responsive.css" />
+    <!-- Loading States & Lazy Loading -->
+    <link rel="stylesheet" href="../assets/css/loading.css" />
     <link rel="icon" type="image/png" href="../assets/img/favicon.ico" />
     <link rel="stylesheet" href="admin.css" />
     <link
@@ -14,9 +18,19 @@
     />
     <script src="../assets/vendor/chart/chart.umd.min.js"></script>
   </head>
-  <body class="dashboard-page">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+  <body class="dashboard-page" data-mobile-nav="auto">
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Mobile Hamburger Button (visible on mobile only) -->
+    <button class="hamburger-btn md:hidden" id="hamburgerBtn" aria-label="Toggle navigation menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- Sidebar - Mobile Drawer & Desktop Navigation -->
+    <aside class="sidebar-mobile sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo">
           <i class="fas fa-graduation-cap"></i>
@@ -387,7 +401,7 @@
                     <div
                       class="dropdown-menu dropdown-menu-right"
                       id="enrollmentChartMenu"
-                      style="display: block; min-width: 140px"
+                      style="display: block; width: 100%"
                     >
                       <a
                         href="#"
@@ -433,7 +447,7 @@
                     <div
                       class="dropdown-menu dropdown-menu-right"
                       id="courseDistributionMenu"
-                      style="display: none; min-width: 140px"
+                      style="display: none; width: 100%"
                     >
                       <a
                         href="#"
@@ -518,6 +532,7 @@
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/auth.js"></script>
     <script src="admin.js"></script>
+    <script src="../common/js/navigation.js"></script>
     <script src="../assets/js/main.js"></script>
     <script src="../assets/js/components.js"></script>
     <script>
@@ -700,6 +715,9 @@
     <script src="./js/events.js?v=20260503"></script>
     <script src="../common/js/notifications.js?v=20260506"></script>
       <script src="./js/institution-settings.js?v=20260508"></script>
+    <!-- Performance: Loading States & Lazy Loading -->
+    <script defer src="../assets/js/loading.js"></script>
+    <script defer src="../assets/js/lazy-loading.js"></script>
     <!-- jsPDF and autoTable for timetable PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>

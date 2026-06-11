@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Teacher Dashboard - LMS</title>
+    <link rel="stylesheet" href="../assets/css/responsive.css" />
     <link rel="stylesheet" href="../assets/css/main.css" />
     <link rel="stylesheet" href="../assets/css/animations.css" />
     <link rel="icon" type="image/png" href="../assets/img/favicon.ico" />
+    <link rel="stylesheet" href="../assets/css/tables-responsive.css" />
+    <link rel="stylesheet" href="../assets/css/loading.css" />
     <link rel="stylesheet" href="teacher.css" />
     <link
       rel="stylesheet"
@@ -146,7 +149,7 @@
                 >0</span
               >
             </button>
-            <div class="dropdown-menu dropdown-menu-right" id="teacherNotificationDropdown" style="min-width: 360px; max-width: 420px;">
+            <div class="dropdown-menu dropdown-menu-right" id="teacherNotificationDropdown" style="width: 100%; max-width: 420px;">
               <div class="dropdown-header" style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;">
                 <span>Notifications & Messages</span>
                 <button class="btn-text" id="teacherMarkAllRead" style="font-size: 0.8rem;">Mark all as read</button>
@@ -653,5 +656,9 @@
         handleHashChange();
       })();
     </script>
+    <!-- Performance: Loading States & Lazy Loading -->
+    <script defer src="../assets/js/loading.js"></script>
+    <script defer src="../assets/js/lazy-loading.js"></script>
+    <script src="../common/js/navigation.js"></script>
   </body>
 </html>

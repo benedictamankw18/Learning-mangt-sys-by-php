@@ -150,13 +150,13 @@
       const when = formatRange(item.starts_at, item.ends_at);
       const statusLabel = item.is_published ? 'Published' : 'Draft';
       return '<tr>' +
-        '<td><strong>' + esc(item.name) + '</strong><div class="ann-snippet">' + esc(truncate(item.description, 120)) + '</div></td>' +
-        '<td>' + esc(capitalize(item.type)) + '</td>' +
-        '<td>' + esc(when) + '</td>' +
-        '<td>' + esc(item.venue || '-') + '</td>' +
-        '<td>' + esc(item.audience || 'all') + '</td>' +
-        '<td>' + esc(statusLabel) + '</td>' +
-        '<td><div class="ann-actions">' +
+        '<td data-label="Event"><strong>' + esc(item.name) + '</strong><div class="ann-snippet">' + esc(truncate(item.description, 120)) + '</div></td>' +
+        '<td data-label="Type">' + esc(capitalize(item.type)) + '</td>' +
+        '<td data-label="When">' + esc(when) + '</td>' +
+        '<td data-label="Venue">' + esc(item.venue || '-') + '</td>' +
+        '<td data-label="Audience">' + esc(item.audience || 'all') + '</td>' +
+        '<td data-label="Status">' + esc(statusLabel) + '</td>' +
+        '<td data-label="Actions"><div class="ann-actions">' +
           '<button class="ann-btn" data-action="toggle-publish" data-uuid="' + escAttr(item.uuid) + '"><i class="fas fa-eye"></i> ' + (item.is_published ? 'Unpublish' : 'Publish') + '</button>' +
           '<button class="ann-btn" data-action="edit" data-uuid="' + escAttr(item.uuid) + '"><i class="fas fa-pen"></i> Edit</button>' +
           '<button class="ann-btn danger" data-action="delete" data-uuid="' + escAttr(item.uuid) + '"><i class="fas fa-trash"></i> Delete</button>' +
