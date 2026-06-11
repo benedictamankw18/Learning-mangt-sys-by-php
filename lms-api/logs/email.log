@@ -1,0 +1,21 @@
+# LMS Email Log
+# ============================================================================
+# Purpose: Email sends, SMTP debug, delivery status
+# Retention: 7 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (email.log.1 - email.log.5)
+# Note: May contain sensitive information (recipient emails, SMTP details)
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:34:51.498875 | [INFO] | REQ:eeb3ebd4 | Test email sent | {"to":"test@example.com"}
+2026-05-19 23:35:21.376875 | [INFO] | REQ:a96e2ef2 | Test email sent | {"to":"test@example.com"}
+2026-05-19 23:46:03.423064 | [INFO] | REQ:0c7ab7e5 | Test email sent | {"to":"test@example.com"}
+2026-05-19 23:54:36.119162 | [INFO] | REQ:aabdef59 | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:01:19.713586 | [INFO] | REQ:01fe2bb6 | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:03:20.465984 | [INFO] | REQ:dd26780d | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:05:45.162823 | [INFO] | REQ:240bad89 | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:21:20.275258 | [INFO] | REQ:ef8c9356 | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:23:30.623437 | [INFO] | REQ:19423888 | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:31:26.174944 | [INFO] | REQ:a4c756aa | Test email sent | {"to":"test@example.com"}
+2026-05-20 00:34:29.222037 | [INFO] | REQ:7ba84ad8 | Test email sent | {"to":"test@example.com"}
+2026-05-20 04:27:37.244522 | [INFO] | REQ:96df80cf | Test email sent | {"to":"test@example.com"}

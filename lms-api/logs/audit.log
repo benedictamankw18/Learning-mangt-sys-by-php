@@ -1,0 +1,21 @@
+# LMS Audit Log
+# ============================================================================
+# Purpose: High-value actions (users created, grades changed, announcements posted)
+# Retention: 90 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (audit.log.1 - audit.log.5)
+# Compliance: Preserve for compliance and forensic analysis
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:34:51.498146 | [INFO] | REQ:eeb3ebd4 | Test audit entry | {"action":"user_created"}
+2026-05-19 23:35:21.376192 | [INFO] | REQ:a96e2ef2 | Test audit entry | {"action":"user_created"}
+2026-05-19 23:46:03.422255 | [INFO] | REQ:0c7ab7e5 | Test audit entry | {"action":"user_created"}
+2026-05-19 23:54:36.118043 | [INFO] | REQ:aabdef59 | Test audit entry | {"action":"user_created"}
+2026-05-20 00:01:19.712439 | [INFO] | REQ:01fe2bb6 | Test audit entry | {"action":"user_created"}
+2026-05-20 00:03:20.464760 | [INFO] | REQ:dd26780d | Test audit entry | {"action":"user_created"}
+2026-05-20 00:05:45.162024 | [INFO] | REQ:240bad89 | Test audit entry | {"action":"user_created"}
+2026-05-20 00:21:20.274516 | [INFO] | REQ:ef8c9356 | Test audit entry | {"action":"user_created"}
+2026-05-20 00:23:30.622184 | [INFO] | REQ:19423888 | Test audit entry | {"action":"user_created"}
+2026-05-20 00:31:26.163125 | [INFO] | REQ:a4c756aa | Test audit entry | {"action":"user_created"}
+2026-05-20 00:34:29.221031 | [INFO] | REQ:7ba84ad8 | Test audit entry | {"action":"user_created"}
+2026-05-20 04:27:37.243453 | [INFO] | REQ:96df80cf | Test audit entry | {"action":"user_created"}

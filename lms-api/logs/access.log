@@ -1,0 +1,20 @@
+# LMS Access Log
+# ============================================================================
+# Purpose: HTTP requests, response codes, response times (Apache CLF-like format)
+# Retention: 30 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (access.log.1 - access.log.5)
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:34:51.496469 | [INFO] | REQ:eeb3ebd4 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-19 23:35:21.373992 | [INFO] | REQ:a96e2ef2 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-19 23:46:03.393778 | [INFO] | REQ:0c7ab7e5 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-19 23:54:36.116091 | [INFO] | REQ:aabdef59 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:01:19.710322 | [INFO] | REQ:01fe2bb6 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:03:20.462419 | [INFO] | REQ:dd26780d | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:05:45.160719 | [INFO] | REQ:240bad89 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:21:20.273347 | [INFO] | REQ:ef8c9356 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:23:30.613795 | [INFO] | REQ:19423888 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:31:26.148823 | [INFO] | REQ:a4c756aa | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 00:34:29.217821 | [INFO] | REQ:7ba84ad8 | Test access entry | {"method":"GET","path":"/api/users"}
+2026-05-20 04:27:37.242028 | [INFO] | REQ:96df80cf | Test access entry | {"method":"GET","path":"/api/users"}

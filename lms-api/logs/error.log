@@ -1,0 +1,21 @@
+# LMS Error Log
+# ============================================================================
+# Purpose: Uncaught exceptions, database failures, critical errors
+# Retention: 30 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (error.log.1 - error.log.5)
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:34:16.545816 | [ERROR] | REQ:b9a6d0ea | Test error message | {"error_code":500}
+2026-05-19 23:34:51.494851 | [ERROR] | REQ:eeb3ebd4 | Test error message | {"error_code":500}
+2026-05-19 23:35:21.373386 | [ERROR] | REQ:a96e2ef2 | Test error message | {"error_code":500}
+2026-05-19 23:46:03.392605 | [ERROR] | REQ:0c7ab7e5 | Test error message | {"error_code":500}
+2026-05-19 23:54:36.115355 | [ERROR] | REQ:aabdef59 | Test error message | {"error_code":500}
+2026-05-20 00:01:19.708943 | [ERROR] | REQ:01fe2bb6 | Test error message | {"error_code":500}
+2026-05-20 00:03:20.461899 | [ERROR] | REQ:dd26780d | Test error message | {"error_code":500}
+2026-05-20 00:05:45.159876 | [ERROR] | REQ:240bad89 | Test error message | {"error_code":500}
+2026-05-20 00:21:20.272721 | [ERROR] | REQ:ef8c9356 | Test error message | {"error_code":500}
+2026-05-20 00:23:30.613067 | [ERROR] | REQ:19423888 | Test error message | {"error_code":500}
+2026-05-20 00:31:26.142664 | [ERROR] | REQ:a4c756aa | Test error message | {"error_code":500}
+2026-05-20 00:34:29.217269 | [ERROR] | REQ:7ba84ad8 | Test error message | {"error_code":500}
+2026-05-20 04:27:37.241497 | [ERROR] | REQ:96df80cf | Test error message | {"error_code":500}

@@ -1,0 +1,20 @@
+# LMS Debug Log
+# ============================================================================
+# Purpose: Query counts, request payloads, performance metrics
+# Retention: 7 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (debug.log.1 - debug.log.5)
+# Status: DISABLED in production (only enabled when APP_DEBUG=true)
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:35:21.377649 | [DEBUG] | REQ:a96e2ef2 | Test debug entry | {"query_count":5}
+2026-05-19 23:46:03.424242 | [DEBUG] | REQ:0c7ab7e5 | Test debug entry | {"query_count":5}
+2026-05-19 23:54:36.119864 | [DEBUG] | REQ:aabdef59 | Test debug entry | {"query_count":5}
+2026-05-20 00:01:19.714687 | [DEBUG] | REQ:01fe2bb6 | Test debug entry | {"query_count":5}
+2026-05-20 00:03:20.467091 | [DEBUG] | REQ:dd26780d | Test debug entry | {"query_count":5}
+2026-05-20 00:05:45.163394 | [DEBUG] | REQ:240bad89 | Test debug entry | {"query_count":5}
+2026-05-20 00:21:20.275979 | [DEBUG] | REQ:ef8c9356 | Test debug entry | {"query_count":5}
+2026-05-20 00:23:30.624290 | [DEBUG] | REQ:19423888 | Test debug entry | {"query_count":5}
+2026-05-20 00:31:26.182682 | [DEBUG] | REQ:a4c756aa | Test debug entry | {"query_count":5}
+2026-05-20 00:34:29.222815 | [DEBUG] | REQ:7ba84ad8 | Test debug entry | {"query_count":5}
+2026-05-20 04:27:37.245125 | [DEBUG] | REQ:96df80cf | Test debug entry | {"query_count":5}

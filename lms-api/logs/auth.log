@@ -1,0 +1,22 @@
+# LMS Authentication Log
+# ============================================================================
+# Purpose: Login attempts, token validation failures, permission denials
+# Retention: 30 days
+# Format: [TIMESTAMP] [LEVEL] | REQ:[request_id] | USER:[user_id] | MESSAGE | CONTEXT_JSON
+# Log Rotation: Rotates when file exceeds 10MB, keeps 5 backups (auth.log.1 - auth.log.5)
+# Security: Review regularly for suspicious login patterns
+# Created: 2026-05-19
+# ============================================================================
+2026-05-19 23:34:16.547038 | [WARNING] | REQ:b9a6d0ea | Test auth attempt | {"user":"testuser","success":false}
+2026-05-19 23:34:51.497495 | [WARNING] | REQ:eeb3ebd4 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-19 23:35:21.374851 | [WARNING] | REQ:a96e2ef2 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-19 23:46:03.420894 | [WARNING] | REQ:0c7ab7e5 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-19 23:54:36.116840 | [WARNING] | REQ:aabdef59 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:01:19.711310 | [WARNING] | REQ:01fe2bb6 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:03:20.463168 | [WARNING] | REQ:dd26780d | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:05:45.161424 | [WARNING] | REQ:240bad89 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:21:20.273918 | [WARNING] | REQ:ef8c9356 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:23:30.614457 | [WARNING] | REQ:19423888 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:31:26.149711 | [WARNING] | REQ:a4c756aa | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 00:34:29.218622 | [WARNING] | REQ:7ba84ad8 | Test auth attempt | {"user":"testuser","success":false}
+2026-05-20 04:27:37.242863 | [WARNING] | REQ:96df80cf | Test auth attempt | {"user":"testuser","success":false}
