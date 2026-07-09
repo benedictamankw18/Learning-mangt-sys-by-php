@@ -1,0 +1,244 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Repositories\NotificationRepository;
+use App\Repositories\MessageRepository;
+use App\Utils\Response;
+use App\Utils\Validator;
+use App\Utils\UuidHelper;
+
+class NotificationController
+{
+    private NotificationRepository $notificationRepo;
+    private MessageRepository $messageRepo;
+
+    public function __construct()
+    {
+        $this->notificationRepo = new NotificationRepository();
+        $this->messageRepo = new MessageRepository();
+    }
+
+    private function isAdminUser(array $user): bool
+    {
+        $roleName = strtolower((string) ($user['role'] ?? ''));
+        if ($roleName === 'admin' || $roleName === 'super_admin' || $roleName === 'superadmin') {
+            return true;
+        }
+
+        if (isset($user['role_id']) && (int) $user['role_id'] === 1) {
+            return true;
+        }
+
+        return !empty($user['is_super_admin']);
+    }
+
+    /**
+     * Get notifications for the authenticated user
+     * GET /api/notifications
+     */
+    public function index(array $user): void
+    {
+        $userId = $user['user_id'];
+        $userRole = (string) ($user['role'] ?? '');
+        $institutionId = (int) ($user['institution_id'] ?? 0);
+        $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? min(100, max(1, (int) $_GET['limit'])) : 20;
+        $offset = ($page - 1) * $limit;
+
+        $notifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, $limit, $offset, $userRole);
+        $total = $this->notificationRepo->countInstitutionNotifications($institutionId, $userRole, $userId);
+        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId, $userRole);
+
+        Response::success([
+            'notifications' => $notifications,
+            'pagination' => [
+                'page' => $page,
+                'limit' => $limit,
+                'total' => $total,
+                'pages' => ceil($total / $limit)
+            ],
+            'unread_count' => $unreadCount
+        ]);
+    }
+
+    /**
+     * Get a single notification
+     * GET /api/notifications/{uuid}
+     */
+    public function show(array $user, string $uuid): void
+    {
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
+
+        if (!$notification) {
+            Response::error('Notification not found', 404);
+            return;
+        }
+
+        Response::success($notification);
+    }
+
+    /**
+     * Create a new notification (admin only)
+     * POST /api/notifications
+     */
+    public function create(array $user): void
+    {
+        // Only admins can create notifications
+        if (!$this->isAdminUser($user)) {
+            Response::error('Unauthorized. Admin access required.', 403);
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data)) {
+            Response::validationError(['payload' => 'Invalid notification payload']);
+            return;
+        }
+
+        // Ensure sender is always the authenticated admin creating the notification.
+        $data['sender_id'] = (int) ($user['user_id'] ?? 0);
+        if ($data['sender_id'] <= 0) {
+            Response::error('Unable to resolve notification sender', 400);
+            return;
+        }
+
+        $validator = new Validator($data);
+        $validator->required(['title', 'message']);
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $notificationId = $this->notificationRepo->create($data);
+
+        Response::success([
+            'message' => 'Notification created successfully',
+            'notification_id' => $notificationId
+        ], 201);
+    }
+
+    /**
+     * Mark notification as read
+     * PUT /api/notifications/{uuid}/read
+     */
+    public function markAsRead(array $user, string $uuid): void
+    {
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
+
+        if (!$notification) {
+            Response::error('Notification not found', 404);
+            return;
+        }
+
+        $notificationId = $notification['notification_id'];
+
+        $this->notificationRepo->markAsRead($notificationId, $userId);
+
+        Response::success(['message' => 'Notification marked as read']);
+    }
+
+    /**
+     * Mark all notifications as read
+     * PUT /api/notifications/read-all
+     */
+    public function markAllAsRead(array $user): void
+    {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
+        $userId = $user['user_id'];
+        $userRole = (string) ($user['role'] ?? '');
+        $this->notificationRepo->markAllAsRead($institutionId, $userId, $userRole);
+
+        Response::success(['message' => 'All notifications marked as read']);
+    }
+
+    /**
+     * Get unread notification count
+     * GET /api/notifications/unread-count
+     */
+    public function getUnreadCount(array $user): void
+    {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
+        $userId = $user['user_id'];
+        $unreadCount = $this->notificationRepo->getUnreadCount($institutionId, $userId);
+
+        Response::success(['unread_count' => $unreadCount]);
+    }
+
+    /**
+     * Get notification and message summary
+     * GET /api/notifications/summary
+     */
+    public function getSummary(array $user): void
+    {
+        $institutionId = (int) ($user['institution_id'] ?? 0);
+        $userId = $user['user_id'];
+        $userRole = (string) ($user['role'] ?? '');
+
+        // Get unread counts
+        $notificationsCount = $this->notificationRepo->getUnreadCount($institutionId, $userId, $userRole);
+        $messagesCount = $this->messageRepo->getUnreadCount($userId);
+        $totalCount = $notificationsCount + $messagesCount;
+
+        // Get recent notifications (limit 5)
+        $recentNotifications = $this->notificationRepo->getInstitutionNotifications($institutionId, $userId, 5, 0, $userRole);
+
+        // Get recent messages (limit 5)
+        $recentMessages = $this->messageRepo->getInbox($userId, 1, 5);
+
+        Response::success([
+            'total_unread' => $totalCount,
+            'notifications_unread' => $notificationsCount,
+            'messages_unread' => $messagesCount,
+            'recent_notifications' => $recentNotifications,
+            'recent_messages' => $recentMessages
+        ]);
+    }
+
+    /**
+     * Delete a notification
+     * DELETE /api/notifications/{uuid}
+     */
+    public function delete(array $user, string $uuid): void
+    {
+        $sanitizedUuid = trim((string) $uuid);
+        if ($sanitizedUuid === '') {
+            Response::badRequest('Invalid notification identifier');
+            return;
+        }
+
+        $userId = $user['user_id'];
+        $notification = $this->notificationRepo->findByUuid($sanitizedUuid, $userId);
+
+        if (!$notification) {
+            Response::error('Notification not found', 404);
+            return;
+        }
+
+        Response::error('Deleting institution notifications is not supported', 405);
+    }
+
+    /**
+     * Delete all read notifications
+     * DELETE /api/notifications/read
+     */
+    public function deleteAllRead(array $user): void
+    {
+        Response::error('Deleting read notifications is not supported for institution-scoped notifications', 405);
+    }
+}

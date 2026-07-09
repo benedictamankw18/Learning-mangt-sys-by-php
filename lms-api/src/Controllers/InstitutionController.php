@@ -1,0 +1,875 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Utils\Response;
+use App\Utils\Validator;
+use App\Utils\UuidHelper;
+use App\Repositories\InstitutionRepository;
+use App\Repositories\NotificationRepository;
+use App\Middleware\RoleMiddleware;
+
+class InstitutionController
+{
+    private InstitutionRepository $repo;
+    private NotificationRepository $notificationRepo;
+
+    public function __construct()
+    {
+        $this->repo = new InstitutionRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForInstitutionChange(int $institutionId, string $action, array $performedBy = []): void
+    {
+        try {
+            if ($institutionId <= 0) return;
+
+            $this->notificationRepo->create([
+                'sender_id' => (int) ($performedBy['user_id'] ?? 0) ?: null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Institution ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Institution information was ' . $action . '.',
+                'notification_type' => 'institution_' . $action,
+                'link' => '/admin/dashboard.html#institution-settings',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('InstitutionController::notifyAdminsForInstitutionChange ' . $e->getMessage());
+        }
+    }
+
+    private function notifyTimetablePublished(int $institutionId): void
+    {
+        try {
+            if ($institutionId <= 0) {
+                return;
+            }
+
+            foreach (['admin', 'teacher', 'student', 'parent'] as $role) {
+                $this->notificationRepo->create([
+                    'sender_id' => null,
+                    'institution_id' => $institutionId,
+                    'target_role' => $role,
+                    'title' => 'Timetable Published',
+                    'message' => 'The timetable has been published and is now available.',
+                    'notification_type' => 'timetable_published',
+                    'link' => '/' . $role . '/dashboard.html#timetable',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            error_log('InstitutionController::notifyTimetablePublished ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get all institutions (Super Admin only)
+     */
+    public function index(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('super_admin')) {
+            return;
+        }
+
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+
+        // Allow caller to request all institutions (bypass the 'with admins' filter)
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $perPage = isset($_GET['per_page']) ? (int) $_GET['per_page'] : 10;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : $perPage;
+        $includeAll = isset($_GET['include_all']) && $_GET['include_all'] == '1';
+
+        // Collect filter params
+        $filters = [];
+        if (!empty($_GET['q']))
+            $filters['q'] = trim($_GET['q']);
+        if (!empty($_GET['status']))
+            $filters['status'] = $_GET['status'];
+        if (!empty($_GET['type']))
+            $filters['type'] = $_GET['type'];
+        if (isset($_GET['has_admin']))
+            $filters['has_admin'] = $_GET['has_admin'];
+
+        // If include_all is not set, default behavior historically returned only institutions with admins.
+        // Respect include_all; otherwise allow caller to filter by has_admin explicitly.
+        if ($includeAll) {
+            $institutions = $this->repo->getAll($page, $limit, $filters);
+            $total = $this->repo->countFiltered($filters);
+        } else {
+            // If includeAll not set but caller didn't specify has_admin, default to only institutions with admins
+            if (!isset($filters['has_admin'])) {
+                $filters['has_admin'] = 'yes';
+            }
+            $institutions = $this->repo->getAll($page, $limit, $filters);
+            $total = $this->repo->countFiltered($filters);
+            // if ($includeAll) {
+            //     // Return full list (paginated)
+            //     $institutions = $this->repo->getAll($page, $limit);
+            //     $total = $this->repo->count();
+            // } else {
+            //     // Default: Only return institutions that have at least one admin user
+            //     $institutions = $this->repo->getAllWithAdmins($page, $limit);
+            //     $total = $this->repo->countWithAdmins();
+        }
+
+        Response::success([
+            'data' => $institutions,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ]
+        ]);
+    }
+
+    /**
+     * Get a single institution by UUID
+     */
+    public function show(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+        // Super admin may view any institution; regular admin limited to their own
+        if ($user['role'] !== 'super_admin') {
+            if (!$roleMiddleware->requireRole('admin')) {
+                return;
+            }
+
+            if ($institution['institution_id'] != $user['institution_id']) {
+                Response::forbidden('You can only view your own institution');
+                return;
+            }
+        }
+
+        Response::success($institution);
+    }
+
+    /**
+     * Create a new institution (Super Admin only)
+     */
+    public function create(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('super_admin')) {
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!is_array($data)) {
+            Response::badRequest('Invalid JSON payload');
+            return;
+        }
+
+        foreach (['institution_code', 'institution_name', 'institution_type', 'email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
+        $validator = new Validator($data);
+        $validator->required(['institution_code', 'institution_name', 'institution_type'])
+            ->maxLength('institution_code', 20)
+            ->maxLength('institution_name', 200)
+            ->maxLength('institution_type', 50);
+
+        if (isset($data['email'])) {
+            $validator->email('email');
+        }
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if ($this->repo->institutionCodeExists($data['institution_code'])) {
+            Response::validationError([
+                'institution_code' => 'Institution code already exists'
+            ]);
+            return;
+        }
+
+        $institutionId = $this->repo->create($data);
+
+        if ($institutionId) {
+            $this->notifyAdminsForInstitutionChange((int) $institutionId, 'created', $user);
+            Response::success([
+                'message' => 'Institution created successfully',
+                'institution_id' => $institutionId
+            ], 201);
+        } else {
+            Response::serverError('Failed to create institution');
+        }
+    }
+
+    /**
+     * Update an existing institution
+     */
+    public function update(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+
+        // Super admin can update any institution
+        // Regular admin can only update their own institution
+        if ($user['role'] !== 'super_admin') {
+            if (!$roleMiddleware->requireRole('admin')) {
+                return;
+            }
+
+            if ($institution['institution_id'] != $user['institution_id']) {
+                Response::forbidden('You can only update your own institution');
+                return;
+            }
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        if (!is_array($data)) {
+            Response::badRequest('Invalid JSON payload');
+            return;
+        }
+
+        foreach (['institution_code', 'institution_name', 'institution_type', 'email'] as $field) {
+            if (isset($data[$field]) && is_string($data[$field])) {
+                $data[$field] = trim($data[$field]);
+            }
+        }
+
+        $validator = new Validator($data);
+        if (isset($data['institution_code'])) {
+            $validator->maxLength('institution_code', 20);
+        }
+        if (isset($data['institution_name'])) {
+            $validator->maxLength('institution_name', 200);
+        }
+        if (isset($data['email'])) {
+            $validator->email('email');
+        }
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if (!empty($data['institution_code']) && $this->repo->institutionCodeExists($data['institution_code'], (int) $institution['institution_id'])) {
+            Response::validationError([
+                'institution_code' => 'Institution code already exists'
+            ]);
+            return;
+        }
+
+        $success = $this->repo->update($institution['institution_id'], $data);
+
+        if ($success) {
+            $this->notifyAdminsForInstitutionChange((int) $institution['institution_id'], 'updated', $user);
+            Response::success(['message' => 'Institution updated successfully']);
+        } else {
+            Response::serverError('Failed to update institution');
+        }
+    }
+
+    /**
+     * Delete an institution (Super Admin only)
+     */
+    public function delete(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('super_admin')) {
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        $success = $this->repo->delete($institution['institution_id']);
+
+        if ($success) {
+            Response::success(['message' => 'Institution deleted successfully']);
+        } else {
+            Response::serverError('Failed to delete institution');
+        }
+    }
+
+    /**
+     * Get statistics for an institution (Super Admin only)
+     */
+    public function getStatistics(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        // Super admin may view statistics for any institution; regular admin limited to their own
+        if ($user['role'] !== 'super_admin') {
+            $roleMiddleware = new RoleMiddleware($user);
+            if (!$roleMiddleware->requireRole('admin')) {
+                return;
+            }
+
+            if ($institution['institution_id'] != $user['institution_id']) {
+                Response::forbidden('You can only view your own institution statistics');
+                return;
+            }
+        }
+
+        $stats = $this->repo->getStatistics($institution['institution_id']);
+
+        Response::success($stats);
+    }
+
+    /**
+     * Get users for an institution
+     */
+    public function getUsers(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+        // Super admin may view users for any institution; regular admin limited to their own
+        if ($user['role'] !== 'super_admin') {
+            // Regular admin can only view their own institution's users
+            if (!$roleMiddleware->requireRole('admin')) {
+                return;
+            }
+
+            if ($institution['institution_id'] != $user['institution_id']) {
+                Response::forbidden('You can only view your own institution users');
+                return;
+            }
+        }
+
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+
+        $users = $this->repo->getInstitutionUsers($institution['institution_id'], $page, $limit);
+        $total = $this->repo->countInstitutionUsers($institution['institution_id']);
+
+        Response::success([
+            'data' => $users,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ]
+        ]);
+    }
+
+    /**
+     * Get programs for an institution
+     */
+    public function getPrograms(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        // Check authorization: super_admin may access any, others only their own
+        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution');
+            return;
+        }
+
+        $programs = $this->repo->getInstitutionPrograms($institution['institution_id']);
+
+        Response::success(['data' => $programs]);
+    }
+
+    /**
+     * Get classes for an institution
+     */
+    public function getClasses(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        // Check authorization: super_admin may access any, others only their own
+        if ($user['role'] !== 'super_admin' && $institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution');
+            return;
+        }
+
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+
+        $classes = $this->repo->getInstitutionClasses($institution['institution_id'], $page, $limit);
+        $total = $this->repo->countInstitutionClasses($institution['institution_id']);
+
+        Response::success([
+            'data' => $classes,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ]
+        ]);
+    }
+
+    /**
+     * Update institution status (Super Admin only)
+     */
+    public function updateStatus(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        if (!$sanitizedUuid) {
+            Response::badRequest('Invalid UUID format');
+            return;
+        }
+
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('super_admin')) {
+            return;
+        }
+
+        $institution = $this->repo->findByUuid($sanitizedUuid);
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        $validator->required(['status'])->in('status', ['active', 'inactive', 'suspended']);
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $success = $this->repo->updateStatus($institution['institution_id'], $data['status']);
+
+        if ($success) {
+            Response::success(['message' => 'Institution status updated successfully']);
+        } else {
+            Response::serverError('Failed to update institution status');
+        }
+    }
+
+    /**
+     * Get institution settings
+     * GET /institutions/{uuid}/settings
+     */
+    public function getSettings(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        // Authorization: super_admin may view only institutions that have admin users; admin can view own institution only
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution\'s settings');
+            return;
+        }
+
+        $settings = $this->repo->getSettings($institution['institution_id']);
+
+        if ($settings) {
+            Response::success(['data' => $settings]);
+        } else {
+            Response::notFound('Settings not found for this institution');
+        }
+    }
+
+    /**
+     * Update institution settings
+     * PUT /institutions/{uuid}/settings
+     */
+    public function updateSettings(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        // Authorization: super_admin may update only institutions that have admin users, admin can update own institution only
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this institution\'s settings');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        $validator->max('school_name', 200)
+            ->max('motto', 300)
+            ->max('logo_url', 500)
+            ->max('banner_url', 500)
+            ->max('theme_primary_color', 20)
+            ->max('theme_secondary_color', 20)
+            ->max('timezone', 50)
+            ->numeric('academic_year_start_month')
+            ->numeric('academic_year_end_month')
+            ->max('grading_system', 20)
+            ->max('locale', 10)
+            ->max('currency', 10)
+            ->max('date_format', 20)
+            ->max('time_format', 20)
+            ->max('social_facebook', 200)
+            ->max('social_twitter', 200)
+            ->max('social_instagram', 200)
+            ->max('social_linkedin', 200);
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $success = $this->repo->updateSettings($institution['institution_id'], $data);
+
+        if ($success) {
+            $this->notifyAdminsForInstitutionChange((int) $institution['institution_id'], 'updated', $user);
+            Response::success(['message' => 'Institution settings updated successfully']);
+        } else {
+            Response::serverError('Failed to update institution settings');
+        }
+    }
+
+    /**
+     * Get timetable publish state
+     * GET /institutions/{uuid}/timetable-publish-state
+     */
+    public function getTimetablePublishState(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution\'s settings');
+            return;
+        }
+
+        $isPublished = $this->repo->getTimetablePublished((int) $institution['institution_id']);
+
+        Response::success([
+            'data' => [
+                'is_timetable_published' => $isPublished
+            ]
+        ]);
+    }
+
+    /**
+     * Update timetable publish state
+     * PUT /institutions/{uuid}/timetable-publish-state
+     */
+    public function updateTimetablePublishState(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this institution\'s settings');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data) || !array_key_exists('is_timetable_published', $data)) {
+            Response::badRequest('is_timetable_published is required');
+            return;
+        }
+
+        $isPublished = filter_var($data['is_timetable_published'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($isPublished === null) {
+            Response::validationError([
+                'is_timetable_published' => 'Must be a boolean value'
+            ]);
+            return;
+        }
+
+        $institutionId = (int) $institution['institution_id'];
+        $wasPublished = $this->repo->getTimetablePublished($institutionId);
+        $success = $this->repo->updateTimetablePublished($institutionId, $isPublished);
+
+        if ($success) {
+            if (!$wasPublished && $isPublished) {
+                $this->notifyTimetablePublished($institutionId);
+            }
+            Response::success([
+                'message' => 'Timetable publish state updated successfully',
+                'data' => [
+                    'is_timetable_published' => $isPublished
+                ]
+            ]);
+        } else {
+            Response::serverError('Failed to update timetable publish state');
+        }
+    }
+
+    /**
+     * Get timetable period slots
+     * GET /institutions/{uuid}/timetable-period-slots
+     */
+    public function getTimetablePeriodSlots(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this institution\'s settings');
+            return;
+        }
+
+        $periodSlots = $this->repo->getTimetablePeriodSlots((int) $institution['institution_id']);
+
+        Response::success([
+            'data' => [
+                'period_slots' => $periodSlots
+            ]
+        ]);
+    }
+
+    /**
+     * Update timetable period slots
+     * PUT /institutions/{uuid}/timetable-period-slots
+     */
+    public function updateTimetablePeriodSlots(array $user, string $uuid): void
+    {
+        $sanitizedUuid = UuidHelper::sanitize($uuid);
+        $institution = null;
+
+        if ($sanitizedUuid) {
+            $institution = $this->repo->findByUuid($sanitizedUuid);
+        } elseif (ctype_digit((string) $uuid)) {
+            $institution = $this->repo->findById((int) $uuid);
+        } else {
+            Response::badRequest('Invalid institution identifier');
+            return;
+        }
+
+        if (!$institution) {
+            Response::notFound('Institution not found');
+            return;
+        }
+
+        if ($user['role'] === 'super_admin') {
+            if (!$this->repo->hasAdminUsers($institution['institution_id'])) {
+                Response::forbidden('You do not have access to update this institution\'s settings');
+                return;
+            }
+        } elseif ($institution['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this institution\'s settings');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($data) || !array_key_exists('period_slots', $data) || !is_array($data['period_slots'])) {
+            Response::badRequest('period_slots array is required');
+            return;
+        }
+
+        $normalized = [];
+        foreach ($data['period_slots'] as $slot) {
+            if (!is_array($slot)) {
+                continue;
+            }
+
+            $label = isset($slot['label']) ? trim((string) $slot['label']) : '';
+            $start = isset($slot['start']) ? trim((string) $slot['start']) : '';
+            $end = isset($slot['end']) ? trim((string) $slot['end']) : '';
+            $id = isset($slot['id']) ? (string) $slot['id'] : null;
+
+            if ($label === '' || $start === '' || $end === '') {
+                continue;
+            }
+
+            if (strlen($label) > 50 || $start >= $end) {
+                continue;
+            }
+
+            $normalized[] = [
+                'id' => $id,
+                'label' => $label,
+                'start' => $start,
+                'end' => $end
+            ];
+        }
+
+        $success = $this->repo->updateTimetablePeriodSlots((int) $institution['institution_id'], $normalized);
+
+        if ($success) {
+            Response::success([
+                'message' => 'Timetable period slots updated successfully',
+                'data' => [
+                    'period_slots' => $normalized
+                ]
+            ]);
+        } else {
+            Response::serverError('Failed to update timetable period slots');
+        }
+    }
+}

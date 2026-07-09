@@ -1,0 +1,516 @@
+    <style>
+    :root{
+      --bg:#f4f6fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#0f766e;
+      --accent-2:#06b6d4;
+      --danger:#ef4444;
+    }
+    .institution-settings-container{
+      max-width:1100px;
+      margin:28px auto;
+      padding:24px;
+      background:transparent;
+    }
+
+    .file-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--gray-50);
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+}
+.current-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.current-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-upload {
+  padding: 0.75rem 1.25rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btn-upload:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+}
+
+
+    .settings-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .settings-header h1{font-size:22px;margin:0;color:#0b1220}
+    .settings-sub{color:var(--muted);font-size:13px}
+    .header-controls{display:flex;gap:10px;align-items:center}
+    .unsaved-indicator{display:none;padding:6px 10px;background:#fff7ed;color:#92400e;border-radius:6px;font-size:13px}
+    .unsaved-indicator.show{display:inline-block}
+    .btn-save{background:var(--accent);color:#fff;padding:10px 16px;border-radius:8px;border:0;cursor:pointer;font-weight:600}
+    .btn-save:disabled{opacity:.5;cursor:not-allowed}
+    .card{background:var(--card);border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    .tabs-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .tab-button{background:transparent;border:0;padding:8px 12px;border-radius:8px;color:var(--muted);cursor:pointer;font-weight:600}
+    .tab-button.active{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .form-section{padding:14px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(15,23,42,0.03)}
+    .section-title{font-weight:700;margin-bottom:12px;color:#0b1220}
+    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .form-grid.full{grid-template-columns:1fr}
+    .form-group label{display:block;font-weight:700;margin-bottom:6px;color:#111827}
+    .form-group input[type=text],.form-group input[type=url],.form-group textarea,.form-group select,.form-group input[type=color]{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef2;background:#fbfdff}
+    .form-group textarea{min-height:110px}
+    .help-text{color:var(--muted);font-size:13px;margin-top:6px}
+    .error-message{color:var(--danger);font-size:13px;margin-top:6px;display:none}
+    .form-group.has-error .error-message{display:block}
+    .file-upload-group{display:flex;flex-direction:column;gap:8px}
+    .file-input-btn{padding:10px;border-radius:8px;border:1px dashed #d1e8ea;background:#01a901;cursor:pointer;font-size: 0.8rem;color:#fff;}
+    .file-preview{max-width:220px;max-height:120px;border-radius:8px;border:1px solid #e6eef2;padding:6px;display:none}
+    .file-preview.show{display:block}
+    .toggle-switch{display:flex;align-items:center;gap:10px; width:fit-content}
+    .toggle-checkbox{width:44px;height:26px;appearance:none;background:#e6e9ef;border-radius:16px;position:relative;cursor:pointer}
+    .toggle-checkbox:before{content:'';position:absolute;left:4px;top:3px;width:20px;height:20px;background:#fff;border-radius:999px;transition:transform .2s}
+    .toggle-checkbox:checked{background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+    .toggle-checkbox:checked:before{transform:translateX(18px)}
+    .toggle-switch input:disabled {color:var(--muted);cursor:not-allowed}
+    .toggle-switch input:disabled + .toggle-label::before{background:#d1e8ea}
+    .toggle-switch input{
+        opacity: 1;
+        width: 40px;
+        height: 26px;
+    }
+    
+    @media (max-width:900px){.form-grid{grid-template-columns:1fr}.settings-header{flex-direction:column;align-items:flex-start}.header-controls{width:100%;justify-content:space-between}}
+
+    /* Institution page inspired layout */
+    .institutions-card{background:var(--card);border-radius:12px;padding:22px;box-shadow:0 8px 28px rgba(2,6,23,0.06);}
+    .institutions-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .institutions-card-header h2{margin:0;font-size:20px}
+    .institution-section{margin-bottom:18px;border-radius:10px;padding:14px;background:linear-gradient(180deg,#ffffff,#fbfdff);border:1px solid rgba(15,23,42,0.03)}
+    .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .section-header h3{margin:0;font-size:16px}
+    .section-header p{margin:0;color:var(--muted)}
+    .info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .info-item{background:transparent;padding:8px;border-radius:8px}
+    .info-item label{font-weight:700;color:#111827;font-size:13px}
+    .info-value{display:flex;align-items:center;gap:8px;color:#374151}
+    .programs-list{display:flex;gap:8px;flex-wrap:wrap}
+    .program-badge{padding:8px 12px;border-radius:999px;background:#f3f4f6;color:#374151;font-weight:600}
+    .stat-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:10px;background:#fff}
+    .stat-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff}
+    .stat-value{font-weight:800;font-size:20px}
+    .setting-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid rgba(15,23,42,0.03);margin-bottom:8px}
+.form-group input[type=color] {padding:4px;height:38px}
+    /* Make form sections resemble institution sections */
+    .form-section{padding:18px;border-radius:10px}
+    .section-title{font-weight:800;color:#0b1220}
+
+    </style>
+
+    <div class="institution-settings-container">
+        <!-- Header -->
+        <div class="settings-header">
+            <div>
+                <h1>Institution Settings</h1>
+                <p style="margin: 5px 0 0 0; color: #999; font-size: 14px;">
+                    Configure your institution's branding, localization, and system preferences
+                </p>
+            </div>
+            <div class="header-controls">
+                <div class="unsaved-indicator" id="unsavedIndicator">
+                    * Changes not saved
+                </div>
+                <button class="btn-save" id="saveSettingsBtn">Save Changes</button>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div class="alert-box" id="successAlert">
+            ✓ Settings saved successfully!
+        </div>
+        <div class="alert-box" id="errorAlert">
+            ✗ <span id="errorAlertMessage"></span>
+        </div>
+
+        <!-- Tab Navigation -->
+        <form id="institutionSettingsForm">
+            <div class="tabs-wrapper">
+                <div class="tabs-nav">
+                    <button type="button" class="tab-button active" data-tab="branding">Branding & Identity</button>
+                    <button type="button" class="tab-button" data-tab="localization">Localization & Regional</button>
+                    <button type="button" class="tab-button" data-tab="academic">Academic Configuration</button>
+                    <button type="button" class="tab-button" data-tab="features">Feature Flags</button>
+                    <button type="button" class="tab-button" data-tab="customization">Customization</button>
+                    <button type="button" class="tab-button" data-tab="social">Social Media</button>
+                </div>
+            </div>
+
+            <!-- Tab: Branding & Identity -->
+            <div class="tab-content active" id="tab-branding">
+                <div class="form-section">
+                    <div class="section-title">School Identity</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="schoolName">School Name *</label>
+                            <input type="text" id="schoolName" name="school_name" maxlength="200" placeholder="e.g., Ghana Senior High School" required />
+                            <div class="help-text">Your institution's official name</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="motto">Motto</label>
+                            <input type="text" id="motto" name="motto" maxlength="300" placeholder="e.g., Excellence in Education" />
+                            <div class="help-text">School motto or tagline</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                    <div class="form-group form-grid full">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" placeholder="Brief description of your institution"></textarea>
+                        <div class="help-text">A short description displayed on your institution's profile</div>
+                        <div class="error-message"></div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group form-grid full">
+                            <label for="vision">Vision</label>
+                            <textarea id="vision" name="vision" placeholder="Our vision for the future..."></textarea>
+                            <div class="help-text">Institution's vision statement</div>
+                            <div class="error-message"></div>
+                        </div>
+
+                        <div class="form-group form-grid full">
+                            <label for="mission">Mission</label>
+                            <textarea id="mission" name="mission" placeholder="Our mission is to..."></textarea>
+                            <div class="help-text">Institution's mission statement</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">Branding Assets</div>
+                    <div class="form-grid">
+                        <div class="form-group file-upload-group">
+                            <label for="logoUpload">School Logo</label>
+
+                            <div class="file-input-wrapper">
+                                <div class="current-logo">
+                                    <img src="./../../assets/img/Ghana-Coat-Of-Arms.jpg" id="logoPreview" class="file-preview" alt="Logo Preview" />
+                                </div>
+
+                                <input type="file" id="logoUpload" class="btn-upload" name="logo_file" accept="image/jpeg,image/png" style="display: none;"/>
+                                <div class="file-input-btn">
+                                    <i class="fas fa-upload"></i>
+                                    Upload New Logo
+                                </div>
+                            </div>
+                            <span class="form-hint">Recommended size: 512x512px, PNG or JPG, max 5MB</span>
+                            <div class="help-text" id="logoUrl" style="font-size: 11px; color: #999;" style="display:none;"></div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group file-upload-group">
+                            <label for="bannerUpload">Banner Image</label>
+
+                            <div class="file-input-wrapper">
+                                <div class="current-logo">
+                                    <img src="./../../assets/img/Ghana-Coat-Of-Arms.jpg" id="bannerPreview" class="file-preview" alt="Banner Preview" />
+                                </div>
+
+                                <input type="file" id="bannerUpload" class="btn-upload" name="banner_file" accept="image/jpeg,image/png" style="display: none;"/>
+                                <div class="file-input-btn">
+                                    <i class="fas fa-upload"></i>
+                                    Upload New Banner
+                                </div>
+                            </div>
+                            <span class="form-hint">Recommended size: 512x512px, PNG or JPG, max 5MB</span>
+                            <div class="help-text" id="bannerUrl" style="font-size: 11px; color: #999;" style="display:none;"></div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">Theme Colors</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="primaryColor">Primary Color</label>
+                            <input type="color" id="primaryColor" name="theme_primary_color" />
+                            <div class="help-text">Main brand color for buttons and highlights</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="secondaryColor">Secondary Color</label>
+                            <input type="color" id="secondaryColor" name="theme_secondary_color" />
+                            <div class="help-text">Supporting brand color for accents</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Localization & Regional -->
+            <div class="tab-content" id="tab-localization">
+                <div class="form-section">
+                    <div class="section-title">Regional Settings</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="timezone">Timezone</label>
+                            <select id="timezone" name="timezone" required disabled>
+                                <option value="">-- Select Timezone --</option>
+                                <option value="UTC">UTC</option>
+                                <option value="Africa/Accra">Africa/Accra (GMT)</option>
+                                <option value="Africa/Lagos">Africa/Lagos (GMT+1)</option>
+                                <option value="Africa/Johannesburg">Africa/Johannesburg (GMT+2)</option>
+                                <option value="Europe/London">Europe/London</option>
+                                <option value="Europe/Paris">Europe/Paris</option>
+                                <option value="Asia/Dubai">Asia/Dubai</option>
+                                <option value="Asia/Singapore">Asia/Singapore</option>
+                                <option value="America/New_York">America/New York</option>
+                                <option value="America/Los_Angeles">America/Los Angeles</option>
+                            </select>
+                            <div class="help-text">Timezone for scheduling and reporting</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="locale">Language / Locale</label>
+                            <select id="locale" name="locale" required disabled>
+                                <option value="">-- Select Language --</option>
+                                <option value="en_US">English (US)</option>
+                                <option value="en_GB">English (UK)</option>
+                                <option value="fr_FR">Français</option>
+                                <option value="es_ES">Español</option>
+                                <option value="pt_PT">Português</option>
+                                <option value="de_DE">Deutsch</option>
+                                <option value="zh_CN">中文</option>
+                            </select>
+                            <div class="help-text">Interface language and locale</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" name="currency" required disabled>
+                                <option value="">-- Select Currency --</option>
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GHS">GHS - Ghana Cedi</option>
+                                <option value="NGN">NGN - Nigerian Naira</option>
+                                <option value="ZAR">ZAR - South African Rand</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="CNY">CNY - Chinese Yuan</option>
+                            </select>
+                            <div class="help-text">Currency for fees, billing, and reports</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="dateFormat">Date Format</label>
+                            <select id="dateFormat" name="date_format" required disabled>
+                                <option value="">-- Select Format --</option>
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                            </select>
+                            <div class="help-text">Format for displaying dates in the system</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeFormat">Time Format</label>
+                            <select id="timeFormat" name="time_format" required disabled>
+                                <option value="">-- Select Format --</option>
+                                <option value="12">12-Hour (AM/PM)</option>
+                                <option value="24">24-Hour</option>
+                            </select>
+                            <div class="help-text">Format for displaying times in the system</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Academic Configuration -->
+            <div class="tab-content" id="tab-academic">
+                <div class="form-section">
+                    <div class="section-title">Academic Year Settings</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="academicYearStartMonth">Academic Year Start Month *</label>
+                            <select id="academicYearStartMonth" name="academic_year_start_month" required>
+                                <option value="">-- Select Month --</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                            <div class="help-text">Month when the academic year begins</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="academicYearEndMonth">Academic Year End Month *</label>
+                            <select id="academicYearEndMonth" name="academic_year_end_month" required>
+                                <option value="">-- Select Month --</option>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5">May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                            <div class="help-text">Month when the academic year ends</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">Grading System</div>
+                    <div class="form-group">
+                        <label for="gradingSystem">Grading System *</label>
+                        <input type="text" id="gradingSystem" name="grading_system" required readonly />
+                        <div class="help-text">Primary grading scale for your institution</div>
+                        <div class="error-message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Feature Flags -->
+            <div class="tab-content" id="tab-features">
+                <div class="form-section">
+                    <div class="section-title">Feature Permissions</div>
+
+                    <div class="form-group">
+                        <label>Allow Parent Self-Registration <span style="color: #fc031a;">(Coming Soon)</span></label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="allowParentRegistration" name="allow_parent_registration" class="toggle-checkbox" disabled/>
+                            <span class="toggle-label">Parents can create accounts without admin invitation</span>
+                        </div>
+                        <div class="help-text" style="margin-top: 8px;">Enable or disable parent self-registration in the system</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Allow Student Self-Enrollment <span style="color: #fc031a;">(Coming Soon)</span></label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="allowStudentEnrollment" name="allow_student_self_enrollment" class="toggle-checkbox" disabled/>
+                            <span class="toggle-label">Students can enroll in classes without admin approval</span>
+                        </div>
+                        <div class="help-text" style="margin-top: 8px;">Enable or disable student self-enrollment in classes</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Require Email Verification <span style="color: #fc031a;">(Coming Soon)</span></label>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="requireEmailVerification" name="require_email_verification" class="toggle-checkbox" disabled/>
+                            <span class="toggle-label">Users must verify their email address before accessing the system</span>
+                        </div>
+                        <div class="help-text" style="margin-top: 8px;">Enforce email verification for new accounts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Customization -->
+            <div class="tab-content" id="tab-customization">
+                <div class="form-section">
+                    <div class="section-title">Custom Styling</div>
+                    <div class="form-group form-grid full">
+                        <label for="customCSS">Custom CSS</label>
+                        <textarea id="customCSS" name="custom_css" placeholder="/* Add custom CSS rules here */" style="font-family: monospace; font-size: 12px;"></textarea>
+                        <div class="help-text">Advanced: Add custom CSS to override default styling</div>
+                        <div class="error-message"></div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-title">Custom Footer</div>
+                    <div class="form-group form-grid full">
+                        <label for="customFooter">Footer Content</label>
+                        <textarea id="customFooter" name="custom_footer" placeholder="Your custom footer content here..."></textarea>
+                        <div class="help-text">HTML content displayed in the footer of every page</div>
+                        <div class="error-message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Social Media -->
+            <div class="tab-content" id="tab-social">
+                <div class="form-section">
+                    <div class="section-title">Social Media Links</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="socialFacebook">Facebook URL</label>
+                            <input type="url" id="socialFacebook" name="social_facebook" maxlength="200" placeholder="https://facebook.com/yourschool" />
+                            <div class="help-text">Your institution's Facebook page URL</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="socialTwitter">Twitter URL</label>
+                            <input type="url" id="socialTwitter" name="social_twitter" maxlength="200" placeholder="https://twitter.com/yourschool" />
+                            <div class="help-text">Your institution's Twitter profile URL</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="socialInstagram">Instagram URL</label>
+                            <input type="url" id="socialInstagram" name="social_instagram" maxlength="200" placeholder="https://instagram.com/yourschool" />
+                            <div class="help-text">Your institution's Instagram profile URL</div>
+                            <div class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="socialLinkedin">LinkedIn URL</label>
+                            <input type="url" id="socialLinkedin" name="social_linkedin" maxlength="200" placeholder="https://linkedin.com/company/yourschool" />
+                            <div class="help-text">Your institution's LinkedIn profile URL</div>
+                            <div class="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e0e0e0; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-save" id="saveSettingsBtnFooter">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="../../js/institution-settings.js?v=20260508"></script>

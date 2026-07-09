@@ -1,0 +1,481 @@
+<style>
+  .institutions-page {
+    padding: 0;
+  }
+
+  .institutions-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .institutions-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .institutions-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .institutions-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .institutions-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  @media (max-width: 1024px) {
+    .institutions-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .institutions-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .institutions-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+  }
+  .institutions-stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .institutions-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .institutions-stat-icon i {
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  .institutions-stat-info h3 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.2rem 0;
+  }
+  .institutions-stat-info p {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    margin: 0;
+  }
+
+  .institutions-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .institutions-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .institutions-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .inst-search-wrap {
+    position: relative;
+    min-width: 240px;
+    flex: 1;
+    max-width: 360px;
+  }
+  .inst-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .inst-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    color: var(--text-primary, #1e293b);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .inst-search-wrap input:focus {
+    border-color: var(--primary, #006a3f);
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.1);
+  }
+
+  .institutions-filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    color: var(--text-primary, #1e293b);
+    min-width: 135px;
+    max-width: 250px;
+  }
+  .institutions-filter-select:focus {
+    border-color: var(--primary, #006a3f);
+  }
+
+  .institutions-table-wrap {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+  .institutions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .institutions-table thead tr {
+    background: #f8fafc;
+  }
+  .institutions-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .institutions-table td {
+    padding: 0.85rem 1rem;
+    color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+  .institutions-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .institutions-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .institutions-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .institutions-per-page {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+  }
+
+  #institutionsPagination {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  #institutionsPagination button {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 0.5rem;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #64748b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #institutionsPagination button:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  .institution-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .institution-modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .institution-modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(12px);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .institution-modal-overlay.open .institution-modal {
+    transform: translateY(0);
+  }
+  .institution-modal-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .institution-modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary, #1e293b);
+  }
+  .institution-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .institution-modal-close:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+  .institution-modal-body {
+    padding: 1rem 1.25rem;
+    overflow-y: auto;
+  }
+  .institution-modal-footer {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .institution-import-drop-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-secondary, #64748b);
+    transition: all 0.2s;
+    margin-bottom: 0.75rem;
+  }
+  .institution-import-drop-zone:hover,
+  .institution-import-drop-zone.dragover {
+    border-color: var(--primary, #006a3f);
+    background: #f0fdf4;
+  }
+  .institution-import-drop-zone i {
+    font-size: 1.8rem;
+    margin-bottom: 0.35rem;
+    color: #94a3b8;
+  }
+  .institution-import-drop-zone p {
+    margin: 0.15rem 0;
+    font-size: 0.875rem;
+  }
+  .institution-import-preview {
+    display: none;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+  .modal-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: scroll;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    z-index: 2200;
+  }
+  /* .modal-footer {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  } */
+
+   .log-pagination-controls button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.log-pagination-controls button:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+  border-color: #e2e8f0;  
+  }
+
+.log-pagination-controls button:disabled:hover {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+
+
+ .log-pagination-controls button:hover, .log-pagination-controls .active {
+  background-color: var(--superadmin-primary);
+  color: white;
+  box-shadow: 1px 2px 3px #333;
+}
+</style>
+
+<section id="logsPage" class="institutions-page" style="padding:1.5rem">
+  <div class="institutions-page-header">
+    <div>
+      <h2>System Logs & Audit Trail</h2>
+      <p>Monitor application activity, track user actions, and troubleshoot issues</p>
+    </div>
+
+    <div class="institutions-header-actions">
+      <div class="inst-search-wrap">
+        <i class="fas fa-search"></i>
+        <input id="logSearch" placeholder="Search logs by message, user, or action" />
+        <datalist id="logSearchSuggestions"></datalist>
+      </div>
+
+      <select id="logLevel" class="institutions-filter-select">
+        <option value="">All Levels</option>
+        <option value="info">Info</option>
+        <option value="warning">Warning</option>
+        <option value="critical">Critical</option>
+      </select>
+
+      <input type="date" id="dateFrom" class="institutions-filter-select" />
+      <input type="date" id="dateTo" class="institutions-filter-select" />
+
+      <select id="userFilter" class="institutions-filter-select"><option value="">All Users</option></select>
+
+      <div style="display:flex;gap:0.5rem;align-items:center">
+        <button class="btn-secondary log-export-btn"><i class="fas fa-download"></i>&nbsp;Export</button>
+        <button class="btn-danger log-clear-btn"><i class="fas fa-trash"></i>&nbsp;Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="institutions-stats" style="margin-top:1rem">
+    <div class="institutions-stat-card">
+      <div class="institutions-stat-icon bg-gradient-blue"><i class="fas fa-info-circle"></i></div>
+      <div class="institutions-stat-info"><h3 class="stat-value" id="stinfo">-</h3><p class="stat-label">Info</p></div>
+    </div>
+    <div class="institutions-stat-card">
+      <div class="institutions-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)"><i class="fas fa-exclamation-triangle"></i></div>
+      <div class="institutions-stat-info"><h3 class="stat-value" id="stwarning">-</h3><p class="stat-label">Warnings</p></div>
+    </div>
+    <div class="institutions-stat-card">
+      <div class="institutions-stat-icon bg-gradient-red"><i class="fas fa-times-circle"></i></div>
+      <div class="institutions-stat-info"><h3 class="stat-value" id="stcritical">-</h3><p class="stat-label">Critical</p></div>
+    </div>
+  </div>
+
+  <div class="institutions-table-wrap" style="margin-top:1rem">
+    <div style="overflow:auto">
+      <table class="institutions-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Level</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Message</th>
+            <th>IP Address</th>
+          </tr>
+        </thead>
+        <tbody id="logsTableBody"><tr><td colspan="7">Loading logs...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="institutions-table-footer">
+      <label class="institutions-per-page">Per page:
+        <select id="perPageSelect" style="margin-left:0.5rem">
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </label>
+      <div id="logPagination">
+        <div class="log-pagination-info">&nbsp;</div>
+        <div class="log-pagination-controls"></div>
+      </div>
+    </div>
+  </div>
+
+</section>

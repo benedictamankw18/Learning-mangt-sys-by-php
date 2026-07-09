@@ -1,0 +1,109 @@
+<style>
+.smc-wrap { display: grid; gap: 1rem; }
+.smc-toolbar { display: flex; gap: .75rem; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.smc-search { min-width: 240px; flex: 1; max-width: 380px; position: relative; }
+.smc-search i { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .82rem; }
+.smc-search input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: .55rem .75rem .55rem 2rem; font-size: .87rem; }
+.smc-search input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,.15); }
+.smc-stats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: .75rem; }
+.smc-stat { border: 1px solid #e2e8f0; border-radius: 12px; padding: .8rem .9rem; background: #fff; }
+.smc-stat h4 { margin: 0; font-size: 1.2rem; color: #0f172a; }
+.smc-stat p { margin: .18rem 0 0; color: #64748b; font-size: .78rem; }
+.smc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .9rem; }
+.smc-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
+.smc-head { padding: .85rem .95rem; border-bottom: 1px solid #eef2f7; display: flex; justify-content: space-between; gap: .6rem; align-items: flex-start; }
+.smc-head h4 { margin: 0; font-size: .95rem; color: #0f172a; }
+.smc-head p { margin: .2rem 0 0; color: #64748b; font-size: .78rem; }
+.smc-badge { font-size: .72rem; font-weight: 600; border-radius: 999px; padding: .2rem .55rem; white-space: nowrap; }
+.smc-badge.ok { background: #dcfce7; color: #15803d; }
+.smc-badge.warn { background: #fff7ed; color: #c2410c; }
+.smc-body { padding: .85rem .95rem; display: grid; gap: .55rem; }
+.smc-row { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: #334155; }
+.smc-row strong { color: #0f172a; }
+.smc-actions { display: flex; gap: .45rem; flex-wrap: wrap; padding: .85rem .95rem; border-top: 1px solid #eef2f7; background: #fafcff; }
+.smc-empty, .smc-error { text-align: center; color: #64748b; padding: 1.4rem 1rem; font-size: .88rem; }
+.smc-error { color: #b91c1c; }
+
+.smc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 2200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.smc-modal-overlay.open { display: flex; }
+.smc-modal {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, .32);
+}
+.smc-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem;
+  padding: .95rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.smc-modal-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.smc-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #dbe4ef;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+.smc-modal-body { padding: 1rem; display: grid; gap: .8rem; }
+.smc-modal-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .85rem 1rem 1rem; }
+.smc-table-wrap { border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; }
+.smc-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.smc-table th { background: #f8fafc; color: #475569; text-align: left; padding: .55rem .7rem; border-bottom: 1px solid #e2e8f0; }
+.smc-table td { text-align: left; padding: .52rem .7rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.smc-table tbody tr:last-child td { border-bottom: none; }
+.smc-schedule-grid { display: grid; gap: .55rem; }
+.smc-slot { border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .75rem; background: #fcfdff; }
+.smc-slot h4 { margin: 0 0 .25rem; font-size: .85rem; color: #0f172a; }
+.smc-slot p { margin: 0; font-size: .78rem; color: #64748b; }
+.smc-slot .smc-time { font-weight: 700; color: #0369a1; margin-right: .4rem; }
+
+@media (max-width: 760px) { .smc-stats { grid-template-columns: 1fr; } }
+</style>
+
+<div class="card" id="myStudentClassesPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-chalkboard"></i> My Class</h3>
+    <button class="btn btn-sm btn-outline" id="smcRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div class="card-body smc-wrap">
+    <div class="smc-stats">
+      <div class="smc-stat"><h4 id="smcTotalClasses">0</h4><p>Assigned Class</p></div>
+      <div class="smc-stat"><h4 id="smcTotalTeachers">0</h4><p>Teachers Assigned</p></div>
+      <div class="smc-stat"><h4 id="smcTotalCourses">0</h4><p>Course Records</p></div>
+    </div>
+
+    <div id="smcList" class="smc-grid"></div>
+  </div>
+</div>
+
+<div class="smc-modal-overlay" id="smcModalOverlay" aria-hidden="true">
+  <div class="smc-modal" role="dialog" aria-modal="true" aria-labelledby="smcModalTitle">
+    <div class="smc-modal-head">
+      <h3 id="smcModalTitle">Class Details</h3>
+      <button class="smc-modal-close" id="smcModalClose" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="smc-modal-body" id="smcModalBody"></div>
+    <div class="smc-modal-foot" id="smcModalFoot"></div>
+  </div>
+</div>

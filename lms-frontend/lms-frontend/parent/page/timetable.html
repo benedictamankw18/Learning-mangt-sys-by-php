@@ -1,0 +1,381 @@
+<style>
+  .ptt-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .ptt-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .ptt-title h3 {
+    margin: 0;
+    font-size: 1.06rem;
+    color: #0f172a;
+  }
+
+  .ptt-title p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  .ptt-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .ptt-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.7rem;
+    align-items: end;
+  }
+
+  .ptt-filter {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .ptt-filter label {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .ptt-input {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    padding: 0.45rem 0.62rem;
+    color: #0f172a;
+    min-width: 170px;
+    background: #fff;
+  }
+
+  .ptt-input:focus {
+    outline: none;
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .ptt-views {
+    display: inline-flex;
+    border: 1px solid #dbe4ef;
+    background: #f8fbff;
+    border-radius: 11px;
+    padding: 4px;
+    gap: 3px;
+    width: fit-content;
+  }
+
+  .ptt-view-btn {
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+
+  .ptt-view-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  }
+
+  .ptt-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  .ptt-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .ptt-stat h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #0f172a;
+  }
+
+  .ptt-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .ptt-range {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .ptt-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .ptt-day-col {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    min-height: 220px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+  }
+
+  .ptt-day-col.is-today {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  }
+
+  .ptt-day-head {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid #eef2f7;
+    background: #f8fbff;
+  }
+
+  .ptt-day-head strong {
+    display: block;
+    font-size: 0.8rem;
+    color: #0f172a;
+  }
+
+  .ptt-day-head span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .ptt-day-body {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    padding: 0.55rem;
+  }
+
+  .ptt-entry {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.48rem 0.52rem;
+    background: #fcfdff;
+    position: relative;
+  }
+
+  .ptt-entry--current {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+
+  .ptt-entry--next {
+    border-color: #f59e0b;
+    background: #fffbeb;
+  }
+
+  .ptt-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.64rem;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .ptt-badge.current {
+    color: #1d4ed8;
+    background: #dbeafe;
+  }
+
+  .ptt-badge.next {
+    color: #b45309;
+    background: #fef3c7;
+  }
+
+  .ptt-entry-time {
+    font-size: 0.72rem;
+    color: #0f766e;
+    font-weight: 800;
+    margin-bottom: 0.24rem;
+  }
+
+  .ptt-entry-subject {
+    font-size: 0.79rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.22rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ptt-entry-meta {
+    font-size: 0.73rem;
+    color: #64748b;
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .ptt-subject-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    display: inline-block;
+    flex: 0 0 auto;
+  }
+
+  .ptt-empty {
+    text-align: center;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.6rem 0.8rem;
+    background: #f8fafc;
+  }
+
+  .ptt-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 1180px) {
+    .ptt-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .ptt-week-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 780px) {
+    .ptt-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ptt-week-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .sidebar,
+    .top-navbar,
+    .ptt-toolbar,
+    .ptt-filters,
+    .ptt-views,
+    .ptt-actions,
+    .ptt-range {
+      display: none !important;
+    }
+
+    .ptt-day-col,
+    .ptt-entry,
+    .ptt-stat {
+      box-shadow: none !important;
+      break-inside: avoid;
+    }
+  }
+</style>
+
+<div class="card" id="parentTimetablePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-calendar-week"></i> Child Timetable</h3>
+  </div>
+  <div class="card-body ptt-shell">
+    <div class="ptt-toolbar">
+      <div class="ptt-title">
+        <h3>Weekly and Daily Timetable</h3>
+        <p>Track your child's school schedule and upcoming periods.</p>
+      </div>
+      <div class="ptt-actions">
+        <button class="btn btn-sm btn-outline" id="pttRefreshBtn" type="button">
+          <i class="fas fa-rotate"></i> Refresh
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          id="pttExportPdfBtn"
+          type="button"
+        >
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+        <button
+          class="btn btn-sm btn-outline"
+          id="pttExportCsvBtn"
+          type="button"
+        >
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="ptt-filters">
+      <div class="ptt-filter">
+        <label for="pttChildFilter">Child</label>
+        <select class="ptt-input" id="pttChildFilter"></select>
+      </div>
+      <div class="ptt-filter" id="pttWeekFilterWrap">
+        <label for="pttWeekFilter">Week Filter</label>
+        <input class="ptt-input" type="week" id="pttWeekFilter" />
+      </div>
+      <div class="ptt-filter ptt-hidden" id="pttDateFilterWrap">
+        <label for="pttDateFilter">Day Filter</label>
+        <input class="ptt-input" type="date" id="pttDateFilter" />
+      </div>
+    </div>
+
+    <div class="ptt-views" id="pttViewTabs">
+      <button class="ptt-view-btn active" type="button" data-view="weekly">
+        Weekly
+      </button>
+      <button class="ptt-view-btn" type="button" data-view="daily">
+        Daily
+      </button>
+    </div>
+
+    <div class="ptt-stats">
+      <div class="ptt-stat">
+        <h4 id="pttTotalSessions">0</h4>
+        <p>Sessions</p>
+      </div>
+      <div class="ptt-stat">
+        <h4 id="pttTodayCount">0</h4>
+        <p>Today</p>
+      </div>
+      <div class="ptt-stat">
+        <h4 id="pttCurrentClass">-</h4>
+        <p>Current Class</p>
+      </div>
+      <div class="ptt-stat">
+        <h4 id="pttNextClass">-</h4>
+        <p>Next Class</p>
+      </div>
+    </div>
+
+    <div class="ptt-range" id="pttRangeInfo">Week view</div>
+
+    <div id="pttContentArea" aria-live="polite">
+      <div class="ptt-empty">
+        <i class="fas fa-circle-notch fa-spin"></i> Loading timetable...
+      </div>
+    </div>
+  </div>
+</div>

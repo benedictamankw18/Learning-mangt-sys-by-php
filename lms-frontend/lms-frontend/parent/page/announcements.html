@@ -1,0 +1,200 @@
+<style>
+  .ann-page { display: grid; gap: 1rem; padding: 1rem; }
+  .ann-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .ann-hero h2 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+  .ann-hero p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; max-width: 56rem; }
+  .ann-hero-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .ann-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+  @media (max-width: 1000px) { .ann-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .ann-stats { grid-template-columns: 1fr; } }
+
+  .ann-stat, .ann-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  .ann-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.95rem 1rem;
+  }
+  .ann-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .ann-stat h3 { margin: 0; font-size: 1.35rem; color: #0f172a; }
+  .ann-stat p { margin: 0.15rem 0 0; font-size: 0.78rem; color: #64748b; }
+
+  .ann-filters {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) 180px;
+    gap: 0.65rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #faf5ff, #fff);
+  }
+  @media (max-width: 780px) { .ann-filters { grid-template-columns: 1fr; } }
+
+  .ann-input, .ann-select {
+    width: 100%;
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+  }
+  .ann-input, .ann-select { padding: 0.58rem 0.72rem; font-size: 0.88rem; }
+  .ann-input:focus, .ann-select:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.08);
+  }
+
+  .ann-list { display: grid; gap: 0.85rem; padding: 1rem; }
+  .ann-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem;
+    background: linear-gradient(180deg, #ffffff, #faf5ff);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  .ann-item-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 0.7rem;
+  }
+  .ann-item h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+  .ann-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    color: #64748b;
+    font-size: 0.78rem;
+    margin-top: 0.3rem;
+  }
+
+  .ann-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.73rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .ann-chip.normal { background: #e0f2fe; color: #0369a1; }
+  .ann-chip.urgent { background: #fee2e2; color: #991b1b; }
+  .ann-chip.parent { background: #ede9fe; color: #6d28d9; }
+  .ann-chip.all { background: #dcfce7; color: #166534; }
+
+  .ann-body { color: #334155; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; }
+  .ann-body p { margin: 0; }
+
+  .ann-files {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.85rem;
+    padding-top: 0.85rem;
+    border-top: 1px dashed #e2e8f0;
+  }
+  .ann-files h4 {
+    margin: 0;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+  }
+  .ann-file-list { display: grid; gap: 0.35rem; }
+  .ann-file-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    text-decoration: none;
+  }
+  .ann-file-link:hover { border-color: #a855f7; color: #7e22ce; }
+  .ann-file-link small { color: #64748b; }
+
+  .ann-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 14px;
+    background: #fff;
+  }
+  .ann-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
+</style>
+
+<div id="parentAnnouncementsRoot">
+  <div class="ann-page">
+    <div class="ann-hero">
+      <div>
+        <h2>Announcements</h2>
+        <p>Follow school updates and parent-targeted notices from your institution.</p>
+      </div>
+      <div class="ann-hero-actions">
+        <button class="btn-secondary" id="panRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+      </div>
+    </div>
+
+    <div class="ann-stats">
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#a855f7,#7c3aed)"><i class="fas fa-bullhorn"></i></div>
+        <div><h3 id="panStatTotal">0</h3><p>Visible announcements</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#0f766e,#166534)"><i class="fas fa-circle-exclamation"></i></div>
+        <div><h3 id="panStatUrgent">0</h3><p>Urgent notices</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-paperclip"></i></div>
+        <div><h3 id="panStatFiles">0</h3><p>With attachments</p></div>
+      </div>
+      <div class="ann-stat">
+        <div class="ann-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="fas fa-clock"></i></div>
+        <div><h3 id="panStatLatest">-</h3><p>Latest update</p></div>
+      </div>
+    </div>
+
+    <div class="ann-card">
+      <div class="ann-filters">
+        <input id="panSearchInput" class="ann-input" type="search" placeholder="Search announcements..." />
+        <select id="panPriorityFilter" class="ann-select">
+          <option value="all">All priorities</option>
+          <option value="urgent">Urgent</option>
+          <option value="normal">Normal</option>
+        </select>
+      </div>
+
+      <div id="panList" class="ann-list">
+        <div class="ann-empty"><i class="fas fa-spinner fa-spin"></i>Loading announcements...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/announcements.js?v=20260505"></script>
+</div>

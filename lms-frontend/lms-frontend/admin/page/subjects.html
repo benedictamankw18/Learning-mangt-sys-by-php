@@ -1,0 +1,391 @@
+<!-- Subjects Management Page Fragment -->
+<style>
+.subj-page { padding: 0; }
+
+.subj-page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.subj-page-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0 0 .25rem; }
+.subj-page-header p  { color: var(--text-secondary,#64748b); font-size: .875rem; margin: 0; }
+.subj-header-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+
+/* Stats */
+.subj-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+@media (max-width:1024px) { .subj-stats { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:600px)  { .subj-stats { grid-template-columns: 1fr; } }
+.subj-stat-card {
+    background: #fff; border-radius: 12px; padding: 1.2rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07); border: 1px solid #e2e8f0; transition: box-shadow .2s;
+}
+.subj-stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.subj-stat-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.subj-stat-icon i { font-size:1.2rem; color:#fff; }
+.subj-stat-info h3 { font-size:1.6rem; font-weight:700; color:var(--text-primary,#1e293b); margin:0 0 .2rem; }
+.subj-stat-info p  { font-size:.8rem; color:var(--text-secondary,#64748b); margin:0; }
+
+/* Toolbar */
+.subj-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+.subj-toolbar-left  { display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    /* flex: 1; */
+    flex-direction: row; }
+.subj-toolbar-right { display:flex; align-items:center; gap:.5rem; flex-shrink:0; }
+.subj-search-wrap { position:relative; min-width:220px; }
+.subj-search-wrap i { position:absolute; left:.75rem; top:50%; transform:translateY(-50%); color:var(--text-secondary,#94a3b8); font-size:.85rem; pointer-events:none; }
+.subj-search-wrap input { width:100%; padding:.5rem .75rem .5rem 2.1rem; border:1px solid #e2e8f0; border-radius:8px; font-size:.875rem; background:#fff; outline:none; color:var(--text-primary,#1e293b); transition:border-color .2s,box-shadow .2s; }
+.subj-search-wrap input:focus { border-color:var(--primary,#006a3f); box-shadow:0 0 0 3px rgba(0,106,63,.1); }
+.subj-filter-select { padding:.5rem .75rem; border:1px solid #e2e8f0; border-radius:8px; font-size:.875rem; background:#fff; outline:none; cursor:pointer; color:var(--text-primary,#1e293b); min-width:130px; }
+.subj-filter-select:focus { border-color:var(--primary,#006a3f); }
+
+/* Table */
+.subj-table-wrap { background:#fff; border-radius:12px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,.05); overflow:hidden; }
+.subj-table { width:100%; border-collapse:collapse; font-size:.875rem; }
+.subj-table thead tr { background:#f8fafc; }
+.subj-table th { padding:.75rem 1rem; text-align:left; font-weight:600; color:var(--text-secondary,#64748b); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+.subj-table td { padding:.85rem 1rem; color:var(--text-primary,#1e293b); border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.subj-table tbody tr:last-child td { border-bottom:none; }
+.subj-table tbody tr:hover { background:#f8fafc; }
+
+/* Subject cell */
+.subj-cell { display:flex; align-items:center; gap:.75rem; }
+.subj-icon { width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg,#0284c7,#0369a1); display:flex; align-items:center; justify-content:center; font-size:.9rem; color:#fff; flex-shrink:0; }
+.subj-details { min-width:0; }
+.subj-details strong { font-weight:600; color:var(--text-primary,#1e293b); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.subj-details span   { font-size:.75rem; color:var(--text-secondary,#64748b); }
+
+/* Type badges */
+.subj-type-badge { display:inline-block; padding:.25rem .625rem; border-radius:999px; font-size:.75rem; font-weight:600; white-space:nowrap; }
+.subj-type-core     { background:#dcfce7; color:#15803d; }
+.subj-type-elective { background:#dbeafe; color:#1d4ed8; }
+
+/* Assigned count */
+.subj-assigned-count { display:inline-block; padding:.2rem .6rem; background:#eff6ff; color:#1d4ed8; border-radius:999px; font-size:.75rem; font-weight:600; }
+
+/* Row actions */
+.subj-actions { display:flex; gap:.3rem; align-items:center; }
+.subj-actions button { width:30px; height:30px; border-radius:6px; border:1px solid #e2e8f0; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.78rem; color:var(--text-secondary,#64748b); transition:all .15s; }
+.subj-actions button:hover { background:#f1f5f9; border-color:#cbd5e1; }
+.subj-actions .btn-edit:hover   { color:#059669; border-color:#6ee7b7; background:#ecfdf5; }
+.subj-actions .btn-delete:hover { color:#ef4444; border-color:#fca5a5; background:#fef2f2; }
+
+/* Footer / pagination */
+.subj-table-footer { display:flex; align-items:center; justify-content:space-between; padding:.875rem 1rem; border-top:1px solid #e2e8f0; background:#f8fafc; font-size:.8rem; color:var(--text-secondary,#64748b); flex-wrap:wrap; gap:.5rem; }
+.subj-pagination { display:flex; gap:.25rem; align-items:center; }
+.subj-pagination button { min-width:32px; height:32px; padding:0 .5rem; border:1px solid #e2e8f0; background:#fff; border-radius:6px; cursor:pointer; font-size:.8rem; color:var(--text-secondary,#64748b); display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.subj-pagination button:hover  { background:#f1f5f9; border-color:#cbd5e1; }
+.subj-pagination button.active { background:var(--primary,#006a3f); border-color:var(--primary,#006a3f); color:#fff; font-weight:600; }
+.subj-pagination button:disabled { opacity:.4; cursor:not-allowed; pointer-events:none; }
+
+/* Modal */
+.subj-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2000; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .2s; overflow-y:auto; }
+.subj-modal-overlay.open { opacity:1; pointer-events:all; }
+.subj-modal { background:#fff; border-radius:16px; width:100%; max-width:560px; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.22); transform:translateY(16px); transition:transform .2s; margin:auto; }
+.subj-modal-overlay.open .subj-modal { transform:translateY(0); }
+.subj-modal-header { padding:1.25rem 1.5rem; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; z-index:1; border-radius:16px 16px 0 0; }
+.subj-modal-header h3 { font-size:1.1rem; font-weight:700; color:var(--text-primary,#1e293b); margin:0; }
+.subj-modal-close { width:32px; height:32px; border-radius:8px; border:none; background:#f1f5f9; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text-secondary,#64748b); font-size:.9rem; transition:all .15s; }
+.subj-modal-close:hover { background:#e2e8f0; color:var(--text-primary,#1e293b); }
+.subj-modal-body { padding:1.5rem; }
+.subj-modal-footer { padding:1rem 1.5rem; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:.75rem; background:#f8fafc; border-radius:0 0 16px 16px; position:sticky; bottom:0; }
+
+/* Import */
+.subj-import-drop {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    text-align: center;
+    background: #f8fafc;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+}
+.subj-import-drop:hover,
+.subj-import-drop.dragover { border-color: var(--primary,#006a3f); background: #f0fdf4; }
+.subj-import-drop i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; }
+.subj-import-drop p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.subj-import-preview { background: #f8fafc; border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; margin-top: 0.5rem; }
+.subj-import-preview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .6rem .8rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .8rem;
+}
+.subj-import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+.subj-import-preview-table th,
+.subj-import-preview-table td {
+    padding: .55rem .65rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+}
+.subj-import-errors {
+    display: none;
+    margin-top: .75rem;
+    padding: .65rem .8rem;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: .8rem;
+}
+.subj-import-results-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+.subj-import-results-chip {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .7rem .8rem;
+    background: #f8fafc;
+    font-size: .82rem;
+}
+
+/* Form */
+.subj-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:520px) { .subj-form-grid { grid-template-columns:1fr; } }
+.subj-form-grid .span-2 { grid-column:span 2; }
+@media (max-width:520px) { .subj-form-grid .span-2 { grid-column:span 1; } }
+.sf-group { display:flex; flex-direction:column; gap:.35rem; }
+.sf-group label { font-size:.8rem; font-weight:600; color:var(--text-secondary,#64748b); }
+.sf-group label .req { color:#ef4444; margin-left:2px; }
+.sf-input { padding:.5rem .75rem; border:1px solid #e2e8f0; border-radius:8px; font-size:.875rem; color:var(--text-primary,#1e293b); background:#fff; outline:none; transition:border-color .2s,box-shadow .2s; width:100%; box-sizing:border-box; }
+.sf-input:focus { border-color:var(--primary,#006a3f); box-shadow:0 0 0 3px rgba(0,106,63,.1); }
+.sf-error-banner { display:none; margin-top:.75rem; padding:.65rem .9rem; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; color:#dc2626; font-size:.8rem; grid-column:span 2; }
+@media (max-width:520px) { .sf-error-banner { grid-column:span 1; } }
+
+/* Empty state */
+.subj-empty { padding:3rem 1.5rem; text-align:center; color:var(--text-secondary,#94a3b8); }
+.subj-empty i  { font-size:3rem; margin-bottom:1rem; }
+.subj-empty h4 { margin:0 0 .5rem; color:var(--text-primary,#475569); }
+.subj-empty p  { margin:0; font-size:.875rem; }
+
+@media (max-width:768px) {
+    .subj-table th:nth-child(3),
+    .subj-table td:nth-child(3) { display:none; }
+}
+</style>
+
+<div class="subj-page">
+
+    <!-- Page Header -->
+    <div class="subj-page-header">
+        <div>
+            <h2><i class="fas fa-book" style="margin-right:.5rem;color:var(--primary,#006a3f)"></i>Subjects</h2>
+            <p>Manage the subjects offered across all programs at your institution</p>
+        </div>
+        <div class="subj-header-actions">
+            <button class="btn btn-outline btn-sm" id="importSubjectsBtn">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportSubjectsCsvBtn">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportSubjectsPdfBtn">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="btn btn-primary btn-sm" id="addSubjectBtn">
+                <i class="fas fa-plus"></i> Add Subject
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="subj-stats">
+        <div class="subj-stat-card">
+            <div class="subj-stat-icon" style="background:linear-gradient(135deg,#0284c7,#0369a1)">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="subj-stat-info"><h3 id="subjStatTotal">—</h3><p>Total Subjects</p></div>
+        </div>
+        <div class="subj-stat-card">
+            <div class="subj-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="subj-stat-info"><h3 id="subjStatCore">—</h3><p>Core Subjects</p></div>
+        </div>
+        <div class="subj-stat-card">
+            <div class="subj-stat-icon" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6)">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="subj-stat-info"><h3 id="subjStatElective">—</h3><p>Elective Subjects</p></div>
+        </div>
+        <div class="subj-stat-card">
+            <div class="subj-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <i class="fas fa-link"></i>
+            </div>
+            <div class="subj-stat-info"><h3 id="subjStatAssigned">—</h3><p>Assigned to Classes</p></div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="subj-toolbar">
+        <div class="subj-toolbar-left">
+            <div class="subj-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="subjectSearch" placeholder="Search subjects…">
+            </div>
+            <select class="subj-filter-select" id="subjectTypeFilter">
+                <option value="">All Types</option>
+                <option value="1">Core</option>
+                <option value="0">Elective</option>
+            </select>
+        </div>
+        <!-- <div class="subj-toolbar-right">
+            <span id="subjectsCountLabel" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
+        </div> -->
+    </div>
+
+    <!-- Table -->
+    <div class="subj-table-wrap">
+        <table class="subj-table" id="subjectsTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Credits</th>
+                    <th>Description</th>
+                    <th>Type</th>
+                    <th>Classes</th>
+                    <th style="width:90px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="subjectsTableBody">
+                <tr>
+                    <td colspan="6" style="text-align:center;padding:3rem;color:var(--text-secondary,#94a3b8)">
+                        <i class="fas fa-spinner fa-spin" style="margin-right:.5rem"></i>Loading subjects…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="subj-table-footer" id="subjectsPagination" style="display:none">
+            <span id="subjectsPaginationInfo" style="color:var(--text-secondary,#64748b)">—</span>
+            <div class="subj-pagination" id="subjectsPaginationControls"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Add / Edit Subject Modal -->
+<div class="subj-modal-overlay" id="subjectModalOverlay">
+    <div class="subj-modal">
+        <div class="subj-modal-header">
+            <h3 id="subjectModalTitle">Add Subject</h3>
+            <button class="subj-modal-close" id="subjectModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="subj-modal-body">
+            <form id="subjectForm" novalidate>
+                <input type="hidden" id="subjectEditUuid">
+                <div class="subj-form-grid">
+                    <div class="sf-group">
+                        <label>Subject Name <span class="req">*</span></label>
+                        <input type="text" class="sf-input" id="fieldSubjectName" placeholder="e.g. Core Mathematics" required>
+                    </div>
+                    <div class="sf-group">
+                        <label>Subject Code <span class="req">*</span></label>
+                        <input type="text" class="sf-input" id="fieldSubjectCode" placeholder="e.g. MATH-CORE" required>
+                    </div>
+                    <div class="sf-group span-2">
+                        <label>Description</label>
+                        <textarea class="sf-input" id="fieldSubjectDescription" rows="3" placeholder="Brief description of this subject…" style="resize:vertical"></textarea>
+                    </div>
+                    <div class="sf-group">
+                        <label>Credits</label>
+                        <input type="number" class="sf-input" id="fieldSubjectCredits" min="1" max="20" placeholder="e.g. 3">
+                    </div>
+                    <div class="sf-group">
+                        <label>Subject Type <span class="req">*</span></label>
+                        <select class="sf-input" id="fieldSubjectIsCore">
+                            <option value="1">Core</option>
+                            <option value="0">Elective</option>
+                        </select>
+                    </div>
+                    <div class="sf-error-banner" id="subjectFormError"></div>
+                </div>
+            </form>
+        </div>
+        <div class="subj-modal-footer">
+            <button class="btn btn-outline btn-sm" id="subjectModalCancel">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="subjectModalSave">
+                <span id="subjectModalSaveText">Save Subject</span>
+                <i class="fas fa-spinner fa-spin" id="subjectModalSaveSpinner" style="display:none;margin-left:.4rem"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Subjects Modal -->
+<div class="subj-modal-overlay" id="subjectImportModalOverlay">
+    <div class="subj-modal">
+        <div class="subj-modal-header">
+            <h3>Import Subjects</h3>
+            <button class="subj-modal-close" id="subjectImportModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="subj-modal-body">
+            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
+                Upload a CSV file with subject data. Download the
+                <a href="#" id="subjectImportTemplateLink" style="color:var(--primary,#006a3f)">template</a> to get started.
+                Required columns: <strong>subject_name</strong>, <strong>subject_code</strong>. Optional: description, credits, is_core.
+            </p>
+            <div class="subj-import-drop" id="subjectImportDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p style="font-size:.75rem;margin-top:.25rem">CSV files only &middot; Max 5MB</p>
+                <input type="file" id="subjectImportFileInput" accept=".csv" style="display:none">
+            </div>
+            <div class="subj-import-preview" id="subjectImportPreview" style="display:none">
+                <strong id="subjectImportFileName"></strong>
+                <span id="subjectImportRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
+            </div>
+            <div id="subjectImportErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
+        </div>
+        <div class="subj-modal-footer">
+            <button class="btn btn-outline btn-sm" id="subjectImportCancelBtn">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="subjectImportConfirmBtn" disabled>
+                <span id="subjectImportConfirmText">Import</span>
+                <i class="fas fa-spinner fa-spin" id="subjectImportConfirmSpinner" style="display:none;margin-left:.4rem"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Subjects Results -->
+<div class="subj-modal-overlay" id="subjectImportResultsOverlay">
+    <div class="subj-modal">
+        <div class="subj-modal-header">
+            <h3>Import Results</h3>
+            <button class="subj-modal-close" id="subjectImportResultsClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="subj-modal-body" style="padding-bottom:.5rem">
+            <div id="subjectImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+            <div style="max-height:380px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                    <thead>
+                        <tr style="background:#f8fafc;position:sticky;top:0;z-index:1">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">#</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Subject</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subjectImportResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="subj-modal-footer">
+            <button class="btn btn-primary btn-sm" id="subjectImportResultsDoneBtn">Done</button>
+        </div>
+    </div>
+</div>

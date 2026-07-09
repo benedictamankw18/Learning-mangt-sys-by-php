@@ -1,0 +1,334 @@
+<style>
+  .pas-shell {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .pas-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .pas-sub {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.86rem;
+  }
+
+  .pas-filters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .pas-field {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .pas-field label {
+    font-size: 0.76rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .pas-field select,
+  .pas-field input {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.48rem 0.62rem;
+    font-size: 0.86rem;
+    background: #fff;
+    color: #0f172a;
+    outline: none;
+  }
+
+  .pas-field select:focus,
+  .pas-field input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  }
+
+  .pas-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .pas-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.28rem;
+  }
+
+  .pas-card .k {
+    color: #64748b;
+    font-size: 0.77rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .pas-card .v {
+    color: #0f172a;
+    font-size: 1.2rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .pas-progress {
+    height: 10px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+
+  .pas-progress > span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #0ea5e9);
+    width: 0%;
+    transition: width 0.35s ease;
+  }
+
+  .pas-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .pas-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .pas-list h4 {
+    margin: 0;
+    padding: 0.62rem 0.72rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-size: 0.87rem;
+    font-weight: 700;
+  }
+
+  .pas-items {
+    max-height: 240px;
+    overflow: auto;
+  }
+
+  .pas-item {
+    padding: 0.6rem 0.72rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: grid;
+    gap: 0.22rem;
+  }
+
+  .pas-item:last-child {
+    border-bottom: none;
+  }
+
+  .pas-item-title {
+    margin: 0;
+    font-size: 0.84rem;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .pas-item-sub {
+    margin: 0;
+    font-size: 0.76rem;
+    color: #64748b;
+  }
+
+  .pas-item-score {
+    margin: 0;
+    font-size: 0.76rem;
+    color: #0f766e;
+    font-weight: 700;
+  }
+
+  .pas-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: auto;
+  }
+
+  .pas-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+    font-size: 0.84rem;
+  }
+
+  .pas-table th,
+  .pas-table td {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.52rem 0.62rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .pas-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .pas-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.14rem 0.48rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+  }
+
+  .pas-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .pas-badge.submitted {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .pas-badge.graded {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .pas-empty {
+    padding: 1rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 1000px) {
+    .pas-filters,
+    .pas-stats,
+    .pas-cols {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .card-body {
+    overflow: none;
+    max-height: none;
+  }
+</style>
+
+<div class="card" id="parentAssignmentsPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-tasks"></i> Assignments</h3>
+  </div>
+
+  <div class="card-body pas-shell">
+    <div class="pas-head">
+      <p class="pas-sub">
+        Track pending, submitted, and graded assignments for your selected
+        child.
+      </p>
+      <button id="pasRefreshBtn" class="btn btn-outline btn-sm">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+    </div>
+
+    <div class="pas-filters">
+      <div class="pas-field">
+        <label for="pasChildSelector">Child</label>
+        <select id="pasChildSelector"></select>
+      </div>
+      <div class="pas-field">
+        <label for="pasStatusFilter">Status</label>
+        <select id="pasStatusFilter">
+          <option value="">All statuses</option>
+          <option value="pending">Pending</option>
+          <option value="submitted">Submitted</option>
+          <option value="graded">Graded</option>
+        </select>
+      </div>
+      <div class="pas-field">
+        <label for="pasSearchInput">Search</label>
+        <input
+          id="pasSearchInput"
+          type="text"
+          placeholder="Title or subject"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <div class="pas-stats">
+      <div class="pas-card">
+        <span class="k">Pending</span>
+        <span id="pasPendingCount" class="v">0</span>
+      </div>
+      <div class="pas-card">
+        <span class="k">Submitted</span>
+        <span id="pasSubmittedCount" class="v">0</span>
+      </div>
+      <div class="pas-card">
+        <span class="k">Graded</span>
+        <span id="pasGradedCount" class="v">0</span>
+      </div>
+      <div class="pas-card">
+        <span class="k">Completion Rate</span>
+        <span id="pasCompletionRate" class="v">0%</span>
+        <div class="pas-progress"><span id="pasCompletionBar"></span></div>
+      </div>
+    </div>
+
+    <div class="pas-cols">
+      <div class="pas-list">
+        <h4>Pending Assignments</h4>
+        <div id="pasPendingList" class="pas-items"></div>
+      </div>
+      <div class="pas-list">
+        <h4>Submitted Assignments</h4>
+        <div id="pasSubmittedList" class="pas-items"></div>
+      </div>
+      <div class="pas-list">
+        <h4>Graded Assignments</h4>
+        <div id="pasGradedList" class="pas-items"></div>
+      </div>
+    </div>
+
+    <div class="pas-table-wrap">
+      <table class="pas-table">
+        <thead>
+          <tr>
+            <th>Assignment</th>
+            <th>Subject</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Score</th>
+          </tr>
+        </thead>
+        <tbody id="pasTableBody">
+          <tr>
+            <td colspan="5" class="pas-empty">Loading assignments...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

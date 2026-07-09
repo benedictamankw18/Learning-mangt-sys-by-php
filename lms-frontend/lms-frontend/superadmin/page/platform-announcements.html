@@ -1,0 +1,1083 @@
+<!-- Platform-Wide Announcements Page -->
+<div class="announcements-page" id="platformAnnouncementsRoot">
+    <!-- Header Section -->
+    <div class="announcements-header">
+        <div class="announcements-header-content">
+            <h1>Platform Announcements</h1>
+            <p>Broadcast messages to all institutions and users across the platform</p>
+        </div>
+        <div class="announcements-header-actions">
+            <button id="annRefreshBtn" class="btn btn-sm btn-outline" title="Refresh announcements">
+                <i class="fas fa-sync"></i>
+                <span>Refresh</span>
+            </button>
+            <button id="annCreateBtn" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i>
+                <span>New Announcement</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="announcements-stats">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #e0f2fe;">
+                <i class="fas fa-bullhorn" style="color: #0369a1;"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statTotal">0</h3>
+                <p>Total Announcements</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #dcfce7;">
+                <i class="fas fa-check-circle" style="color: #16a34a;"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statPublished">0</h3>
+                <p>Published</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #fef3c7;">
+                <i class="fas fa-clock" style="color: #ca8a04;"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statDraft">0</h3>
+                <p>Drafts</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: #fee2e2;">
+                <i class="fas fa-chart-bar" style="color: #dc2626;"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="statReaches">0</h3>
+                <p>Total Reaches</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="announcements-filters">
+        <div class="filter-group">
+            <input
+                type="text"
+                id="annSearchInput"
+                class="filter-input"
+                placeholder="Search announcements..."
+            />
+        </div>
+        <div class="filter-group">
+            <select id="annStatusFilter" class="filter-select">
+                <option value="all">All Status</option>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+                <option value="scheduled">Scheduled</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <select id="annPriorityFilter" class="filter-select">
+                <option value="all">All Priorities</option>
+                <option value="urgent">Urgent</option>
+                <option value="normal">Normal</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Announcements Table -->
+    <div class="announcements-table-card">
+        <div class="table-wrapper">
+            <table class="announcements-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;"><i class="fas fa-heading"></i> Title & Content</th>
+                        <th style="width: 12%;">Status</th>
+                        <th style="width: 12%;">Priority</th>
+                        <th style="width: 15%;">Target</th>
+                        <th style="width: 12%;">Reach</th>
+                        <th style="width: 9%;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="annTableBody">
+                    <!-- Rows inserted here -->
+                </tbody>
+            </table>
+        </div>
+        <div id="annEmptyState" class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p>No announcements yet. <button id="annCreateEmptyBtn" class="btn-link">Create one</button></p>
+        </div>
+        <div id="annPagination" class="pagination-bar"></div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="annModalOverlay" class="modal-overlay">
+        <div class="modal-card">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <div>
+                    <h3 id="annModalTitle">New Platform Announcement</h3>
+                    <p id="annModalSubtitle">Broadcast to all institutions and users</p>
+                </div>
+                <button id="annModalClose" class="btn-close" title="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <!-- Title -->
+                <div class="form-group">
+                    <label for="annTitle">Title *</label>
+                    <input
+                        type="text"
+                        id="annTitle"
+                        class="form-input"
+                        placeholder="Enter announcement title"
+                        maxlength="200"
+                    />
+                    <small class="form-text">255 characters max</small>
+                </div>
+
+                <!-- Content -->
+                <div class="form-group">
+                    <label for="annContent">Message Content *</label>
+                    <textarea
+                        id="annContent"
+                        class="form-textarea"
+                        placeholder="Enter announcement message..."
+                        rows="6"
+                    ></textarea>
+                    <small class="form-text">Plain text or markdown</small>
+                </div>
+
+                <!-- Target Audience -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="annTargetRole">Target Audience *</label>
+                        <select id="annTargetRole" class="form-select">
+                            <option value="">-- Select Role --</option>
+                            <option value="all">All Users</option>
+                            <option value="admin">Admins</option>
+                            <option value="teacher">Teachers</option>
+                            <option value="student">Students</option>
+                            <option value="parent">Parents</option>
+                        </select>
+                        <small class="form-text">Who receives this announcement</small>
+                    </div>
+
+                    <!-- Priority -->
+                    <div class="form-group">
+                        <label for="annPriority">Priority</label>
+                        <select id="annPriority" class="form-select">
+                            <option value="normal">Normal</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                        <small class="form-text">Urgent shows special badge</small>
+                    </div>
+                </div>
+
+                <!-- Publishing Options -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="annPublishType">Publishing</label>
+                        <select id="annPublishType" class="form-select">
+                            <option value="draft">Save as Draft</option>
+                            <option value="now">Publish Now</option>
+                            <option value="schedule">Schedule for Later</option>
+                        </select>
+                    </div>
+
+                    <!-- Publish Date (conditionally shown) -->
+                    <div class="form-group" id="publishDateGroup" style="display: none;">
+                        <label for="annPublishDate">Publish Date & Time</label>
+                        <input
+                            type="datetime-local"
+                            id="annPublishDate"
+                            class="form-input"
+                        />
+                    </div>
+                </div>
+
+                <!-- Expiry Date -->
+                <div class="form-group">
+                    <label for="annExpiryDate">Expiry Date (Optional)</label>
+                    <input
+                        type="datetime-local"
+                        id="annExpiryDate"
+                        class="form-input"
+                    />
+                    <small class="form-text">Announcement will be archived after this date</small>
+                </div>
+
+                <!-- Attachments -->
+                <div class="form-group">
+                    <label for="annFieldFiles">Attachments</label>
+                    <div class="file-upload">
+                        <input
+                            type="file"
+                            id="annFieldFiles"
+                            class="file-input"
+                            multiple
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.png,.zip"
+                        />
+                        <div class="file-upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag files here or <button type="button" class="btn-link">click to browse</button></p>
+                            <small>Max 5 files, 10MB each</small>
+                        </div>
+                    </div>
+                    <div id="annPendingFilesList" class="pending-files-list"></div>
+                    <div id="annExistingFilesList" class="existing-files-list"></div>
+                </div>
+
+                <!-- Target Institutions (Platform-level) -->
+                <div class="form-group">
+                    <label for="annTargetInstitutions">Target Institutions</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="annAllInstitutions" checked />
+                            <span>All Institutions</span>
+                        </label>
+                    </div>
+                    <div id="annInstitutionsList" class="institutions-list" style="display: none;">
+                        <!-- Populated by JS -->
+                    </div>
+                    <small class="form-text">Leave checked to send to all institutions</small>
+                </div>
+
+                <!-- System Notification -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="annSendNotification" checked />
+                        <span>Send In-App Notifications</span>
+                    </label>
+                    <small class="form-text" id="annSendNotificationHelp">Targeted users will receive notifications when they next log in</small>
+                </div>
+
+                <!-- Info Message -->
+                <div class="info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Platform Announcements</strong>
+                        <p>This announcement will be broadcast to all targeted institutions. All users matching the target audience will see it.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button id="annModalCancel" class="btn btn-outline">Cancel</button>
+                <button id="annModalSave" class="btn btn-primary">Save Announcement</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Page Layout */
+    .announcements-page {
+        display: grid;
+        gap: 1.5rem;
+        padding: 0;
+    }
+
+    /* Header */
+    .announcements-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #f0f4f8;
+    }
+
+    .announcements-header-content h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .announcements-header-content p {
+        margin: 0.5rem 0 0;
+        color: #64748b;
+        font-size: 0.95rem;
+    }
+
+    .announcements-header-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* Stats */
+    .announcements-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    @media (max-width: 1200px) {
+        .announcements-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .announcements-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.2rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #0f172a;
+        font-weight: 700;
+    }
+
+    .stat-info p {
+        margin: 0.25rem 0 0;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    /* Filters */
+    .announcements-filters {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 900px) {
+        .announcements-filters {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .announcements-filters {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .filter-input,
+    .filter-select {
+        padding: 0.65rem 0.85rem;
+        border: 1px solid #dbe3ea;
+        border-radius: 8px;
+        background: white;
+        color: #0f172a;
+        font-size: 0.9rem;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .filter-input:focus,
+    .filter-select:focus {
+        border-color: #006a3f;
+        box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+    }
+
+    /* Table Card */
+    .announcements-table-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    .announcements-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+    }
+
+    .announcements-table th {
+        padding: 1rem;
+        background: #f8fafc;
+        border-bottom: 2px solid #e2e8f0;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #64748b;
+    }
+
+    .announcements-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .announcements-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .ann-title-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .ann-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    .ann-snippet {
+        color: #64748b;
+        font-size: 0.82rem;
+        margin: 0;
+        line-height: 1.4;
+        max-height: 2.2em;
+        overflow: hidden;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge.published {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge.draft {
+        background: #f1f5f9;
+        color: #334155;
+    }
+
+    .badge.scheduled {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge.urgent {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge.normal {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .target-badge {
+        background: #f3e8ff;
+        color: #7e22ce;
+        font-size: 0.73rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .reach-count {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .reach-label {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    /* Table Actions */
+    .table-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 0.4rem 0.65rem;
+        border: 1px solid #dbe3ea;
+        background: white;
+        color: #334155;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .action-btn:hover {
+        background: #f8fafc;
+    }
+
+    .action-btn.danger:hover {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    .action-btn i {
+        margin-right: 0.3rem;
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: none;
+        padding: 3rem 1rem;
+        text-align: center;
+        color: #64748b;
+    }
+
+    .empty-state i {
+        font-size: 2.5rem;
+        margin-bottom: 0.8rem;
+        display: block;
+        color: #cbd5e1;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    .pagination-bar {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem;
+        border-top: 1px solid #eef2f7;
+        background: #fff;
+        flex-wrap: wrap;
+    }
+
+    .page-btn {
+        min-width: 2.25rem;
+        padding: 0.5rem 0.8rem;
+        border: 1px solid #dbe3ea;
+        background: white;
+        color: #334155;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .page-btn:hover:not(:disabled) {
+        background: #f8fafc;
+    }
+
+    .page-btn.active {
+        background: #006a3f;
+        color: white;
+        border-color: #006a3f;
+    }
+
+    .page-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .page-ellipsis {
+        color: #94a3b8;
+        padding: 0 0.25rem;
+    }
+
+    .btn-link {
+        background: none;
+        border: none;
+        color: #006a3f;
+        cursor: pointer;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .btn-link:hover {
+        color: #065f46;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .modal-overlay.open {
+        display: flex;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+        width: 100%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #eef2f7;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #0f172a;
+    }
+
+    .modal-header p {
+        margin: 0.4rem 0 0;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        color: #64748b;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-close:hover {
+        color: #0f172a;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        flex: 1;
+        overflow-y: auto;
+        display: grid;
+        gap: 1.2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        padding: 0.7rem 0.85rem;
+        border: 1px solid #dbe3ea;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        border-color: #006a3f;
+        box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-input[type="datetime-local"] {
+        font-family: monospace;
+    }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-top: 0.2rem;
+    }
+
+    label {
+        font-weight: 600;
+        color: #0f172a;
+        font-size: 0.9rem;
+    }
+
+    /* File Upload */
+    .file-upload {
+        position: relative;
+    }
+
+    .file-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .file-upload-area {
+        border: 2px dashed #dbe3ea;
+        border-radius: 8px;
+        padding: 2rem 1rem;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .file-upload-area i {
+        font-size: 2rem;
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .file-upload-area p {
+        margin: 0.5rem 0;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .file-upload-area small {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 0.5rem;
+    }
+
+    .file-upload.drag-over .file-upload-area {
+        border-color: #006a3f;
+        background: #f0fdf4;
+    }
+
+    .file-upload.drag-over .file-upload-area i {
+        color: #006a3f;
+    }
+
+    .file-upload.drag-over .file-upload-area p {
+        color: #006a3f;
+    }
+
+    .pending-files-list {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .existing-files-list {
+        margin-top: 1rem;
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .existing-files-title {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 0.25rem 0 0;
+    }
+
+    .existing-file {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #eff6ff;
+        border-radius: 6px;
+        border: 1px solid #bfdbfe;
+        font-size: 0.85rem;
+    }
+
+    .existing-file i {
+        color: #2563eb;
+        flex-shrink: 0;
+    }
+
+    .existing-file-link {
+        flex: 1;
+        color: #0f172a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .existing-file-link:hover {
+        text-decoration: underline;
+    }
+
+    .existing-file-meta {
+        color: #64748b;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .pending-file {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.85rem;
+    }
+
+    .pending-file i {
+        color: #64748b;
+        flex-shrink: 0;
+    }
+
+    .pending-file-name {
+        flex: 1;
+        color: #0f172a;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pending-file-size {
+        color: #94a3b8;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .pending-file-remove {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .pending-file-remove:hover {
+        color: #b91c1c;
+    }
+
+    /* Checkboxes */
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+        font-weight: normal;
+        color: #334155;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #006a3f;
+    }
+
+    .institutions-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-top: 0.8rem;
+        padding: 0.8rem;
+        background: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Info Box */
+    .info-box {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 8px;
+        color: #0369a1;
+        font-size: 0.9rem;
+    }
+
+    .info-box i {
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+
+    .info-box strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        color: #0c4a6e;
+    }
+
+    .info-box p {
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Modal Footer */
+    .modal-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #eef2f7;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.65rem 1.2rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .btn-sm {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary {
+        background: #006a3f;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #065f46;
+    }
+
+    .btn-outline {
+        background: white;
+        border: 1px solid #dbe3ea;
+        color: #334155;
+    }
+
+    .btn-outline:hover {
+        background: #f8fafc;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+<style>
+    /* Simple dialog styles used by showConfirm/showAlert */
+    .simple-dialog-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+    }
+    .simple-dialog {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        width: 100%;
+        max-width: 520px;
+        box-shadow: 0 10px 30px rgba(2,6,23,0.2);
+    }
+    .simple-dialog-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #0f172a;
+    }
+    .simple-dialog-body {
+        color: #334155;
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+    }
+    .simple-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+    }
+</style>

@@ -1,0 +1,215 @@
+<style>
+  .institution-details-page {
+    padding: 1.5rem;
+  }
+
+  .instd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .instd-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-primary, #1e293b);
+  }
+
+  .instd-title p {
+    margin: 0.2rem 0 0;
+    color: var(--text-secondary, #64748b);
+    font-size: 0.86rem;
+  }
+
+  .instd-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .instd-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+
+  .instd-card-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .instd-card-body {
+    padding: 1rem;
+  }
+
+  .instd-profile {
+    grid-column: span 5;
+  }
+
+  .instd-subscription {
+    grid-column: span 7;
+  }
+
+  .instd-stats {
+    grid-column: span 12;
+  }
+
+  .instd-admins {
+    grid-column: span 6;
+  }
+
+  .instd-payments {
+    grid-column: span 6;
+  }
+
+  .instd-activity {
+    grid-column: span 12;
+  }
+
+  .instd-kv {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0.4rem 0.75rem;
+    font-size: 0.86rem;
+  }
+
+  .instd-kv div:nth-child(odd) {
+    color: #64748b;
+  }
+
+  .instd-kv div:nth-child(even) {
+    color: #0f172a;
+    font-weight: 500;
+    word-break: break-word;
+  }
+
+  .instd-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .instd-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: #fff;
+  }
+
+  .instd-stat .label {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .instd-stat .value {
+    margin-top: 0.2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .instd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+  }
+
+  .instd-table th,
+  .instd-table td {
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    padding: 0.55rem;
+  }
+
+  .instd-table th {
+    font-size: 0.78rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    background: #f8fafc;
+  }
+
+  .instd-muted {
+    color: #64748b;
+    font-size: 0.84rem;
+  }
+
+  @media (max-width: 1100px) {
+    .instd-profile,
+    .instd-subscription,
+    .instd-admins,
+    .instd-payments,
+    .instd-activity {
+      grid-column: span 12;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .instd-kv {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<section id="institutionDetailsPage" class="institution-details-page">
+  <div class="instd-header">
+    <div class="instd-title">
+      <h2 id="instdInstitutionName">Institution Details</h2>
+      <p id="instdSubtitle">Institution profile and operational overview</p>
+    </div>
+    <div>
+      <button class="btn btn-outline btn-sm" id="instdBackBtn">
+        <i class="fas fa-arrow-left"></i> Back to Institutions
+      </button>
+    </div>
+  </div>
+
+  <div class="instd-grid">
+    <article class="instd-card instd-profile">
+      <header class="instd-card-header">Institution Profile</header>
+      <div class="instd-card-body">
+        <div class="instd-kv" id="instdProfile"></div>
+      </div>
+    </article>
+
+    <article class="instd-card instd-subscription">
+      <header class="instd-card-header">Active Subscription</header>
+      <div class="instd-card-body">
+        <div class="instd-stat-grid" id="instdSubscription"></div>
+      </div>
+    </article>
+
+    <article class="instd-card instd-stats">
+      <header class="instd-card-header">
+        Statistics (Students, Teachers, Classes)
+      </header>
+      <div class="instd-card-body">
+        <div class="instd-stat-grid" id="instdStats"></div>
+      </div>
+    </article>
+
+    <article class="instd-card instd-admins">
+      <header class="instd-card-header">Admin Users</header>
+      <div class="instd-card-body" id="instdAdmins"></div>
+    </article>
+
+    <article class="instd-card instd-payments">
+      <header class="instd-card-header">Payment History</header>
+      <div class="instd-card-body" id="instdPayments"></div>
+    </article>
+
+    <article class="instd-card instd-activity">
+      <header class="instd-card-header">Activity Log</header>
+      <div class="instd-card-body" id="instdActivity"></div>
+    </article>
+  </div>
+</section>

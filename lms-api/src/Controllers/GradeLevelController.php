@@ -1,0 +1,314 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Utils\Response;
+use App\Utils\Validator;
+use App\Repositories\GradeLevelRepository;
+use App\Repositories\NotificationRepository;
+use App\Middleware\RoleMiddleware;
+
+class GradeLevelController
+{
+    private GradeLevelRepository $repo;
+    private NotificationRepository $notificationRepo;
+
+    public function __construct()
+    {
+        $this->repo = new GradeLevelRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    private function notifyAdminsForGradeLevelChange(int $institutionId, int $gradeLevelId, string $action): void
+    {
+        try {
+            if ($institutionId <= 0 || $gradeLevelId <= 0) {
+                return;
+            }
+
+            $this->notificationRepo->create([
+                'sender_id' => null,
+                'institution_id' => $institutionId,
+                'target_role' => 'admin',
+                'title' => 'Grade Level ' . ($action === 'created' ? 'Created' : 'Updated'),
+                'message' => 'Grade level was ' . $action . ' (ID: ' . $gradeLevelId . ').',
+                'notification_type' => 'grade_level_' . $action,
+                'link' => '/admin/dashboard.html#grade-level',
+            ]);
+        } catch (\Throwable $e) {
+            error_log('GradeLevelController::notifyAdminsForGradeLevelChange ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get all grade levels (with pagination)
+     */
+    public function index(array $user): void
+    {
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+        $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
+        $institutionId = isset($_GET['institution_id']) ? (int) $_GET['institution_id'] : null;
+
+        // Super admin can view all institutions' grade levels
+        if ($user['role'] !== 'super_admin' && !$institutionId) {
+            $institutionId = $user['institution_id'];
+        }
+
+        $gradeLevels = $this->repo->getAll($page, $limit, $institutionId);
+        $total = $this->repo->count($institutionId);
+
+        Response::success([
+            'data' => $gradeLevels,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $limit,
+                'total' => $total,
+                'total_pages' => ceil($total / $limit)
+            ],
+            'meta' => [
+                'next_level_order' => $this->repo->getNextLevelOrder((int) $institutionId)
+            ]
+        ]);
+    }
+
+    /**
+     * Get active grade levels only (ordered by level_order)
+     */
+    public function getActiveGradeLevels(array $user): void
+    {
+        $institutionId = $user['role'] === 'super_admin' && isset($_GET['institution_id'])
+            ? (int) $_GET['institution_id']
+            : $user['institution_id'];
+
+        $gradeLevels = $this->repo->getActiveGradeLevels($institutionId);
+
+        Response::success(['data' => $gradeLevels]);
+    }
+
+    /**
+     * Get a single grade level by ID
+     */
+    public function show(array $user, int $id): void
+    {
+        $gradeLevel = $this->repo->findById($id);
+
+        if (!$gradeLevel) {
+            Response::notFound('Grade level not found');
+            return;
+        }
+
+        // Check authorization
+        if ($user['role'] !== 'super_admin' && $gradeLevel['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this grade level');
+            return;
+        }
+
+        Response::success($gradeLevel);
+    }
+
+    /**
+     * Create a new grade level
+     */
+    public function create(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        // Set institution_id based on user role
+        if ($user['role'] !== 'super_admin') {
+            $data['institution_id'] = $user['institution_id'];
+        }
+
+        $validator = new Validator($data);
+        $validator->required(['institution_id', 'grade_level_code', 'grade_level_name', 'level_order'])
+            ->maxLength('grade_level_code', 20)
+            ->maxLength('grade_level_name', 50)
+            ->numeric('level_order');
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $gradeLevelCode = (string) $data['grade_level_code'];
+        $levelOrder = (int) $data['level_order'];
+
+        if ($this->repo->existsByCode($gradeLevelCode, (int) $data['institution_id'])) {
+            Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+            return;
+        }
+
+        if ($this->repo->existsByOrder($levelOrder, (int) $data['institution_id'])) {
+            Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+            return;
+        }
+
+        try {
+            $gradeLevelId = $this->repo->create($data);
+
+            if ($gradeLevelId) {
+                $this->notifyAdminsForGradeLevelChange((int) $data['institution_id'], (int) $gradeLevelId, 'created');
+                Response::success([
+                    'message' => 'Grade level created successfully',
+                    'grade_level_id' => $gradeLevelId
+                ], 201);
+            } else {
+                Response::serverError('Failed to create grade level');
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), '1062') !== false) {
+                if (strpos($e->getMessage(), 'unique_grade_code_institution') !== false) {
+                    Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+                } elseif (strpos($e->getMessage(), 'unique_grade_order_institution') !== false) {
+                    Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+                } else {
+                    Response::error('A duplicate grade level already exists in this institution.', 409);
+                }
+            } else {
+                error_log('GradeLevelController::create ' . $e->getMessage());
+                Response::serverError('Failed to create grade level');
+            }
+        }
+    }
+
+    /**
+     * Update an existing grade level
+     */
+    public function update(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
+            return;
+        }
+
+        $gradeLevel = $this->repo->findById($id);
+
+        if (!$gradeLevel) {
+            Response::notFound('Grade level not found');
+            return;
+        }
+
+        // Check authorization
+        if ($user['role'] !== 'super_admin' && $gradeLevel['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to update this grade level');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        if (isset($data['grade_level_code'])) {
+            $validator->maxLength('grade_level_code', 20);
+        }
+        if (isset($data['grade_level_name'])) {
+            $validator->maxLength('grade_level_name', 50);
+        }
+        if (isset($data['level_order'])) {
+            $validator->numeric('level_order');
+        }
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        $gradeLevelCode = array_key_exists('grade_level_code', $data) ? (string) $data['grade_level_code'] : (string) $gradeLevel['grade_level_code'];
+        $levelOrder = array_key_exists('level_order', $data) ? (int) $data['level_order'] : (int) $gradeLevel['level_order'];
+
+        if (array_key_exists('grade_level_code', $data) && $this->repo->existsByCode($gradeLevelCode, (int) $gradeLevel['institution_id'], $id)) {
+            Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+            return;
+        }
+
+        if (array_key_exists('level_order', $data) && $this->repo->existsByOrder($levelOrder, (int) $gradeLevel['institution_id'], $id)) {
+            Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+            return;
+        }
+
+        try {
+            $success = $this->repo->update($id, $data);
+
+            if ($success) {
+                $this->notifyAdminsForGradeLevelChange((int) $gradeLevel['institution_id'], (int) $id, 'updated');
+                Response::success(['message' => 'Grade level updated successfully']);
+            } else {
+                Response::serverError('Failed to update grade level');
+            }
+        } catch (\PDOException $e) {
+            if (strpos($e->getMessage(), '1062') !== false) {
+                if (strpos($e->getMessage(), 'unique_grade_code_institution') !== false) {
+                    Response::error('A grade level with code "' . $gradeLevelCode . '" already exists in this institution.', 409);
+                } elseif (strpos($e->getMessage(), 'unique_grade_order_institution') !== false) {
+                    Response::error('A grade level with order "' . $levelOrder . '" already exists in this institution.', 409);
+                } else {
+                    Response::error('A duplicate grade level already exists in this institution.', 409);
+                }
+            } else {
+                error_log('GradeLevelController::update ' . $e->getMessage());
+                Response::serverError('Failed to update grade level');
+            }
+        }
+    }
+
+    /**
+     * Delete a grade level
+     */
+    public function delete(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole(['admin', 'super_admin'])) {
+            return;
+        }
+
+        $gradeLevel = $this->repo->findById($id);
+
+        if (!$gradeLevel) {
+            Response::notFound('Grade level not found');
+            return;
+        }
+
+        // Check authorization
+        if ($user['role'] !== 'super_admin' && $gradeLevel['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to delete this grade level');
+            return;
+        }
+
+        $success = $this->repo->delete($id);
+
+        if ($success) {
+            Response::success(['message' => 'Grade level deleted successfully']);
+        } else {
+            Response::serverError('Failed to delete grade level');
+        }
+    }
+
+    /**
+     * Get classes for a specific grade level
+     */
+    public function getClasses(array $user, int $id): void
+    {
+        $gradeLevel = $this->repo->findById($id);
+
+        if (!$gradeLevel) {
+            Response::notFound('Grade level not found');
+            return;
+        }
+
+        // Check authorization
+        if ($user['role'] !== 'super_admin' && $gradeLevel['institution_id'] != $user['institution_id']) {
+            Response::forbidden('You do not have access to this grade level');
+            return;
+        }
+
+        $classes = $this->repo->getGradeLevelClasses($id);
+
+        Response::success(['data' => $classes]);
+    }
+}

@@ -1,0 +1,357 @@
+<style>
+  .ttb-shell {
+    display: grid;
+    gap: 1rem;
+  }
+  .ttb-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .ttb-title h3 {
+    margin: 0;
+    font-size: 1.06rem;
+    color: #0f172a;
+  }
+  .ttb-title p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+  .ttb-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .ttb-views {
+    display: inline-flex;
+    border: 1px solid #dbe4ef;
+    background: #f8fbff;
+    border-radius: 11px;
+    padding: 4px;
+    gap: 3px;
+    width: fit-content;
+  }
+  .ttb-view-btn {
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+  .ttb-view-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  }
+
+  .ttb-filters {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    align-items: end;
+  }
+  .ttb-filter {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .ttb-filter label {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .ttb-input {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    padding: 0.45rem 0.62rem;
+    color: #0f172a;
+    min-width: 170px;
+    background: #fff;
+  }
+  .ttb-input:focus {
+    outline: none;
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .ttb-semester {
+    border: 1px dashed #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  .ttb-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+  .ttb-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.8rem 0.9rem;
+  }
+  .ttb-stat h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #0f172a;
+  }
+  .ttb-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .ttb-range {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .ttb-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .ttb-day-col {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    min-height: 200px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+  }
+  .ttb-day-col.is-today {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+  }
+  .ttb-day-head {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid #eef2f7;
+    background: #f8fbff;
+  }
+  .ttb-day-head strong {
+    display: block;
+    font-size: 0.8rem;
+    color: #0f172a;
+  }
+  .ttb-day-head span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+  .ttb-day-body {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    padding: 0.55rem;
+  }
+
+  .ttb-entry {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.48rem 0.52rem;
+    background: #fcfdff;
+  }
+  .ttb-entry--today {
+    border-color: #38bdf8;
+    background: #f0f9ff;
+  }
+  .ttb-entry-time {
+    font-size: 0.72rem;
+    color: #0f766e;
+    font-weight: 800;
+    margin-bottom: 0.24rem;
+  }
+  .ttb-entry-subject {
+    font-size: 0.79rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.22rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .ttb-entry-meta {
+    font-size: 0.73rem;
+    color: #64748b;
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .ttb-subject-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    display: inline-block;
+    flex: 0 0 auto;
+  }
+
+  .ttb-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: auto;
+  }
+  .ttb-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+  }
+  .ttb-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: left;
+    padding: 0.62rem 0.7rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .ttb-table td {
+    color: #1e293b;
+    font-size: 0.83rem;
+    padding: 0.62rem 0.7rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .ttb-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .ttb-empty {
+    text-align: center;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.6rem 0.8rem;
+    background: #f8fafc;
+  }
+
+  .ttb-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 1180px) {
+    .ttb-week-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 780px) {
+    .ttb-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .ttb-week-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .sidebar,
+    .top-navbar,
+    .ttb-toolbar,
+    .ttb-filters,
+    .ttb-views,
+    .ttb-actions,
+    .ttb-semester,
+    .ttb-range {
+      display: none !important;
+    }
+    .ttb-day-col,
+    .ttb-entry,
+    .ttb-stat,
+    .ttb-table-wrap {
+      box-shadow: none !important;
+      break-inside: avoid;
+    }
+  }
+</style>
+
+<div class="card" id="teacherTimetablePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-calendar-week"></i> My Timetable</h3>
+  </div>
+  <div class="card-body ttb-shell">
+    <div class="ttb-toolbar">
+      <div class="ttb-title">
+        <h3>Personal Teaching Timetable</h3>
+        <p>Weekly, daily, and semester views for your assigned classes.</p>
+      </div>
+      <div class="ttb-actions">
+        <button class="btn btn-sm btn-outline" id="ttbRefreshBtn">
+          <i class="fas fa-rotate"></i> Refresh
+        </button>
+        <button class="btn btn-sm btn-outline" id="ttbExportBtn">
+          <i class="fas fa-file-pdf"></i> Export
+        </button>
+        <button class="btn btn-sm btn-outline" id="ttbSyncBtn">
+          <i class="fas fa-calendar-plus"></i> Sync (.ics)
+        </button>
+      </div>
+    </div>
+
+    <div class="ttb-views" id="ttbViewTabs">
+      <button class="ttb-view-btn active" type="button" data-view="weekly">
+        Weekly
+      </button>
+      <button class="ttb-view-btn" type="button" data-view="daily">
+        Daily
+      </button>
+      <button class="ttb-view-btn" type="button" data-view="semester">
+        Semester
+      </button>
+    </div>
+
+    <div class="ttb-filters">
+      <div class="ttb-filter" id="ttbWeekFilterWrap">
+        <label for="ttbWeekFilter">Week Filter</label>
+        <input class="ttb-input" type="week" id="ttbWeekFilter" />
+      </div>
+      <div class="ttb-filter ttb-hidden" id="ttbDateFilterWrap">
+        <label for="ttbDateFilter">Day Filter</label>
+        <input class="ttb-input" type="date" id="ttbDateFilter" />
+      </div>
+      <div class="ttb-semester" id="ttbSemesterLabel">Semester: Loading...</div>
+    </div>
+
+    <div class="ttb-stats">
+      <div class="ttb-stat">
+        <h4 id="ttbTotalSessions">0</h4>
+        <p>Sessions</p>
+      </div>
+      <div class="ttb-stat">
+        <h4 id="ttbTotalSubjects">0</h4>
+        <p>Subjects</p>
+      </div>
+      <div class="ttb-stat">
+        <h4 id="ttbTotalClasses">0</h4>
+        <p>Classes</p>
+      </div>
+      <div class="ttb-stat">
+        <h4 id="ttbTodayCount">0</h4>
+        <p>Today</p>
+      </div>
+    </div>
+
+    <div class="ttb-range" id="ttbRangeInfo"></div>
+
+    <div id="ttbContentArea"></div>
+  </div>
+</div>

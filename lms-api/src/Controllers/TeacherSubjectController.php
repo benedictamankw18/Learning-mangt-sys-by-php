@@ -1,0 +1,229 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Utils\Response;
+use App\Utils\Validator;
+use App\Repositories\TeacherSubjectRepository;
+use App\Repositories\TeacherRepository;
+use App\Repositories\SubjectRepository;
+use App\Repositories\NotificationRepository;
+use App\Middleware\RoleMiddleware;
+
+class TeacherSubjectController
+{
+    private TeacherSubjectRepository $teacherSubjectRepo;
+    private TeacherRepository $teacherRepo;
+    private SubjectRepository $subjectRepo;
+    private NotificationRepository $notificationRepo;
+
+    public function __construct()
+    {
+        $this->teacherSubjectRepo = new TeacherSubjectRepository();
+        $this->teacherRepo = new TeacherRepository();
+        $this->subjectRepo = new SubjectRepository();
+        $this->notificationRepo = new NotificationRepository();
+    }
+
+    public function getTeacherSubjects(array $user, string $teacherId): void
+    {
+        // Accept both UUID string and numeric teacher_id
+        $teacher = is_numeric($teacherId)
+            ? $this->teacherRepo->findById((int)$teacherId)
+            : $this->teacherRepo->findByUuid($teacherId);
+
+        if (!$teacher) {
+            Response::notFound('Teacher not found');
+            return;
+        }
+
+        $subjects = $this->teacherSubjectRepo->getTeacherSubjects((int)$teacher['teacher_id']);
+        Response::success($subjects);
+    }
+
+    public function getSubjectTeachers(array $user, string $subjectId): void
+    {
+        // Accept both UUID string and numeric subject_id
+        $subject = is_numeric($subjectId)
+            ? $this->subjectRepo->findById((int)$subjectId)
+            : $this->subjectRepo->findByUuid($subjectId);
+
+        if (!$subject) {
+            Response::notFound('Subject not found');
+            return;
+        }
+
+        $teachers = $this->teacherSubjectRepo->getSubjectTeachers((int)$subject['subject_id']);
+        Response::success($teachers);
+    }
+
+    public function show(array $user, int $id): void
+    {
+        $teacherSubject = $this->teacherSubjectRepo->findById($id);
+
+        if (!$teacherSubject) {
+            Response::notFound('Teacher-Subject assignment not found');
+            return;
+        }
+
+        Response::success($teacherSubject);
+    }
+
+    public function create(array $user): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('admin')) {
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        $validator->required(['teacher_id', 'subject_id']);
+
+        if (isset($data['assigned_date'])) {
+            $validator->date('assigned_date');
+        }
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        // Resolve teacher (UUID or numeric)
+        $teacherIdRaw = $data['teacher_id'];
+        $teacher = is_numeric($teacherIdRaw)
+            ? $this->teacherRepo->findById((int)$teacherIdRaw)
+            : $this->teacherRepo->findByUuid((string)$teacherIdRaw);
+        if (!$teacher) {
+            Response::notFound('Teacher not found');
+            return;
+        }
+        $data['teacher_id'] = (int)$teacher['teacher_id'];
+
+        // Resolve subject (UUID or numeric)
+        $subjectIdRaw = $data['subject_id'];
+        $subject = is_numeric($subjectIdRaw)
+            ? $this->subjectRepo->findById((int)$subjectIdRaw)
+            : $this->subjectRepo->findByUuid((string)$subjectIdRaw);
+        if (!$subject) {
+            Response::notFound('Subject not found');
+            return;
+        }
+        $data['subject_id'] = (int)$subject['subject_id'];
+
+        // Check if assignment already exists
+        if ($this->teacherSubjectRepo->assignmentExists($data['teacher_id'], $data['subject_id'])) {
+            Response::validationError(['message' => 'This teacher is already assigned to this subject']);
+            return;
+        }
+
+        $assignmentId = $this->teacherSubjectRepo->create($data);
+
+        if ($assignmentId) {
+            // Notify the teacher that they were assigned
+            try {
+                $teacherUserId = (int) ($teacher['user_id'] ?? 0);
+                if ($teacherUserId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                        'institution_id' => (int) ($teacher['institution_id'] ?? ($user['institution_id'] ?? 0)),
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'title' => 'Subject Assigned',
+                        'message' => 'You have been assigned to teach ' . ($subject['subject_name'] ?? 'a subject') . '.',
+                        'notification_type' => 'teacher_subject_assigned',
+                        'link' => '/teacher/dashboard.html#my-subjects',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                error_log('TeacherSubjectController::notify assign ' . $e->getMessage());
+            }
+            Response::success([
+                'message' => 'Teacher-Subject assignment created successfully',
+                'teacher_subject_id' => $assignmentId
+            ], 201);
+        } else {
+            Response::serverError('Failed to create assignment');
+        }
+    }
+
+    public function update(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('admin')) {
+            return;
+        }
+
+        $teacherSubject = $this->teacherSubjectRepo->findById($id);
+
+        if (!$teacherSubject) {
+            Response::notFound('Teacher-Subject assignment not found');
+            return;
+        }
+
+        $data = json_decode(file_get_contents('php://input'), true);
+
+        $validator = new Validator($data);
+        if (isset($data['assigned_date'])) {
+            $validator->date('assigned_date');
+        }
+
+        if ($validator->fails()) {
+            Response::validationError($validator->getErrors());
+            return;
+        }
+
+        if ($this->teacherSubjectRepo->update($id, $data)) {
+            Response::success(['message' => 'Teacher-Subject assignment updated successfully']);
+        } else {
+            Response::serverError('Failed to update assignment');
+        }
+    }
+
+    public function delete(array $user, int $id): void
+    {
+        $roleMiddleware = new RoleMiddleware($user);
+
+        if (!$roleMiddleware->requireRole('admin')) {
+            return;
+        }
+
+        $teacherSubject = $this->teacherSubjectRepo->findById($id);
+
+        if (!$teacherSubject) {
+            Response::notFound('Teacher-Subject assignment not found');
+            return;
+        }
+
+        if ($this->teacherSubjectRepo->delete($id)) {
+            try {
+                $teacherUserId = (int) ($teacherSubject['user_id'] ?? 0);
+                $subjectName = '';
+                if (!empty($teacherSubject['subject_id'])) {
+                    $s = $this->subjectRepo->findById((int) $teacherSubject['subject_id']);
+                    $subjectName = $s['subject_name'] ?? '';
+                }
+                if ($teacherUserId > 0) {
+                    $this->notificationRepo->create([
+                        'sender_id' => (int) ($user['user_id'] ?? 0) ?: null,
+                        'institution_id' => (int) ($teacherSubject['institution_id'] ?? ($user['institution_id'] ?? 0)),
+                        'user_id' => $teacherUserId,
+                        'target_role' => 'teacher',
+                        'title' => 'Subject Unassigned',
+                        'message' => 'You have been unassigned from ' . ($subjectName ?: 'a subject') . '.',
+                        'notification_type' => 'teacher_subject_unassigned',
+                        'link' => '/teacher/dashboard.html#my-subjects',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                error_log('TeacherSubjectController::notify unassign ' . $e->getMessage());
+            }
+            Response::success(['message' => 'Teacher-Subject assignment deleted successfully']);
+        } else {
+            Response::serverError('Failed to delete assignment');
+        }
+    }
+}

@@ -1,0 +1,373 @@
+<style>
+  .stt-shell {
+    display: grid;
+    gap: 1rem;
+  }
+  .stt-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .stt-title h3 {
+    margin: 0;
+    font-size: 1.06rem;
+    color: #0f172a;
+  }
+  .stt-title p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+  .stt-actions {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .stt-views {
+    display: inline-flex;
+    border: 1px solid #dbe4ef;
+    background: #f8fbff;
+    border-radius: 11px;
+    padding: 4px;
+    gap: 3px;
+    width: fit-content;
+  }
+  .stt-view-btn {
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+  }
+  .stt-view-btn.active {
+    background: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
+  }
+
+  .stt-filters {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    align-items: end;
+  }
+  .stt-filter {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .stt-filter label {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .stt-input {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    padding: 0.45rem 0.62rem;
+    color: #0f172a;
+    min-width: 170px;
+    background: #fff;
+  }
+  .stt-input:focus {
+    outline: none;
+    border-color: #3090cf;
+    box-shadow: 0 0 0 3px rgba(48, 144, 207, 0.15);
+  }
+
+  .stt-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+  .stt-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.8rem 0.9rem;
+  }
+  .stt-stat h4 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #0f172a;
+  }
+  .stt-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+
+  .stt-range {
+    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .stt-week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .stt-day-col {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    min-height: 220px;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: hidden;
+  }
+  .stt-day-col.is-today {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  }
+  .stt-day-head {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid #eef2f7;
+    background: #f8fbff;
+  }
+  .stt-day-head strong {
+    display: block;
+    font-size: 0.8rem;
+    color: #0f172a;
+  }
+  .stt-day-head span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+  .stt-day-body {
+    display: grid;
+    gap: 0.45rem;
+    align-content: start;
+    padding: 0.55rem;
+  }
+
+  .stt-entry {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.48rem 0.52rem;
+    background: #fcfdff;
+    position: relative;
+  }
+  .stt-entry--current {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+  .stt-entry--next {
+    border-color: #f59e0b;
+    background: #fffbeb;
+  }
+  .stt-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 0.64rem;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 0.1rem 0.4rem;
+  }
+  .stt-badge.current {
+    color: #1d4ed8;
+    background: #dbeafe;
+  }
+  .stt-badge.next {
+    color: #b45309;
+    background: #fef3c7;
+  }
+  .stt-entry-time {
+    font-size: 0.72rem;
+    color: #0f766e;
+    font-weight: 800;
+    margin-bottom: 0.24rem;
+  }
+  .stt-entry-subject {
+    font-size: 0.79rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 0.22rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .stt-entry-meta {
+    font-size: 0.73rem;
+    color: #64748b;
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .stt-subject-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    display: inline-block;
+    flex: 0 0 auto;
+  }
+
+  .stt-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: auto;
+  }
+  .stt-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+  }
+  .stt-table th {
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: left;
+    padding: 0.62rem 0.7rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .stt-table td {
+    color: #1e293b;
+    font-size: 0.83rem;
+    padding: 0.62rem 0.7rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .stt-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .stt-empty {
+    text-align: center;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.6rem 0.8rem;
+    background: #f8fafc;
+  }
+
+  .stt-hidden {
+    display: none !important;
+  }
+
+  @media (max-width: 1180px) {
+    .stt-week-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 780px) {
+    .stt-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stt-week-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .sidebar,
+    .top-navbar,
+    .stt-toolbar,
+    .stt-filters,
+    .stt-views,
+    .stt-actions,
+    .stt-range {
+      display: none !important;
+    }
+    .stt-day-col,
+    .stt-entry,
+    .stt-stat,
+    .stt-table-wrap {
+      box-shadow: none !important;
+      break-inside: avoid;
+    }
+  }
+</style>
+
+<div class="card" id="studentTimetablePageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-calendar-week"></i> My Timetable</h3>
+  </div>
+  <div class="card-body stt-shell">
+    <div class="stt-toolbar">
+      <div class="stt-title">
+        <h3>Class Timetable</h3>
+        <p>
+          Weekly, daily, and semester views with current and next class
+          indicators.
+        </p>
+      </div>
+      <div class="stt-actions">
+        <button class="btn btn-sm btn-outline" id="sttRefreshBtn">
+          <i class="fas fa-rotate"></i> Refresh
+        </button>
+        <button class="btn btn-sm btn-outline" id="sttExportPdfBtn">
+          <i class="fas fa-file-pdf"></i> Export PDF
+        </button>
+        <button class="btn btn-sm btn-outline" id="sttExportCsvBtn">
+          <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+        <button class="btn btn-sm btn-outline" id="sttSyncBtn">
+          <i class="fas fa-calendar-plus"></i> Sync (.ics)
+        </button>
+      </div>
+    </div>
+
+    <div class="stt-views" id="sttViewTabs">
+      <button class="stt-view-btn active" type="button" data-view="weekly">
+        Weekly
+      </button>
+      <button class="stt-view-btn" type="button" data-view="daily">
+        Daily
+      </button>
+      <button class="stt-view-btn" type="button" data-view="semester">
+        Semester
+      </button>
+    </div>
+
+    <div class="stt-filters">
+      <div class="stt-filter" id="sttWeekFilterWrap">
+        <label for="sttWeekFilter">Week Filter</label>
+        <input class="stt-input" type="week" id="sttWeekFilter" />
+      </div>
+      <div class="stt-filter stt-hidden" id="sttDateFilterWrap">
+        <label for="sttDateFilter">Day Filter</label>
+        <input class="stt-input" type="date" id="sttDateFilter" />
+      </div>
+    </div>
+
+    <div class="stt-stats">
+      <div class="stt-stat">
+        <h4 id="sttTotalSessions">0</h4>
+        <p>Sessions</p>
+      </div>
+      <div class="stt-stat">
+        <h4 id="sttTodayCount">0</h4>
+        <p>Today</p>
+      </div>
+      <div class="stt-stat">
+        <h4 id="sttCurrentClass">-</h4>
+        <p>Current Class</p>
+      </div>
+      <div class="stt-stat">
+        <h4 id="sttNextClass">-</h4>
+        <p>Next Class</p>
+      </div>
+    </div>
+
+    <div class="stt-range" id="sttRangeInfo"></div>
+
+    <div id="sttContentArea"></div>
+  </div>
+</div>

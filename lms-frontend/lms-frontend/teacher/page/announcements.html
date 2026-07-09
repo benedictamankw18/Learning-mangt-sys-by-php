@@ -1,0 +1,217 @@
+<style>
+  .taa-wrap { display: grid; gap: 1rem;padding: 1rem; }
+  .taa-toolbar { display: flex; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; align-items: flex-start; }
+  .taa-toolbar h2 { margin: 0; font-size: 1.45rem; color: #0f172a; }
+  .taa-toolbar p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
+  .taa-toolbar-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .taa-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.9rem; }
+  @media (max-width: 1000px) { .taa-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .taa-stats { grid-template-columns: 1fr; } }
+  .taa-stat, .taa-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06); }
+  .taa-stat { display: flex; align-items: center; gap: 0.8rem; padding: 0.95rem 1rem; }
+  .taa-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; flex-shrink: 0; }
+  .taa-stat h3 { margin: 0; font-size: 1.35rem; color: #0f172a; }
+  .taa-stat p { margin: 0.15rem 0 0; font-size: 0.78rem; color: #64748b; }
+
+  .taa-filters { display: grid; grid-template-columns: minmax(240px, 1fr) 170px 170px; gap: 0.65rem; padding: 1rem; border-bottom: 1px solid #eef2f7; background: linear-gradient(180deg, #f8fafc, #fff); }
+  @media (max-width: 900px) { .taa-filters { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .taa-filters { grid-template-columns: 1fr; } }
+  .taa-input, .taa-select, .taa-textarea { width: 100%; border: 1px solid #dbe3ea; border-radius: 10px; background: #fff; color: #0f172a; box-sizing: border-box; outline: none; }
+  .taa-input, .taa-select { padding: 0.58rem 0.72rem; font-size: 0.88rem; }
+  .taa-textarea { min-height: 130px; padding: 0.72rem; resize: vertical; font-size: 0.9rem; }
+  .taa-input:focus, .taa-select:focus, .taa-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08); }
+
+  .taa-table-wrap { overflow: auto; }
+  .taa-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+  .taa-table th, .taa-table td { border-bottom: 1px solid #eef2f7; padding: 0.8rem 0.9rem; text-align: left; vertical-align: top; }
+  .taa-table th { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; background: #f8fafc; position: sticky; top: 0; z-index: 1; }
+  .taa-title { margin: 0; font-size: 0.92rem; font-weight: 700; color: #0f172a; }
+  .taa-snippet { margin: 0.2rem 0 0; font-size: 0.82rem; color: #475569; line-height: 1.45; }
+  .taa-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 0.2rem 0.55rem; font-size: 0.73rem; font-weight: 700; line-height: 1; }
+  .taa-chip.school { background: #dbeafe; color: #1d4ed8; }
+  .taa-chip.class { background: #ede9fe; color: #6d28d9; }
+  .taa-chip.normal { background: #e0f2fe; color: #0369a1; }
+  .taa-chip.urgent { background: #fee2e2; color: #991b1b; }
+  .taa-chip.published { background: #dcfce7; color: #166534; }
+  .taa-chip.draft { background: #f1f5f9; color: #334155; }
+  .taa-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  .taa-btn { border: 1px solid #dbe3ea; background: #fff; color: #334155; border-radius: 9px; padding: 0.38rem 0.55rem; font-size: 0.75rem; cursor: pointer; }
+  .taa-btn:hover { background: #f8fafc; }
+  .taa-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+  .taa-btn.primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .taa-btn.primary:hover { background: #1d4ed8; }
+
+  .taa-empty { padding: 2rem 1rem; text-align: center; color: #64748b; }
+  .taa-empty i { font-size: 2rem; margin-bottom: 0.45rem; display: block; }
+
+  .taa-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 3000; padding: 1rem; }
+  .taa-modal.open { display: flex; }
+  .taa-modal-card { width: min(820px, 100%); max-height: 92vh; overflow: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 22px 60px rgba(15, 23, 42, 0.28); }
+  .taa-modal-head { padding: 0.95rem 1rem; border-bottom: 1px solid #eef2f7; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .taa-modal-head h3 { margin: 0; color: #0f172a; font-size: 1.05rem; }
+  .taa-modal-head p { margin: 0.15rem 0 0; color: #64748b; font-size: 0.78rem; }
+  .taa-modal-body { padding: 1rem; display: grid; gap: 0.85rem; }
+  .taa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 700px) { .taa-grid { grid-template-columns: 1fr; } }
+  .taa-label { display: block; margin-bottom: 0.28rem; font-size: 0.76rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .taa-hint { margin: 0.15rem 0 0; font-size: 0.75rem; color: #64748b; }
+  .taa-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; border-radius: 10px; padding: 0.6rem 0.7rem; font-size: 0.78rem; }
+  .taa-class-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; }
+  .taa-class-option { border: 1px solid #dbe3ea; border-radius: 10px; padding: 0.55rem 0.7rem; display: flex; align-items: flex-start; gap: 0.5rem; background: #fff; }
+  .taa-class-option input { margin-top: 0.2rem; }
+  .taa-class-option strong { display: block; font-size: 0.82rem; color: #0f172a; }
+  .taa-class-option span { display: block; font-size: 0.73rem; color: #64748b; }
+  .taa-file-list { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.4rem; }
+  .taa-file-chip { background: #f1f5f9; color: #334155; border: 1px solid #dbe3ea; border-radius: 999px; padding: 0.2rem 0.5rem; font-size: 0.72rem; }
+  .taa-modal-foot { display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0 1rem 1rem; flex-wrap: wrap; }
+</style>
+
+<div id="teacherAnnouncementsRoot">
+  <div class="taa-wrap">
+    <div class="taa-toolbar">
+      <div>
+        <h2>Announcements</h2>
+        <p>Share class updates, review school announcements, and manage your own posts.</p>
+      </div>
+      <div class="taa-toolbar-actions">
+        <button class="btn-secondary" id="taaRefreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+        <button class="btn-primary" id="taaCreateBtn" type="button"><i class="fas fa-plus"></i> New Announcement</button>
+      </div>
+    </div>
+
+    <div class="taa-stats">
+      <div class="taa-stat">
+        <div class="taa-stat-icon" style="background:linear-gradient(135deg,#2563eb,#1d4ed8)"><i class="fas fa-bullhorn"></i></div>
+        <div><h3 id="taaStatTotal">0</h3><p>Visible announcements</p></div>
+      </div>
+      <div class="taa-stat">
+        <div class="taa-stat-icon" style="background:linear-gradient(135deg,#0f766e,#166534)"><i class="fas fa-school"></i></div>
+        <div><h3 id="taaStatSchool">0</h3><p>School announcements</p></div>
+      </div>
+      <div class="taa-stat">
+        <div class="taa-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#5b21b6)"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div><h3 id="taaStatTeacher">0</h3><p>Teacher announcements</p></div>
+      </div>
+      <div class="taa-stat">
+        <div class="taa-stat-icon" style="background:linear-gradient(135deg,#dc2626,#991b1b)"><i class="fas fa-chalkboard"></i></div>
+        <div><h3 id="taaStatClass">0</h3><p>Class announcements</p></div>
+      </div>
+      <div class="taa-stat">
+        <div class="taa-stat-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)"><i class="fas fa-eye"></i></div>
+        <div><h3 id="taaStatReads">0</h3><p>Total reads</p></div>
+      </div>
+    </div>
+
+    <div class="taa-card">
+      <div class="taa-filters">
+        <input id="taaSearchInput" class="taa-input" type="search" placeholder="Search announcements..." />
+        <select id="taaScopeFilter" class="taa-select">
+          <option value="all">All visible</option>
+          <option value="school">School only</option>
+          <option value="teacher">Teacher only</option>
+          <option value="class">My classes</option>
+          <option value="mine">My announcements</option>
+        </select>
+        <select id="taaStatusFilter" class="taa-select">
+          <option value="all">All status</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+        </select>
+      </div>
+
+      <div class="taa-table-wrap">
+        <table class="taa-table">
+          <thead>
+            <tr>
+              <th>Announcement</th>
+              <th>Audience</th>
+              <th>Priority</th>
+              <th>Schedule</th>
+              <th>Status</th>
+              <th>Reads</th>
+              <th style="width: 240px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="taaTableBody">
+            <tr>
+              <td colspan="7">
+                <div class="taa-empty"><i class="fas fa-spinner fa-spin"></i>Loading announcements...</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="taa-modal" id="taaModalOverlay">
+    <div class="taa-modal-card">
+      <div class="taa-modal-head">
+        <div>
+          <h3 id="taaModalTitle">New Announcement</h3>
+          <p>Create a class announcement for the students you teach.</p>
+        </div>
+        <button class="taa-btn" id="taaModalClose" type="button"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="taa-modal-body">
+        <div>
+          <label class="taa-label" for="taaFieldTitle">Title</label>
+          <input id="taaFieldTitle" class="taa-input" type="text" maxlength="200" placeholder="Announcement title" />
+        </div>
+
+        <div>
+          <label class="taa-label" for="taaFieldContent">Content</label>
+          <textarea id="taaFieldContent" class="taa-textarea" placeholder="Write the message body..."></textarea>
+        </div>
+
+        <div>
+          <label class="taa-label">Target Classes</label>
+          <div id="taaClassList" class="taa-class-list"></div>
+          <p class="taa-hint">Select one or more classes from your teaching load.</p>
+        </div>
+
+        <div class="taa-grid">
+          <div>
+            <label class="taa-label" for="taaFieldPriority">Priority</label>
+            <select id="taaFieldPriority" class="taa-select">
+              <option value="normal">Normal</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="taa-label" for="taaFieldPublished">Published</label>
+            <select id="taaFieldPublished" class="taa-select">
+              <option value="0">Draft</option>
+              <option value="1">Published</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="taa-grid">
+          <div>
+            <label class="taa-label" for="taaFieldExpiryDate">Expiry Date</label>
+            <input id="taaFieldExpiryDate" class="taa-input" type="datetime-local" />
+          </div>
+
+          <div>
+            <label class="taa-label" for="taaFieldFiles">Attach Files</label>
+            <input id="taaFieldFiles" class="taa-input" type="file" multiple />
+            <div id="taaFileList" class="taa-file-list"></div>
+          </div>
+        </div>
+
+        <div class="taa-warning" id="taaFormError" style="display:none"></div>
+      </div>
+
+      <div class="taa-modal-foot">
+        <button class="taa-btn" id="taaModalCancel" type="button">Cancel</button>
+        <button class="taa-btn primary" id="taaModalSave" type="button">Save Announcement</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/announcements.js?v=20260504"></script>
+</div>

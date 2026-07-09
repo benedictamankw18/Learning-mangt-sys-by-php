@@ -1,0 +1,521 @@
+<!-- ===================================================
+     Programs Management Page Fragment
+     Loaded into admin dashboard via hash routing (#departments).
+     JS handled by admin/js/departments.js
+==================================================== -->
+<style>
+/* ── Programs page ──────────────────────────────────── */
+.prog-page { padding: 0; }
+
+.prog-page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+}
+.prog-page-header h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary, #1e293b); margin: 0 0 .25rem; }
+.prog-page-header p  { color: var(--text-secondary, #64748b); font-size: .875rem; margin: 0; }
+.prog-header-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+
+/* Stats */
+.prog-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+@media (max-width: 1024px) { .prog-stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .prog-stats { grid-template-columns: 1fr; } }
+
+.prog-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    transition: box-shadow 0.2s;
+}
+.prog-stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.prog-stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.prog-stat-icon i { font-size: 1.2rem; color: #fff; }
+.prog-stat-info h3 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0 0 0.2rem 0; }
+.prog-stat-info p  { font-size: 0.8rem; color: var(--text-secondary,#64748b); margin: 0; }
+
+/* Toolbar */
+.prog-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.prog-toolbar-left  { display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    /* flex: 1; */
+    flex-direction: row; }
+.prog-toolbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+.prog-search-wrap { position: relative; min-width: 220px; }
+.prog-search-wrap i {
+    position: absolute; left: 0.75rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.85rem; pointer-events: none;
+}
+.prog-search-wrap input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.1rem;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.875rem; background: #fff; outline: none;
+    color: var(--text-primary, #1e293b);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.prog-search-wrap input:focus { border-color: var(--primary, #006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+
+.prog-filter-select {
+    padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.875rem; background: #fff; outline: none; cursor: pointer;
+    color: var(--text-primary, #1e293b); min-width: 130px;
+}
+.prog-filter-select:focus { border-color: var(--primary, #006a3f); }
+
+/* Table */
+.prog-table-wrap {
+    background: #fff; border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+.prog-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.prog-table thead tr { background: #f8fafc; }
+.prog-table th {
+    padding: 0.75rem 1rem; text-align: left;
+    font-weight: 600; color: var(--text-secondary, #64748b);
+    font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; white-space: nowrap;
+}
+.prog-table td {
+    padding: 0.85rem 1rem; color: var(--text-primary, #1e293b);
+    border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+}
+.prog-table tbody tr:last-child td { border-bottom: none; }
+.prog-table tbody tr:hover { background: #f8fafc; }
+
+/* Program cell */
+.prog-cell { display: flex; align-items: center; gap: 0.75rem; }
+.prog-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; color: #fff; flex-shrink: 0;
+}
+.prog-details { min-width: 0; }
+.prog-details strong { font-weight: 600; color: var(--text-primary,#1e293b); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-details span   { font-size: 0.75rem; color: var(--text-secondary,#64748b); }
+
+/* Status badges */
+.prog-status-badge {
+    display: inline-block; padding: 0.25rem 0.625rem;
+    border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+}
+.prog-status-active   { background: #dcfce7; color: #15803d; }
+.prog-status-inactive { background: #fef9c3; color: #854d0e; }
+
+/* Class count badge */
+.prog-class-count {
+    display: inline-block; padding: 0.2rem 0.6rem;
+    background: #eff6ff; color: #1d4ed8;
+    border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+}
+
+/* Row actions */
+.prog-actions { display: flex; gap: 0.3rem; align-items: center; }
+.prog-actions button {
+    width: 30px; height: 30px; border-radius: 6px;
+    border: 1px solid #e2e8f0; background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; color: var(--text-secondary, #64748b);
+    transition: all 0.15s;
+}
+.prog-actions button:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.prog-actions .btn-edit:hover   { color: #059669; border-color: #6ee7b7; background: #ecfdf5; }
+.prog-actions .btn-delete:hover { color: #ef4444; border-color: #fca5a5; background: #fef2f2; }
+
+/* Table footer / pagination */
+.prog-table-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.875rem 1rem; border-top: 1px solid #e2e8f0;
+    background: #f8fafc; font-size: 0.8rem;
+    color: var(--text-secondary, #64748b); flex-wrap: wrap; gap: 0.5rem;
+}
+.prog-pagination { display: flex; gap: 0.25rem; align-items: center; }
+.prog-pagination button {
+    min-width: 32px; height: 32px; padding: 0 0.5rem;
+    border: 1px solid #e2e8f0; background: #fff; border-radius: 6px;
+    cursor: pointer; font-size: 0.8rem; color: var(--text-secondary, #64748b);
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+}
+.prog-pagination button:hover  { background: #f1f5f9; border-color: #cbd5e1; }
+.prog-pagination button.active { background: var(--primary, #006a3f); border-color: var(--primary, #006a3f); color: #fff; font-weight: 600; }
+.prog-pagination button:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* Modal */
+.prog-modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 2000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s; overflow-y: auto;
+}
+.prog-modal-overlay.open { opacity: 1; pointer-events: all; }
+.prog-modal {
+    background: #fff; border-radius: 16px;
+    width: 100%; max-width: 560px; max-height: 92vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    transform: translateY(16px); transition: transform 0.2s; margin: auto;
+}
+.prog-modal-overlay.open .prog-modal { transform: translateY(0); }
+.prog-modal-header {
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: #fff; z-index: 1;
+    border-radius: 16px 16px 0 0;
+}
+.prog-modal-header h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary,#1e293b); margin: 0; }
+.prog-modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: none; background: #f1f5f9; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary,#64748b); font-size: 0.9rem; transition: all 0.15s;
+}
+.prog-modal-close:hover { background: #e2e8f0; color: var(--text-primary,#1e293b); }
+.prog-modal-body { padding: 1.5rem; }
+.prog-modal-footer {
+    padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0;
+    display: flex; justify-content: flex-end; gap: 0.75rem;
+    background: #f8fafc; border-radius: 0 0 16px 16px; position: sticky; bottom: 0;
+}
+
+/* Import */
+.prog-import-drop {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem 1.2rem;
+    text-align: center;
+    background: #f8fafc;
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+}
+.prog-import-drop:hover,
+.prog-import-drop.dragover { border-color: var(--primary,#006a3f); background: #f0fdf4; }
+.prog-import-drop i { font-size: 2rem; margin-bottom: 0.5rem; color: #94a3b8; }
+.prog-import-drop p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.prog-import-preview { background: #f8fafc; border-radius: 8px; padding: 0.75rem; font-size: 0.8rem; margin-top: 0.5rem; }
+.prog-import-preview-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .6rem .8rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: .8rem;
+}
+.prog-import-preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+.prog-import-preview-table th,
+.prog-import-preview-table td {
+    padding: .55rem .65rem;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+}
+.prog-import-errors {
+    display: none;
+    margin-top: .75rem;
+    padding: .65rem .8rem;
+    border-radius: 8px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: .8rem;
+}
+.prog-import-results-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .6rem;
+    margin-bottom: 1rem;
+}
+.prog-import-results-chip {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: .7rem .8rem;
+    background: #f8fafc;
+    font-size: .82rem;
+}
+
+/* Form */
+.prog-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 520px) { .prog-form-grid { grid-template-columns: 1fr; } }
+.prog-form-grid .span-2 { grid-column: span 2; }
+@media (max-width: 520px) { .prog-form-grid .span-2 { grid-column: span 1; } }
+
+.pf-group { display: flex; flex-direction: column; gap: 0.35rem; }
+.pf-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-secondary,#64748b); }
+.pf-group label .req { color: #ef4444; margin-left: 2px; }
+.pf-input {
+    padding: 0.5rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.875rem; color: var(--text-primary,#1e293b);
+    background: #fff; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%; box-sizing: border-box;
+}
+.pf-input:focus { border-color: var(--primary,#006a3f); box-shadow: 0 0 0 3px rgba(0,106,63,0.1); }
+.pf-error-banner {
+    display: none; margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 8px; color: #dc2626; font-size: 0.8rem; grid-column: span 2;
+}
+@media (max-width: 520px) { .pf-error-banner { grid-column: span 1; } }
+
+/* Empty state */
+.prog-empty { padding: 3rem 1.5rem; text-align: center; color: var(--text-secondary, #94a3b8); }
+.prog-empty i  { font-size: 3rem; margin-bottom: 1rem; }
+.prog-empty h4 { margin: 0 0 0.5rem; color: var(--text-primary,#475569); }
+.prog-empty p  { margin: 0; font-size: 0.875rem; }
+
+@media (max-width: 768px) {
+    .prog-table th:nth-child(3),
+    .prog-table td:nth-child(3) { display: none; }
+}
+</style>
+
+<div class="prog-page">
+
+    <!-- Page Header -->
+    <div class="prog-page-header">
+        <div>
+            <h2><i class="fas fa-graduation-cap" style="margin-right:.5rem;color:var(--primary,#006a3f)"></i>Programs</h2>
+            <p>Manage academic programs offered by your institution</p>
+        </div>
+        <div class="prog-header-actions">
+            <button class="btn btn-outline btn-sm" id="importProgramsBtn">
+                <i class="fas fa-file-import"></i> Import CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportProgramsCsvBtn">
+                <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-outline btn-sm" id="exportProgramsPdfBtn">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </button>
+            <button class="btn btn-primary btn-sm" id="addProgramBtn">
+                <i class="fas fa-plus"></i> Add Program
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="prog-stats">
+        <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="background:linear-gradient(135deg,#6d28d9,#8b5cf6)">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="prog-stat-info">
+                <h3 id="progStatTotal">—</h3>
+                <p>Total Programs</p>
+            </div>
+        </div>
+        <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="prog-stat-info">
+                <h3 id="progStatActive">—</h3>
+                <p>Active Programs</p>
+            </div>
+        </div>
+        <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                <i class="fas fa-school"></i>
+            </div>
+            <div class="prog-stat-info">
+                <h3 id="progStatClasses">—</h3>
+                <p>Total Classes</p>
+            </div>
+        </div>
+        <div class="prog-stat-card">
+            <div class="prog-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+            <div class="prog-stat-info">
+                <h3 id="progStatInactive">—</h3>
+                <p>Inactive Programs</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="prog-toolbar">
+        <div class="prog-toolbar-left">
+            <div class="prog-search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="programSearch" placeholder="Search programs…">
+            </div>
+            <select class="prog-filter-select" id="programStatusFilter">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <!-- <div class="prog-toolbar-right">
+            <span id="programsCountLabel" style="font-size:.8rem;color:var(--text-secondary,#64748b);white-space:nowrap"></span>
+        </div> -->
+    </div>
+
+    <!-- Table -->
+    <div class="prog-table-wrap">
+        <table class="prog-table" id="programsTable">
+            <thead>
+                <tr>
+                    <th>Program</th>
+                    <th>Duration</th>
+                    <th>Description</th>
+                    <th>Classes</th>
+                    <th>Status</th>
+                    <th style="width:90px">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="programsTableBody">
+                <tr>
+                    <td colspan="6" style="text-align:center;padding:3rem;color:var(--text-secondary,#94a3b8)">
+                        <i class="fas fa-spinner fa-spin" style="margin-right:.5rem"></i>Loading programs…
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="prog-table-footer" id="programsPagination" style="display:none">
+            <span id="programsPaginationInfo" style="color:var(--text-secondary,#64748b)">—</span>
+            <div class="prog-pagination" id="programsPaginationControls"></div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Add / Edit Program Modal -->
+<div class="prog-modal-overlay" id="programModalOverlay">
+    <div class="prog-modal">
+        <div class="prog-modal-header">
+            <h3 id="programModalTitle">Add Program</h3>
+            <button class="prog-modal-close" id="programModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="prog-modal-body">
+            <form id="programForm" novalidate>
+                <input type="hidden" id="programEditId">
+                <div class="prog-form-grid">
+                    <div class="pf-group">
+                        <label>Program Name <span class="req">*</span></label>
+                        <input type="text" class="pf-input" id="fieldProgramName" placeholder="e.g. Science, Technology, Engineering" required>
+                    </div>
+                    <div class="pf-group">
+                        <label>Program Code <span class="req">*</span></label>
+                        <input type="text" class="pf-input" id="fieldProgramCode" placeholder="e.g. STEM" required>
+                    </div>
+                    <div class="pf-group span-2">
+                        <label>Description</label>
+                        <textarea class="pf-input" id="fieldProgramDescription" rows="3" placeholder="Brief description of this program…" style="resize:vertical"></textarea>
+                    </div>
+                    <div class="pf-group">
+                        <label>Duration (Years)</label>
+                        <input type="number" class="pf-input" id="fieldDurationYears" min="1" max="10" placeholder="e.g. 2">
+                    </div>
+                    <div class="pf-group">
+                        <label>Status</label>
+                        <select class="pf-input" id="fieldProgramStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="pf-error-banner" id="programFormError"></div>
+                </div>
+            </form>
+        </div>
+        <div class="prog-modal-footer">
+            <button class="btn btn-outline btn-sm" id="programModalCancel">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="programModalSave">
+                <span id="programModalSaveText">Save Program</span>
+                <i class="fas fa-spinner fa-spin" id="programModalSaveSpinner" style="display:none;margin-left:.4rem"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Programs Modal -->
+<div class="prog-modal-overlay" id="programImportModalOverlay">
+    <div class="prog-modal">
+        <div class="prog-modal-header">
+            <h3>Import Programs</h3>
+            <button class="prog-modal-close" id="programImportModalClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="prog-modal-body">
+            <p style="font-size:.875rem;color:var(--text-secondary,#64748b);margin:0 0 1rem">
+                Upload a CSV file with program data. Download the
+                <a href="#" id="programImportTemplateLink" style="color:var(--primary,#006a3f)">template</a> to get started.
+                Required columns: <strong>program_name</strong>, <strong>program_code</strong>. Optional: description, duration_years, status.
+            </p>
+            <div class="prog-import-drop" id="programImportDropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p><strong>Click to upload</strong> or drag &amp; drop</p>
+                <p style="font-size:.75rem;margin-top:.25rem">CSV files only &middot; Max 5MB</p>
+                <input type="file" id="programImportFileInput" accept=".csv" style="display:none">
+            </div>
+            <div class="prog-import-preview" id="programImportPreview" style="display:none">
+                <strong id="programImportFileName"></strong>
+                <span id="programImportRowCount" style="color:var(--text-secondary,#64748b);margin-left:.5rem"></span>
+            </div>
+            <div id="programImportErrors" style="display:none;background:#fef2f2;border-radius:8px;padding:.75rem;font-size:.8rem;color:#b91c1c;margin-top:.5rem"></div>
+        </div>
+        <div class="prog-modal-footer">
+            <button class="btn btn-outline btn-sm" id="programImportCancelBtn">Cancel</button>
+            <button class="btn btn-primary btn-sm" id="programImportConfirmBtn" disabled>
+                <span id="programImportConfirmText">Import</span>
+                <i class="fas fa-spinner fa-spin" id="programImportConfirmSpinner" style="display:none;margin-left:.4rem"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Programs Results -->
+<div class="prog-modal-overlay" id="programImportResultsOverlay">
+    <div class="prog-modal">
+        <div class="prog-modal-header">
+            <h3>Import Results</h3>
+            <button class="prog-modal-close" id="programImportResultsClose" title="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="prog-modal-body" style="padding-bottom:.5rem">
+            <div id="programImportResultsSummary" style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+            <div style="max-height:380px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+                    <thead>
+                        <tr style="background:#f8fafc;position:sticky;top:0;z-index:1">
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">#</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Program</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Status</th>
+                            <th style="padding:.5rem .75rem;text-align:left;border-bottom:1px solid #e2e8f0">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programImportResultsBody"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="prog-modal-footer">
+            <button class="btn btn-primary btn-sm" id="programImportResultsDoneBtn">Done</button>
+        </div>
+    </div>
+</div>

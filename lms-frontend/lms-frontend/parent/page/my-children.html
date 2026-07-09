@@ -1,0 +1,106 @@
+<div class="card children-card">
+  <div class="card-header">
+    <h3><i class="fas fa-child"></i> My Children and Wards</h3>
+  </div>
+  <div class="card-body">
+    <p>
+      Manage linked children, review academic standing, and jump quickly to
+      grades and attendance.
+    </p>
+  </div>
+
+  <main class="page-content my-children-page">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="children-selector fade-in">
+      <label for="childSelector"
+        ><i class="fas fa-child"></i> Child Selector / Switcher</label
+      >
+      <select id="childSelector" class="form-select" aria-label="Select child">
+        <option value="">Select child</option>
+      </select>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card fade-in stagger-1">
+        <div class="stat-icon bg-primary">
+          <i class="fas fa-child"></i>
+        </div>
+        <div class="stat-details">
+          <h3 id="totalLinkedChildren">0</h3>
+          <p>Linked Children</p>
+        </div>
+      </div>
+
+      <div class="stat-card fade-in stagger-2">
+        <div class="stat-icon bg-success">
+          <i class="fas fa-school"></i>
+        </div>
+        <div class="stat-details">
+          <h3 id="activeClasses">0</h3>
+          <p>Current Class Enrolments</p>
+        </div>
+      </div>
+
+      <div class="stat-card fade-in stagger-3">
+        <div class="stat-icon bg-warning">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-details">
+          <h3 id="overallAttendance">0%</h3>
+          <p>Average Attendance</p>
+        </div>
+      </div>
+
+      <div class="stat-card fade-in stagger-4">
+        <div class="stat-icon bg-info">
+          <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="stat-details">
+          <h3 id="overallStanding">-</h3>
+          <p>Academic Standing</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 mt-2">
+      <section class="card fade-in-up">
+        <div class="card-header">
+          <h3><i class="fas fa-list"></i> Linked Children / Wards</h3>
+        </div>
+        <div class="card-body p-0">
+          <div id="childrenCards" class="children-list"></div>
+        </div>
+      </section>
+
+      <section class="card fade-in-up">
+        <div class="card-header">
+          <h3><i class="fas fa-id-card"></i> Child Profile Overview</h3>
+        </div>
+        <div class="card-body">
+          <div id="profileOverview" class="my-children-overview"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid grid-cols-2 mt-2">
+      <section class="card fade-in-up">
+        <div class="card-header">
+          <h3><i class="fas fa-school-flag"></i> Current Class and Program</h3>
+        </div>
+        <div class="card-body">
+          <div id="classProgramOverview" class="my-children-meta"></div>
+        </div>
+      </section>
+
+      <section class="card fade-in-up">
+        <div class="card-header">
+          <h3><i class="fas fa-bolt"></i> Quick Links</h3>
+        </div>
+        <div class="card-body">
+          <div id="quickLinks" class="my-children-quick-links"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

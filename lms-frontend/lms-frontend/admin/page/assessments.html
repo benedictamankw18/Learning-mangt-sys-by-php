@@ -1,0 +1,493 @@
+<style>
+  .adm-ass-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .adm-ass-banner {
+    border: 1px solid #fbbf24;
+    background: #fffbeb;
+    color: #92400e;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .adm-ass-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .adm-ass-kpi {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.85rem 0.95rem;
+  }
+
+  .adm-ass-kpi .k {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .adm-ass-kpi .v {
+    margin: 0.2rem 0 0;
+    color: #0f172a;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .adm-ass-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 1rem;
+  }
+
+  .adm-ass-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .adm-ass-card-h {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    align-items: center;
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.85rem 1rem;
+  }
+
+  .adm-ass-card-h h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1rem;
+  }
+
+  .adm-ass-card-h p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.8rem;
+  }
+
+  .adm-ass-card-b {
+    padding: 0.9rem 1rem;
+  }
+
+  .adm-ass-table-wrap {
+    overflow: auto;
+  }
+
+  .adm-ass-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+  }
+
+  .adm-ass-table th,
+  .adm-ass-table td {
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.55rem 0.4rem;
+    text-align: left;
+    color: #334155;
+    vertical-align: top;
+  }
+
+  .adm-ass-table th {
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .adm-ass-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .adm-ass-chip.exam {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .adm-ass-chip.quiz {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .adm-ass-chip.assignment {
+    background: #ede9fe;
+    color: #5b21b6;
+  }
+
+  .adm-ass-chip.project {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .adm-ass-chip.presentation {
+    background: #ffe4e6;
+    color: #9f1239;
+  }
+
+  .adm-ass-weights {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .adm-ass-weight-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 100px auto;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .adm-ass-weight-row label {
+    color: #1f2937;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .adm-ass-weight-row input[type="text"],
+  .adm-ass-weight-row input {
+    height: 36px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    padding: 0 0.55rem;
+    font-size: 0.86rem;
+    width: 100%;
+  }
+
+  .adm-ass-weight-row input:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+
+  .adm-ass-weight-desc {
+    margin: -0.2rem 0 0.35rem;
+  }
+
+  .adm-ass-weight-desc textarea {
+    width: 100%;
+    min-height: 62px;
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.84rem;
+    font-family: inherit;
+    resize: vertical;
+  }
+
+  .adm-ass-weight-desc textarea:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+
+  .adm-ass-create {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.75rem;
+    margin-bottom: 0.85rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+  }
+
+  .adm-ass-create-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 120px;
+    gap: 0.6rem;
+  }
+
+  .adm-ass-create input,
+  .adm-ass-create textarea {
+    border: 1px solid #dbe2ea;
+    border-radius: 10px;
+    padding: 0.45rem 0.55rem;
+    font-size: 0.84rem;
+    font-family: inherit;
+    width: 100%;
+  }
+
+  .adm-ass-create input {
+    height: 36px;
+  }
+
+  .adm-ass-create textarea {
+    min-height: 58px;
+    resize: vertical;
+  }
+
+  .adm-ass-create input:focus,
+  .adm-ass-create textarea:focus {
+    outline: none;
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+  }
+
+  .adm-ass-tools {
+    margin-top: 0.75rem;
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .adm-ass-total {
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .adm-ass-total.ok {
+    color: #166534;
+  }
+
+  .adm-ass-total.warn {
+    color: #b45309;
+  }
+
+  .adm-ass-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .adm-ass-list li {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.65rem 0.7rem;
+    background: #fff;
+  }
+
+  .adm-ass-list .title {
+    color: #0f172a;
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .adm-ass-list .meta {
+    margin-top: 0.2rem;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .adm-ass-empty {
+    color: #64748b;
+    font-size: 0.88rem;
+  }
+
+  .sub-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #1f2937;
+    border-radius: 10px;
+    padding: 0.52rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .sub-btn:hover {
+    background: #f8fafc;
+  }
+
+  .sub-btn-success {
+    background: #166534;
+    color: #fff;
+    border-color: #166534;
+  }
+
+  .sub-btn-success:hover {
+    background: #14532d;
+  }
+
+  .sub-btn-danger {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+  }
+
+  .sub-btn-danger:hover {
+    background: #ffe4e6;
+  }
+
+  @media (max-width: 1000px) {
+    .adm-ass-kpis {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .adm-ass-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .adm-ass-kpis {
+      grid-template-columns: 1fr;
+    }
+
+    .adm-ass-weight-row {
+      grid-template-columns: 1fr;
+    }
+
+    .adm-ass-create-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div class="adm-ass-wrap" id="admAssessmentsRoot">
+  <div class="adm-ass-banner">
+    <strong>Admin Scope:</strong> This page is configuration and monitoring
+    only. Admins cannot create or assign assessments; only teachers can.
+  </div>
+
+  <div class="adm-ass-kpis">
+    <div class="adm-ass-kpi">
+      <p class="k">Total Assessments</p>
+      <p class="v" id="admAssKpiTotal">0</p>
+    </div>
+    <div class="adm-ass-kpi">
+      <p class="k">Upcoming (7 days)</p>
+      <p class="v" id="admAssKpiUpcoming">0</p>
+    </div>
+    <div class="adm-ass-kpi">
+      <p class="k">Published</p>
+      <p class="v" id="admAssKpiPublished">0</p>
+    </div>
+    <div class="adm-ass-kpi">
+      <p class="k">Classes With Assessments</p>
+      <p class="v" id="admAssKpiClasses">0</p>
+    </div>
+  </div>
+
+  <div class="adm-ass-grid">
+    <section class="adm-ass-card">
+      <div class="adm-ass-card-h">
+        <div>
+          <h3>Assessment Categories & Weights</h3>
+          <p>School-wide configuration used for reporting and policy checks.</p>
+        </div>
+      </div>
+      <div class="adm-ass-card-b">
+        <div class="adm-ass-create">
+          <div class="adm-ass-create-grid">
+            <input
+              type="text"
+              id="admAssCreateCategoryName"
+              maxlength="100"
+              placeholder="New category name (e.g., Mid-Term Exam)"
+            />
+            <input
+              type="number"
+              id="admAssCreateCategoryWeight"
+              min="1"
+              max="100"
+              step="1"
+              placeholder="Weight %"
+            />
+          </div>
+          <textarea
+            id="admAssCreateCategoryDescription"
+            maxlength="500"
+            placeholder="Optional category description"
+          ></textarea>
+          <div>
+            <button class="sub-btn" type="button" id="admAssAddCategoryBtn">
+              <i class="fas fa-plus"></i> Add Category
+            </button>
+          </div>
+        </div>
+        <div class="adm-ass-weights" id="admAssWeightList"></div>
+        <div class="adm-ass-tools">
+          <button
+            class="sub-btn sub-btn-success"
+            type="button"
+            id="admAssSaveWeightsBtn"
+          >
+            <i class="fas fa-save"></i> Save Weights
+          </button>
+          <button class="sub-btn" type="button" id="admAssResetWeightsBtn">
+            <i class="fas fa-rotate-left"></i> Reset Defaults
+          </button>
+          <span class="adm-ass-total" id="admAssWeightTotal">Total: 0%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-ass-card">
+      <div class="adm-ass-card-h">
+        <div>
+          <h3>Upcoming Assessments by Class</h3>
+          <p>Read-only view of what teachers already scheduled.</p>
+        </div>
+      </div>
+      <div class="adm-ass-card-b">
+        <ul class="adm-ass-list" id="admAssUpcomingByClass"></ul>
+      </div>
+    </section>
+  </div>
+
+  <section class="adm-ass-card">
+    <div class="adm-ass-card-h">
+      <div>
+        <h3>Assessment Schedule Overview</h3>
+        <p>
+          Institution-wide read-only schedule pulled from teacher-created
+          assessments.
+        </p>
+      </div>
+      <button class="sub-btn" type="button" id="admAssRefreshBtn">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+    </div>
+    <div class="adm-ass-card-b adm-ass-table-wrap">
+      <table class="adm-ass-table">
+        <thead>
+          <tr>
+            <th>Assessment</th>
+            <th>Class / Course</th>
+            <th>Type</th>
+            <th>Due Date</th>
+            <th>Weight</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="admAssScheduleBody">
+          <tr>
+            <td colspan="6" class="adm-ass-empty">Loading assessments...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="adm-ass-card">
+    <div class="adm-ass-card-h">
+      <div>
+        <h3>Assessment Calendar (Read-only)</h3>
+        <p>Chronological list for tracking deadlines and exam load.</p>
+      </div>
+    </div>
+    <div class="adm-ass-card-b">
+      <ul class="adm-ass-list" id="admAssCalendarList"></ul>
+    </div>
+  </section>
+</div>

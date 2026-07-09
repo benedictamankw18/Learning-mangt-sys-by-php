@@ -1,0 +1,469 @@
+<style>
+  .tt-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .tt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .tt-head h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #0f172a;
+  }
+  .tt-head p {
+    margin: 0.25rem 0 0;
+    color: #64748b;
+    font-size: 0.85rem;
+  }
+  .tt-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tt-toolbar {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .tt-toolbar select,
+  .tt-toolbar input {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.86rem;
+    background: #fff;
+  }
+
+  .tt-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  .tt-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.8rem 0.9rem;
+  }
+  .tt-stat h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #0f172a;
+  }
+  .tt-stat p {
+    margin: 0.2rem 0 0;
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+
+  .tt-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .tt-card-head {
+    border-bottom: 1px solid #eef2f7;
+    padding: 0.75rem 1rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .tt-card-head i {
+    color: #2563eb;
+  }
+  .tt-card-body {
+    padding: 0.9rem 1rem;
+  }
+
+  .tt-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .tt-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.6rem;
+  }
+  .tt-tab {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 0.38rem 0.65rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .tt-tab.active {
+    border-color: #2563eb;
+    color: #1d4ed8;
+    background: #eff6ff;
+    font-weight: 600;
+  }
+
+  .tt-table-wrap {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    overflow: auto;
+  }
+  .tt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .tt-table th {
+    background: #f8fafc;
+    color: #475569;
+    text-align: left;
+    padding: 0.5rem 0.72rem;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+  }
+  .tt-table td {
+    padding: 0.5rem 0.72rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: top;
+  }
+
+  .tt-chip {
+    font-size: 0.72rem;
+    padding: 0.14rem 0.45rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #334155;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tt-chip.conflict {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  .tt-chip.published {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .tt-chip.unpublished {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .tt-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  .tt-form-grid .full {
+    grid-column: 1 / -1;
+  }
+  .tt-form-grid label {
+    display: block;
+    color: #334155;
+    font-size: 0.74rem;
+    margin-bottom: 0.22rem;
+    font-weight: 600;
+  }
+  .tt-form-grid select,
+  .tt-form-grid input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .tt-periods {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.55rem;
+  }
+  .tt-period {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.55rem 0.65rem;
+    font-size: 0.8rem;
+    color: #334155;
+    background: #fafcff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tt-empty {
+    text-align: center;
+    color: #64748b;
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+  .tt-empty i {
+    display: block;
+    font-size: 2rem;
+    color: #94a3b8;
+    margin-bottom: 0.4rem;
+  }
+
+  .tt-del {
+    border: 2px solid red;
+    color: rgb(220, 2, 2);
+  }
+
+  .tt-del:hover {
+    background: red;
+    color: #fff;
+  }
+
+  .tt-del:hover:not(:disabled) {
+    background: red;
+    color: #fff;
+  }
+
+  @media (max-width: 1024px) {
+    .tt-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tt-form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .tt-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 700px) {
+    .tt-stats {
+      grid-template-columns: 1fr;
+    }
+    .tt-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media print {
+    .tt-actions,
+    .tt-toolbar,
+    .tt-card[data-noprint="1"] {
+      display: none !important;
+    }
+    .tt-card {
+      break-inside: avoid;
+      box-shadow: none;
+    }
+  }
+</style>
+
+<div class="tt-wrap" id="adminTimetableRoot">
+  <div class="tt-head">
+    <div>
+      <h2><i class="fas fa-calendar-alt"></i> Timetable Management</h2>
+      <p>Create, publish, and monitor class timetables by class and teacher.</p>
+    </div>
+    <div class="tt-actions">
+      <button class="btn btn-sm btn-outline" id="ttRefreshBtn">
+        <i class="fas fa-rotate"></i> Refresh
+      </button>
+      <button class="btn btn-sm btn-outline" id="ttPublishBtn">
+        <i class="fas fa-bullhorn"></i> Publish
+      </button>
+      <button class="btn btn-sm btn-outline" id="ttUnpublishBtn">
+        <i class="fas fa-eye-slash"></i> Unpublish
+      </button>
+      <button class="btn btn-sm btn-outline" id="ttExportPdfBtn">
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+      <button class="btn btn-sm btn-outline" id="ttImportBtn">
+        <i class="fas fa-file-import"></i> Import
+      </button>
+    </div>
+  </div>
+
+  <div class="tt-toolbar">
+    <select id="ttAcademicYear"></select>
+    <select id="ttSemester"></select>
+    <select id="ttClassFilter">
+      <option value="">All Classes</option>
+    </select>
+    <select id="ttTeacherFilter">
+      <option value="">All Teachers</option>
+    </select>
+    <select id="ttDayFilter">
+      <option value="">All Days</option>
+      <option value="Monday">Monday</option>
+      <option value="Tuesday">Tuesday</option>
+      <option value="Wednesday">Wednesday</option>
+      <option value="Thursday">Thursday</option>
+      <option value="Friday">Friday</option>
+      <option value="Saturday">Saturday</option>
+      <option value="Sunday">Sunday</option>
+    </select>
+  </div>
+
+  <div class="tt-stats">
+    <div class="tt-stat">
+      <h4 id="ttTotalSchedules">0</h4>
+      <p>Total Scheduled Periods</p>
+    </div>
+    <div class="tt-stat">
+      <h4 id="ttActiveClasses">0</h4>
+      <p>Classes With Timetable</p>
+    </div>
+    <div class="tt-stat">
+      <h4 id="ttConflictCount">0</h4>
+      <p>Conflict Alerts</p>
+    </div>
+    <div class="tt-stat">
+      <h4 id="ttPublishState">Draft</h4>
+      <p>Publish Status</p>
+    </div>
+  </div>
+
+  <div class="tt-grid-2">
+    <div class="tt-card" data-noprint="1">
+      <div class="tt-card-head">
+        <i class="fas fa-clock"></i> Period Configuration (Time Slots)
+      </div>
+      <div class="tt-card-body">
+        <div class="tt-form-grid">
+          <div>
+            <label>Period Label</label>
+            <input id="ttPeriodLabel" type="text" placeholder="Period 1" />
+          </div>
+          <div>
+            <label>Start Time</label>
+            <input id="ttPeriodStart" type="time" />
+          </div>
+          <div>
+            <label>End Time</label>
+            <input id="ttPeriodEnd" type="time" />
+          </div>
+          <div class="full">
+            <button class="btn btn-sm btn-primary" id="ttAddPeriodBtn">
+              <i class="fas fa-plus"></i> Add Period Slot
+            </button>
+          </div>
+        </div>
+        <div style="height: 0.65rem"></div>
+        <div class="tt-periods" id="ttPeriodList"></div>
+      </div>
+    </div>
+
+    <div class="tt-card" data-noprint="1">
+      <div class="tt-card-head">
+        <i class="fas fa-plus-circle"></i> Assign Subject, Teacher, Room to
+        Period
+      </div>
+      <div class="tt-card-body">
+        <div class="tt-form-grid">
+          <div class="full">
+            <label>Class Subject</label>
+            <select id="ttCourseSelect">
+              <option value="">Select class + subject</option>
+            </select>
+          </div>
+          <div>
+            <label>Day</label>
+            <select id="ttDaySelect">
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+              <option value="Sunday">Sunday</option>
+            </select>
+          </div>
+          <div>
+            <label>Start Time</label>
+            <input id="ttStartTime" type="time" />
+          </div>
+          <div>
+            <label>End Time</label>
+            <input id="ttEndTime" type="time" />
+          </div>
+          <div>
+            <label>Room / Venue</label>
+            <input id="ttRoom" type="text" placeholder="Room A1" />
+          </div>
+          <div>
+            <label>Period Label (Optional)</label>
+            <input id="ttPeriodTag" type="text" placeholder="Period 2" />
+          </div>
+          <div class="full">
+            <button class="btn btn-sm btn-primary" id="ttAssignBtn">
+              <i class="fas fa-calendar-plus"></i> Save to Timetable
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tt-card">
+    <div class="tt-card-head"><i class="fas fa-table"></i> Timetable Views</div>
+    <div class="tt-card-body">
+      <div class="tt-tabs">
+        <button class="tt-tab active" data-view="class" id="ttViewClassBtn">
+          Class-Based View
+        </button>
+        <button class="tt-tab" data-view="teacher" id="ttViewTeacherBtn">
+          Teacher-Based View
+        </button>
+      </div>
+
+      <div class="tt-table-wrap">
+        <table class="tt-table">
+          <thead id="ttTableHead"></thead>
+          <tbody id="ttTableBody">
+            <tr>
+              <td class="tt-empty" colspan="8">
+                <i class="fas fa-spinner fa-spin"></i>Loading timetable…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tt-card">
+    <div class="tt-card-head">
+      <i class="fas fa-triangle-exclamation"></i> Conflict Detection (Teacher
+      Double-Booking)
+    </div>
+    <div class="tt-card-body">
+      <div class="tt-table-wrap">
+        <table class="tt-table">
+          <thead>
+            <tr>
+              <th>Teacher</th>
+              <th>Day</th>
+              <th>Time</th>
+              <th>Conflicting Classes</th>
+            </tr>
+          </thead>
+          <tbody id="ttConflictBody">
+            <tr>
+              <td class="tt-empty" colspan="4">
+                <i class="fas fa-check-circle"></i>No conflicts detected.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

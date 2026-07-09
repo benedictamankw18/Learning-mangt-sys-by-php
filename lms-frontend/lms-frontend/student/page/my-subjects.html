@@ -1,0 +1,128 @@
+<style>
+.sms-wrap { display: grid; gap: 1rem; }
+.sms-toolbar { display: flex; gap: .75rem; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.sms-search { min-width: 240px; flex: 1; max-width: 380px; position: relative; }
+.sms-search i { position: absolute; left: .7rem; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: .82rem; }
+.sms-search input { width: 100%; border: 1px solid #e2e8f0; border-radius: 10px; padding: .55rem .75rem .55rem 2rem; font-size: .87rem; }
+.sms-search input:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,.15); }
+.sms-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: .75rem; }
+.sms-stat { border: 1px solid #e2e8f0; border-radius: 12px; padding: .8rem .9rem; background: #fff; }
+.sms-stat h4 { margin: 0; font-size: 1.15rem; color: #0f172a; }
+.sms-stat p { margin: .18rem 0 0; color: #64748b; font-size: .78rem; }
+
+.sms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .9rem; }
+.sms-card { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; overflow: hidden; }
+.sms-head { padding: .85rem .95rem; border-bottom: 1px solid #eef2f7; display: flex; justify-content: space-between; gap: .6rem; align-items: flex-start; }
+.sms-head h4 { margin: 0; font-size: .95rem; color: #0f172a; }
+.sms-head p { margin: .2rem 0 0; color: #64748b; font-size: .78rem; }
+.sms-code { font-family: monospace; font-weight: 700; letter-spacing: .04em; color: #0369a1; font-size: .76rem; }
+.sms-grade { font-size: .72rem; font-weight: 600; border-radius: 999px; padding: .2rem .55rem; white-space: nowrap; }
+.sms-grade.good { background: #dcfce7; color: #15803d; }
+.sms-grade.mid { background: #fef9c3; color: #92400e; }
+.sms-grade.bad { background: #fee2e2; color: #b91c1c; }
+.sms-grade.na { background: #e2e8f0; color: #475569; }
+
+.sms-body { padding: .85rem .95rem; display: grid; gap: .5rem; }
+.sms-row { display: flex; justify-content: space-between; align-items: center; font-size: .82rem; color: #334155; }
+.sms-row strong { color: #0f172a; }
+.sms-trend-up { color: #15803d; font-weight: 700; }
+.sms-trend-down { color: #b91c1c; font-weight: 700; }
+.sms-trend-flat { color: #475569; font-weight: 700; }
+
+.sms-actions { display: flex; gap: .45rem; flex-wrap: wrap; padding: .85rem .95rem; border-top: 1px solid #eef2f7; background: #fafcff; }
+.sms-empty, .sms-error { text-align: center; color: #64748b; padding: 1.4rem 1rem; font-size: 1rem; }
+.sms-empty i, .sms-error i { color: #94a3b8; font-size: 4rem; margin-bottom: .6rem; display: block; }
+.sms-error { color: #b91c1c; }
+
+.sms-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 2200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.sms-modal-overlay.open { display: flex; }
+.sms-modal {
+  width: min(900px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, .32);
+}
+.sms-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .7rem;
+  padding: .95rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+.sms-modal-head h3 { margin: 0; font-size: 1rem; color: #0f172a; }
+.sms-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #dbe4ef;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+}
+.sms-modal-body { padding: 1rem; display: grid; gap: .8rem; }
+.sms-modal-foot { display: flex; justify-content: flex-end; gap: .6rem; padding: .85rem 1rem 1rem; }
+.sms-table-wrap { border: 1px solid #e2e8f0; border-radius: 10px; overflow: auto; }
+.sms-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.sms-table th { background: #f8fafc; color: #475569; text-align: left; padding: .55rem .7rem; border-bottom: 1px solid #e2e8f0; }
+.sms-table td { text-align: left; padding: .52rem .7rem; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+.sms-table tbody tr:last-child td { border-bottom: none; }
+.sms-schedule-grid { display: grid; gap: .55rem; }
+.sms-slot { border: 1px solid #e2e8f0; border-radius: 10px; padding: .65rem .75rem; background: #fcfdff; }
+.sms-slot h4 { margin: 0 0 .25rem; font-size: .85rem; color: #0f172a; }
+.sms-slot p { margin: 0; font-size: .78rem; color: #64748b; }
+.sms-slot .sms-time { font-weight: 700; color: #0369a1; margin-right: .4rem; }
+
+@media (max-width: 900px) { .sms-stats { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 760px) { .sms-stats { grid-template-columns: 1fr; } }
+</style>
+
+<div class="card" id="myStudentSubjectsPageRoot">
+  <div class="card-header">
+    <h3><i class="fas fa-book-open"></i> My Subjects</h3>
+    <button class="btn btn-sm btn-outline" id="smsRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+  </div>
+  <div class="card-body sms-wrap">
+    <div class="sms-toolbar">
+      <div class="sms-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="smsSearchInput" placeholder="Search subject or code...">
+      </div>
+    </div>
+
+    <div class="sms-stats">
+      <div class="sms-stat"><h4 id="smsTotalSubjects">0</h4><p>Subjects</p></div>
+      <div class="sms-stat"><h4 id="smsGradedSubjects">0</h4><p>Subjects With Grade</p></div>
+      <div class="sms-stat"><h4 id="smsAvgScore">0%</h4><p>Average Score</p></div>
+      <div class="sms-stat"><h4 id="smsTrendLabel">N/A</h4><p>Performance Trend</p></div>
+    </div>
+
+    <div id="smsList" class="sms-grid"></div>
+  </div>
+</div>
+
+<div class="sms-modal-overlay" id="smsModalOverlay" aria-hidden="true">
+  <div class="sms-modal" role="dialog" aria-modal="true" aria-labelledby="smsModalTitle">
+    <div class="sms-modal-head">
+      <h3 id="smsModalTitle">Subject Details</h3>
+      <button class="sms-modal-close" id="smsModalClose" title="Close"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="sms-modal-body" id="smsModalBody"></div>
+    <div class="sms-modal-foot" id="smsModalFoot"></div>
+  </div>
+</div>

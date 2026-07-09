@@ -1,0 +1,174 @@
+<style>
+  .ntf-page { display: grid; gap: 1rem; }
+  .ntf-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .ntf-head h2 { margin: 0; font-size: 1.35rem; color: #0f172a; }
+  .ntf-head p { margin: 0.2rem 0 0; color: #64748b; font-size: 0.88rem; }
+  .ntf-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  .ntf-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  .ntf-filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) 170px 170px;
+    gap: 0.65rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #f8fafc, #fff);
+  }
+  @media (max-width: 900px) { .ntf-filters { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 620px) { .ntf-filters { grid-template-columns: 1fr; } }
+
+  .ntf-input, .ntf-select {
+    width: 100%;
+    border: 1px solid #dbe3ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #0f172a;
+    box-sizing: border-box;
+    outline: none;
+    padding: 0.58rem 0.72rem;
+    font-size: 0.88rem;
+  }
+  .ntf-input:focus, .ntf-select:focus {
+    border-color: #006a3f;
+    box-shadow: 0 0 0 3px rgba(0, 106, 63, 0.08);
+  }
+
+  .ntf-stats { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; padding: 0 1rem 1rem; }
+  .ntf-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    padding: 0.22rem 0.58rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #334155;
+  }
+  .ntf-chip.unread { background: #fee2e2; color: #991b1b; }
+
+  .ntf-list { display: grid; gap: 0.65rem; padding: 1rem; }
+  .ntf-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    padding: 0.75rem 0.8rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .ntf-item.unread { border-color: #f59e0b; background: #fffbeb; }
+  .ntf-item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.7rem; }
+  .ntf-item h4 { margin: 0; font-size: 0.93rem; color: #0f172a; }
+  .ntf-meta { font-size: 0.75rem; color: #64748b; display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .ntf-msg { margin: 0; color: #334155; font-size: 0.84rem; line-height: 1.45; }
+
+  .ntf-row-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+  .ntf-btn {
+    border: 1px solid #dbe3ea;
+    background: #fff;
+    color: #334155;
+    border-radius: 9px;
+    padding: 0.35rem 0.58rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .ntf-btn:hover { background: #f8fafc; }
+  .ntf-btn.primary { background: #006a3f; border-color: #006a3f; color: #fff; }
+  .ntf-btn.primary:hover { background: #065f46; }
+  .ntf-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+  .ntf-empty { padding: 1.8rem 1rem; text-align: center; color: #64748b; }
+  .ntf-empty i { font-size: 1.8rem; margin-bottom: 0.5rem; display: block; }
+
+  .ntf-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.9rem 1rem 1rem;
+    border-top: 1px solid #eef2f7;
+    background: linear-gradient(180deg, #fff, #f8fafc);
+  }
+  .ntf-pagination-info {
+    color: #64748b;
+    font-size: 0.82rem;
+  }
+  .ntf-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .ntf-page-select {
+    min-width: 92px;
+  }
+</style>
+
+<div id="admNotificationsRoot" class="ntf-page">
+  <div class="ntf-head">
+    <div>
+      <h2>Notifications</h2>
+      <p>Notification center with unread tracking, filtering, and live updates.</p>
+    </div>
+    <div class="ntf-actions">
+      <button type="button" class="ntf-btn" id="ntfRefreshBtn"><i class="fas fa-rotate"></i> Refresh</button>
+      <button type="button" class="ntf-btn primary" id="ntfMarkAllBtn"><i class="fas fa-check-double"></i> Mark All Read</button>
+    </div>
+  </div>
+
+  <div class="ntf-card">
+    <div class="ntf-filters">
+      <input id="ntfSearchInput" class="ntf-input" placeholder="Search title or message" />
+      <select id="ntfTypeFilter" class="ntf-select">
+        <option value="all">All types</option>
+        <option value="assignment">New assignment</option>
+        <option value="grade">Grade posted</option>
+        <option value="message">Message received</option>
+        <option value="announcement">Announcement</option>
+        <option value="event">Event reminder</option>
+        <option value="attendance">Attendance alert</option>
+        <option value="other">Other</option>
+      </select>
+      <select id="ntfStatusFilter" class="ntf-select">
+        <option value="all">All status</option>
+        <option value="unread">Unread</option>
+        <option value="read">Read</option>
+      </select>
+    </div>
+
+    <div class="ntf-stats">
+      <span class="ntf-chip"><i class="fas fa-bell"></i> Total: <strong id="ntfTotalCount">0</strong></span>
+      <span class="ntf-chip unread"><i class="fas fa-circle"></i> Unread: <strong id="ntfUnreadCount">0</strong></span>
+      <span class="ntf-chip"><i class="fas fa-clock"></i> Auto refresh: every 30s</span>
+    </div>
+
+    <div id="ntfList" class="ntf-list">
+      <div class="ntf-empty"><i class="fas fa-spinner fa-spin"></i>Loading notifications...</div>
+    </div>
+
+    <div class="ntf-pagination">
+      <div class="ntf-pagination-info">
+        <span id="ntfPageInfo">Page 1 of 1</span>
+        <span>•</span>
+        <span id="ntfRangeInfo">0 items</span>
+      </div>
+      <div class="ntf-pagination-controls">
+        <select id="ntfPageSize" class="ntf-select ntf-page-select">
+          <option value="10">10 / page</option>
+          <option value="20" selected>20 / page</option>
+          <option value="50">50 / page</option>
+          <option value="100">100 / page</option>
+        </select>
+        <button type="button" class="ntf-btn" id="ntfPrevPageBtn"><i class="fas fa-chevron-left"></i> Prev</button>
+        <button type="button" class="ntf-btn" id="ntfNextPageBtn">Next <i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,886 @@
+<style>
+  .parents-page {
+    padding: 0;
+  }
+
+  .parents-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .parents-page-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
+    margin: 0 0 0.25rem 0;
+  }
+  .parents-page-header p {
+    color: var(--text-secondary, #64748b);
+    font-size: 0.875rem;
+    margin: 0;
+  }
+  .parents-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .parents-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 1024px) {
+    .parents-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .parents-stats {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .parents-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .parents-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .parents-stat-icon i {
+    color: #fff;
+    font-size: 1.05rem;
+  }
+  .parents-stat-info h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #1e293b;
+    font-weight: 700;
+  }
+  .parents-stat-info p {
+    margin: 0.1rem 0 0;
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  .parents-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .parents-toolbar-left {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex: 1;
+    min-width: 260px;
+  }
+  .parents-toolbar-right {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .parent-search-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+  }
+  .parent-search-wrap i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 0.85rem;
+  }
+  .parent-search-wrap input {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem 0.55rem 2.1rem;
+    outline: none;
+    font-size: 0.875rem;
+    color: #1e293b;
+  }
+  .parent-search-wrap input:focus {
+    border-color: #3b82f6;
+  }
+
+  .parents-table-wrap {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+  .parents-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  .parents-table thead tr {
+    background: #f8fafc;
+  }
+  .parents-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .parents-table td {
+    padding: 0.82rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: top;
+  }
+  .parents-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .parents-table tbody tr:hover {
+    background: #f8fafc;
+  }
+
+  .parent-name {
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .parent-sub {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 0.1rem;
+  }
+  .parent-contact {
+    font-size: 0.8rem;
+  }
+  .parent-contact a {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  .pref-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-right: 0.25rem;
+  }
+  .pref-chip.on {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  .pref-chip.off {
+    background: #f1f5f9;
+    color: #64748b;
+  }
+
+  .parents-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+  .parents-actions button {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .parents-actions button:hover {
+    background: #f1f5f9;
+  }
+  .parents-actions .btn-parent-link:hover {
+    color: #2563eb;
+    border-color: #93c5fd;
+    background: #eff6ff;
+  }
+  .parents-actions .btn-parent-edit:hover {
+    color: #059669;
+    border-color: #86efac;
+    background: #ecfdf5;
+  }
+  .parents-actions .btn-parent-delete:hover {
+    color: #dc2626;
+    border-color: #fca5a5;
+    background: #fef2f2;
+  }
+
+  .parents-table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: #64748b;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .parents-pagination {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .parents-pagination button {
+    min-width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    border-radius: 6px;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .parents-pagination button.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+    font-weight: 600;
+  }
+  .parents-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .parent-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .parent-modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .parent-modal {
+    width: 100%;
+    max-width: 760px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+  .parent-modal-header {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .parent-modal-header h3 {
+    margin: 0;
+    font-size: 1.02rem;
+    color: #0f172a;
+  }
+  .parent-modal-close {
+    border: none;
+    background: #f1f5f9;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .parent-modal-body {
+    padding: 1rem 1.2rem;
+  }
+  .parent-modal-footer {
+    border-top: 1px solid #e2e8f0;
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+  .parent-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  @media (max-width: 760px) {
+    .parent-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .parent-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .parent-form-group label {
+    font-size: 0.8rem;
+    color: #334155;
+    font-weight: 600;
+  }
+  .parent-form-group input,
+  .parent-form-group select,
+  .parent-form-group textarea {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.875rem;
+    color: #0f172a;
+  }
+  .parent-form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .password-input-wrap {
+    position: relative;
+  }
+  .password-input-wrap input {
+    padding-right: 2.4rem;
+  }
+  .password-toggle-btn {
+    position: absolute;
+    right: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .password-toggle-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+  .parent-form-hint {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+  }
+
+  .pref-toggle-wrap {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.15rem;
+    flex-wrap: wrap;
+  }
+  .pref-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.84rem;
+    color: #334155;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+  }
+  .switch-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #cbd5e1;
+    transition: 0.2s;
+    border-radius: 999px;
+  }
+  .switch-slider::before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background-color: #fff;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+  .switch input:checked + .switch-slider {
+    background-color: #2563eb;
+  }
+  .switch input:checked + .switch-slider::before {
+    transform: translateX(18px);
+  }
+  .switch input:focus + .switch-slider {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+  }
+
+  .switch-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .linked-students-list {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+  }
+
+  .student-picker {
+    margin-top: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .student-picker-toolbar {
+    padding: 0.7rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+  .student-picker-search {
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.84rem;
+    color: #0f172a;
+  }
+  .student-picker-search:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .student-picker-table-wrap {
+    max-height: 220px;
+    overflow: auto;
+  }
+  .student-picker-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+  .student-picker-table th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 1;
+    text-align: left;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .student-picker-table td {
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+  .student-picker-table tbody tr:hover {
+    background: #f8fafc;
+  }
+  .student-picker-table tbody tr.selected {
+    background: #eff6ff;
+  }
+  .student-picker-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  .student-select-btn {
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #334155;
+    border-radius: 6px;
+    padding: 0.24rem 0.45rem;
+    cursor: pointer;
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+  .student-picker-table tr.selected .student-select-btn {
+    border-color: #3b82f6;
+    background: #3b82f6;
+    color: #fff;
+  }
+  .student-picker-empty {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.82rem;
+    color: #64748b;
+  }
+  .linked-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .linked-item:last-child {
+    border-bottom: none;
+  }
+  .linked-meta strong {
+    color: #0f172a;
+    display: block;
+  }
+  .linked-meta span {
+    color: #64748b;
+    font-size: 0.78rem;
+  }
+  .linked-item button {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    border-radius: 6px;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  .empty-parent-state {
+    text-align: center;
+    color: #64748b;
+    padding: 1.5rem 1rem;
+    font-size: 0.88rem;
+  }
+</style>
+
+<section class="parents-page" id="parentsPageRoot">
+  <div class="parents-page-header">
+    <div>
+      <h2>Parent Management</h2>
+      <p>
+        Manage parent contacts, communication preferences, and student links.
+      </p>
+    </div>
+    <div class="parents-header-actions">
+      <button class="btn btn-outline" id="refreshParentsBtn">
+        <i class="fas fa-rotate-right"></i> Refresh
+      </button>
+      <button
+        class="btn btn-outline"
+        id="exportParentsPdfBtn"
+        title="Export PDF"
+      >
+        <i class="fas fa-file-pdf"></i> Export PDF
+      </button>
+      <button class="btn btn-primary" id="addParentBtn">
+        <i class="fas fa-plus"></i> Add Parent
+      </button>
+    </div>
+  </div>
+
+  <div class="parents-stats">
+    <div class="parents-stat-card">
+      <div
+        class="parents-stat-icon"
+        style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)"
+      >
+        <i class="fas fa-user-group"></i>
+      </div>
+      <div class="parents-stat-info">
+        <h3 id="parentsStatTotal">0</h3>
+        <p>Total Parents</p>
+      </div>
+    </div>
+    <div class="parents-stat-card">
+      <div
+        class="parents-stat-icon"
+        style="background: linear-gradient(135deg, #0ea5e9, #0369a1)"
+      >
+        <i class="fas fa-envelope"></i>
+      </div>
+      <div class="parents-stat-info">
+        <h3 id="parentsStatEmailOn">0</h3>
+        <p>Email Alerts On</p>
+      </div>
+    </div>
+    <div class="parents-stat-card">
+      <div
+        class="parents-stat-icon"
+        style="background: linear-gradient(135deg, #16a34a, #15803d)"
+      >
+        <i class="fas fa-comment-sms"></i>
+      </div>
+      <div class="parents-stat-info">
+        <h3 id="parentsStatSmsOn">0</h3>
+        <p>SMS Alerts On</p>
+      </div>
+    </div>
+    <div class="parents-stat-card">
+      <div
+        class="parents-stat-icon"
+        style="background: linear-gradient(135deg, #f59e0b, #b45309)"
+      >
+        <i class="fas fa-link"></i>
+      </div>
+      <div class="parents-stat-info">
+        <h3 id="parentsStatLinked">0</h3>
+        <p>Linked to Students</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="parents-toolbar">
+    <div class="parents-toolbar-left">
+      <div class="parent-search-wrap">
+        <i class="fas fa-search"></i>
+        <input
+          id="parentsSearchInput"
+          type="text"
+          placeholder="Search parent by name, email, phone"
+        />
+      </div>
+    </div>
+    <div class="parents-toolbar-right">
+      <span id="parentsCountLabel" style="font-size: 0.82rem; color: #64748b"
+        >0 parents</span
+      >
+    </div>
+  </div>
+
+  <div class="parents-table-wrap">
+    <table class="parents-table">
+      <thead>
+        <tr>
+          <th>Parent</th>
+          <th>Contact</th>
+          <th>Occupation</th>
+          <th>Preferences</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="parentsTableBody">
+        <tr>
+          <td colspan="5" class="empty-parent-state">Loading parents...</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="parents-table-footer">
+      <span id="parentsPaginationInfo">Showing 0-0 of 0</span>
+      <div id="parentsPaginationControls" class="parents-pagination"></div>
+    </div>
+  </div>
+</section>
+
+<div class="parent-modal-overlay" id="parentFormModal">
+  <div class="parent-modal">
+    <div class="parent-modal-header">
+      <h3 id="parentFormTitle">Add Parent</h3>
+      <button class="parent-modal-close" id="closeParentFormBtn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="parent-modal-body">
+      <div class="parent-grid">
+        <div class="parent-form-group">
+          <label for="pfFirstName">First Name *</label>
+          <input id="pfFirstName" type="text" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfLastName">Last Name *</label>
+          <input id="pfLastName" type="text" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfGuardianId">Guardian ID</label>
+          <input
+            id="pfGuardianId"
+            type="text"
+            placeholder="Auto-generated if left blank"
+          />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfUsername">Username *</label>
+          <input id="pfUsername" type="text" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfEmail">Email *</label>
+          <input id="pfEmail" type="email" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfPassword">Password</label>
+          <div class="password-input-wrap">
+            <input
+              id="pfPassword"
+              type="password"
+              placeholder="Required when adding a parent"
+            />
+            <button
+              type="button"
+              id="pfPasswordToggle"
+              class="password-toggle-btn"
+              aria-label="Show password"
+              title="Show password"
+            >
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="parent-form-hint">
+            Leave blank while editing to keep the current password.
+          </div>
+        </div>
+        <div class="parent-form-group">
+          <label for="pfPhone">Phone Number</label>
+          <input id="pfPhone" type="text" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfOccupation">Occupation</label>
+          <input id="pfOccupation" type="text" />
+        </div>
+        <div class="parent-form-group">
+          <label for="pfAddress">Address</label>
+          <input id="pfAddress" type="text" />
+        </div>
+      </div>
+
+      <div class="parent-form-group" style="margin-top: 0.75rem">
+        <label>Communication Preferences</label>
+        <div class="pref-toggle-wrap">
+          <label class="pref-toggle switch-row">
+            <span class="switch">
+              <input id="pfPrefEmail" type="checkbox" checked />
+              <span class="switch-slider"></span>
+            </span>
+            <span>Email Notifications</span>
+          </label>
+          <label class="pref-toggle switch-row">
+            <span class="switch">
+              <input id="pfPrefSms" type="checkbox" />
+              <span class="switch-slider"></span>
+            </span>
+            <span>SMS Notifications</span>
+          </label>
+        </div>
+        <div class="parent-form-hint">
+          Name, contact, and login details are saved on the user account.
+          Guardian ID, occupation, and notification settings stay on the parent
+          record.
+        </div>
+      </div>
+    </div>
+    <div class="parent-modal-footer">
+      <button class="btn btn-outline" id="cancelParentFormBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveParentBtn">Save Parent</button>
+    </div>
+  </div>
+</div>
+
+<div class="parent-modal-overlay" id="parentLinkModal">
+  <div class="parent-modal" style="max-width: 720px">
+    <div class="parent-modal-header">
+      <h3 id="parentLinkTitle">Link Students</h3>
+      <button class="parent-modal-close" id="closeParentLinkBtn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="parent-modal-body">
+      <div class="parent-grid" style="grid-template-columns: 1fr 1fr">
+        <div class="parent-form-group">
+          <label for="plRelationship">Relationship</label>
+          <select id="plRelationship">
+            <option value="Parent">Parent</option>
+            <option value="Mother">Mother</option>
+            <option value="Father">Father</option>
+            <option value="Guardian">Guardian</option>
+            <option value="Aunt">Aunt</option>
+            <option value="Uncle">Uncle</option>
+          </select>
+        </div>
+        <div class="parent-form-group" style="justify-content: flex-end">
+          <label class="pref-toggle switch-row" style="margin-top: 1.8rem">
+            <span class="switch">
+              <input type="checkbox" id="plPrimary" />
+              <span class="switch-slider"></span>
+            </span>
+            <span>Primary Contact</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="student-picker">
+        <div class="student-picker-toolbar">
+          <input
+            id="plStudentSearch"
+            class="student-picker-search"
+            type="text"
+            placeholder="Search student by name, ID number, or email"
+          />
+        </div>
+        <div class="student-picker-table-wrap">
+          <table class="student-picker-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Student ID</th>
+                <th>Email</th>
+                <th>Select</th>
+              </tr>
+            </thead>
+            <tbody id="plStudentTableBody">
+              <tr>
+                <td colspan="4" class="student-picker-empty">
+                  Loading students...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        style="display: flex; justify-content: flex-end; margin-top: 0.65rem"
+      >
+        <button class="btn btn-primary btn-sm" id="addParentStudentLinkBtn">
+          <i class="fas fa-link"></i> Link Student
+        </button>
+      </div>
+
+      <div class="linked-students-list" id="linkedStudentsList"></div>
+    </div>
+    <div class="parent-modal-footer">
+      <button class="btn btn-outline" id="doneParentLinkBtn">Done</button>
+    </div>
+  </div>
+</div>

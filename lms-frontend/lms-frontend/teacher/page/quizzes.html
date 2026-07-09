@@ -1,0 +1,906 @@
+<style>
+  .tq-wrap {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .tq-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+  }
+
+  .tq-toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tq-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 20px;
+  }
+
+  .tq-field {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .tq-field label {
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 600;
+  }
+
+  .tq-field input,
+  .tq-field select,
+  .tq-field textarea {
+    border: 1px solid #dbe4ef;
+    border-radius: 8px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.84rem;
+    background: #fff;
+  }
+
+  .tq-field textarea {
+    min-height: 92px;
+    resize: vertical;
+  }
+
+  .tq-field input:focus,
+  .tq-field select:focus,
+  .tq-field textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .tq-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tq-stat {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    background: #fff;
+  }
+
+  .tq-stat h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .tq-stat p {
+    margin: 0.2rem 0 0;
+    font-size: 0.77rem;
+    color: #64748b;
+  }
+
+  .tq-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    overflow-x: auto;
+    /* overflow: hidden; */
+    margin-top: 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tq-list-scroll {
+    overflow-x: auto;
+  }
+
+  .tq-list-head {
+    display: grid;
+    grid-template-columns: 2fr 0.9fr 1.4fr 0.85fr 0.85fr 0.8fr 0.9fr 1.2fr 1.2fr 1.7fr;
+    gap: 0.45rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.74rem;
+    color: #475569;
+    font-weight: 700;
+    min-width: 1320px;
+  }
+
+  .tq-row {
+    display: grid;
+    grid-template-columns: 2fr 0.9fr 1.4fr 0.85fr 0.85fr 0.8fr 0.9fr 1.2fr 1.2fr 1.7fr;
+    gap: 0.45rem;
+    align-items: center;
+    padding: 0.62rem 0.75rem;
+    border-bottom: 1px solid #f1f5f9;
+    min-width: 1320px;
+    transition: background 0.15s;
+  }
+
+  .tq-row:hover {
+    background: #f8fafc;
+  }
+
+  .tq-row:last-child {
+    border-bottom: none;
+  }
+
+  .tq-title {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .tq-title strong {
+    font-size: 0.86rem;
+    color: #0f172a;
+  }
+
+  .tq-title span {
+    font-size: 0.74rem;
+    color: #64748b;
+  }
+
+  .tq-chip {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  .tq-chip.draft {
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .tq-chip.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .tq-chip.archived {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .tq-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    justify-content: flex-end;
+  }
+
+  .tq-btn-icon {
+    background: none;
+    border: none;
+    color: #0f172a;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .tq-btn-icon:hover {
+    background: #f1f5f9;
+  }
+
+  .tq-btn-icon.danger:hover {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .tq-btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tq-btn-primary:hover {
+    background: var(--primary-light);
+  }
+
+  .tq-btn-primary:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+  }
+
+  .tq-btn-secondary {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tq-btn-secondary:hover {
+    background: #e2e8f0;
+  }
+
+  .tq-btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tq-btn-danger:hover {
+    background: #b91c1c;
+  }
+
+  .tq-empty,
+  .tq-error,
+  .tq-loading {
+    padding: 1.2rem;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.86rem;
+  }
+
+  .tq-error {
+    color: #b91c1c;
+  }
+
+  .tq-note {
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    font-size: 0.82rem;
+    display: none;
+  }
+
+  .tq-note.show {
+    display: block;
+  }
+
+  .tq-note.success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+
+  .tq-note.error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .tq-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 2300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .tq-modal-overlay.open {
+    display: flex;
+  }
+
+  .tq-modal {
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+    transform: translateY(14px);
+    transition: transform 0.2s;
+  }
+
+  .tq-modal-overlay.open .tq-modal {
+    transform: translateY(0);
+  }
+
+  .tq-confirm-modal {
+    width: min(420px, 100%);
+  }
+
+  .tq-confirm-body {
+    padding: 1rem;
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .tq-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0 1rem 1rem;
+  }
+
+  .tq-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .tq-modal-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #0f172a;
+  }
+
+  .tq-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .tq-modal-close:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+
+  .tq-modal-body {
+    padding: 1rem 1.2rem;
+    display: grid;
+    gap: 0.85rem;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .tq-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .tq-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 0.85rem 1.2rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .tq-question-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.62rem;
+  }
+
+  .tq-question-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+
+  .tq-question-options {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: #f8fafc;
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .tq-option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .tq-question-list-row {
+    grid-template-columns: 1.8fr 0.9fr 0.7fr 0.8fr 1fr !important;
+  }
+
+  @media (max-width: 980px) {
+    .tq-list-head,
+    .tq-row {
+      grid-template-columns: 2fr 0.9fr 1.2fr 0.85fr 0.85fr 0.8fr 0.9fr 1fr 1fr 1.5fr;
+      min-width: 1160px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .tq-filters {
+      grid-template-columns: 1fr;
+    }
+
+    .tq-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .tq-list-head {
+      display: none;
+    }
+
+    .tq-row {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tq-actions {
+      justify-content: flex-start;
+    }
+
+    .tq-modal-grid,
+    .tq-question-grid,
+    .tq-option-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<div id="teacherQuizRoot" class="tq-wrap">
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="fas fa-circle-question"></i> Quizzes</h3>
+    </div>
+    <div class="card-body">
+      <p>Create, publish, and manage quizzes, attempts, and questions.</p>
+
+      <div class="tq-toolbar">
+        <div class="tq-toolbar-actions">
+          <button
+            id="refreshQuizListBtn"
+            class="tq-btn-secondary"
+            type="button"
+          >
+            <i class="fas fa-rotate-right"></i> Refresh
+          </button>
+          <button id="createQuizBtn" class="tq-btn-primary" type="button">
+            <i class="fas fa-plus"></i> New Quiz
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="quizNotice"
+        class="tq-note"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <div class="tq-filters">
+        <div class="tq-field">
+          <label for="quizFilterCourse">Course</label>
+          <select id="quizFilterCourse">
+            <option value="">Select a course</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tq-stats">
+        <div class="tq-stat">
+          <h4 id="quizTotalCount">0</h4>
+          <p>Total Quizzes</p>
+        </div>
+        <div class="tq-stat">
+          <h4 id="quizActiveCount">0</h4>
+          <p>Published</p>
+        </div>
+        <div class="tq-stat">
+          <h4 id="quizDraftCount">0</h4>
+          <p>Draft</p>
+        </div>
+        <div class="tq-stat">
+          <h4 id="quizArchivedCount">0</h4>
+          <p>Archived</p>
+        </div>
+      </div>
+
+      <span style="overflow: hidden">
+        <div class="tq-card">
+          <div class="tq-list-scroll">
+            <div class="tq-list-head">
+              <div>Quiz</div>
+              <div>Type</div>
+              <div>Unit / Week / Topic</div>
+              <div>Total points</div>
+              <div>Duration</div>
+              <div>Attempts</div>
+              <div>Status</div>
+              <div>Available From</div>
+              <div>Available To</div>
+              <div>Actions</div>
+            </div>
+            <div id="quizListBody" class="tq-list-body">
+              <div class="tq-loading">Loading quizzes...</div>
+            </div>
+          </div>
+        </div>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div id="quizModal" class="tq-modal-overlay" aria-hidden="true">
+  <div class="tq-modal">
+    <div class="tq-modal-head">
+      <h3 id="quizModalTitle">Create Quiz</h3>
+      <button
+        id="quizModalCloseBtn"
+        class="tq-modal-close"
+        type="button"
+        aria-label="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="quizForm">
+      <div class="tq-modal-body">
+        <input id="quizId" type="hidden" />
+
+        <div class="tq-modal-grid">
+          <div class="tq-field" style="grid-column: 1 / -1">
+            <label for="quizTitle">Title</label>
+            <input id="quizTitle" type="text" maxlength="200" required />
+          </div>
+
+          <div class="tq-field" style="grid-column: 1 / -1">
+            <label for="quizDescription">Description</label>
+            <textarea
+              id="quizDescription"
+              placeholder="Describe quiz scope and instructions."
+            ></textarea>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizCourseId">Course</label>
+            <select id="quizCourseId" required>
+              <option value="">Select course</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizSectionId">Unit / Week / Topic (optional)</label>
+            <select id="quizSectionId">
+              <option value="">All Unit / Week / Topic</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizDurationMinutes">Duration (minutes)</label>
+            <input
+              id="quizDurationMinutes"
+              type="number"
+              min="1"
+              max="300"
+              value="30"
+              required
+            />
+          </div>
+
+          <div class="tq-field">
+            <label for="quizMaxAttempts">Max Attempts</label>
+            <input
+              id="quizMaxAttempts"
+              type="number"
+              min="1"
+              max="10"
+              value="1"
+            />
+          </div>
+
+          <div class="tq-field">
+            <label for="quizTotalPoints"
+              >Total Points (auto from questions)</label
+            >
+            <input
+              id="quizTotalPoints"
+              type="number"
+              min="0"
+              value="0"
+              readonly
+            />
+          </div>
+
+          <div class="tq-field">
+            <label for="quizType">Quiz Type</label>
+            <select id="quizType">
+              <option value="graded">Graded</option>
+              <option value="practice">Practice</option>
+              <option value="survey">Survey</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizStatus">Status</label>
+            <select id="quizStatus">
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizShowResults">Show Results</label>
+            <select id="quizShowResults">
+              <option value="after_end">After End</option>
+              <option value="instant">Instant</option>
+              <option value="never">Never</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizRandomizeQuestions">Shuffle Questions</label>
+            <select id="quizRandomizeQuestions">
+              <option value="0">No</option>
+              <option value="1">Yes</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizIsActivated">Activation</label>
+            <select id="quizIsActivated">
+              <option value="0">Inactive</option>
+              <option value="1">Activated</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="quizStartDate">Available From</label>
+            <input id="quizStartDate" type="datetime-local" />
+          </div>
+
+          <div class="tq-field">
+            <label for="quizEndDate">Available To</label>
+            <input id="quizEndDate" type="datetime-local" />
+          </div>
+        </div>
+      </div>
+
+      <div class="tq-modal-foot">
+        <button id="quizModalCancelBtn" type="button" class="tq-btn-secondary">
+          Cancel
+        </button>
+        <button id="quizFormSubmitBtn" type="submit" class="tq-btn-primary">
+          Save Quiz
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="quizQuestionModal" class="tq-modal-overlay" aria-hidden="true">
+  <div class="tq-modal">
+    <div class="tq-modal-head">
+      <h3 id="questionModalTitle">Quiz Questions</h3>
+      <button
+        id="questionModalCloseBtn"
+        class="tq-modal-close"
+        type="button"
+        aria-label="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="tq-modal-body">
+      <div class="tq-field">
+        <label>Quiz</label>
+        <strong
+          id="questionQuizTitle"
+          style="font-size: 0.92rem; color: #0f172a"
+          >-</strong
+        >
+      </div>
+
+      <div class="tq-question-toolbar">
+        <button
+          id="questionPreviewQuizBtn"
+          type="button"
+          class="tq-btn-secondary"
+        >
+          <i class="fas fa-eye"></i> Preview Quiz
+        </button>
+        <button
+          id="questionPublishQuizBtn"
+          type="button"
+          class="tq-btn-primary"
+        >
+          <i class="fas fa-paper-plane"></i> Publish Quiz
+        </button>
+        <button
+          id="questionViewResultsBtn"
+          type="button"
+          class="tq-btn-secondary"
+        >
+          <i class="fas fa-chart-line"></i> Results
+        </button>
+        <button
+          id="questionExportResultsBtn"
+          type="button"
+          class="tq-btn-secondary"
+        >
+          <i class="fas fa-file-csv"></i> Export Results
+        </button>
+      </div>
+
+      <div id="questionListBody" class="tq-card" style="padding: 0.8rem">
+        <div class="tq-loading">Loading questions...</div>
+      </div>
+
+      <form id="questionForm">
+        <input id="questionId" type="hidden" />
+
+        <div class="tq-question-grid">
+          <div class="tq-field" style="grid-column: 1 / -1">
+            <label for="questionText">Question Text</label>
+            <textarea id="questionText" required></textarea>
+          </div>
+
+          <div class="tq-field">
+            <label for="questionType">Question Type</label>
+            <select id="questionType" required>
+              <option value="multiple_choice">Multiple Choice</option>
+              <option value="true_false">True/False</option>
+              <option value="short_answer">Short Answer</option>
+              <option value="essay">Essay</option>
+            </select>
+          </div>
+
+          <div class="tq-field">
+            <label for="questionPoints">Points</label>
+            <input id="questionPoints" type="number" min="1" value="1" />
+          </div>
+
+          <div class="tq-field">
+            <label for="questionDifficulty">Difficulty</label>
+            <select id="questionDifficulty">
+              <option value="easy">Easy</option>
+              <option value="medium" selected>Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div
+            id="questionOptionsBlock"
+            class="tq-question-options"
+            style="grid-column: 1 / -1"
+          >
+            <div class="tq-field">
+              <label>Answer Options (A-D)</label>
+              <div class="tq-option-grid">
+                <input
+                  id="questionOptionA"
+                  type="text"
+                  maxlength="500"
+                  placeholder="Option A"
+                />
+                <input
+                  id="questionOptionB"
+                  type="text"
+                  maxlength="500"
+                  placeholder="Option B"
+                />
+                <input
+                  id="questionOptionC"
+                  type="text"
+                  maxlength="500"
+                  placeholder="Option C"
+                />
+                <input
+                  id="questionOptionD"
+                  type="text"
+                  maxlength="500"
+                  placeholder="Option D"
+                />
+              </div>
+            </div>
+            <div class="tq-field">
+              <label for="questionCorrectOption">Correct Option</label>
+              <select id="questionCorrectOption">
+                <option value="">Select correct option</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tq-field" style="grid-column: 1 / -1">
+            <label for="questionCorrectAnswer"
+              >Correct Answer (optional for essay)</label
+            >
+            <input id="questionCorrectAnswer" type="text" maxlength="500" />
+          </div>
+
+          <div class="tq-field" style="grid-column: 1 / -1">
+            <label for="questionExplanation">Explanation (optional)</label>
+            <textarea id="questionExplanation"></textarea>
+          </div>
+        </div>
+
+        <div
+          style="display: flex; justify-content: flex-end; margin-top: 0.7rem"
+        >
+          <button
+            id="questionFormResetBtn"
+            type="button"
+            class="tq-btn-secondary"
+            style="margin-right: 0.5rem"
+          >
+            Clear
+          </button>
+          <button
+            id="questionFormSubmitBtn"
+            type="submit"
+            class="tq-btn-primary"
+          >
+            Add Question
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="deleteConfirmModal" class="tq-modal-overlay" aria-hidden="true">
+  <div class="tq-modal tq-confirm-modal">
+    <div class="tq-modal-head">
+      <h3>Delete Quiz</h3>
+      <button
+        id="deleteConfirmCloseBtn"
+        class="tq-modal-close"
+        type="button"
+        aria-label="Close"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="deleteConfirmText" class="tq-confirm-body">
+      Delete this quiz? This cannot be undone.
+    </div>
+    <div class="tq-confirm-actions">
+      <button
+        id="deleteConfirmCancelBtn"
+        type="button"
+        class="tq-btn-secondary"
+      >
+        Cancel
+      </button>
+      <button id="deleteConfirmOkBtn" type="button" class="tq-btn-danger">
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
