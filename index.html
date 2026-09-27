@@ -1,1 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Learning Management System for institutions, instructors, and learners to manage courses, lessons, assignments, and progress in one place." />
+  <title>LearnSphere LMS | Manage Learning in One Place</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: #121a31;
+      --surface-alt: #1a2545;
+      --text: #eaf0ff;
+      --muted: #b7c2df;
+      --brand: #5b8cff;
+      --brand-strong: #3d73f3;
+      --accent: #33c3a7;
+      --border: #2b3a67;
+      --focus: #ffcb57;
+      --shadow: 0 10px 30px rgba(5, 9, 20, 0.35);
+      --radius: 14px;
+    }
 
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(circle at top right, #1a2652 0%, var(--bg) 45%);
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 3px;
+      border-radius: 8px;
+    }
+
+    .container {
+      width: min(1120px, 92%);
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(8px);
+      background: rgba(11, 16, 32, 0.86);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.95rem 0;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .brand-badge {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--brand), var(--accent));
+      display: inline-grid;
+      place-items: center;
+      color: #04102b;
+      font-weight: 800;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 1.2rem;
+      margin: 0;
+      padding: 0;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      color: #fff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-weight: 600;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      padding: 0.7rem 1.2rem;
+      transition: 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .btn-secondary {
+      border-color: var(--border);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hero {
+      padding: 5.2rem 0 3rem;
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: 1.2fr 1fr;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 0.8rem;
+      color: #9ddcff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+    }
+
+    h1,
+    h2,
+    h3 {
+      line-height: 1.2;
+      margin: 0 0 0.9rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 60ch;
+      margin: 0 0 1.4rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .hero-card {
+      background: linear-gradient(180deg, #1a254a, #121a31);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card ul {
+      margin: 0.8rem 0 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+    }
+
+    section {
+      padding: 3.5rem 0;
+    }
+
+    .section-title {
+      margin-bottom: 0.6rem;
+      font-size: clamp(1.5rem, 3vw, 2rem);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.55rem;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.97rem;
+    }
+
+    .workflow {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      position: relative;
+    }
+
+    .step-number {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 999px;
+      background: rgba(91, 140, 255, 0.18);
+      border: 1px solid rgba(91, 140, 255, 0.42);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      margin-bottom: 0.65rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem;
+    }
+
+    .stat {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.6rem;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+
+    .cta {
+      background: linear-gradient(180deg, #1f2d58, #121a31);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .site-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .footer-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    @media (max-width: 1000px) {
+      .cards,
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .nav-wrap {
+        flex-wrap: wrap;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .workflow,
+      .cards,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body id="top">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a href="#top" class="brand" aria-label="LearnSphere LMS home">
+        <span class="brand-badge" aria-hidden="true">L</span>
+        <span>LearnSphere LMS</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#benefits">Benefits</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Modern Learning Management System</span>
+          <h1 id="hero-title">Run courses, lessons, and learner progress from one secure platform.</h1>
+          <p class="lead">
+            LearnSphere LMS helps schools, training centers, and online academies streamline course delivery,
+            assignments, learning materials, progress tracking, and user access—without juggling disconnected tools.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#contact">Get Started</a>
+            <a class="btn btn-secondary" href="#how-it-works">See How It Works</a>
+          </div>
+        </div>
+        <aside class="hero-card" aria-label="Platform highlights">
+          <h2>Everything your learning team needs</h2>
+          <ul>
+            <li>Create structured courses with lessons and downloadable resources.</li>
+            <li>Track learner completion, attendance, and assignment performance.</li>
+            <li>Support admins, instructors, and learners with role-based access.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section id="features" aria-labelledby="features-title">
+      <div class="container">
+        <h2 class="section-title" id="features-title">Core features built for education teams</h2>
+        <p class="section-subtitle">Keep teaching operations, collaboration, and learner outcomes in one place.</p>
+        <div class="cards">
+          <article class="card">
+            <h3>Course Management</h3>
+            <p>Build and organize programs, modules, and lesson schedules with clear publishing controls.</p>
+          </article>
+          <article class="card">
+            <h3>Learner Progress Tracking</h3>
+            <p>Monitor completion rates, quiz and assignment results, and identify learners who need support.</p>
+          </article>
+          <article class="card">
+            <h3>Assignments &amp; Resources</h3>
+            <p>Distribute tasks, upload learning materials, and keep all submission records centralized.</p>
+          </article>
+          <article class="card">
+            <h3>Role-Based Access</h3>
+            <p>Give administrators, instructors, and students the right permissions to collaborate securely.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="how-it-works" aria-labelledby="workflow-title">
+      <div class="container">
+        <h2 class="section-title" id="workflow-title">How it works</h2>
+        <p class="section-subtitle">A simple workflow for administrators, instructors, and learners.</p>
+        <div class="workflow">
+          <article class="step">
+            <div class="step-number" aria-hidden="true">1</div>
+            <h3>Administrators set up the learning space</h3>
+            <p>Create departments, manage users, assign instructor roles, and configure course catalogs.</p>
+          </article>
+          <article class="step">
+            <div class="step-number" aria-hidden="true">2</div>
+            <h3>Instructors deliver and assess</h3>
+            <p>Publish lessons, share materials, create assignments, and review learner submissions.</p>
+          </article>
+          <article class="step">
+            <div class="step-number" aria-hidden="true">3</div>
+            <h3>Learners engage and track growth</h3>
+            <p>Access lessons anywhere, complete tasks, and view progress milestones in real time.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="benefits" aria-labelledby="benefits-title">
+      <div class="container">
+        <h2 class="section-title" id="benefits-title">Trusted outcomes for modern institutions</h2>
+        <p class="section-subtitle">Use one platform to improve learning consistency, visibility, and operational speed.</p>
+        <div class="stats" role="list" aria-label="Platform benefits and statistics">
+          <article class="stat" role="listitem">
+            <strong>45%</strong>
+            <span>Faster course rollout</span>
+          </article>
+          <article class="stat" role="listitem">
+            <strong>98%</strong>
+            <span>Assignment submission visibility</span>
+          </article>
+          <article class="stat" role="listitem">
+            <strong>3x</strong>
+            <span>Improved learner progress insights</span>
+          </article>
+          <article class="stat" role="listitem">
+            <strong>1</strong>
+            <span>Unified system for admins, instructors, and learners</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" aria-labelledby="cta-title">
+      <div class="container cta">
+        <div>
+          <h2 id="cta-title">Ready to modernize your learning operations?</h2>
+          <p class="section-subtitle">Launch your LMS workspace and unify teaching, assignments, and learner success today.</p>
+        </div>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="mailto:hello@learnsphere-lms.example">Request a Demo</a>
+          <a class="btn btn-secondary" href="#features">Explore Features</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-wrap">
+      <p>© 2026 LearnSphere LMS Project. All rights reserved.</p>
+      <nav aria-label="Footer links" class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
